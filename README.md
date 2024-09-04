@@ -17,3 +17,15 @@ ReBuzz is a modular digital audio workstation (DAW) built upon the foundation of
 Requires:
 1. [.NET 8.0 Desktop Runtime - Windows x64](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-8.0.3-windows-x64-installer?cid=getdotnetcore)
 2. [Latest Microsoft Visual C++ Redistributable](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170)
+
+## How can I help?
+All the basic functionality is implemented but there many areas to improve. In general, contributions are needed in every part of the software, but here are few items to look into:
+
+- [ ] Improve stability, fix bugs and issues
+- [ ] Cleanup code and architecture
+- [ ] Add comments and documentation
+- [ ] Improve Audio wave handling (Wavetable)
+- [ ] Improve file handling to support older songs
+- [ ] Reduce latency, optimize code
+
+Let's make this a good one.
