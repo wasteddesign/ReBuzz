@@ -1,0 +1,161 @@
+﻿<Window x:Class="ReBuzz.Common.PreferencesWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ReBuzz.Common"
+        mc:Ignorable="d"
+                        WindowStyle="ToolWindow"
+        TextOptions.TextFormattingMode="{Binding TextFormattingMode}"
+        Style="{DynamicResource ThemeWindowStyle}" ResizeMode="NoResize"
+        Title="Preferences" Height="450" Width="800">
+    <Grid Margin="4">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="30"/>
+        </Grid.RowDefinitions>
+        <TabControl Name="tc">
+            <TabItem Header="Wavetable">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                        
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="30"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="30"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Margin="4,4,4,4" Text="Wave Directories: "/>
+                    <ListBox Grid.Row="1" Name="lbWaveDirectories"></ListBox>
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Left">
+                        <Button Name="btAddWaveDirectory" Margin ="4" Height ="20" Width="60" VerticalAlignment="Bottom" Content="Add"></Button>
+                        <Button Name="btRemoveWaveDirectory" Margin ="4" Height ="20" Width="60" VerticalAlignment="Bottom" Content="Remove"></Button>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+            <TabItem Header="MIDI Input">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="30"/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <Grid Margin="4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="MIDI Input Devices:"/>
+                    </Grid>
+                    <Grid Grid.Row="1" Margin="0">
+                        <ListBox Name="lbMidiInputs" Grid.Row="1" ItemsSource="{Binding MidiInControllerCheckboxes}" SelectionMode="Multiple">
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="IsSelected" Value="{Binding Checked, Mode=TwoWay}" />
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding Checked, Mode=TwoWay}" Content="{Binding Label}"/>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
+                    <Grid Grid.Row="2" Margin="0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="30"/>
+                            <RowDefinition/>
+                            <RowDefinition Height="30"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Margin="4" Text="Contollers:"/>
+                        <ScrollViewer Grid.Row="1">
+                            <ListView x:Name="lvControllers" ItemsSource="{Binding SourceCollection}">
+                                <ListView.View>
+                                    <GridView>
+                                        <!--
+                                        <GridViewColumn Header="Name" Width="200">
+                                            <GridViewColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <TextBox x:Name="tbName" Text="{Binding Name}" Width="200"></TextBox>
+                                                </DataTemplate>
+                                            </GridViewColumn.CellTemplate>
+                                        </GridViewColumn>
+                                        -->
+
+                                        <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="200" />
+                                        <GridViewColumn Header="Channel" DisplayMemberBinding="{Binding Channel}" Width="100" />
+                                        <GridViewColumn Header="Controller" DisplayMemberBinding="{Binding Controller}" Width="100"/>
+                                        <GridViewColumn Header="Value" DisplayMemberBinding="{Binding Value}" Width="100"/>
+                                        <!--
+                                        <GridViewColumn Header="Button">
+                                            <GridViewColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <Button>Button Text</Button>
+                                                </DataTemplate>
+                                            </GridViewColumn.CellTemplate>
+                                        </GridViewColumn>
+                                        -->
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                        </ScrollViewer>
+                    </Grid>
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Name="btAddController" Margin ="4" Height ="20" Width="60" VerticalAlignment="Bottom" Content="Add"></Button>
+                        <Button Name="btModifyController" Margin ="4" Height ="20" Width="60" VerticalAlignment="Bottom" Content="Modify" IsEnabled="{Binding IsControllerSelected}"></Button>
+                        <Button Name="btRemoveController" Margin ="4" Height ="20" Width="60" VerticalAlignment="Bottom" Content="Remove"></Button>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+            <TabItem Header="MIDI Output">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="30"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="30"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Margin="4">MIDI Output Devices:</TextBlock>
+                    <ListBox Name="lbMidiOutputs" Grid.Row="1" ItemsSource="{Binding MidiOutControllerCheckboxes}" SelectionMode="Multiple">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="IsSelected" Value="{Binding Checked, Mode=TwoWay}" />
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <CheckBox IsChecked="{Binding Checked, Mode=TwoWay}" Content="{Binding Label}"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Engine">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="30"/>
+                        <RowDefinition Height="30"/>
+                        <RowDefinition Height="30"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="330"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Margin="4" Grid.Row="0" Text="Audio Background Thread Type"/>
+                    <ComboBox Margin="4" Grid.Row="0" Grid.Column="1" Name="cbAudioThreadType" HorizontalContentAlignment="Right" HorizontalAlignment="Right" Width="200"/>                    
+                    <TextBlock Margin="4" Grid.Row="1" Text="Audio Threads (Enable Multithreading from Engine Settings)"/>
+                    <ComboBox Margin="4" Grid.Row="1" Grid.Column="1" Name="cbAudioThreads" HorizontalContentAlignment="Right" HorizontalAlignment="Right" Width="200"/>
+                    <TextBlock Margin="4" Grid.Row="2" Text="Algorithm"/>
+                    <ComboBox Margin="4" Grid.Row="2" Grid.Column="1" Name="cbAlgorithms" HorizontalContentAlignment="Right" HorizontalAlignment="Right" Width="200"/>
+                    <TextBlock Margin="4" Grid.Row="3" Text="Processor Affinity" />
+                    <WrapPanel Margin="4" Grid.Row="3" Grid.Column="1" Name="wpCPU" Orientation="Horizontal" HorizontalAlignment="Right"></WrapPanel>
+                </Grid>
+            </TabItem>
+        </TabControl>
+        <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Name="btOk" Margin ="4" Height ="20" Width="60" VerticalAlignment="Bottom" Content="Ok"></Button>
+            <Button Name="btCancel" Margin ="4" Height ="20" Width="60" VerticalAlignment="Bottom" Content="Cancel" IsDefault="True" IsCancel="True"></Button>
+        </StackPanel>
+    </Grid>
+</Window>

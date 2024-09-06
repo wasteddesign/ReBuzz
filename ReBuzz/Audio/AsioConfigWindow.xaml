@@ -1,0 +1,42 @@
+﻿<Window x:Class="BuzzDotNet.Audio.AsioConfigWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:BuzzDotNet.Audio"
+        mc:Ignorable="d"
+                WindowStyle="ToolWindow"
+        TextOptions.TextFormattingMode="{Binding TextFormattingMode}"
+        Style="{DynamicResource ThemeWindowStyle}" ResizeMode="NoResize"
+        Title="Asio Settings" Height="250" Width="400">
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="24"/>
+            <RowDefinition Height="24"/>
+            <RowDefinition Height="24"/>
+            <RowDefinition Height="24"/>
+            <RowDefinition Height="24"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <TextBlock Text="Device"></TextBlock>
+        <TextBlock Margin="1" Name="tbDevice" Grid.Column="1" HorizontalAlignment="Right"></TextBlock>
+        <TextBlock Grid.Row="1" Text="Sample Rate"></TextBlock>
+        <ComboBox Margin="1" Name="cbSampleRate" Grid.Row="1" Grid.Column="1" HorizontalContentAlignment="Right"></ComboBox>
+
+        <TextBlock Grid.Row="2" Text="Buffer Size"></TextBlock>
+        <ComboBox Margin="1" Name="cbLatency" Grid.Row="2" Grid.Column="1" HorizontalContentAlignment="Right"></ComboBox>
+
+        <!-- <TextBlock Grid.Row="4" Text="Poll"></TextBlock> -->
+        <Button Margin="1" Name="btAsioControlPanel" Content="Asio Control Panel" Width="120" Grid.Row="4" Grid.Column="1" HorizontalContentAlignment="CEnter"></Button>
+
+        <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Name="btOk" Margin ="4" Height ="20" Width="60" VerticalAlignment="Bottom" Content="Ok"></Button>
+            <Button Name="btCancel" Margin ="4" Height ="20" Width="60" VerticalAlignment="Bottom" Content="Cancel" IsDefault="True" IsCancel="True"></Button>
+        </StackPanel>
+
+    </Grid>
+</Window>

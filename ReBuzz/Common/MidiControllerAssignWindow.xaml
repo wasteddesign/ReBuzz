@@ -1,0 +1,39 @@
+﻿<Window x:Class="ReBuzz.Common.MidiControllerAssignWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ReBuzz.Common"
+        mc:Ignorable="d"
+        WindowStyle="ToolWindow"
+        TextOptions.TextFormattingMode="{Binding TextFormattingMode}"
+        Style="{DynamicResource ThemeWindowStyle}" ResizeMode="NoResize"
+        Title="Midi Controller" Height="237" Width="313">
+    <Grid Margin="4">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="30"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="100"/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <TextBlock Text="Move MIDI controller to select it" Grid.ColumnSpan="2"/>
+        <TextBlock Grid.Row="1" Text="Controller"/>
+        <TextBox x:Name="Controller" Grid.Row="1" Grid.Column="1" Text="0" HorizontalAlignment="Left" Width="50"/>
+        <TextBlock Grid.Row="2" Text="Channel"/>
+        <TextBox x:Name="Channel" Grid.Row="2" Grid.Column="1" Text="1" HorizontalAlignment="Left" Width="50"/>
+        <TextBlock Grid.Row="3" Text="Value"/>
+        <TextBox x:Name="Value" Grid.Row="3" Grid.Column="1" Text="0" HorizontalAlignment="Left" Width="50"/>
+        <TextBlock Grid.Row="4" Text="Name"/>
+        <TextBox x:Name="Name" Grid.Row="4" Grid.Column="1" Text="Controller" HorizontalAlignment="Left" Width="200"/>
+        <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Name="btOk" IsDefault="True" Margin ="4" Height ="20" Width="60" VerticalAlignment="Bottom" Content="Ok" IsEnabled="{Binding IsInputValid}"></Button>
+            <Button Name="btCance" Margin ="4" Height ="20" Width="60" VerticalAlignment="Bottom" IsCancel="true" Content="Cancel"></Button>
+        </StackPanel>
+    </Grid>
+</Window>

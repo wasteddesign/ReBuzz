@@ -1,0 +1,109 @@
+﻿<Window x:Class="ReBuzz.Common.SplashScreenWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ReBuzz.Common"
+        mc:Ignorable="d"
+        ShowInTaskbar="False" 
+        ResizeMode="NoResize" 
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        TextOptions.TextFormattingMode="{Binding TextFormattingMode}"
+        Name="splashScreenWnd"
+         Height="500" Width="400" Topmost="True">
+    
+    <!-- 
+    Width="{Binding RelativeSource={RelativeSource Self}, 
+                         Path=bgImage.ActualWidth}"
+    -->
+    <Window.Style>
+        <Style>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Path=FadeOut}" Value="True">
+                    <DataTrigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Name="fadeAnim"
+                Storyboard.TargetProperty="Opacity"
+                From="1" To="0.0" Duration="0:0:1" BeginTime="0:0:1" AutoReverse="false" SpeedRatio="8">
+                                </DoubleAnimation>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </DataTrigger.EnterActions>
+                </DataTrigger>
+            </Style.Triggers>
+
+        </Style>
+    </Window.Style>
+    <Grid Background="Black">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="30"/>
+        </Grid.RowDefinitions>
+
+        <Image Name="bgImage" Source="gfx/splashscreen1.jpeg" Stretch="UniformToFill">
+        </Image>
+
+        <TextBlock Name="tbLoading" Grid.Row="0" Margin="0, 200" HorizontalAlignment="Center" FontSize="30" Foreground="White" TextWrapping="Wrap" >
+            <TextBlock.Effect>
+                <DropShadowEffect
+                  ShadowDepth="0"
+                  Direction="330"
+                  Color="Black"
+                  Opacity="0.9"
+                 BlurRadius="20"/>
+            </TextBlock.Effect>
+            <TextBlock.Triggers>
+                <EventTrigger RoutedEvent="TextBlock.Loaded">
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation 
+                Storyboard.TargetName="bgImage"
+                Storyboard.TargetProperty="(TextBlock.Opacity)" 
+                From="1" To="0.5" Duration="0:0:1" AutoReverse="True" RepeatBehavior="Forever"  />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+                <EventTrigger RoutedEvent="TextBlock.Loaded">
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <ThicknessAnimation  
+                Storyboard.TargetName="tbLoading"
+                Storyboard.TargetProperty="(TextBlock.Margin)" 
+                From="0 200 0 0" To="0 160 0 0 " Duration="0:0:1" BeginTime="0:0:8" AccelerationRatio="0.4" DecelerationRatio="0.4"/>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+            </TextBlock.Triggers>
+            Loading
+            ReBuzz...
+        </TextBlock>
+        <TextBlock Name="tbLoadingMore" Grid.Row="0" Margin="0, 200" HorizontalAlignment="Center" FontSize="30" Foreground="White" TextWrapping="Wrap" Opacity="0" >
+            <TextBlock.Effect>
+                <DropShadowEffect
+                  ShadowDepth="0"
+                  Direction="330"
+                  Color="Black"
+                  Opacity="0.9"
+                 BlurRadius="20"/>
+            </TextBlock.Effect>
+            <TextBlock.Triggers>
+                <EventTrigger RoutedEvent="TextBlock.Loaded">
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation 
+                Storyboard.TargetName="tbLoadingMore"
+                Storyboard.TargetProperty="(TextBlock.Opacity)" 
+                From="0" To="1" Duration="0:0:1" BeginTime="0:0:9"/>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+            </TextBlock.Triggers>
+            So many instruments...
+        </TextBlock>        
+        <TextBlock Name="tbStatus" Background="GhostWhite" Grid.Row="1" Margin="0,0,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" TextAlignment="Center" FontSize="14"></TextBlock>
+    </Grid>
+</Window>

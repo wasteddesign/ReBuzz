@@ -1,0 +1,24 @@
+﻿<UserControl x:Class="ReBuzz.EditorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:ReBuzz"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid x:Name="gridEditorView">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <WrapPanel Margin="4,0,4,0" Grid.Row="1" Visibility="Collapsed">
+            <Label Target="kbPatternEditorBox" VerticalAlignment="Center" Margin="4,0,0,0">Editor:</Label>
+            <ComboBox Name="kbPatternEditorBox" Margin="4,4,0,4" Height="22" Width="180" SelectedItem="{Binding EditorMachine}" ItemsSource="{Binding EditorMachines}" DisplayMemberPath="Name" ToolTip="Pattern Editor"/>
+            <Button Name="btDefThis" Margin="4,4,0,4" Padding="4,0,4,0" ToolTip="Make default for this machine" Content="Def This"></Button>
+            <Button Name="btDefAll" Margin="4,4,0,4" Padding="4,0,4,0" ToolTip="Make default" Content="Def All"></Button>
+        </WrapPanel>
+        <Border x:Name="editorBorder" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Row="3"></Border>
+    </Grid>
+</UserControl>

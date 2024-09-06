@@ -1,0 +1,68 @@
+﻿<Window x:Class="ReBuzz.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ReBuzz"
+        mc:Ignorable="d"
+        x:Name="mainWindow"
+        Title="ReBuzz Digital Audio Workstation" Height="800" Width="1500" UseLayoutRounding="True" TextOptions.TextFormattingMode="{Binding TextFormattingMode}"
+		Style="{DynamicResource ThemeWindowStyle}">
+  
+    <Grid x:Name="mainGrid">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="1" Name="contentGrid">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Border Grid.Row="0" Name="borderEditor" Visibility="Collapsed">
+                <Grid Name="editorGrid">
+                </Grid>
+            </Border>
+            <Border Grid.Row="1" Name="borderMachineView" Visibility="Collapsed">
+            </Border>
+            <Border Grid.Row="2" Name="borderSequenceEditor" Visibility="Collapsed">
+            </Border>
+            <Border Grid.Row="3" Name="borderWavetable" Visibility="Collapsed">
+            </Border>
+            <Border Grid.Row="4" Name="borderInfo" Visibility="Collapsed">
+            </Border>
+        </Grid>
+
+        <!--
+        <Border Grid.Row="1" Name="gridActiveView">
+        </Border>
+        -->        
+        <DockPanel Grid.Row="2">
+            <StatusBar DockPanel.Dock="Bottom" Height="20">
+                <StatusBar.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="200"/>
+                            </Grid.ColumnDefinitions>
+                        </Grid>
+                    </ItemsPanelTemplate>
+                </StatusBar.ItemsPanel>
+                <StatusBarItem Content="{Binding StatusBarItem1}"/>
+                <Separator Grid.Column="1"/>
+                <StatusBarItem Grid.Column="2" Content="{Binding StatusBarItem2}"/>
+
+            </StatusBar>
+        </DockPanel>
+    </Grid>
+</Window>
