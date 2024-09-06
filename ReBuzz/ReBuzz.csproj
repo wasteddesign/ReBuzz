@@ -115,10 +115,6 @@
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Remove="Audio\AudioProvider - Copy.cs" />
-    <Compile Remove="Core\MachineGraph.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <None Remove="App.config" />
     <None Remove="BuildNumber.txt" />
     <None Remove="Common\gfx\bear.jpeg" />
