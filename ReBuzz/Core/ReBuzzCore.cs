@@ -373,7 +373,6 @@ namespace ReBuzz.Core
 
         bool isHardDiskRecorderWindowVisible;
         HDRecorderWindow hDRecorderWindow;
-
         public bool IsHardDiskRecorderWindowVisible
         {
             get => isHardDiskRecorderWindowVisible;
