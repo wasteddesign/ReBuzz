@@ -34,5 +34,6 @@ All the basic functionality is implemented but there many areas to improve. In g
 You might want to improve also
 - [ReBuzz GUI Components](https://github.com/wasteddesign/ReBuzzGUI)
 - [ReBuzzEngine](https://github.com/wasteddesign/ReBuzzEngine)
+- [ModernPatternEditor](https://github.com/wasteddesign/ModernPatternEditor)
 
 Let's make this a good one.
