@@ -212,8 +212,10 @@ namespace ReBuzz.NativeMachine
             }
         }
 
-        internal void AudioBeginBlock(MachineCore machine, IWavetable wt, float amp, bool hasInput)
+        private readonly int WAVE_MAX = 200;
+        internal void AudioBeginBlock(MachineCore machine, WavetableCore wt)
         {
+            return;
             if (machine.DLL.IsCrashed)
             {
                 return;
@@ -221,75 +223,64 @@ namespace ReBuzz.NativeMachine
 
             lock (AudioMessageLock)
             {
-                Reset();
+                Reset(); 
                 SetMessageData((int)AudioMessages.AudioBeginBlock);
 
-                for (int wi = 0; wi < 200; wi++)
+                for (int wi = 0; wi < WAVE_MAX; wi++)
                 {
-                    SetMessageData(false); // Nothing is allocated
+                    bool allocated = false;
+                    var wave = wt.WavesList[wi];
+                    if (wave != null)
+                    {
+                        if (wave.Layers.Count > 0)
+                            allocated = true;
+                    }
+
+                    SetMessageData(allocated);
+
+                    if (allocated)
+                    {
+                        SetMessageData(wave.Name);
+                        // Info
+                        SetMessageData((int)wave.Flags);
+                        SetMessageData(1000000.0f /*wave.Volume*/);
+
+                        SetMessageData(wave.Layers.Count);
+
+                        for (int i = 0; i < wave.LayersList.Count; i++)
+                        {
+                            var layer = wave.LayersList[i];
+
+                            SetMessageData(layer.mappedFileId);
+
+                            SetMessageData(layer.SampleCount16Bit);
+                            SetMessageDataPtr(IntPtr.Zero);
+                            SetMessageData(layer.RootNote);
+                            SetMessageData(layer.SampleRate);
+                            SetMessageData(layer.LoopStart16Bit);
+                            SetMessageData(layer.LoopEnd16Bit);
+                        }
+
+                        // Envcount == 0
+                        SetMessageData((int)0);
+                        /*
+                                int envcount = (int)r.ReadDWORD();
+                                if (envcount != w.Envelopes.size())
+                                    w.Envelopes.resize(envcount);
+
+                                for (int i = 0; i < envcount; i++)
+                                {
+                                    Envelope & e = w.Envelopes[i];
+                                    int pointcount = (int)r.ReadDWORD();
+                                    if (pointcount != e.Points.size()) e.Points.resize(pointcount);
+                                    if (pointcount > 0) r.Read(&e.Points[0], pointcount * sizeof(int));
+                                    r.Read(e.Enabled);
+                                }
+                        */
+                    }
                 }
 
                 DoSendMessage(machine);
-
-                // Big ToDo!
-                // Samples are stored in MapFile, need to implement that on dotnet side
-
-                /*
-                for (int wi = 0; wi < WAVE_MAX; wi++)
-                {
-                    Wave &w = wavetable[wi];
-
-                    r.Read(w.Allocated);
-
-                    if (w.Allocated != NULL)
-                    {
-                        w.Name = r.ReadString();
-                        r.Read(w.Info);
-                        int levelcount = (int)r.ReadDWORD();
-                        if (levelcount != w.Levels.size())
-                        {
-                            w.Levels.resize(levelcount);
-                        }
-
-                        for (int i = 0; i < levelcount; i++)
-                        {
-                            Level &l = w.Levels[i];
-                            short *poldsamples = l.pSamples;
-
-                            HANDLE hShared;
-                            r.Read(hShared);
-                            r.Read(&w.Levels[i], sizeof(CWaveLevel));
-
-                            if (hShared != l.hShared)
-                            {
-                                if (l.hShared != NULL) ::UnmapViewOfFile(poldsamples);
-                                l.hShared = hShared;
-                                if (hShared != NULL) l.pSamples = (short *)::MapViewOfFile(hShared, FILE_MAP_WRITE | FILE_MAP_READ, 0, 0, 0);
-                            }
-                            else
-                            {
-                                l.pSamples = poldsamples;
-                            }
-                        }
-
-                        int envcount = (int)r.ReadDWORD();
-                        if (envcount != w.Envelopes.size())
-                            w.Envelopes.resize(envcount);
-
-                        for (int i = 0; i < envcount; i++)
-                        {
-                            Envelope &e = w.Envelopes[i];
-                            int pointcount = (int)r.ReadDWORD();
-                            if (pointcount != e.Points.size()) e.Points.resize(pointcount);
-                            if (pointcount > 0) r.Read(&e.Points[0], pointcount * sizeof(int));
-                            r.Read(e.Enabled);
-                        }
-                    }
-                    else
-                    {
-                        w.Levels.resize(0);
-                    } 
-                 */
             }
         }
         internal void AudioBeginFrame(MachineCore machine)

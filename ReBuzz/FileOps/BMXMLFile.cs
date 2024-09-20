@@ -1,4 +1,5 @@
 ﻿using BuzzGUI.Common.DSP;
+using BuzzGUI.Common.Templates;
 using BuzzGUI.Interfaces;
 using ReBuzz.Core;
 using ReBuzz.Core.Actions.GraphActions;
@@ -112,9 +113,10 @@ namespace ReBuzz.FileOps
                     foreach (var layer in layers)
                     {
                         WaveLayerCore waveLayer = new WaveLayerCore();
+                        waveLayer.extended = (layer.Format != WaveFormat.Int16);
+                        waveLayer.WaveFormatData = (int)layer.Format;
                         waveLayer.ChannelCount = wave.Flags.HasFlag(WaveFlags.Stereo) ? 2 : 1;
-                        waveLayer.SampleCount16Bit = layer.SampleCount;
-                        waveLayer.SampleCount = waveLayer.SampleCount16Bit;
+                        waveLayer.SampleCount16Bit = waveLayer.ReverseAdjustSampleCount(layer.SampleCount);
                         waveLayer.LoopStart = layer.LoopStart;
                         waveLayer.LoopEnd = layer.LoopEnd;
                         waveLayer.SampleRate = layer.SampleRate;

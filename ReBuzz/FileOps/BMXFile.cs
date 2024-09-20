@@ -1,4 +1,5 @@
 ﻿using BuzzGUI.Common;
+using BuzzGUI.Common.Templates;
 using BuzzGUI.Interfaces;
 using ReBuzz.Core;
 using ReBuzz.Core.Actions.GraphActions;
@@ -7,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.AccessControl;
 using System.Text;
 
 namespace ReBuzz.FileOps
@@ -1200,9 +1202,8 @@ namespace ReBuzz.FileOps
                         WaveLayerCore waveLayer = new WaveLayerCore();
                         waveLayer.ChannelCount = wave.Flags.HasFlag(WaveFlags.Stereo) ? 2 : 1;
                         waveLayer.SampleCount16Bit = ReadInt(fs);
-                        waveLayer.SampleCount = waveLayer.SampleCount16Bit;
-                        waveLayer.LoopStart = ReadInt(fs);
-                        waveLayer.LoopEnd = ReadInt(fs);
+                        waveLayer.LoopStart16Bit = ReadInt(fs);
+                        waveLayer.LoopEnd16Bit = ReadInt(fs);
                         waveLayer.SampleRate = ReadInt(fs);
                         waveLayer.RootNote = ReadByte(fs);
                         waveLayer.Wave = wave;
@@ -1250,152 +1251,36 @@ namespace ReBuzz.FileOps
 
                         for (int j = 0; j < numlevels; j++)
                         {
-                            // BMX defines samples as if they were 16 bit
-                            // New Buzz has extended Wave data so we need to figure out
-                            // if the extended wave is set and them convert sample counts accordingly.
-                            //
-                            // NOTE! Here sample is converted to 32bit float. IF one would like to enable wavetable support for native machines, then
-                            //
-                            // 1. Keep original format and convert to float when requested via IWaveLayer
-                            // 2. Update Wavetable information to native machines before "Work()" or when changed
-                            // 3. Refresh other stuff on ReBuzz side after Work() if needed
-                            //
-                            // It will introduce overhead and possibly other issues. Better approach: eager developer should either
-                            //
-                            // 1. Extend Matilde Tracker so that it uses machine internal storage for samples. It could check if it is loaded in legacy Buzz and copy samples from wavetable.
-                            //    Samples would be saved with Save() and then in ReBuzz samples would be loaded on Init.
-                            // 2. Migrate Matilde Tracker C++ to .NET machine.
-                            // 3. Reimplement C++ machine in C#
-                            //
                             WaveLayerCore waveLayer = wave.LayersList[j];
-                            int buffersize = waveLayer.SampleCount * 2 * numchannels;
+                            int buffersize = waveLayer.SampleCount16Bit * 2 * numchannels;
 
-                            if (waveflags.HasFlag(WaveFlags.Not16Bit) && waveLayer.LoopStart == 4)
+                            totalBytes -= (uint)buffersize;
+                            byte[] buffer = ReadBytes(fs, buffersize);
+                            WaveFormat waveFormat = WaveFormat.Int16;
+
+                            if (waveflags.HasFlag(WaveFlags.Not16Bit))
                             {
-                                // read 8 bytes info
-                                byte[] extendedWaveInfo = ReadBytes(fs, 8);
-                                buffersize -= 8;
-                                waveLayer.WaveFormatData = extendedWaveInfo[0]; // Format?
                                 waveLayer.extended = true;
-
-                                totalBytes -= 8;
+                                // Get the extended info (8 bytes). WaveFormat is the only data here?
+                                waveFormat = (WaveFormat)buffer[0];
                             }
                             else
                             {
                                 waveLayer.extended = false;
                             }
 
-                            // Update sample counts to actual. This "rounds down" the actual sample counts in some cases.
-                            waveLayer.SampleCount = waveLayer.AdjustSampleCount(waveLayer.SampleCount);
-                            waveLayer.LoopStart = waveLayer.AdjustSampleCount(waveLayer.LoopStart);
-                            waveLayer.LoopEnd = waveLayer.AdjustSampleCount(waveLayer.LoopEnd);
-
-                            // Create after SampleCount is set
-                            waveLayer.Init(waveLayer.Path, waveLayer.Format, waveLayer.RootNote, waveLayer.ChannelCount == 2, waveLayer.SampleCount);
-                            float[] floatBuffer = new float[waveLayer.SampleCount * waveLayer.ChannelCount];
-
-                            totalBytes -= (uint)buffersize;
-                            byte[] buffer = ReadBytes(fs, buffersize);
-
-                            if (waveLayer.Format == WaveFormat.Int16)
-                            {
-                                int n = 0;
-                                float div = 1 / 32768.0f;
-                                for (int m = 0; m < floatBuffer.Length; m++)
-                                {
-                                    short sample = BitConverter.ToInt16(buffer, n);
-                                    floatBuffer[m] = sample * div;
-                                    n += 2;
-                                }
-                            }
-                            else if (waveLayer.Format == WaveFormat.Int24)
-                            {
-                                int n = 0;
-                                float div = 1 / (32768.0f * 256);
-                                for (int m = 0; m < floatBuffer.Length; m++)
-                                {
-                                    var data = new byte[] { 0x00, buffer[n], buffer[n + 1], buffer[n + 2] };
-                                    int sample = BitConverter.ToInt32(data, 0) >> 8;
-                                    floatBuffer[m] = sample * div;
-                                    n += 3;
-                                }
-                            }
-                            else if (waveLayer.Format == WaveFormat.Int32)
-                            {
-                                int n = 0;
-                                float div = 1 / (32768.0f * 65536.0f);
-                                for (int m = 0; m < floatBuffer.Length; m++)
-                                {
-                                    int sample = BitConverter.ToInt32(buffer, n);
-                                    floatBuffer[m] = sample * div;
-                                    n += 4;
-                                }
-                            }
-                            else if (waveLayer.Format == WaveFormat.Float32)
-                            {
-                                int n = 0;
-                                for (int m = 0; m < floatBuffer.Length; m++)
-                                {
-                                    float sample = BitConverter.ToSingle(buffer, n);
-                                    floatBuffer[m] = sample;
-                                    n += 4;
-                                }
-                            }
-
-                            if (waveLayer.SampleCount != 0)
-                            {
-                                if (numchannels == 1)
-                                {
-                                    waveLayer.SetDataAsFloat(floatBuffer, 0, 1, 0, 0, waveLayer.SampleCount);
-                                }
-                                if (numchannels == 2)
-                                {
-                                    waveLayer.SetDataAsFloat(floatBuffer, 0, 2, 0, 0, waveLayer.SampleCount);
-                                    waveLayer.SetDataAsFloat(floatBuffer, 1, 2, 1, 0, waveLayer.SampleCount);
-                                }
-                                wave.Invalidate();
-                            }
+                            waveLayer.Init(waveLayer.Path, waveFormat, waveLayer.RootNote, waveLayer.ChannelCount == 2, waveLayer.SampleCount16Bit);
+                            waveLayer.SetRawByteData(buffer);
+                            wave.Invalidate();
                         }
                     }
                     // Ignore compressed wave for now
                     // More info: https://github.com/clvn/buze/blob/4d7d406e87bda3b57b7631149fe63f9bd2ac3eec/src/armstrong/src/armstrong/decompress.cpp
 
-
                     else if (format == 1)
                         return false;
 
-                    /*
-                   {
-                       WAVEUNPACK wup;
-                       InitWaveUnpack(&wup, f, section->size);
-
-                       for (int j = 0; j < numlevels; j++)
-                       {
-                           zzub_wavelevel_t* wavelevel = zzub_wave_get_level(wave, j);
-                           int numsamples = zzub_wavelevel_get_sample_count(wavelevel);
-                           int buffersize = numsamples * 2 * numchannels;
-                           char* buffer = new char[buffersize];
-
-                           DecompressWave(&wup, (LPWORD)buffer, numsamples, numchannels == 2 ? TRUE : FALSE);
-                           zzub_wavelevel_replace_sample_range(wavelevel, 0, buffer, numchannels, zzub_wave_buffer_type_si16, numsamples);
-
-                           delete[] buffer;
-                       }
-
-                       int iRemain = wup.dwCurIndex - wup.dwBytesInBuffer;
-                       zzub_input_seek(f, iRemain + 1, SEEK_CUR);
-
-                   }
-
-                   else
-                   {
-                       std::stringstream strm;
-                       strm << "Error: Unknown compression format (" << format << ") on wave " << i << "/" << waveCount << " at #" << index << endl;
-                       lastError = strm.str();
-                       break;
-                   }
-                   */
-
+                    // Compressed waves, see FileOps\WaveUnpack.cs
                 }
             }
             return true;
@@ -2066,20 +1951,9 @@ namespace ReBuzz.FileOps
                 {
                     WaveLayerCore waveLayer = wave.LayersList[j];
 
-                    int sampleCount = waveLayer.SampleCount;
-                    int loopStart = waveLayer.LoopStart;
-                    int loopEnd = waveLayer.LoopEnd;
-
-                    // Extended?
-                    if (wave.Flags.HasFlag(WaveFlags.Not16Bit))
-                    {
-                        sampleCount = waveLayer.SampleCount16Bit;
-                        loopStart = waveLayer.ReverseAdjustSampleCount(loopStart);
-                        loopEnd = waveLayer.ReverseAdjustSampleCount(loopEnd);
-                    }
-                    WriteInt(ms, sampleCount);
-                    WriteInt(ms, loopStart);
-                    WriteInt(ms, loopEnd);
+                    WriteInt(ms, waveLayer.SampleCount16Bit);
+                    WriteInt(ms, waveLayer.LoopStart16Bit);
+                    WriteInt(ms, waveLayer.LoopEnd16Bit);
                     WriteInt(ms, waveLayer.SampleRate);
                     WriteByte(ms, (byte)waveLayer.RootNote);
                 }
@@ -2111,19 +1985,9 @@ namespace ReBuzz.FileOps
 
                 uint totalBytes = 0;
 
-                if (waveflags.HasFlag(WaveFlags.Not16Bit))
+                foreach (var layer in wave.LayersList)
                 {
-                    foreach (var layer in wave.LayersList)
-                    {
-                        totalBytes += (uint)(layer.SampleCount16Bit * 2 * layer.ChannelCount);
-                    }
-                }
-                else
-                {
-                    foreach (var layer in wave.LayersList)
-                    {
-                        totalBytes += (uint)(layer.SampleCount * 2 * layer.ChannelCount);
-                    }
+                    totalBytes += (uint)(layer.SampleCount16Bit * 2 * layer.ChannelCount);
                 }
 
                 WriteUInt(ms, totalBytes);
@@ -2131,80 +1995,13 @@ namespace ReBuzz.FileOps
                 for (int j = 0; j < numlevels; j++)
                 {
                     WaveLayerCore waveLayer = wave.LayersList[j];
-                    int numsamples, buffersize = 0;
-                    if (waveflags.HasFlag(WaveFlags.Not16Bit))
-                    {
-                        numsamples = waveLayer.SampleCount16Bit;
-                    }
-                    else
-                    {
-                        numsamples = waveLayer.SampleCount;
-                    }
-                    buffersize = numsamples * numchannels * 2;
-                    byte[] buffer = new byte[buffersize];
+                    byte[] buffer = waveLayer.GetRawByteData(); 
 
-                    float[] floatBuffer = new float[waveLayer.SampleCount * numchannels];
-
-                    if (numchannels == 1)
-                    {
-                        waveLayer.GetDataAsFloat(floatBuffer, 0, 1, 0, 0, waveLayer.SampleCount);
-                    }
-                    if (numchannels == 2)
-                    {
-                        waveLayer.GetDataAsFloat(floatBuffer, 0, 2, 0, 0, waveLayer.SampleCount);
-                        waveLayer.GetDataAsFloat(floatBuffer, 1, 2, 1, 0, waveLayer.SampleCount);
-                    }
-
-                    int n = 0;
-                    if (waveflags.HasFlag(WaveFlags.Not16Bit))
-                    {
+                    if (waveflags.HasFlag(WaveFlags.Not16Bit) && waveLayer.LoopStart16Bit == 4)
+                    {   
                         buffer[0] = (byte)waveLayer.Format; // Extended wave --> Format byte
-                        n = 8;
                     }
 
-                    if (waveLayer.Format == WaveFormat.Int16)
-                    {
-                        float mul = 32768.0f;
-
-                        for (int m = 0; m < floatBuffer.Length; m++)
-                        {
-                            short sample = (short)(floatBuffer[m] * mul);
-                            BitConverter.GetBytes(sample).CopyTo(buffer, n);
-                            floatBuffer[m] = sample;
-                            n += 2;
-                        }
-                    }
-                    else if (waveLayer.Format == WaveFormat.Int24)
-                    {
-                        float mul = (32768.0f * 256);
-                        for (int m = 0; m < floatBuffer.Length; m++)
-                        {
-                            int sample = (int)(floatBuffer[m] * mul);
-                            buffer[n] = (byte)(sample & 0xFF);
-                            buffer[n + 1] = (byte)((sample >> 8) & 0xFF);
-                            buffer[n + 2] = (byte)((sample >> 16) & 0xFF);
-                            n += 3;
-                        }
-                    }
-                    else if (waveLayer.Format == WaveFormat.Int32)
-                    {
-                        float mul = (32768.0f * 65536.0f);
-                        for (int m = 0; m < floatBuffer.Length; m++)
-                        {
-                            int sample = (int)(floatBuffer[m] * mul);
-                            BitConverter.GetBytes(sample).CopyTo(buffer, n);
-                            n += 4;
-                        }
-                    }
-                    else if (waveLayer.Format == WaveFormat.Float32)
-                    {
-                        for (int m = 0; m < floatBuffer.Length; m++)
-                        {
-                            BitConverter.GetBytes(floatBuffer[m]).CopyTo(buffer, n);
-                            n += 4;
-                        }
-                    }
-                    // write bytes
                     WriteBytes(ms, buffer);
                 }
             }

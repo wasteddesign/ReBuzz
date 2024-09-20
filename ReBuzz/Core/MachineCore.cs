@@ -1293,6 +1293,7 @@ namespace ReBuzz.Core
         internal List<Task> workTasks = new List<Task>(50);
 
         internal List<int> setMachineTrackCountList = new List<int>();
+        internal bool invalidateWaves;
 
         internal void SetMachineTrackCount(int trackCount)
         {

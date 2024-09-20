@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -1827,6 +1828,7 @@ namespace ReBuzz.Core
                         }
                         wave.LayersList.Clear();
                         songCore.WavetableCore.AllocateWave(wave.Index, "", "", 0, WaveFormat.Float32, true, BuzzNote.Parse("C-4"), false, true);
+                        wave.FileName = "";
                         wave.Invalidate();
                     }
                 }

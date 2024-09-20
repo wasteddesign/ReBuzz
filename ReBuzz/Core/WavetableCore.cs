@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Speech.Synthesis;
 
 namespace ReBuzz.Core
 {
@@ -34,13 +35,6 @@ namespace ReBuzz.Core
             {
                 waves.Add(null);
                 WaveChanged?.Invoke(i);
-                /*
-                WaveCore w = new WaveCore(buzz);
-                w.Index = i;
-                w.WaveChanged += W_WaveChanged;
-                waves.Add(w);
-                WaveChanged?.Invoke(i);
-                */
             }
         }
 
@@ -67,16 +61,52 @@ namespace ReBuzz.Core
             w.FileName = path;
             w.Volume = volume;
 
-            if (add || w.LayersList.Count == 0)
+            int size16Bit = size;
+
+            switch (format)
             {
-                WaveLayerCore layer = new WaveLayerCore(w, path, format, root, stereo, size);
-                w.LayersList.Add(layer);
-                layer.LayerIndex = w.LayersList.Count - 1;
+                case WaveFormat.Int24:
+                    size16Bit = (int)Math.Ceiling(size * 3 / 2.0) + 4;
+                    break;
+                case WaveFormat.Int32:
+                case WaveFormat.Float32:
+                    size16Bit = size16Bit * 2 + 4;
+                    break;
+                case WaveFormat.Int16:
+                    break;
             }
-            else
+
+            if (add) 
             {
-                var layer = w.LayersList.First();
-                layer.Init(path, format, root, stereo, size);
+                bool ok = w.Flags.HasFlag(WaveFlags.Stereo) && stereo || !stereo && !w.Flags.HasFlag(WaveFlags.Stereo);
+                ok &= !w.Flags.HasFlag(WaveFlags.Not16Bit) && format == WaveFormat.Int16;
+                ok |= w.Layers.Count == 0;
+                if (ok)
+                {
+                    WaveLayerCore layer = new WaveLayerCore(w, path, format, root, stereo, size16Bit);
+                    w.LayersList.Add(layer);
+                    layer.LayerIndex = w.LayersList.Count - 1;
+                }
+            }
+            // Wave needs to be same format & type
+            else
+            {   
+                w.Flags = 0;
+                if (stereo)
+                    w.Flags |= WaveFlags.Stereo;
+                if (format != WaveFormat.Int16)
+                    w.Flags |= WaveFlags.Not16Bit;
+
+                var layer = w.LayersList.FirstOrDefault();
+                if (layer == null)
+                {
+                    layer = new WaveLayerCore(w, path, format, root, stereo, size16Bit);
+                    w.LayersList.Add(layer);
+                }
+                else
+                {
+                    layer.Init(path, format, root, stereo, size16Bit);
+                }
             }
 
             if (wavechangedevent)

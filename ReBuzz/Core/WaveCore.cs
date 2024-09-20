@@ -33,6 +33,7 @@ namespace ReBuzz.Core
             this.buzz = buzz;
             waveLayers = new List<WaveLayerCore>();
             Flags = WaveFlags.Not16Bit | WaveFlags.Stereo;
+            Volume = 1f;
         }
 
         public event Action<int> WaveChanged;
@@ -63,7 +64,7 @@ namespace ReBuzz.Core
             {
                 WaveChanged.Invoke(Index);
             }
-
+            buzz.MachineManager.InvalidateWaves();
             PropertyChanged.Raise(this, "Layers");
         }
 
@@ -76,6 +77,7 @@ namespace ReBuzz.Core
             LayersList.Clear();
             Name = FileName = null;
             Volume = 0;
+            Flags = 0;
             Invalidate();
         }
     }

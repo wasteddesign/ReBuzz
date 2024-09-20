@@ -533,7 +533,7 @@ namespace ReBuzz.MachineManagement
         {
             if (nativeMachines.ContainsKey(machine))
             {
-                nativeMachines[machine].AudioMessage.AudioBeginBlock(machine, null, 0, false);
+                nativeMachines[machine].AudioMessage.AudioBeginBlock(machine, null);
             }
         }
 
@@ -1018,7 +1018,7 @@ namespace ReBuzz.MachineManagement
 
         internal void ActivateEditor(MachineCore em)
         {
-            if (managedMachines.ContainsKey(em))
+            if (em != null && managedMachines.ContainsKey(em))
             {
                 var machineHost = ManagedMachines[em];
                 machineHost.Activate();
@@ -1121,5 +1121,12 @@ namespace ReBuzz.MachineManagement
             }
         }
 
+        internal void InvalidateWaves()
+        {
+            foreach (var machine in nativeMachines)
+            {
+                machine.Key.invalidateWaves = true;
+            }
+        }
     }
 }

@@ -367,6 +367,13 @@ namespace ReBuzz.MachineManagement
         {
             if (Machine.Ready)
             {
+                if (Machine.invalidateWaves)
+                {
+                    var audiom = nativeMachineHost.AudioMessage;
+                    audiom.AudioBeginBlock(Machine, buzz.SongCore.WavetableCore);
+                    Machine.invalidateWaves = false;
+                }
+
                 // Tick again if sendControlChangesFlag set
                 if (Machine.sendControlChangesFlag)
                 {

@@ -2,46 +2,61 @@
 using System;
 using System.ComponentModel;
 using System.IO.MemoryMappedFiles;
+using System.Runtime.CompilerServices;
+using System.Threading.Channels;
 
 namespace ReBuzz.Core
 {
     internal unsafe class WaveLayerCore : IWaveLayer
     {
+        internal string mappedFileId;
+
         //private float[] buffer;
 
         // mappedFile if needed to share to native machines
         private MemoryMappedFile mappedFile;
-        private MemoryMappedViewAccessor accessor;
+        internal MemoryMappedViewAccessor accessor;
         internal byte* basePointer;
 
-        public WaveLayerCore(WaveCore wave, string path, WaveFormat format, int root, bool stereo, int size)
+        public WaveLayerCore(WaveCore wave, string path, WaveFormat format, int root, bool stereo, int size16Bit)
         {
             this.Wave = wave;
-            Init(path, format, root, stereo, size);
+            Init(path, format, root, stereo, size16Bit);
+            LoopEnd16Bit = size16Bit;
+            LoopStart16Bit = 0;
         }
 
-        public void Init(string path, WaveFormat format, int root, bool stereo, int size)
+        public void Init(string path, WaveFormat format, int root, bool stereo, int size16Bit)
         {
             Path = path;
             WaveFormatData = (int)format;
             RootNote = root;
             ChannelCount = stereo ? 2 : 1;
-            SampleCount = size;
-            SampleCount16Bit = ReverseAdjustSampleCount(SampleCount);
-            SampleCount16Bit += SampleCount16Bit % GetBitsPerSample() / 8;
 
-            bufferSize = SampleCount * ChannelCount * sizeof(float);
+            SampleCount16Bit = size16Bit;
 
-            //buffer = new float[SampleCount * ChannelCount];
-
-            //int bytesize = SampleCount * ChannelCount * sizeof(float);
-            //mappedFile = MemoryMappedFile.CreateNew(Path + DateTime.Now.Ticks, bytesize);
+            bufferSize = SampleCount16Bit * 2 * ChannelCount;
 
             CreateBuffer();
-            LoopEnd = size;
-            LoopStart = 0;
 
-            //UpdateBufferAddr();
+            if (format != WaveFormat.Int16)
+            {
+                extended = true;
+                WaveFormatData = (int)format;
+            }
+        }
+
+        public void Init(string path, int root, bool stereo, int size16Bit)
+        {
+            Path = path;
+            RootNote = root;
+            ChannelCount = stereo ? 2 : 1;
+
+            SampleCount16Bit = size16Bit;
+
+            bufferSize = SampleCount16Bit * 2 * ChannelCount;
+
+            CreateBuffer();
         }
 
         public void Release()
@@ -49,29 +64,22 @@ namespace ReBuzz.Core
             if (mappedFile != null)
             {
                 mappedFile.Dispose();
+                mappedFile = null;
             }
+            mappedFileId = null;
             basePointer = null;
             RawSamples = IntPtr.Zero;
         }
 
         internal void CreateBuffer()
         {
-            if (mappedFile != null)
-                mappedFile.Dispose();
-
-            mappedFile = null;
-            accessor = null;
-            RawSamples = IntPtr.Zero;
+            Release();
 
             if (bufferSize > 0)
             {
-                mappedFile = MemoryMappedFile.CreateNew("WaveLayer_" + DateTime.Now.Ticks, bufferSize);
+                mappedFileId = "WaveLayer_" + DateTime.Now.Ticks;
+                mappedFile = MemoryMappedFile.CreateNew(mappedFileId, bufferSize);
                 accessor = mappedFile.CreateViewAccessor();
-                //buffer = new float[SampleCount * ChannelCount];
-
-                //GCHandle handle1 = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-                //RawSamples = handle1.AddrOfPinnedObject();
-                //handle1.Free();
 
                 mappedFile.CreateViewAccessor().SafeMemoryMappedViewHandle.AcquirePointer(ref basePointer);
                 RawSamples = (IntPtr)basePointer;
@@ -81,20 +89,8 @@ namespace ReBuzz.Core
         public WaveLayerCore()
         {
             Path = "";
-            //UpdateBufferAddr();
             RawSamples = IntPtr.Zero;
         }
-
-        /*
-        void UpdateBufferAddr()
-        {
-            //GCHandle handle1 = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-            //RawSamples = handle1.AddrOfPinnedObject();
-            //handle1.Free();
-            
-
-        }
-        */
 
         public WaveCore Wave { get; set; }
         public string Path { get; private set; }
@@ -125,11 +121,11 @@ namespace ReBuzz.Core
 
 
         readonly int sampleCount = 0;
-        public int SampleCount { get; set; }
+        public int SampleCount { get => AdjustSampleCount( SampleCount16Bit ); }
         public int RootNote { get; set; }
         public int SampleRate { get; set; }
-        public int LoopStart { get; set; }
-        public int LoopEnd { get; set; }
+        public int LoopStart { get => AdjustSampleCount(LoopStart16Bit); set => LoopStart16Bit = ReverseAdjustSampleCount(value); }
+        public int LoopEnd { get => AdjustSampleCount(LoopEnd16Bit); set => LoopEnd16Bit = ReverseAdjustSampleCount(value); }
 
         public int ChannelCount { get; set; }
         public int SampleCount16Bit { get; internal set; }
@@ -137,140 +133,98 @@ namespace ReBuzz.Core
         // Needs to be public because of WaveControl and Reflection...
         public int layerIndex;
         public int LayerIndex { get => layerIndex; set => layerIndex = value; }
+        internal int LoopEnd16Bit { get; set; }
+        internal int LoopStart16Bit { get; set; }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        /*
-        public void GetDataAsFloat(float[] output, int outoffset, int outstride, int channel, int offset, int count)
-        {
-            unsafe
+        
+        internal bool extended;
+        public bool Extended { get => extended;
+            internal set
             {
-                fixed (float* pout = output, pbuf = buffer)
-                {
-                    if (ChannelCount == 1)
-                    {
-                        // This wave is mono
-                        int j = outoffset;
-                        int bufferIndex = offset;
-                        for (int i = 0; i < count; i++)
-                        {
-                            pout[j] = pbuf[bufferIndex];
-                            j += outstride;
-                            bufferIndex++;
-                        }
-                    }
-                    else if (ChannelCount == 2)
-                    {
-                        // This wave is stereo
-                        int j = outoffset;
-                        int bufferIndex = 2 * offset + channel;
-                        for (int i = 0; i < count; i++)
-                        {
-                            pout[j] = pbuf[bufferIndex];
-                            bufferIndex += 2;
-                            j += outstride;
-                        }
-                    }
-                }
+                extended = value;
+                if (extended)
+                    WaveFormatData = basePointer[0];
             }
         }
-            
-        */
+
+        public event PropertyChangedEventHandler PropertyChanged;
 
         public void GetDataAsFloat(float[] output, int outoffset, int outstride, int channel, int offset, int count)
         {
             if (accessor == null)
                 return;
 
-            if (ChannelCount == 1)
+            if (channel >= ChannelCount)
+                channel = 0;
+
+            int j = outoffset;
+            byte* buffer = (byte*)basePointer;
+            int bytesPerSample = 2;
+            float div = 1 / 32768.0f;
+            int offsetAddBytes = 0;
+            if (IsExtended())
             {
-                // This wave is mono
-                int j = outoffset;
-                float* buffer = (float*)basePointer;
-                int floatLen = bufferSize >> 2;
-                fixed (float* dest = output)
+                offsetAddBytes = 8;
+                bytesPerSample = GetBitsPerSample() / 8;
+                switch (Format)
                 {
-                    for (int i = 0; i < count; i++)
-                    {
-                        int bufferIndex = i + offset;
-                        if (j >= output.Length)
-                            return;
-
-                        if (bufferIndex < 0 || bufferIndex >= floatLen)
-                            dest[j] = 0;
-                        else
-                            dest[j] = buffer[bufferIndex];
-                        j += outstride;
-                    }
-                }
-
-            }
-            else if (ChannelCount == 2)
-            {
-                // This wave is stereo
-                int j = outoffset;
-                float* buffer = (float*)basePointer;
-                int floatLen = bufferSize >> 2;
-                fixed (float* dest = output)
-                {
-                    for (int i = 0; i < count; i++)
-                    {
-                        int bufferIndex = 2 * i + 2 * offset + channel;
-                        if (j >= output.Length)
-                            return;
-
-                        if (bufferIndex < 0 || bufferIndex >= floatLen)
-                            dest[j] = 0;
-                        else
-                            dest[j] = buffer[bufferIndex];
-
-                        j += outstride;
-                    }
+                    case WaveFormat.Int24:
+                        div /= 256;
+                        break;
+                    case WaveFormat.Int32:
+                        div /= 65536;
+                        break;
                 }
             }
-        }
 
-        /*
-        public void GetDataAsFloat(float[] output, int outoffset, int outstride, int channel, int offset, int count)
-        {
-            if (ChannelCount == 1)
+            //offset = ReverseAdjustSampleCount(offset);
+            
+            fixed ( float* dest = output)
             {
-                // This wave is mono
-                int j = outoffset;
+                int bufferIndex = (ChannelCount * offset + channel) * bytesPerSample + offsetAddBytes;
                 for (int i = 0; i < count; i++)
                 {
-                    int bufferIndex = i + offset;
                     if (j >= output.Length)
                         return;
 
-                    if (bufferIndex < 0 || bufferIndex >= buffer.Length)
-                        output[j] = 0;
+                    if (bufferIndex < 0 || bufferIndex >= bufferSize)
+                        dest[j] = 0;
                     else
-                        output[j] = buffer[bufferIndex];
+                    {
+                        switch (Format)
+                        {
+                            case WaveFormat.Int16:
+                                {
+                                    short sample = Unsafe.ReadUnaligned<short>(ref buffer[bufferIndex]);
+                                    dest[j] = sample * div;
+                                }
+                                break;
+                            case WaveFormat.Int24:
+                                {
+                                    int sample = (buffer[bufferIndex] << 8 | buffer[bufferIndex + 1] << 16 | buffer[bufferIndex + 2] << 24) >> 8;
+                                    dest[j] = sample * div;
+                                }
+                                break;
+                            case WaveFormat.Int32:
+                                {
+                                    int sample = Unsafe.ReadUnaligned<int>(ref buffer[bufferIndex]);
+                                    dest[j] = sample * div;
+                                }
+                                break;
+                            case WaveFormat.Float32:
+                                {
+                                    float sample = BitConverter.Int32BitsToSingle(Unsafe.ReadUnaligned<int>(ref buffer[bufferIndex]));
+                                    dest[j] = sample;
+                                }
+                                break;
+                        }
+                    }
+                            
                     j += outstride;
-                }
-            }
-            else if (ChannelCount == 2)
-            {
-                // This wave is stereo
-                int j = outoffset;
-                for (int i = 0; i < count; i++)
-                {
-                    int bufferIndex = 2 * i + 2 * offset + channel;
-                    if (j >= output.Length)
-                        return;
-
-                    if (bufferIndex < 0 || bufferIndex >= buffer.Length)
-                        output[j] = 0;
-                    else
-                        output[j] = buffer[bufferIndex];
-
-                    output[j] = buffer[bufferIndex];
-                    j += outstride;
+                    bufferIndex += ChannelCount * bytesPerSample;
                 }
             }
         }
-        */
 
         public void InvalidateData()
         {
@@ -282,39 +236,80 @@ namespace ReBuzz.Core
             if (accessor == null)
                 return;
 
-            if (ChannelCount == 1)
-            {
-                float* buffer = (float*)basePointer;
-                int floatLen = bufferSize >> 2;
-                int j = inoffset;
+            if (channel >= ChannelCount)
+                channel = 0;
 
-                fixed (float* source = input)
+            int j = inoffset;
+            byte* buffer = basePointer;
+            int bytesPerSample = 2;
+            float mul = 32768.0f;
+            int offsetAddBytes = 0;
+            if (IsExtended())
+            {
+                offsetAddBytes = 8;
+                bytesPerSample = GetBitsPerSample() / 8;
+                switch (Format)
                 {
-                    for (int i = 0; i < count; i++)
-                    {
-                        buffer[i + offset + channel] = source[j];
-                        j += instride;
-                    }
+                    case WaveFormat.Int24:
+                        mul *= 256;
+                        break;
+                    case WaveFormat.Int32:
+                        mul *= 65536;
+                        break;
                 }
             }
-            else if (ChannelCount == 2)
-            {
-                float* buffer = (float*)basePointer;
-                int floatLen = bufferSize >> 2;
-                int j = inoffset;
 
-                fixed (float* source = input)
+            fixed (float* source = input)
+            {
+                int bufferIndex = (ChannelCount * offset + channel) * bytesPerSample + offsetAddBytes;
+
+                for (int i = 0; i < count; i++)
                 {
-                    for (int i = 0; i < 2 * count; i += 2)
+                    if (j >= input.Length)
+                        return;
+
+                    if (bufferIndex < 0 || bufferIndex + bytesPerSample >= bufferSize)
+                        return;
+                    else
                     {
-                        buffer[i + 2 * offset + channel] = source[j];
-                        j += instride;
+                        switch (Format)
+                        {
+                            case WaveFormat.Int16:
+                                {
+                                    short sample = (short)(source[j] * mul);
+                                    Unsafe.WriteUnaligned(ref buffer[bufferIndex], sample);
+                                }
+                                break;
+                            case WaveFormat.Int24:
+                                {
+                                    int sample = (int)(source[j] * mul);
+                                    buffer[bufferIndex] = (byte)(sample & 0xFF);
+                                    buffer[bufferIndex + 1] = (byte)((sample >> 8) & 0xFF);
+                                    buffer[bufferIndex + 2] = (byte)((sample >> 16) & 0xFF);
+                                }
+                                break;
+                            case WaveFormat.Int32:
+                                {
+                                    int sample = (int)(source[j] * mul);
+                                    Unsafe.WriteUnaligned(ref buffer[bufferIndex], sample);
+                                }
+                                break;
+                            case WaveFormat.Float32:
+                                {
+                                    float sample = source[j];
+                                    Unsafe.WriteUnaligned(ref buffer[bufferIndex], sample);
+                                }
+                                break;
+                        }
                     }
+
+                    j += instride;
+                    bufferIndex += ChannelCount * bytesPerSample;
                 }
             }
         }
 
-        public bool extended = true;
+
         private int bufferSize;
 
         public bool IsExtended()
@@ -356,6 +351,41 @@ namespace ReBuzz.Core
                 return 32;
             }
             return 32;
+        }
+
+        internal void SetRawByteData(byte[] inBuffer)
+        {
+            if (accessor == null)
+                return;
+
+            byte* buffer = (byte*)basePointer;
+
+            fixed (byte* source = inBuffer)
+            {
+                for (int i = 0; i < inBuffer.Length; i++)
+                {
+                    buffer[i] = source[i];
+                }
+            }
+        }
+
+        internal byte[] GetRawByteData()
+        {
+            if (accessor == null)
+                return new byte[bufferSize];
+
+            byte* buffer = (byte*)basePointer;
+            byte[] retBuffer = new byte[bufferSize];
+
+            fixed (byte* dest = retBuffer)
+            {
+                for (int i = 0; i < retBuffer.Length; i++)
+                {
+                    retBuffer[i] = buffer[i];
+                }
+            }
+
+            return retBuffer;
         }
     }
 }
