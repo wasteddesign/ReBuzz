@@ -22,7 +22,7 @@ Requires:
 1. Install [ReBuzz](https://buzz.robotplanet.dk/files/ReBuzzSetup_2024_Preview.exe)
 2. Clone/download this repo
 3. Open the solution in Visual Studio
-4. Update solution references (Dependencies-->Assemblies) to assemblies included in the ReBuzz app folder.
+4. Update solution dependencies (Dependencies-->Assemblies) to reference assemblies included in the ReBuzz app folder.
 5. Build ReBuzz and copy ReBuzz.exe, dll and pdb files to ReBuzz install folder
 6. Open project preferences and in the Debug section click 'Open debug launch profiles UI'
    * Click 'Create a new profile'
