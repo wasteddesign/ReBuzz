@@ -19,7 +19,16 @@ Requires:
 2. [Latest Microsoft Visual C++ Redistributable](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170)
 
 ## How to build?
-Update references to assemblies included in the ReBuzz installer.
+1. Install [ReBuzz](https://buzz.robotplanet.dk/files/ReBuzzSetup_2024_Preview.exe)
+2. Clone/download this repo
+3. Open the solution in Visual Studio
+4. Update solution references (Dependencies-->Assemblies) to assemblies included in the ReBuzz app folder.
+5. Build ReBuzz and copy ReBuzz.exe, dll and pdb files to ReBuzz install folder
+6. Open project preferences and in the Debug section click 'Open debug launch profiles UI'
+   * Click 'Create a new profile'
+   * Choose 'Executable' and select ReBuzz.exe in the ReBuzz install directory
+7. Choose the new debug profile and run the app
+
 
 ## How can I help?
 All the basic functionality is implemented but there many areas to improve. In general, contributions are needed in every part of the software, but here are few items to look into:
