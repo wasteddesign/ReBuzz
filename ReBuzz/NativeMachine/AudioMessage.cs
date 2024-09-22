@@ -215,7 +215,7 @@ namespace ReBuzz.NativeMachine
         private readonly int WAVE_MAX = 200;
         internal void AudioBeginBlock(MachineCore machine, WavetableCore wt)
         {
-            return;
+            //return;
             if (machine.DLL.IsCrashed)
             {
                 return;
@@ -243,7 +243,7 @@ namespace ReBuzz.NativeMachine
                         SetMessageData(wave.Name);
                         // Info
                         SetMessageData((int)wave.Flags);
-                        SetMessageData(1000000.0f /*wave.Volume*/);
+                        SetMessageData(1.0f /*wave.Volume*/);
 
                         SetMessageData(wave.Layers.Count);
 

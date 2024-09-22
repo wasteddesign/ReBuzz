@@ -89,14 +89,10 @@ namespace ReBuzz.MachineManagement
         private bool WorkMachineNative(int nSamples)
         {
             bool isActive;
-            bool isReadFlag = true;
+            bool isReadWriteFlag = Machine.DLL.Info.Type == MachineType.Effect;
             // Native machines
             var nmh = nativeMachineHost;
             var audiom = nmh.AudioMessage;
-
-            // AudioBeginFrame needs to be called before Tick. Maybe we need to call these here also?
-            //audiom.AudioBeginFrame();
-            //audiom.AudioBeginBlock(Machine, null, 0, false);
 
             var flags = Machine.DLL.Info.Flags;
 
@@ -170,7 +166,7 @@ namespace ReBuzz.MachineManagement
                 // Most? old machines have mono_to_stereo if they implement DOES_INPUT_MIXING
                 Sample[] samples = Machine.GetStereoSamples(nSamples);
 
-                BuzzWorkMode wm = isReadFlag ? BuzzWorkMode.WM_READWRITE : BuzzWorkMode.WM_WRITE;
+                BuzzWorkMode wm = isReadWriteFlag ? BuzzWorkMode.WM_READWRITE : BuzzWorkMode.WM_WRITE;
                 isActive = audiom.AudioWorkMonoToStereo(Machine, samples, nSamples, wm, true);
 
                 // For muted machines, call Work() but send empty buffer
@@ -189,7 +185,7 @@ namespace ReBuzz.MachineManagement
             {
                 Sample[] samples = Machine.GetStereoSamples(nSamples);
 
-                BuzzWorkMode wm = isReadFlag ? BuzzWorkMode.WM_READWRITE : BuzzWorkMode.WM_WRITE;
+                BuzzWorkMode wm = isReadWriteFlag ? BuzzWorkMode.WM_READWRITE : BuzzWorkMode.WM_WRITE;
 
                 isActive = audiom.AudioWork(Machine, 2, samples, nSamples, wm);
 
@@ -209,7 +205,7 @@ namespace ReBuzz.MachineManagement
             {
                 Sample[] samples = Machine.GetStereoSamples(nSamples);
 
-                BuzzWorkMode wm = isReadFlag ? BuzzWorkMode.WM_READWRITE : BuzzWorkMode.WM_WRITE;
+                BuzzWorkMode wm = isReadWriteFlag ? BuzzWorkMode.WM_READWRITE : BuzzWorkMode.WM_WRITE;
                 // Mono
                 isActive = audiom.AudioWork(Machine, 1, samples, nSamples, wm);
 

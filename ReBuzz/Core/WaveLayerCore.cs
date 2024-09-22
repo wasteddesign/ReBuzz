@@ -46,19 +46,6 @@ namespace ReBuzz.Core
             }
         }
 
-        public void Init(string path, int root, bool stereo, int size16Bit)
-        {
-            Path = path;
-            RootNote = root;
-            ChannelCount = stereo ? 2 : 1;
-
-            SampleCount16Bit = size16Bit;
-
-            bufferSize = SampleCount16Bit * 2 * ChannelCount;
-
-            CreateBuffer();
-        }
-
         public void Release()
         {
             if (mappedFile != null)
@@ -81,7 +68,7 @@ namespace ReBuzz.Core
                 mappedFile = MemoryMappedFile.CreateNew(mappedFileId, bufferSize);
                 accessor = mappedFile.CreateViewAccessor();
 
-                mappedFile.CreateViewAccessor().SafeMemoryMappedViewHandle.AcquirePointer(ref basePointer);
+                accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref basePointer);
                 RawSamples = (IntPtr)basePointer;
             }
         }
