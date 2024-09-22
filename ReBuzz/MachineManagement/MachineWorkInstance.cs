@@ -365,8 +365,11 @@ namespace ReBuzz.MachineManagement
             {
                 if (Machine.invalidateWaves)
                 {
-                    var audiom = nativeMachineHost.AudioMessage;
-                    audiom.AudioBeginBlock(Machine, buzz.SongCore.WavetableCore);
+                    if (nativeMachineHost != null)
+                    {
+                        var audiom = nativeMachineHost.AudioMessage;
+                        audiom.AudioBeginBlock(Machine, buzz.SongCore.WavetableCore);
+                    }
                     Machine.invalidateWaves = false;
                 }
 

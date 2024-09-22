@@ -116,7 +116,7 @@ namespace ReBuzz.MachineManagement
                 {
                     CreateNativeMachine(machine, instrument, trackCount, data, callInit);
                 }
-
+                machine.invalidateWaves = true;
                 return machine;
             }
         }
