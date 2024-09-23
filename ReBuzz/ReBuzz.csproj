@@ -1,4 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  
   <PropertyGroup>
     <TargetFramework>net8.0-windows</TargetFramework>
     <OutputType>WinExe</OutputType>
@@ -21,11 +22,13 @@
     <UseWPF>true</UseWPF>
     <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
     <Platforms>AnyCPU;x64</Platforms>
+	<IntermediateOutputPath>$(SolutionDir)..\build\$(Configuration)\ReBuzz\obj</IntermediateOutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <WarningsAsErrors>$(WarningsAsErrors);NU1605</WarningsAsErrors>
     <NoWarn>1701;1702;CA1416</NoWarn>
+	<BaseIntermediateOutputPath>$(SolutionDir)..\build\release\rebuzz\obj\</BaseIntermediateOutputPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -38,6 +41,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <WarningsAsErrors>$(WarningsAsErrors);NU1605</WarningsAsErrors>
     <NoWarn>1701;1702;CA1416</NoWarn>
+	<BaseIntermediateOutputPath>$(SolutionDir)..\build\release\rebuzz\obj\</BaseIntermediateOutputPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <PlatformTarget>x64</PlatformTarget>
@@ -47,11 +51,13 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
-    <OutputPath>bin\x86\Debug\</OutputPath>
+    <OutputPath>$(SolutionDir)..\bin\x86\Debug\</OutputPath>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	<BaseIntermediateOutputPath>$(SolutionDir)..\build\release\rebuzz\obj\</BaseIntermediateOutputPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
-    <OutputPath>bin\x86\Release\</OutputPath>
+    <OutputPath>$(SolutionDir)..\bin\x86\Release\</OutputPath>
+	<BaseIntermediateOutputPath>$(SolutionDir)..\build\release\rebuzz\obj\</BaseIntermediateOutputPath>
   </PropertyGroup>
   <PropertyGroup>
     <TargetZone>LocalIntranet</TargetZone>
@@ -72,7 +78,7 @@
     <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <OutputPath>bin\x64\Debug\</OutputPath>
+    <OutputPath>$(SolutionDir)..\bin\x64\Debug\</OutputPath>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <WarningsAsErrors>$(WarningsAsErrors);NU1605</WarningsAsErrors>
     <NoWarn>1701;1702;CA1416</NoWarn>
@@ -123,53 +129,33 @@
     <None Remove="Common\gfx\squirrel.jpeg" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="BuzzGUI.Common">
-      <HintPath>..\..\..\..\..\..\..\..\Program Files\ReBuzz\BuzzGUI.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="BuzzGUI.Interfaces">
-      <HintPath>..\..\..\..\..\..\..\..\Program Files\ReBuzz\BuzzGUI.Interfaces.dll</HintPath>
-    </Reference>
-    <Reference Include="BuzzGUI.MachineView">
-      <HintPath>..\..\..\..\..\..\..\..\Program Files\ReBuzz\BuzzGUI.MachineView.dll</HintPath>
-    </Reference>
-    <Reference Include="BuzzGUI.ParameterWindow">
-      <HintPath>..\..\..\..\..\..\..\..\Program Files\ReBuzz\BuzzGUI.ParameterWindow.dll</HintPath>
-    </Reference>
-    <Reference Include="BuzzGUI.PianoKeyboard">
-      <HintPath>..\..\..\..\..\..\..\..\Program Files\ReBuzz\BuzzGUI.PianoKeyboard.dll</HintPath>
-    </Reference>
-    <Reference Include="BuzzGUI.SequenceEditor">
-      <HintPath>..\..\..\..\..\..\..\..\Program Files\ReBuzz\BuzzGUI.SequenceEditor.dll</HintPath>
-    </Reference>
-    <Reference Include="BuzzGUI.ToolBar">
-      <HintPath>..\..\..\..\..\..\..\..\Program Files\ReBuzz\BuzzGUI.ToolBar.dll</HintPath>
-    </Reference>
-    <Reference Include="BuzzGUI.WavetableView">
-      <HintPath>..\..\..\..\..\..\..\..\Program Files\ReBuzz\BuzzGUI.WavetableView.dll</HintPath>
-    </Reference>
-    <Reference Include="ModernSequenceEditor GUI">
-      <HintPath>..\..\..\..\..\..\..\..\Program Files\ReBuzz\ModernSequenceEditor GUI.dll</HintPath>
-    </Reference>
-    <Reference Include="ModernSequenceEditorHorizontal GUI">
-      <HintPath>..\..\..\..\..\..\..\..\Program Files\ReBuzz\ModernSequenceEditorHorizontal GUI.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\ReBuzzGUI\BuzzGUI.Common\BuzzGUI.Common.csproj" />
+    <ProjectReference Include="..\ReBuzzGUI\BuzzGUI.MachineView\BuzzGUI.MachineView.csproj" />
+    <ProjectReference Include="..\ReBuzzGUI\BuzzGUI.ParameterWindow\BuzzGUI.ParameterWindow.csproj" />
+    <ProjectReference Include="..\ReBuzzGUI\BuzzGUI.PianoKeyboard\BuzzGUI.PianoKeyboard.csproj" />
+    <ProjectReference Include="..\ReBuzzGUI\BuzzGUI.ToolBar\BuzzGUI.ToolBar.csproj" />
+    <ProjectReference Include="..\ReBuzzGUI\BuzzGUI.WavetableView\BuzzGUI.WavetableView.csproj" />
+    <ProjectReference Include="..\ReBuzzGUI\ModernSequenceEditorHorizontal\ModernSequenceEditorHorizontal.csproj" />
+    <ProjectReference Include="..\ReBuzzGUI\ModernSequenceEditor\ModernSequenceEditor.csproj" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="NAudio">
-      <HintPath>..\..\..\..\..\..\..\..\Program Files\ReBuzz\NAudio.dll</HintPath>
+      <HintPath>..\ReBuzz3rdparty\NAudio Binaries\NAudio.dll</HintPath>
     </Reference>
     <Reference Include="NAudio.Asio">
-      <HintPath>..\..\..\..\..\..\..\..\Program Files\ReBuzz\NAudio.Asio.dll</HintPath>
+      <HintPath>..\ReBuzz3rdparty\NAudio Binaries\NAudio.Asio.dll</HintPath>
     </Reference>
     <Reference Include="NAudio.Core">
-      <HintPath>..\..\..\..\..\..\..\..\Program Files\ReBuzz\NAudio.Core.dll</HintPath>
+      <HintPath>..\ReBuzz3rdparty\NAudio Binaries\NAudio.Core.dll</HintPath>
     </Reference>
     <Reference Include="NAudio.Midi">
-      <HintPath>..\..\..\..\..\..\..\..\Program Files\ReBuzz\NAudio.Midi.dll</HintPath>
+      <HintPath>..\ReBuzz3rdparty\NAudio Binaries\NAudio.Midi.dll</HintPath>
     </Reference>
     <Reference Include="NAudio.Wasapi">
-      <HintPath>..\..\..\..\..\..\..\..\Program Files\ReBuzz\NAudio.Wasapi.dll</HintPath>
+      <HintPath>..\ReBuzz3rdparty\NAudio Binaries\NAudio.Wasapi.dll</HintPath>
     </Reference>
     <Reference Include="NAudio.WinMM">
-      <HintPath>..\..\..\..\..\..\..\..\Program Files\ReBuzz\NAudio.WinMM.dll</HintPath>
+      <HintPath>..\ReBuzz3rdparty\NAudio Binaries\NAudio.WinMM.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -197,11 +183,9 @@
     </None>
   </ItemGroup>
   <PropertyGroup>
-    <PostBuildEvent>REM powershell -Command "Start-Process cmd -ArgumentList('/C', 'COPY /Y \"$(SolutionDir)Rebuzz\bin\Debug\ReBuzz.*\" \"C:\Program Files\ReBuzz\"')"  -Verb RunAs</PostBuildEvent>
-  </PropertyGroup>
-  <PropertyGroup>
     <PreBuildEvent>powershell -Command "((Get-Date).ToUniversalTime()).ToString('s') | Out-File '$(MSBuildProjectDirectory)\BuildDate.txt'"</PreBuildEvent>
     <ProduceReferenceAssembly>True</ProduceReferenceAssembly>
     <Title>ReBuzz</Title>
+    <BaseOutputPath>$(SolutionDir)\bin</BaseOutputPath>
   </PropertyGroup>
 </Project>

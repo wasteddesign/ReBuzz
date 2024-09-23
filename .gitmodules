@@ -1,0 +1,15 @@
+[submodule "ReBuzzGUI"]
+	path = ReBuzzGUI
+	url = https://github.com/themarcnet/ReBuzzGUI
+[submodule "ReBuzzEngine"]
+	path = ReBuzzEngine
+	url = https://github.com/themarcnet/ReBuzzEngine
+[submodule "ModernPatternEditor"]
+	path = ModernPatternEditor
+	url = https://github.com/themarcnet/ModernPatternEditor
+[submodule "ReBuzz3rdParty"]
+	path = ReBuzz3rdParty
+	url = https://github.com/themarcnet/ReBuzz3rdParty
+[submodule "ReBuzzRunTime"]
+	path = ReBuzzRunTime
+	url = https://github.com/themarcnet/ReBuzzRunTime
