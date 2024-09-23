@@ -128,7 +128,7 @@ namespace ReBuzz.FileOps
 
         public void Open(string path, FileMode mode)
         {
-            fs = new FileStream(path, mode);
+            fs = new FileStream(path, mode, FileAccess.Read, FileShare.Read);
             FileOpsEvent(FileEventType.Open, path);
         }
 
@@ -1244,20 +1244,35 @@ namespace ReBuzz.FileOps
                     int numchannels = waveflags.HasFlag(WaveFlags.Stereo) ? 2 : 1;
                     int numlevels = wave.Layers.Count;
 
-                    // Not compressed wave
-                    if (format == 0)
+                    //Determine number of bytes 
+                    //This isn't used, so we don't really care about it!
+                    long totalBytes = 0;
+                    WaveUnpack unpacker = null;
+                    switch (format)
                     {
-                        uint totalBytes = ReadUInt(fs); // All bytes in all layers
+                        case 0: //Uncompressed
+                            totalBytes = ReadUInt(fs); // All bytes in all layers
+                            break;
+                        case 1: //Compressed
+                            //Total bytes not known.  Use file postion and size
+                            totalBytes = fs.Length - fs.Position;
+                            unpacker = new WaveUnpack(fs);
+                            break;
+                        default:
+                            throw new Exception("Unknown BMX format " + format);
+                    }
 
-                        for (int j = 0; j < numlevels; j++)
+                    for (int j = 0; j < numlevels; j++)
+                    {
+                        WaveLayerCore waveLayer = wave.LayersList[j];
+                        int buffersize = waveLayer.SampleCount16Bit * 2 * numchannels;
+
+                        byte[] buffer;
+                        WaveFormat waveFormat = WaveFormat.Int16;
+                        if(unpacker == null)
                         {
-                            WaveLayerCore waveLayer = wave.LayersList[j];
-                            int buffersize = waveLayer.SampleCount16Bit * 2 * numchannels;
-
-                            totalBytes -= (uint)buffersize;
-                            byte[] buffer = ReadBytes(fs, buffersize);
-                            WaveFormat waveFormat = WaveFormat.Int16;
-
+                            //uncompressed
+                            buffer = ReadBytes(fs, buffersize);
                             if (waveflags.HasFlag(WaveFlags.Not16Bit))
                             {
                                 waveLayer.extended = true;
@@ -1268,19 +1283,22 @@ namespace ReBuzz.FileOps
                             {
                                 waveLayer.extended = false;
                             }
-
-                            waveLayer.Init(waveLayer.Path, waveFormat, waveLayer.RootNote, waveLayer.ChannelCount == 2, waveLayer.SampleCount16Bit);
-                            waveLayer.SetRawByteData(buffer);
-                            wave.Invalidate();
                         }
+                        else
+                        {
+                            //Compressed
+                            buffer = unpacker.DecompressWave(waveLayer.SampleCount16Bit, (numchannels == 2));
+                        }
+
+                        waveLayer.Init(waveLayer.Path, waveFormat, waveLayer.RootNote, waveLayer.ChannelCount == 2, waveLayer.SampleCount16Bit);
+                        waveLayer.SetRawByteData(buffer);
                     }
-                    // Ignore compressed wave for now
-                    // More info: https://github.com/clvn/buze/blob/4d7d406e87bda3b57b7631149fe63f9bd2ac3eec/src/armstrong/src/armstrong/decompress.cpp
 
-                    else if (format == 1)
-                        return false;
+                    //Tell the unpacker to rewind, giving back any data it over-consumed
+                    if (unpacker != null)
+                        unpacker.Rewind();
 
-                    // Compressed waves, see FileOps\WaveUnpack.cs
+                    wave.Invalidate();
                 }
             }
             return true;

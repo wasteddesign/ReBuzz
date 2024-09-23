@@ -78,8 +78,9 @@ namespace ReBuzz.Common
 
                 //window.Left = pos.X + pWidth / 2 - window.Width / 2;
                 //window.Top = pos.Y + pHeight / 2 - window.Height / 2;
-
+#if !DEBUG
                 window.Show();
+#endif
                 window.Closed += window.OnWindowClosed;
                 Dispatcher.Run();
             });
