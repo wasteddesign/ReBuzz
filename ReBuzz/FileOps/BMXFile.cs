@@ -128,7 +128,7 @@ namespace ReBuzz.FileOps
 
         public void Open(string path, FileMode mode)
         {
-            fs = new FileStream(path, mode, FileAccess.Read, FileShare.Read);
+            fs = new FileStream(path, mode, mode == FileMode.Create ? FileAccess.Write : FileAccess.Read, mode == FileMode.Create ? FileShare.Write : FileShare.Read);
             FileOpsEvent(FileEventType.Open, path);
         }
 
