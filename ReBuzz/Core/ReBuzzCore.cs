@@ -543,7 +543,7 @@ namespace ReBuzz.Core
 
         public string SelectedTheme
         {
-            get => RegistryEx.Read<string>("Theme", null, "Settings");
+            get => RegistryEx.Read<string>("Theme", "<default>", "Settings");
             set
             {
                 RegistryEx.Write<string>("Theme", value, "Settings");
