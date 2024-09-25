@@ -56,9 +56,9 @@ Jagger - rnnoise-windows
 Marc Jacobi - VST.net
             
 Joachip, unz, IX, retrofox, snowglobe,
-fbev, mantratronic, okp, mute...
-For testing, support, problem solving and
-late night brainstorming
+fbev, mantratronic, okp, mute, MarCNeT...
+For improvements, testing, support, problem
+solving and late night brainstorming
 
 Special Thanks to
 Microsoft Bing Chat...
