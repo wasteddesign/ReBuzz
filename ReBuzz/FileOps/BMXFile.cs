@@ -884,10 +884,9 @@ namespace ReBuzz.FileOps
                             IPatternColumn column = null;
                             if (pattern != null && targetParameter != null)
                             {
-                                pattern.InsertColumn(j, targetParameter, track);
-                                //int newIndex = Math.Max(Math.Min(j, pattern.Columns.Count - 1), 0);
-                                //column = pattern.Columns[newIndex];
-                                column = pattern.Columns[j];
+                                int newIndex = Math.Max(Math.Min(j, pattern.Columns.Count - 1), 0);
+                                pattern.InsertColumn(newIndex, targetParameter, track);
+                                column = pattern.Columns[newIndex];
                             }
 
                             int numberOfevents = ReadInt(fs);
