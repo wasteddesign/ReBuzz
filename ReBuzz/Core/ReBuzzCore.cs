@@ -1,5 +1,6 @@
 ﻿using Buzz.MachineInterface;
 using BuzzGUI.Common;
+using BuzzGUI.Common.InterfaceExtensions;
 using BuzzGUI.Interfaces;
 using BuzzGUI.MachineView;
 using BuzzGUI.MachineView.HDRecorder;
@@ -1821,18 +1822,12 @@ namespace ReBuzz.Core
 
                 FileEvent?.Invoke(FileEventType.StatusUpdate, "Clear Wavetable...");
                 // Clear Wavetable
-                foreach (var wave in songCore.WavetableCore.WavesList)
+                for (int i = 0; i < songCore.WavetableCore.WavesList.Count; i++)
                 {
+                    var wave = songCore.WavetableCore.WavesList[i];
                     if (wave != null)
                     {
-                        foreach (var l in wave.LayersList)
-                        {
-                            l.Release();
-                        }
-                        wave.LayersList.Clear();
-                        songCore.WavetableCore.AllocateWave(wave.Index, "", "", 0, WaveFormat.Float32, true, BuzzNote.Parse("C-4"), false, true);
-                        wave.FileName = "";
-                        wave.Invalidate();
+                        songCore.WavetableCore.LoadWave(i, null, null, false);
                     }
                 }
 
