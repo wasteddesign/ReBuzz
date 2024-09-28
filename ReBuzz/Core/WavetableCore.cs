@@ -1,10 +1,11 @@
 ﻿using BuzzGUI.Common;
 using BuzzGUI.Interfaces;
-
+using libsndfile;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Speech.Synthesis;
 
@@ -138,53 +139,82 @@ namespace ReBuzz.Core
                 }
                 else
                 {
-                    var audioFileReader = new NAudio.Wave.AudioFileReader(path);
-                    var fileWaveFormat = audioFileReader.WaveFormat;
-                    var wholeFile = new List<float>((int)(audioFileReader.Length / 4));
-                    var readBuffer = new float[audioFileReader.WaveFormat.SampleRate * audioFileReader.WaveFormat.Channels];
-                    int samplesRead;
-                    while ((samplesRead = audioFileReader.Read(readBuffer, 0, readBuffer.Length)) > 0)
+                    using (var sf = SoundFile.OpenRead(path))
                     {
-                        wholeFile.AddRange(readBuffer.Take(samplesRead));
-                    }
-                    var AudioData = wholeFile.ToArray();
+                        int ReadBufferSize = 4096;
+                        var wavetable = buzz.SongCore.Wavetable;
 
-                    WaveFormat format = WaveFormat.Float32;
-                    switch (fileWaveFormat.BitsPerSample)
-                    {
-                        case 24:
-                            format = WaveFormat.Int24;
-                            break;
-                        case 32:
-                            format = WaveFormat.Int32;
-                            break;
-                        case 16:
-                            format = WaveFormat.Int16;
-                            break;
-                    }
+                        // To support waves with more channels, update the read logic below
+                        if (sf.ChannelCount != 1 && sf.ChannelCount != 2) throw new Exception("Unsupported channel count.");
+                        var subformat = sf.Format & Format.SF_FORMAT_SUBMASK;
 
-                    AllocateWave(index, path, name, AudioData.Length, format, fileWaveFormat.Channels == 2, BuzzNote.Parse("C-4"), add, false);
-                    var w = waves[index];
-                    var layer = w.Layers.Last();
-                    layer.SampleRate = fileWaveFormat.SampleRate;
-                    layer.LoopStart = 0;
-                    layer.LoopEnd = AudioData.Length;
-                    if (fileWaveFormat.Channels == 2)
-                    {
-                        layer.SetDataAsFloat(AudioData, 0, 2, 0, 0, AudioData.Length / 2);
-                        layer.SetDataAsFloat(AudioData, 1, 2, 1, 0, AudioData.Length / 2);
-                    }
-                    else
-                    {
-                        layer.SetDataAsFloat(AudioData, 0, 0, 0, 0, AudioData.Length);
+                        WaveFormat wf;
+
+                        if (subformat == Format.SF_FORMAT_FLOAT || subformat == Format.SF_FORMAT_DOUBLE) wf = WaveFormat.Float32;
+                        else if (subformat == Format.SF_FORMAT_PCM_32) wf = WaveFormat.Int32;
+                        else if (subformat == Format.SF_FORMAT_PCM_24) wf = WaveFormat.Int24;
+                        else wf = WaveFormat.Int16;
+
+                        var inst = sf.Instrument;
+                        var rootnote = BuzzNote.FromMIDINote(Math.Max(0, inst.basenote - 12));  // -12 for backwards compatibility
+
+                        //when adding a new layer to a slot we need to make sure they are all in the same format, convert the old layers in the slot to float / stereo if needed.
+                        int ChannelCount = sf.ChannelCount;
+                        if (add == true)
+                        {
+                            WaveCommandHelpers.ConvertSlotIfNeeded(wavetable, index, ref wf, ref ChannelCount);
+                        }
+
+                        wavetable.AllocateWave(index, path, name, (int)sf.FrameCount, wf, ChannelCount == 2, rootnote, add, false);
+
+                        var wave = wavetable.Waves[index];
+                        var layerFirst = wave.Layers.Where(l => l.RootNote == rootnote).Last();      // multiple layers may have the same root, so use Last() to get the new one
+
+                        layerFirst.SampleRate = sf.SampleRate;
+
+                        if (inst.loop_count > 0)
+                        {
+                            wave.Flags |= WaveFlags.Loop;
+                            layerFirst.LoopStart = (int)inst.loops[0].start;
+                            layerFirst.LoopEnd = (int)inst.loops[0].end + 1;                         // buzz loop is right-open, sndfile loop is right-closed
+                        }
+                        else //no loop, we should set reasonable values
+                        {
+                            layerFirst.LoopStart = 0;
+                            layerFirst.LoopEnd = layerFirst.SampleCount;
+                        }
+
+                        var buffer = new float[ReadBufferSize * sf.ChannelCount];
+
+                        long framesread = 0;
+                        while (framesread < sf.FrameCount)
+                        {
+                            var n = sf.ReadFloat(buffer, ReadBufferSize);
+                            if (n <= 0) break;
+
+                            for (int ch = 0; ch < sf.ChannelCount; ch++)
+                            {
+                                layerFirst.SetDataAsFloat(buffer, ch, sf.ChannelCount, ch, (int)framesread, (int)n);
+
+                                //write the same data to the right channel too in case the new layer is mono but we converted the slot to stereo already
+                                //if ((ConvertSlotToStereo == true && sf.ChannelCount == 1) || (AllLayersAreStereo == true && sf.ChannelCount == 1))
+                                if ((ChannelCount == 2 && sf.ChannelCount == 1))
+                                {
+                                    //BuzzGUI.Common.Global.Buzz.DCWriteLine("COPY LEFT TO RIGHT ON NEW LAYER");
+                                    layerFirst.SetDataAsFloat(buffer, 0, 1, 1, (int)framesread, (int)n);
+                                }
+                            }
+
+                            framesread += n;
+                        }
                     }
                 }
             }
         }
 
         public void PlayWave(string path)
-        {
-            // Use master tap?
+        {   
+            buzz.PlayWave(path);
         }
 
         internal WaveCore CreateWave(ushort index)

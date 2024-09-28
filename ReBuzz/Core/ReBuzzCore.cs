@@ -4,6 +4,7 @@ using BuzzGUI.Interfaces;
 using BuzzGUI.MachineView;
 using BuzzGUI.MachineView.HDRecorder;
 using BuzzGUI.PianoKeyboard;
+using libsndfile;
 using Microsoft.Win32;
 using NAudio.Midi;
 using ReBuzz.Audio;
@@ -22,6 +23,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Runtime;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -190,6 +192,7 @@ namespace ReBuzz.Core
                     preparePlaying = false;
                     playing = false;
                     GlobalState.StateFlags &= ~SF_PLAYING;
+                    StopPlayingWave();
 
                     foreach (var machine in songCore.MachinesList)
                     {
@@ -1881,6 +1884,7 @@ namespace ReBuzz.Core
         {
             lock (AudioLock)
             {
+                StopPlayingWave();
                 PlayWaveData = new PlayWaveData()
                 {
                     wave = wave,
@@ -1892,23 +1896,95 @@ namespace ReBuzz.Core
             }
         }
 
+        internal void PlayWave(string file)
+        {
+            lock (AudioLock)
+            {
+                StopPlayingWave();
+                var sf = SoundFile.OpenRead(file);
+                PlayWaveData = new PlayWaveData()
+                {
+                    wave = null,
+                    postion = 0,
+                    start = 0,
+                    end = 0,
+                    looptype = LoopType.None,
+                    sf = sf
+                };
+            }
+        }
+
         internal void StopPlayingWave()
         {
             lock (AudioLock)
             {
+                if (PlayWaveData != null && PlayWaveData.sf != null)
+                {
+                    PlayWaveData.sf.Dispose();
+                }
                 PlayWaveData = null;
             }
         }
 
+        static int ReadBufferSize = 256;
+        float[] waveFilebuffer = new float[ReadBufferSize];
+
+        // Read sampleCount stereo samples to buffer
         internal bool GetPlayWaveSamples(float[] buffer, int offset, int sampleCount)
         {
-            if (PlayWaveData != null && PlayWaveData.wave.Layers.Count > 0)
+            if (PlayWaveData != null)
             {
-                var layer = PlayWaveData.wave.Layers.First();
-                layer.GetDataAsFloat(buffer, offset, 2, 0, PlayWaveData.postion, sampleCount);
-                layer.GetDataAsFloat(buffer, offset + 1, 2, 1, PlayWaveData.postion, sampleCount);
-                PlayWaveData.postion += sampleCount;
-                return true;
+                if (PlayWaveData.sf != null)
+                {
+                    var sf = PlayWaveData.sf;
+                    int samplesRead = 0;
+                    int outOffset = 0;
+                    
+                    while (sampleCount > 0)
+                    {
+                        int maxReadFrameCount = ReadBufferSize / sf.ChannelCount;
+                        int readFrameCount = Math.Min(maxReadFrameCount, sampleCount);
+                        var n = sf.ReadFloat(waveFilebuffer, readFrameCount);
+                        if (n <= 0) return false;
+
+                        int inOffset = 0;
+                        for (int j = 0; j < readFrameCount; j++)
+                        {
+                            for (int ch = 0; ch < sf.ChannelCount; ch++)
+                            {
+                                if (ch == 0)
+                                {
+                                    buffer[outOffset] = waveFilebuffer[inOffset];
+
+                                    // Conver mono to stereo
+                                    if (sf.ChannelCount == 0)
+                                    {
+                                        buffer[outOffset + 1] = waveFilebuffer[inOffset];
+                                    }
+                                }
+                                else if (ch == 1)
+                                {
+                                    buffer[outOffset + 1] = waveFilebuffer[inOffset + 1];
+                                }
+                                else
+                                {
+                                    break;
+                                }
+                            }
+                            outOffset += 2;
+                            inOffset += sf.ChannelCount;
+                        }
+                        sampleCount -= readFrameCount;
+                    }
+                }
+                else if (PlayWaveData.wave.Layers.Count > 0)
+                {
+                    var layer = PlayWaveData.wave.Layers.First();
+                    layer.GetDataAsFloat(buffer, offset, 2, 0, PlayWaveData.postion, sampleCount);
+                    layer.GetDataAsFloat(buffer, offset + 1, 2, 1, PlayWaveData.postion, sampleCount);
+                    PlayWaveData.postion += sampleCount;
+                    return true;
+                }
             }
             return false;
         }
@@ -2002,5 +2078,6 @@ namespace ReBuzz.Core
         public int start;
         public int end;
         public LoopType looptype;
+        internal SoundFile sf;
     }
 }

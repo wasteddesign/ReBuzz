@@ -42,6 +42,8 @@ namespace ReBuzz.Audio
         private bool stopped;
         readonly bool SpeedAdjustLinear = false;
 
+        float[] playWaveBuffer = new float[256 * 2];
+
         public WorkManager(ReBuzzCore buzzCore, WorkThreadEngine workEngine, int algorithm)
         {
             this.buzzCore = buzzCore;
@@ -134,6 +136,20 @@ namespace ReBuzz.Audio
 
                     // Call work
                     ReadWork(buffer, workBufferOffset, samplesToProcess);
+
+                    // Mix waves playing from wavetable 
+                    if (buzzCore.IsPlayingWave())
+                    {
+                        buzzCore.GetPlayWaveSamples(playWaveBuffer, offset, samplesToProcess);
+                        for (int i = 0; i < samplesToProcess * 2; i++)
+                        {
+                            buffer[workBufferOffset + i] += playWaveBuffer[i] * 32768.0f;
+                        }
+                    }
+
+                    // Master Tap
+                    buzzCore.MasterTapSamples(buffer, offset, samplesToProcess * 2);
+
                     workBufferOffset += samplesToProcess * 2;
                     reminingBuffer -= samplesToProcess * 2;
 
@@ -165,17 +181,9 @@ namespace ReBuzz.Audio
                         }
                     }
 
+
                     // Update frame count
                     unchecked { ReBuzzCore.GlobalState.AudioFrame++; }
-                }
-
-                if (buzzCore.IsPlayingWave())
-                {
-                    buzzCore.GetPlayWaveSamples(buffer, offset, count / 2);
-                    for (int i = 0; i < count; i++)
-                    {
-                        buffer[offset + i] *= 32768.0f;
-                    }
                 }
 
                 float audioOutMul = 1 / 32768.0f;
@@ -530,9 +538,6 @@ namespace ReBuzz.Audio
             }
 
             master.IsActive = master.GetActivity();
-
-            // Master Tap
-            buzzCore.MasterTapSamples(buffer, offset, workSamplesCount * 2);
 
             return workSamplesCount;
         }
