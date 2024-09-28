@@ -251,7 +251,7 @@ namespace ReBuzz.NativeMachine
                         {
                             var layer = wave.LayersList[i];
 
-                            SetMessageData(layer.mappedFileId);
+                            SetMessageData(layer.mappedFileId != null ? layer.mappedFileId : "");
 
                             SetMessageData(layer.SampleCount16Bit);
                             SetMessageDataPtr(IntPtr.Zero);
