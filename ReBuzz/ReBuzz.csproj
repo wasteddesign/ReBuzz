@@ -123,6 +123,9 @@
     <None Remove="Common\gfx\squirrel.jpeg" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="BuzzGUI.BuzzUpdate">
+      <HintPath>..\..\..\..\..\..\Program Files\ReBuzz\BuzzGUI.BuzzUpdate.dll</HintPath>
+    </Reference>
     <Reference Include="BuzzGUI.Common">
       <HintPath>..\..\..\..\..\..\..\..\Program Files\ReBuzz\BuzzGUI.Common.dll</HintPath>
     </Reference>

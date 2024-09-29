@@ -292,6 +292,12 @@ namespace ReBuzz
                 Topmost = true;  // important
                 Topmost = false; // important
                 Focus();         // important
+
+                if (Global.GeneralSettings.CheckForUpdates)
+                {
+                    BuzzGUI.BuzzUpdate.UpdateService.CheckForUpdates(Buzz);
+                }
+
                 // Buzz.TestRun();
             };
 
