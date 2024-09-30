@@ -12,14 +12,14 @@ ReBuzz is a modular digital audio workstation (DAW) built upon the foundation of
 * ...
 
 ## Download
-[ReBuzz Installer](https://buzz.robotplanet.dk/files/ReBuzzSetup_2024_Preview.exe)
+[ReBuzz Installer]([https://buzz.robotplanet.dk/files/ReBuzzSetup_2024_Preview.exe](https://github.com/wasteddesign/ReBuzz/releases/latest))
 
 Requires:
 1. [.NET 8.0 Desktop Runtime - Windows x64](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-8.0.3-windows-x64-installer?cid=getdotnetcore)
 2. [Latest Microsoft Visual C++ Redistributable](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170)
 
 ## How to build?
-1. Install [ReBuzz](https://buzz.robotplanet.dk/files/ReBuzzSetup_2024_Preview.exe)
+1. Install [ReBuzz]([https://buzz.robotplanet.dk/files/ReBuzzSetup_2024_Preview.exe](https://github.com/wasteddesign/ReBuzz/releases/latest))
 2. Clone/download this repo
 3. Open the solution in Visual Studio
 4. Update solution dependencies (Dependencies-->Assemblies) to reference assemblies included in the ReBuzz app folder.
