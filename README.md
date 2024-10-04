@@ -33,6 +33,7 @@ Requires:
 ## How can I help?
 All the basic functionality is implemented but there many areas to improve. In general, contributions are needed in every part of the software, but here are few items to look into:
 
+- [ ] Pick an [issue](https://github.com/wasteddesign/ReBuzz/issues) and start contributing to Rebuzz development today!
 - [ ] Improve stability, fix bugs and issues
 - [ ] Cleanup code and architecture
 - [ ] Add comments and documentation
