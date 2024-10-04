@@ -138,9 +138,9 @@ namespace ReBuzz.Audio
                     ReadWork(buffer, workBufferOffset, samplesToProcess);
 
                     // Mix waves playing from wavetable 
-                    if (buzzCore.IsPlayingWave())
+                    if (buzzCore.SongCore.WavetableCore.IsPlayingWave())
                     {
-                        buzzCore.GetPlayWaveSamples(playWaveBuffer, offset, samplesToProcess);
+                        buzzCore.SongCore.WavetableCore.GetPlayWaveSamples(playWaveBuffer, offset, samplesToProcess);
                         for (int i = 0; i < samplesToProcess * 2; i++)
                         {
                             buffer[workBufferOffset + i] += playWaveBuffer[i] * 32768.0f;

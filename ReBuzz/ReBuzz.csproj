@@ -147,6 +147,9 @@
     <Reference Include="BuzzGUI.ToolBar">
       <HintPath>..\..\..\..\..\..\..\..\Program Files\ReBuzz\BuzzGUI.ToolBar.dll</HintPath>
     </Reference>
+    <Reference Include="BuzzGUI.WaveformControl">
+      <HintPath>..\..\..\..\..\..\Program Files\ReBuzz\BuzzGUI.WaveformControl.dll</HintPath>
+    </Reference>
     <Reference Include="BuzzGUI.WavetableView">
       <HintPath>..\..\..\..\..\..\..\..\Program Files\ReBuzz\BuzzGUI.WavetableView.dll</HintPath>
     </Reference>

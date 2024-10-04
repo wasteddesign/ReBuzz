@@ -1,13 +1,12 @@
 ﻿using BuzzGUI.Common;
 using BuzzGUI.Interfaces;
 using libsndfile;
+using ReBuzz.Audio;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
-using System.Speech.Synthesis;
 
 namespace ReBuzz.Core
 {
@@ -27,6 +26,17 @@ namespace ReBuzz.Core
 
         public event Action<int> WaveChanged;
         public event PropertyChangedEventHandler PropertyChanged;
+
+        PlayWaveInfo PlayWaveData { get; set; }
+        internal class PlayWaveInfo
+        {
+            public WaveCore wave;
+            public int postion;
+            public int start;
+            public int end;
+            public LoopType looptype;
+            internal SoundFile sf;
+        }
 
         public WavetableCore(ReBuzzCore bc)
         {
@@ -212,11 +222,6 @@ namespace ReBuzz.Core
             }
         }
 
-        public void PlayWave(string path)
-        {   
-            buzz.PlayWave(path);
-        }
-
         internal WaveCore CreateWave(ushort index)
         {
             var w = new WaveCore(buzz);
@@ -224,6 +229,158 @@ namespace ReBuzz.Core
             WavesList[index] = w;
 
             return w;
+        }
+
+        internal bool IsPlayingWave()
+        {
+            return PlayWaveData != null;
+        }
+
+        internal void PlayWave(WaveCore wave, int start, int end, LoopType looptype)
+        {
+            lock (ReBuzzCore.AudioLock)
+            {
+                StopPlayingWave();
+                try
+                {
+                    PlayWaveData = new PlayWaveInfo()
+                    {
+                        wave = wave,
+                        postion = 0,
+                        start = start,
+                        end = end,
+                        looptype = looptype
+                    };
+                    realTimeResampler.Reset(Global.Buzz.SelectedAudioDriverSampleRate, wave.Layers[0].SampleRate);
+                }
+                catch (Exception e)
+                {
+                }
+            }
+        }
+
+        public void PlayWave(string file)
+        {
+            lock (ReBuzzCore.AudioLock)
+            {
+                StopPlayingWave();
+                try
+                {
+                    var sf = SoundFile.OpenRead(file);
+                    PlayWaveData = new PlayWaveInfo()
+                    {
+                        wave = null,
+                        postion = 0,
+                        start = 0,
+                        end = 0,
+                        looptype = LoopType.None,
+                        sf = sf
+                    };
+                    realTimeResampler.Reset(Global.Buzz.SelectedAudioDriverSampleRate, sf.SampleRate);
+                }
+                catch (Exception e)
+                {
+                }
+            }
+        }
+
+        internal void StopPlayingWave()
+        {
+            lock (ReBuzzCore.AudioLock)
+            {
+                if (PlayWaveData != null && PlayWaveData.sf != null)
+                {
+                    PlayWaveData.sf.Dispose();
+                }
+                PlayWaveData = null;
+            }
+        }
+
+        RealTimeResampler realTimeResampler = new();
+
+        static int ReadBufferSize = 2 * 256;
+        float[] wavetableAudiobufferFile = new float[ReadBufferSize];
+        float[] wavetableAudiobuffer = new float[ReadBufferSize];
+
+        // Read sampleCount stereo samples to buffer
+        internal bool GetPlayWaveSamples(float[] buffer, int offset, int sampleCount)
+        {
+            if (PlayWaveData != null)
+            {
+                if (PlayWaveData.sf != null)
+                {
+                    int samplesRead = 0;
+                    while (realTimeResampler.AvailableSamples() < sampleCount)
+                    {
+                        if (!ReadSamplesFromFile(offset, sampleCount))
+                            return false;
+
+                        realTimeResampler.FillBuffer(wavetableAudiobuffer, sampleCount);
+                    }
+
+                    realTimeResampler.GetSamples(buffer, offset, sampleCount);
+                }
+                else if (PlayWaveData.wave.Layers.Count > 0)
+                {
+                    var layer = PlayWaveData.wave.Layers.First();
+                    while (realTimeResampler.AvailableSamples() < sampleCount)
+                    {
+                        layer.GetDataAsFloat(wavetableAudiobuffer, 0, 2, 0, PlayWaveData.postion, sampleCount);
+                        layer.GetDataAsFloat(wavetableAudiobuffer, 0 + 1, 2, 1, PlayWaveData.postion, sampleCount);
+
+                        realTimeResampler.FillBuffer(wavetableAudiobuffer, sampleCount);
+                        PlayWaveData.postion += sampleCount;
+                    }
+                    realTimeResampler.GetSamples(buffer, offset, sampleCount);
+
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        bool ReadSamplesFromFile(int offset, int sampleCount)
+        {
+            var sf = PlayWaveData.sf;
+            int outOffset = 0;
+
+            while (sampleCount > 0)
+            {
+                int maxReadFrameCount = ReadBufferSize / sf.ChannelCount;
+                int readFrameCount = Math.Min(maxReadFrameCount, sampleCount);
+                var n = sf.ReadFloat(wavetableAudiobufferFile, readFrameCount);
+                if (n <= 0) return false;
+
+                int inOffset = 0;
+                for (int j = 0; j < readFrameCount; j++)
+                {
+                    for (int ch = 0; ch < sf.ChannelCount; ch++)
+                    {
+                        if (ch == 0)
+                        {
+                            wavetableAudiobuffer[outOffset] = wavetableAudiobufferFile[inOffset];
+
+                            // Conver mono to stereo
+                            if (sf.ChannelCount == 1)
+                            {
+                                wavetableAudiobuffer[outOffset + 1] = wavetableAudiobufferFile[inOffset];
+                            }
+                        }
+                        else if (ch == 1)
+                        {
+                            wavetableAudiobuffer[outOffset + 1] = wavetableAudiobufferFile[inOffset + 1];
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                    outOffset += 2;
+                    inOffset += sf.ChannelCount;
+                }
+                sampleCount -= readFrameCount;
+            }
+            return true;
         }
     }
 }

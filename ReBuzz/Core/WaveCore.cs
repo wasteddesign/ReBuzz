@@ -50,12 +50,12 @@ namespace ReBuzz.Core
 
         public void Play(IMachine m, int start = 0, int end = -1, LoopType looptype = LoopType.None)
         {
-            buzz.PlayWave(this, start, end, looptype);
+            buzz.SongCore.WavetableCore.PlayWave(this, start, end, looptype);
         }
 
         public void Stop(IMachine m)
         {
-            buzz.StopPlayingWave();
+            buzz.SongCore.WavetableCore.StopPlayingWave();
         }
 
         internal void Invalidate()
