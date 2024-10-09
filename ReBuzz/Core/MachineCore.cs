@@ -325,22 +325,6 @@ namespace ReBuzz.Core
 
                 return null;
             }
-            /*
-            set
-            {
-                if (value == null)
-                    return;
-
-                var buzz = Global.Buzz as ReBuzzCore;
-
-                // Remove current editor machine
-                buzz.RemoveMachine(EditorMachine);
-
-                var MachineDll = value;
-                EditorMachine = buzz.MachineManager.CreateMachine(MachineDll.Name, MachineDll.Path, null,
-                    null, MachineDll.Info.MinTracks, 0, 0, false);
-            }
-            */
         }
 
         int baseOctave = 4;
@@ -470,15 +454,7 @@ namespace ReBuzz.Core
                 CanExecuteDelegate = x => true,
                 ExecuteDelegate = x =>
                 {
-                    //if (this.DLL.Info.Name.StartsWith("Polac") && (int)x == 2)
-                    //{
-                    //    if (MessageBox.Show("VST Midi Send is not working correctly and should be used only for development purposes. Are you sure?", "Warning", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
-                    //        (Graph.Buzz as ReBuzzCore).MachineManager.Command(this, (int)x);
-                    //}
-                    //else
-                    //{
                     (Graph.Buzz as ReBuzzCore).MachineManager.Command(this, (int)x);
-                    //}
                 }
             };
         }

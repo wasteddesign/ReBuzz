@@ -1128,5 +1128,19 @@ namespace ReBuzz.MachineManagement
                 machine.Key.invalidateWaves = true;
             }
         }
+
+        internal void UpdateWaveReferences(MachineCore machine, MachineCore editorTargetMachine, Dictionary<int, int> remappedWaveReferences)
+        {
+            if (machine.DLL.IsManaged && managedMachines.ContainsKey(machine))
+            {
+                var machineHost = ManagedMachines[machine];
+                machineHost.UpdateWaveReferences(machine, editorTargetMachine, remappedWaveReferences);
+            }
+            else if (nativeMachines.ContainsKey(machine) && machine.DLL.Info.Version > BUZZ_MACHINE_INTERFACE_VERSION_15)
+            {
+                var machineHost = NativeMachines[machine];
+                machineHost.UIMessage.UpdateWaveReferences(machine, editorTargetMachine, remappedWaveReferences);
+            }
+        }
     }
 }

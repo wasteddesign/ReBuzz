@@ -1239,27 +1239,11 @@ namespace ReBuzz.Core
             openFileDialog.Filter = "All songs (*.bmw, *.bmx, *bmxml)|*.bmw;*.bmx;*.bmxml|Songs with waves (*.bmx)|*.bmx|Songs without waves (*.bmw)|*.bmw|ReBuzz XML (*.bmxml)|*.bmxml";
             if (openFileDialog.ShowDialog() == true)
             {
-                SkipAudio = true;
-                bool playing = Playing;
-                Playing = false;
-
-                // Let other threads react to changes
-                Thread.Sleep(10);
-
-                IReBuzzFile bmxFile = GetReBuzzFile(openFileDialog.FilterIndex);
+                IReBuzzFile rebuzzFile = GetReBuzzFile(openFileDialog.FileName);
                 var filename = openFileDialog.FileName;
 
-                try
-                {
-                    bmxFile.Load(filename, x, y, true);
-                }
-                catch (Exception ex)
-                {
-                    Utils.MessageBox("Error importing file " + filename + "\n\n" + ex.ToString(), "Error importing file.");
-                }
-
-                SkipAudio = false;
-                Playing = playing;
+                var impotAction = new ImportSongAction(this, rebuzzFile, filename, x, y);
+                songCore.ActionStack.Do(impotAction);
             }
         }
 
@@ -1714,10 +1698,10 @@ namespace ReBuzz.Core
                 if (machine.EditorMachine != null)
                 {
                     foreach (var mc in machine.EditorMachine.AllOutputs.ToArray())
-                    {
+                    {   
                         (mc.Destination as MachineCore).AllInputs.Remove(mc);
-                        machine.EditorMachine.AllOutputs.Clear();
                     }
+                    machine.EditorMachine.AllOutputs.Clear();
                 }
 
                 foreach (var pattern in machine.PatternsList.ToArray())

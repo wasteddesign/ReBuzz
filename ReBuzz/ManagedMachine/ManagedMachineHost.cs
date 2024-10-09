@@ -1,5 +1,6 @@
 ﻿using Buzz.MachineInterface;
 using BuzzGUI.Common.InterfaceExtensions;
+using BuzzGUI.Common.Templates;
 using BuzzGUI.Interfaces;
 using ReBuzz.Core;
 using System;
@@ -73,6 +74,8 @@ namespace ReBuzz.ManagedMachine
         private delegate void ReleaseDelegate();
 
         private delegate int GetTicksPerBeatDelegate(IPattern pattern, int playPosition);
+
+        private delegate void UpdateWaveReferencesDelegate(IPattern patten, IDictionary<int, int> remap);
         #endregion
 
         private ControlWorkDelegate ControlWork;
@@ -132,6 +135,8 @@ namespace ReBuzz.ManagedMachine
         private ReleaseDelegate ReleaseFunction;
 
         private GetTicksPerBeatDelegate GetTicksPerBeatFunction;
+
+        private UpdateWaveReferencesDelegate UpdateWaveReferencesFunction;
 
         #endregion
 
@@ -216,6 +221,7 @@ namespace ReBuzz.ManagedMachine
             ActivateFunction = (ActivateDelegate)GetMethod(typeof(ActivateDelegate), "Activate");
             ReleaseFunction = (ReleaseDelegate)GetMethod(typeof(ReleaseDelegate), "Release");
             GetTicksPerBeatFunction = (GetTicksPerBeatDelegate)GetMethod(typeof(GetTicksPerBeatDelegate), "GetTicksPerBeat");
+            UpdateWaveReferencesFunction = (UpdateWaveReferencesDelegate)GetMethod(typeof(UpdateWaveReferencesDelegate), "UpdateWaveReferences");
         }
 
         public IEnumerable<IMenuItem> Commands
@@ -734,6 +740,17 @@ namespace ReBuzz.ManagedMachine
                 GetTicksPerBeatFunction(pattern, pp);
             }
             return 4; // Buzz ticks per beat
+        }
+
+        internal void UpdateWaveReferences(MachineCore machine, MachineCore editorTargetMachine, Dictionary<int, int> remappedWaveReferences)
+        {
+            if (UpdateWaveReferencesFunction != null)
+            {
+                foreach (var pattern in editorTargetMachine.Patterns)
+                {
+                    UpdateWaveReferencesFunction(pattern, remappedWaveReferences);
+                }
+            }
         }
 
         public int OutputChannelCount

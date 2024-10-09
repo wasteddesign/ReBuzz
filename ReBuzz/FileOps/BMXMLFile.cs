@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Windows;
 using System.Xml;
@@ -23,6 +24,8 @@ namespace ReBuzz.FileOps
         private Dictionary<string, SubSection> subSections = new Dictionary<string, SubSection>();
         readonly Dictionary<string, string> importDictionary = new Dictionary<string, string>();
         public event Action<FileEventType, string> FileEvent;
+        private Dictionary<int, int> remappedWaveReferences = new Dictionary<int, int>();
+        private ImportSongAction importAction;
 
         public BMXMLFile(ReBuzzCore buzz)
         {
@@ -35,8 +38,10 @@ namespace ReBuzz.FileOps
             FileEvent?.Invoke(type, text);
         }
 
-        public void Load(string path, float x = 0, float y = 0, bool import = false)
+        public void Load(string path, float x = 0, float y = 0, ImportSongAction importAction = null)
         {
+            bool import = importAction != null;
+            this.importAction = importAction;
             FileStream input = null;
             XmlReader r = null;
             Exception exc = null;
@@ -99,13 +104,28 @@ namespace ReBuzz.FileOps
                 if (w.Index < 0 || w.Index >= 200)
                     continue;
 
-                WaveCore wave = buzz.SongCore.WavetableCore.CreateWave((ushort)w.Index);
+                int newIndex = w.Index;
+                while (buzz.SongCore.WavetableCore.WavesList[newIndex] != null && newIndex < 200)
+                {
+                    newIndex++;
+                }
+
+                // Can't fit imported waves to new slots
+                if (newIndex >= 200)
+                {
+                    break;
+                }
+
+                remappedWaveReferences[w.Index] = newIndex;
+                if (importAction != null)
+                    importAction.AddWaveIndex(newIndex);
+                WaveCore wave = buzz.SongCore.WavetableCore.CreateWave((ushort)newIndex);
 
                 wave.FileName = w.FileName;
                 wave.Name = w.Name;
                 wave.Volume = w.Volume;
                 wave.Flags = w.Flags;
-                wave.Index = w.Index;
+                wave.Index = newIndex;
 
                 var layers = w.Layers;
                 if (layers != null)
@@ -247,6 +267,9 @@ namespace ReBuzz.FileOps
                     {
                         // Imported machines might get new names, so machines need to update their data
                         importDictionary[name] = machineNew.Name;
+
+                        // Keep track of machines imported, so we can undo them
+                        importAction.AddMachine(machineNew);
                     }
                 }
             }
@@ -385,9 +408,12 @@ namespace ReBuzz.FileOps
 
             // Load Sequences
             FileOpsEvent(FileEventType.StatusUpdate, "Load Sequences...");
-            buzz.Song.LoopStart = songData.LoopStart;
-            buzz.Song.LoopEnd = songData.LoopEnd;
-            buzz.Song.SongEnd = songData.SongEnd;
+            if (!import)
+            {
+                buzz.Song.LoopStart = songData.LoopStart;
+                buzz.Song.LoopEnd = songData.LoopEnd;
+                buzz.Song.SongEnd = songData.SongEnd;
+            }
             int seqIndex = 0;
             foreach (var seq in songData.Sequences)
             {
@@ -413,7 +439,8 @@ namespace ReBuzz.FileOps
                 if (w.Index < 0 || w.Index >= 200)
                     continue;
 
-                WaveCore wave = buzz.SongCore.WavetableCore.WavesList[w.Index];
+                int index = remappedWaveReferences[w.Index];
+                WaveCore wave = buzz.SongCore.WavetableCore.WavesList[index];
 
                 var layers = w.Layers;
                 if (layers != null)
@@ -482,6 +509,25 @@ namespace ReBuzz.FileOps
 
             // Info text
             buzz.InfoText = songData.InfoText;
+
+            foreach (var machine in dictInitData.Keys)
+            {
+                // Assign editor to pattern before calling UpdateWaveReferences
+                if (machine.EditorMachine != null)
+                {
+                    buzz.MachineManager.SetPatternEditorPattern(machine.EditorMachine, machine.Patterns.FirstOrDefault());
+
+                    // Notify machines that waveReferences have changed due to import
+                    buzz.MachineManager.UpdateWaveReferences(machine.EditorMachine, machine, remappedWaveReferences);
+                }
+                else
+                {
+                    buzz.MachineManager.UpdateWaveReferences(machine, machine, remappedWaveReferences);
+                }
+
+                // Notify import finished and machine name changes
+                buzz.MachineManager.ImportFinished(machine, importDictionary);
+            }
         }
 
         private void CopyParameters(BMXMLParameterGroup pgFrom, MachineCore machineNew, int group, int track)

@@ -992,5 +992,9 @@ namespace ReBuzz.NativeMachine
                 DoSendMessage();
             }
         }
+
+        internal void UpdateWaveReferences(MachineCore machine, MachineCore editorTargetMachine, Dictionary<int, int> remappedWaveReferences)
+        {
+        }
     }
 }

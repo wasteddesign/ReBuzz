@@ -1,4 +1,5 @@
 ﻿using ReBuzz.Core;
+using ReBuzz.Core.Actions.GraphActions;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,7 +11,7 @@ namespace ReBuzz.FileOps
         event Action<FileEventType, string> FileEvent;
 
         Dictionary<string, MemoryStream> GetSubSections();
-        void Load(string bmxmlFile, float x = 0, float y = 0, bool import = false);
+        void Load(string bmxmlFile, float x = 0, float y = 0, ImportSongAction importAction = null);
         void EndFileOperation();
         void Save(string filename);
         void SetSubSections(SaveSongCore ss);

@@ -49,7 +49,9 @@ namespace ReBuzz.FileOps
 
         private readonly ReBuzzCore buzz;
         List<MachineCore> machines;
+        private ImportSongAction importAction;
         private int masterInputCount;
+        private Dictionary<int,int> remappedWaveReferences;
         private readonly List<SequenceCore> bmxSequences;
 
         enum SectionType
@@ -83,10 +85,13 @@ namespace ReBuzz.FileOps
             machines = new List<MachineCore>();
             connections = new List<MachineConnectionCore>();
             bmxSequences = new List<SequenceCore>();
+            remappedWaveReferences = new Dictionary<int, int>();
         }
 
-        public void Load(string path, float x = 0, float y = 0, bool import = false)
+        public void Load(string path, float x = 0, float y = 0, ImportSongAction importAction = null)
         {
+            bool import = importAction != null;
+            this.importAction = importAction;
             masterInputCount = 0;
             //lock (ReBuzzCore.AudioLock)
             {
@@ -102,17 +107,31 @@ namespace ReBuzz.FileOps
                 LoadXNOC();
                 LoadXTAP(import);
                 LoadPatterns();
-                LoadSequences();
+                LoadSequences(import);
                 LoadXCAM();
                 LoadWaves();
                 LoadInfoText();
                 LoadTAP2();
-                LoadReBuzzSongSettings();
+                if (!import)
+                    LoadReBuzzSongSettings();
                 LoadDialogProperties();
                 LoadXQES();
 
                 foreach (var machine in machines)
                 {
+                    // Assign editor to pattern before calling UpdateWaveReferences
+                    if (machine.EditorMachine != null)
+                    {
+                        buzz.MachineManager.SetPatternEditorPattern(machine.EditorMachine, machine.Patterns.FirstOrDefault());
+                        // Notify machines that waveReferences have changed due to import
+                        buzz.MachineManager.UpdateWaveReferences(machine.EditorMachine, machine, remappedWaveReferences);
+                    }
+                    else
+                    {
+                        buzz.MachineManager.UpdateWaveReferences(machine, machine, remappedWaveReferences);
+                    }
+
+                    // Notify import finished and machine name changes
                     buzz.MachineManager.ImportFinished(machine, importDictionary);
                 }
 
@@ -277,7 +296,7 @@ namespace ReBuzz.FileOps
                 int dataSize;
                 ushort attributeCount, tracks;
 
-                MachineCore machineProto = GetMachine(name);
+                MachineCore machineProto = machines[j];// GetMachine(name);
                 machines.Remove(machineProto);
                 machines.Insert(j, machineProto); // Reposition these accoring to machine order in bmx
                 type = ReadByte(fs);
@@ -424,10 +443,16 @@ namespace ReBuzz.FileOps
                     }
                     machines[j] = machineNew;
 
-                    if (import && !machineNew.Hidden)
+                    if (import)
                     {
-                        // Imported machines might get new names, so machines need to update their data
-                        importDictionary[name] = machineNew.Name;
+                        if (!machineNew.Hidden)
+                        {
+                            // Imported machines might get new names, so machines need to update their data
+                            importDictionary[name] = machineNew.Name;
+
+                            // Keep track of machines imported, so we can undo them
+                            importAction.AddMachine(machineNew);
+                        }
                     }
                 }
             }
@@ -779,12 +804,11 @@ namespace ReBuzz.FileOps
             {
                 FileOpsEvent(FileEventType.StatusUpdate, "Load Pattern Editor Connections...");
                 fs.Position = section.Offset;
-                // read magic(?) byte/bool
-
-                byte enabled = ReadByte(fs);
+                
+                byte version = ReadByte(fs);
                 MachineCore masterEditor = null;
 
-                if (enabled == 1)
+                if (version == 1)
                 {
                     for (int i = 0; i < machines.Count; i++)
                     {
@@ -920,7 +944,7 @@ namespace ReBuzz.FileOps
             }
         }
 
-        private bool LoadSequences()
+        private bool LoadSequences(bool import)
         {
             Section section;
             if (sections.TryGetValue(SectionType.SEQU, out section))
@@ -933,9 +957,12 @@ namespace ReBuzz.FileOps
                 ushort numSequences = ReadUShort(fs);
 
                 var song = buzz.SongCore;
-                song.LoopStart = beginLoop;
-                song.LoopEnd = endLoop;
-                song.SongEnd = endSong;
+                if (!import)
+                {
+                    song.LoopStart = beginLoop;
+                    song.LoopEnd = endLoop;
+                    song.SongEnd = endSong;
+                }
 
                 int seqIndex = 0;
 
@@ -1154,13 +1181,28 @@ namespace ReBuzz.FileOps
                         break;
                     }
 
-                    WaveCore wave = buzz.SongCore.WavetableCore.CreateWave(index);
+                    ushort newIndex = index;
+                    while (buzz.SongCore.WavetableCore.WavesList[newIndex] != null && newIndex < 200)
+                    {
+                        newIndex++;
+                    }
+
+                    // Can't fit imported waves to new slots
+                    if (newIndex >= 200)
+                    {
+                        break;
+                    }
+
+                    remappedWaveReferences[index] = newIndex;
+                    if (importAction != null)
+                        importAction.AddWaveIndex(newIndex);
+                    WaveCore wave = buzz.SongCore.WavetableCore.CreateWave(newIndex);
 
                     wave.FileName = ReadString(fs);
                     wave.Name = ReadString(fs);
                     wave.Volume = ReadFloat(fs);
                     wave.Flags = (WaveFlags)ReadByte(fs);
-                    wave.Index = index;
+                    wave.Index = newIndex;
 
                     // Not doing anything with envelopes currently
                     if (((int)wave.Flags & WaveFlagsEnvelope) != 0)
@@ -1229,6 +1271,7 @@ namespace ReBuzz.FileOps
                 for (int i = 0; i < waveCount; i++)
                 {
                     ushort index = ReadUShort(fs);
+                    index = (ushort)remappedWaveReferences[index];
                     if (index >= 200)
                     {
                         // Index error
