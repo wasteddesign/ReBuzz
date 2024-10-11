@@ -68,12 +68,6 @@ namespace ReBuzz.Core.Actions.GraphActions
                         new DisconnectMachinesAction(buzz, output).Do();
                 }
 
-                // Remove connections
-                foreach (var input in machine.AllInputs.ToArray())
-                {
-                    new DisconnectMachinesAction(buzz, input).Do();
-                }
-
                 // Clear waves
                 foreach (int index in waveIndexes)
                 {
