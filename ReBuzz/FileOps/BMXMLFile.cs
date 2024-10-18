@@ -23,19 +23,22 @@ namespace ReBuzz.FileOps
         private readonly string fileName;
         private Dictionary<string, SubSection> subSections = new Dictionary<string, SubSection>();
         readonly Dictionary<string, string> importDictionary = new Dictionary<string, string>();
-        public event Action<FileEventType, string> FileEvent;
+        public event Action<FileEventType, string, object> FileEvent;
         private Dictionary<int, int> remappedWaveReferences = new Dictionary<int, int>();
         private ImportSongAction importAction;
+
+        List<MachineCore> machines;
 
         public BMXMLFile(ReBuzzCore buzz)
         {
             this.buzz = buzz;
+            machines = new List<MachineCore>();
         }
 
-        void FileOpsEvent(FileEventType type, string text)
+        void FileOpsEvent(FileEventType type, string text, object o = null)
         {
             buzz.DCWriteLine(text);
-            FileEvent?.Invoke(type, text);
+            FileEvent?.Invoke(type, text, o);
         }
 
         public void Load(string path, float x = 0, float y = 0, ImportSongAction importAction = null)
@@ -51,7 +54,7 @@ namespace ReBuzz.FileOps
                 FileOpsEvent(FileEventType.Open, path);
                 if (input == null)
                 {
-                    EndFileOperation();
+                    EndFileOperation(false);
                     return;
                 }
                 var s = new XmlSerializer(typeof(BMXMLSong));
@@ -71,7 +74,7 @@ namespace ReBuzz.FileOps
             {
                 r?.Close();
                 input?.Close();
-                EndFileOperation();
+                EndFileOperation(import);
             }
 
             if (exc != null)
@@ -271,6 +274,8 @@ namespace ReBuzz.FileOps
                         // Keep track of machines imported, so we can undo them
                         importAction.AddMachine(machineNew);
                     }
+
+                    machines.Add(machineNew);
                 }
             }
 
@@ -939,10 +944,17 @@ namespace ReBuzz.FileOps
             return subSections.Values.Select(s => new { s.Name, Value = new MemoryStream(s.Data, false) }).ToDictionary(s => s.Name, s => s.Value);
         }
 
-        public void EndFileOperation()
+        public void EndFileOperation(bool import)
         {
+            IEnumerable<MachineCore> laodedMachines = null;
+
+            if (import)
+            {
+                laodedMachines = machines.Where(m => !m.Hidden && m.DLL.Info.Type != MachineType.Master);
+            }
+
             subSections.Clear();
-            FileOpsEvent(FileEventType.Close, fileName);
+            FileOpsEvent(FileEventType.Close, fileName, laodedMachines);
         }
     }
 

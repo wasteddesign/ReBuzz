@@ -39,7 +39,7 @@ namespace ReBuzz.NativeMachine
             {
                 Reset();
                 SetMessageData((int)UIMessages.UIBuzzInit);
-                SetMessageDataPtr(buzzHwnd, is64Bit);
+                SetMessageDataPtr(buzzHwnd);
                 DoSendMessage();
             }
         }

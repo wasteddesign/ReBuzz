@@ -11,6 +11,7 @@ using ReBuzz.Core;
 using ReBuzz.FileOps;
 using ReBuzz.MachineManagement;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -805,7 +806,7 @@ namespace ReBuzz
             }
         }
 
-        private void Buzz_FileEvent(FileEventType type, string text)
+        private void Buzz_FileEvent(FileEventType type, string text, object o)
         {
             if (type == FileEventType.StatusUpdate)
             {
@@ -814,6 +815,19 @@ namespace ReBuzz
             }
             else if (type == FileEventType.Close)
             {
+                var machines = (IEnumerable<MachineCore>)o;
+
+                if (machines != null)
+                {
+                    foreach (MachineCore machine in machines)
+                    {
+                        var mt = MachineView.Machines.FirstOrDefault(mc => mc.Machine == machine);
+                        if (mt != null)
+                        {
+                            mt.IsSelected = true;
+                        }
+                    }
+                }
                 statusWindow?.CloseWindow();
                 Buzz.FileEvent -= Buzz_FileEvent;
             }

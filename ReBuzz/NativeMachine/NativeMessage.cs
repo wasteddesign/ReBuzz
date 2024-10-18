@@ -158,45 +158,6 @@ namespace ReBuzz.NativeMachine
         public MessageContent DoSendMessage(MachineCore machine)
         {
             return DoSendMessage();
-            /*
-            MessageContent msg;
-            while (true)
-            {
-                // Done
-                if (CopyMessageToSendBuffer())
-                {
-                    ChannelListener.WaitHandlePing.Set();
-
-                    if (!ChannelListener.WaitHandlePongWaitOne(machine, 2000)) // Wait reply. If nothing happens in 2 seconds, consider crashed
-                    {
-                        NativeHost.Dispose();
-                        return null;
-                    }
-
-                    msg = DoReceiveReply(); // Reply read
-                    msg.Machine = machine;
-                    if (IsCallback())
-                    {
-                        HandleIncomingMessage(msg);
-                        msg = DoReceiveReply(); // Read 
-                    }
-                    break;
-                }
-                // Not done
-                else
-                {
-                    ChannelListener.WaitHandlePing.Set();
-                    if (!ChannelListener.WaitHandlePongWaitOne(machine, 2000)) // Wait reply
-                    {
-                        NativeHost.Dispose();
-                        return null;
-                    }
-                }
-            }
-
-            receaveMessageTable = msg.ReceaveMessageData.ToArray();
-            return msg;
-            */
         }
 
         public MessageContent DoSendMessage()
@@ -1003,6 +964,7 @@ namespace ReBuzz.NativeMachine
             return res;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Reset()
         {
             offset = 0;
@@ -1072,15 +1034,6 @@ namespace ReBuzz.NativeMachine
         public void SetMessageDataPtr(IntPtr data)
         {
             if (NativeHost.Host64)
-                sendMessageData.AddRange(GetBytes(data.ToInt64()));
-            else
-                sendMessageData.AddRange(GetBytes(data.ToInt32()));
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetMessageDataPtr(IntPtr data, bool is64Bit)
-        {
-            if (is64Bit)
                 sendMessageData.AddRange(GetBytes(data.ToInt64()));
             else
                 sendMessageData.AddRange(GetBytes(data.ToInt32()));
@@ -1224,6 +1177,7 @@ namespace ReBuzz.NativeMachine
             return receaveMessageTable.ToArray();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteMachineInfo(MachineCore machine)
         {
             var info = machine.DLL.Info;
@@ -1266,6 +1220,7 @@ namespace ReBuzz.NativeMachine
             //SetMessageData(false);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void WriteParameter(IParameter parameter)
         {
             SetMessageData((int)parameter.Type);

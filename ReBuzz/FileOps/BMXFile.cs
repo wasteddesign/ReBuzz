@@ -45,7 +45,7 @@ namespace ReBuzz.FileOps
         readonly Dictionary<string, string> importDictionary = new Dictionary<string, string>();
         readonly Dictionary<string, bool> builtInPeDictionary = new Dictionary<string, bool>();
 
-        public event Action<FileEventType, string> FileEvent;
+        public event Action<FileEventType, string, object> FileEvent;
 
         private readonly ReBuzzCore buzz;
         List<MachineCore> machines;
@@ -135,14 +135,14 @@ namespace ReBuzz.FileOps
                     buzz.MachineManager.ImportFinished(machine, importDictionary);
                 }
 
-                EndFileOperation();
+                EndFileOperation(import);
             }
         }
 
-        void FileOpsEvent(FileEventType type, string text)
+        void FileOpsEvent(FileEventType type, string text, object o = null)
         {
             buzz.DCWriteLine(text);
-            FileEvent?.Invoke(type, text);
+            FileEvent?.Invoke(type, text, o);
         }
 
         public void Open(string path, FileMode mode)
@@ -151,9 +151,15 @@ namespace ReBuzz.FileOps
             FileOpsEvent(FileEventType.Open, path);
         }
 
-        public void EndFileOperation()
+        public void EndFileOperation(bool import)
         {
-            FileOpsEvent(FileEventType.Close, fs.Name);
+            IEnumerable<MachineCore> loadedMachines = null;
+
+            if (import)
+            {
+                loadedMachines = machines.Where(m => !m.Hidden && m.DLL.Info.Type != MachineType.Master);
+            }
+            FileOpsEvent(FileEventType.Close, fs.Name, loadedMachines);
 
             bmxSequences.Clear();
             machines.Clear();
@@ -443,12 +449,14 @@ namespace ReBuzz.FileOps
                     }
                     machines[j] = machineNew;
 
+                    // Imported machines might get new names, so machines need to update their data
+                    importDictionary[name] = machineNew.Name;
+
                     if (import)
                     {
                         if (!machineNew.Hidden)
                         {
-                            // Imported machines might get new names, so machines need to update their data
-                            importDictionary[name] = machineNew.Name;
+
 
                             // Keep track of machines imported, so we can undo them
                             importAction.AddMachine(machineNew);
@@ -459,16 +467,15 @@ namespace ReBuzz.FileOps
 
             // Send machine names to native machines before adding Patterns.
             // Some machines can remap machine names.
-            foreach (var machine in machines.Where(m => !m.DLL.IsManaged && !m.DLL.IsMissing))
+            foreach (var machine in machines.Where(m => !m.DLL.IsMissing))
             {
                 #region Init Machine Section
                 // This region can be moved to the loop end of this method if init needs to be called after every machine has been created.
-
-                var idata = dictInitData[machine];
-                FileOpsEvent(FileEventType.StatusUpdate, "Init Machine: " + machine.Name + "...");
-                // Call Init
-                if (!machine.DLL.IsMissing && !machine.DLL.IsManaged)
+                if (!machine.DLL.IsManaged)
                 {
+                    var idata = dictInitData[machine];
+                    FileOpsEvent(FileEventType.StatusUpdate, "Init Machine: " + machine.Name + "...");
+                    // Call Init
                     buzz.MachineManager.CallInit(machine, idata.data, idata.tracks);
                 }
                 #endregion
@@ -1454,7 +1461,7 @@ namespace ReBuzz.FileOps
             {
                 fs.Write(section.Data, 0, (int)section.Size);
             }
-            EndFileOperation();
+            EndFileOperation(false);
             ReBuzzCore.SkipAudio = false;
         }
 

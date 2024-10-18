@@ -41,6 +41,13 @@ namespace ReBuzz.Core.Actions.GraphActions
                 bool playing = buzz.Playing;
                 buzz.Playing = false;
 
+                buzz.NotifyOpenFile(filename);
+
+                bmxFile.FileEvent += (type, eventText, o) =>
+                {
+                    buzz.NotifyFileEvent(type, eventText, o);
+                };
+
                 //try
                 {
                     bmxFile.Load(filename, x, y, this);
