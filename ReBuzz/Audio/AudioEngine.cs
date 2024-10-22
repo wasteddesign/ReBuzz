@@ -40,8 +40,8 @@ namespace ReBuzz.Audio
 
         public AudioOutDevice SelectedOutDevice { get; private set; }
 
-        internal AudioProvider AudioProvider { get; set; }
-        internal AudioWaveProvider AudioWaveProvider { get; set; }
+        private AudioProvider AudioProvider { get; set; }
+        private AudioWaveProvider AudioWaveProvider { get; set; }
         private readonly ReBuzzCore buzzCore;
         WasapiCapture wasapiCapture;
 

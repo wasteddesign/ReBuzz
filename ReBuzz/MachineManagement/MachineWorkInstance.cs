@@ -80,6 +80,7 @@ namespace ReBuzz.MachineManagement
             Machine.PerformanceDataCurrent.CycleCount += timeDelta;
             Machine.PerformanceDataCurrent.MaxEngineLockTime = 0;
             Machine.PerformanceDataCurrent.SampleCount += nSamples;
+            Machine.performanceLastCount = timeDelta;
 
             return isActive;
         }

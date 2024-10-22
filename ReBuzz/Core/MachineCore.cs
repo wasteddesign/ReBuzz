@@ -1270,6 +1270,8 @@ namespace ReBuzz.Core
 
         internal List<int> setMachineTrackCountList = new List<int>();
         internal bool invalidateWaves;
+        internal long performanceLastCount;
+        internal long performanceBranchCount;
 
         internal void SetMachineTrackCount(int trackCount)
         {

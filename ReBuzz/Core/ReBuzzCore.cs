@@ -521,10 +521,6 @@ namespace ReBuzz.Core
             get => overrideAudioDriver;
             set
             {
-                // Don't do anything if driver aldeary overrided
-                if (overrideAudioDriver && value == true)
-                    return;
-
                 overrideAudioDriver = value;
             }
         }
@@ -843,8 +839,8 @@ namespace ReBuzz.Core
                     db = Math.Min(Math.Max(Decibel.FromAmplitude(maxSampleRight), -VUMeterRange), 0.0);
                     double right = (db + VUMeterRange) / VUMeterRange;
 
-                    maxSampleLeft = -1;
-                    maxSampleRight = -1;
+                    maxSampleLeft = 0;
+                    maxSampleRight = 0;
 
                     if ((left >= 0) && (right >= 0) && (left != VUMeterLevel.Item1 || right != VUMeterLevel.Item2))
                     {
@@ -956,7 +952,7 @@ namespace ReBuzz.Core
             }
             else if (cmd == BuzzCommand.Stop)
             {
-                lock (AudioLock)
+                //lock (AudioLock)
                 {
                     Playing = Recording = false;
                     if (SoloPattern != null)
@@ -1318,9 +1314,13 @@ namespace ReBuzz.Core
 
         public int RenderAudio(float[] buffer, int nsamples, int samplerate)
         {
-            var ap = AudioEngine.AudioProvider;
-            ap.ReadOverride(buffer, 0, nsamples);
-            return nsamples;
+            var ap = AudioEngine.GetAudioProvider();
+            if (ap != null)
+            {
+                ap.ReadOverride(buffer, 0, nsamples);
+                return nsamples;
+            }
+            return 0;
         }
 
         public void SendMIDIInput(int data)
@@ -1451,20 +1451,22 @@ namespace ReBuzz.Core
         }
 
         const double VUMeterRange = 80.0;
-        float maxSampleLeft = -1;
-        float maxSampleRight = -1;
+        float maxSampleLeft = 0;
+        float maxSampleRight = 0;
 
         internal Gear Gear { get; }
-
         internal void MasterTapSamples(float[] resSamples, int offset, int count)
         {
             var s = GetSongTime();
             float scale = (1.0f / 32768.0f);
             for (int i = 0; i < count; i += 2)
             {
-                maxSampleLeft = Math.Max(maxSampleLeft, resSamples[offset + i] * scale);
-                maxSampleRight = Math.Max(maxSampleRight, resSamples[offset + i + 1] * scale);
+                maxSampleLeft = Math.Max(maxSampleLeft, Math.Abs(resSamples[offset + i]));
+                maxSampleRight = Math.Max(maxSampleRight, Math.Abs(resSamples[offset + i + 1]));
             }
+
+            maxSampleLeft *= scale;
+            maxSampleRight *= scale;
 
             float[] samples = new float[count];
             for (int i = 0; i < count; i++)

@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ReBuzz.Audio
@@ -148,7 +149,7 @@ namespace ReBuzz.Audio
                     }
 
                     // Master Tap
-                    buzzCore.MasterTapSamples(buffer, offset, samplesToProcess * 2);
+                    buzzCore.MasterTapSamples(buffer, workBufferOffset, samplesToProcess * 2);
 
                     workBufferOffset += samplesToProcess * 2;
                     reminingBuffer -= samplesToProcess * 2;
@@ -656,7 +657,8 @@ namespace ReBuzz.Audio
                 //List<Task> workTasks = new List<Task>();
                 machine.workTasks.Clear();
 
-                foreach (var input in machine.AllInputs)
+                // Process most time consuming branches first
+                foreach (var input in machine.AllInputs.OrderByDescending(c => (c.Source as MachineCore).performanceBranchCount))
                 {
                     var sourceMachine = input.Source as MachineCore;
 
@@ -683,6 +685,13 @@ namespace ReBuzz.Audio
                 {
                     var workInstance = buzzCore.MachineManager.GetMachineWorkInstance(machine);
                     workInstance.TickAndWork(numRead, true);
+                }
+
+                // Count overall branch process time
+                machine.performanceBranchCount = machine.performanceLastCount;
+                foreach (var input in machine.AllInputs)
+                {
+                    machine.performanceBranchCount += (input.Source as MachineCore).performanceBranchCount;
                 }
 
                 machine.workDone = true;
