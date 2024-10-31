@@ -52,6 +52,7 @@ namespace ReBuzz.FileOps
             }
             catch (Exception ex)
             {
+                buzz.DCWriteErrorLine(ex.InnerException.Message);
                 MessageBox.Show(ex.Message);
             }
         }
@@ -215,6 +216,7 @@ namespace ReBuzz.FileOps
                     var machine = new MachineCore(buzz.SongCore, is64Bit);
                     if (!uiMessage.UILoadLibrarySync(buzz, machine, loaderLib, machineDll.Path))
                     {
+                        buzz.DCWriteErrorLine("Error loading machine: " + loaderLib);
                         return -1;
                     }
                     uiMessage.UINewMISync(machine, loaderLib);
@@ -229,13 +231,14 @@ namespace ReBuzz.FileOps
                     {
                         MenuItemCore menuIterator = rootMenu;
                         var splitted = instr.Split('/').Select(p => p.Trim()).ToList();
-
-                        foreach (var menuPath in splitted)
+                        
+                        for (int i = 0; i < splitted.Count; i++)
                         {
-                            if (menuPath == splitted.Last())
+                            string menuPath = splitted[i];
+                            if (i == splitted.Count - 1) // Last
                             {
                                 DatabaseEvent.Invoke("Building DB " + menuPath);
-                                string adapterInstrumentPath = uiMessage.UIGetInstrumentPath(machine, dllPtr, instr);
+                                string adapterInstrumentPath = uiMessage.UIGetInstrumentPath(machine, dllPtr, instr.Trim());
                                 InstrumentInfo instrumentInfo = new InstrumentInfo();
 
                                 if (adapterInstrumentPath != null)
@@ -256,11 +259,11 @@ namespace ReBuzz.FileOps
                                     var newMenu = new MenuItemCore() { Text = menuPath, ID = paramID, IsEnabled = true };
                                     menuIterator.ChildrenList.Add(newMenu);
 
-                                    instrumentInfo.IsLoaderInstrument = false;
+                                    instrumentInfo.IsLoaderInstrument = true;
                                     instrumentInfo.libName = loaderLib;
-                                    instrumentInfo.InstrumentFullName = loaderLib;
-                                    instrumentInfo.InstrumentName = loaderLib;
-                                    instrumentInfo.InstrumentPath = machineDll.Path;
+                                    instrumentInfo.InstrumentFullName = instr.Trim();
+                                    instrumentInfo.InstrumentName = menuPath;
+                                    instrumentInfo.InstrumentPath = Path.Combine(Path.GetDirectoryName(machine.DLL.Path), menuPath);
                                 }
                                 DictLibRef[paramID] = instrumentInfo;
                                 paramID++;

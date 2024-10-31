@@ -1,4 +1,5 @@
 ﻿using BuzzGUI.Common;
+using BuzzGUI.Common.InterfaceExtensions;
 using BuzzGUI.Common.Templates;
 using BuzzGUI.Interfaces;
 using ReBuzz.Core;
@@ -10,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Security.AccessControl;
 using System.Text;
+using System.Windows.Controls;
 
 namespace ReBuzz.FileOps
 {
@@ -425,6 +427,9 @@ namespace ReBuzz.FileOps
                     // Don't call Init for native machines yet. Wait until all machines are loaded and then call init. Control machines might need machine info.
                     var machineNew = buzz.MachineManager.CreateMachine(machineDLL.Name, machineDLL.Path, null, data, tracks, x, y, machineProto.Hidden, name, false);
 
+                    // Saved machine parameter count/indexes might be a different from the machine that is currently available for ReBuzz. Create parameter mappings
+                    RemapLoadedMachineParameterIndex(machineNew, machineProto);
+
                     dictInitData[machineNew] = new MachineInitData() { data = data, tracks = tracks };
 
                     // Copy stuff from proto to real. ToDo: Clean this up;
@@ -483,6 +488,36 @@ namespace ReBuzz.FileOps
                 // Call remap machine names
                 buzz.MachineManager.RemapMachineNames(machine, importDictionary);
             }
+        }
+
+        private void RemapLoadedMachineParameterIndex(MachineCore machine, MachineCore savedMachine)
+        {
+            Dictionary<int, int> paramMappings = new Dictionary<int, int>();
+
+            var machineParameters = machine.AllParameters().ToArray();
+            var savedParameters = savedMachine.AllParameters().ToArray();
+            
+            for (int i = 0; i < savedParameters.Count(); i++)
+            {
+                bool found = false;
+                for (int j = 0; j < machineParameters.Count(); j++)
+                {
+                    if (savedParameters[i].Name == machineParameters[j].Name)
+                    {
+                        paramMappings[i] = j;
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found)
+                {
+                    // Machine loaded into ReBuzz does not have the same param
+                    paramMappings[i] = -1;
+                }
+            }
+
+            machine.remappedLoadedMachineParameterIndexes = paramMappings;
         }
 
         internal static void CopyParameters(MachineCore machineFrom, MachineCore machineTo, int group, int track)

@@ -479,11 +479,14 @@ namespace ReBuzz.Core
 
         public void CopyParameters()
         {
-
         }
 
         public void CreatePattern(string name, int length)
         {
+            // Modern Pattern Editor needs at least one Global or Track parameter
+            if (ParameterGroups[1].Parameters.Count + ParameterGroups[2].Parameters.Count == 0)
+                return;
+
             // Don't call these from "Work()"
             lock (ReBuzzCore.AudioLock)
             {
@@ -1272,6 +1275,7 @@ namespace ReBuzz.Core
         internal bool invalidateWaves;
         internal long performanceLastCount;
         internal long performanceBranchCount;
+        internal Dictionary<int, int> remappedLoadedMachineParameterIndexes;
 
         internal void SetMachineTrackCount(int trackCount)
         {

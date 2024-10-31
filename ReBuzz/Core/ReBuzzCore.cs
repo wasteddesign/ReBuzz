@@ -13,6 +13,7 @@ using ReBuzz.FileOps;
 using ReBuzz.MachineManagement;
 using ReBuzz.Midi;
 using ReBuzz.Properties;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -23,6 +24,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -56,8 +58,8 @@ namespace ReBuzz.Core
         public static readonly int SubTicsPerTick = 8;
         internal static BuzzGlobalState GlobalState;
         public static string AppDataPath = "ReBuzz";
-        readonly DebugWindow debugWindow;
-        private readonly ConcurrentStreamWriter DebugStreamWrite;
+        readonly DebugWindow debugWindow = new DebugWindow();
+        //private readonly ConcurrentStreamWriter DebugStreamWrite;
 
         public readonly bool AUTO_CONVERT_WAVES = false;
 
@@ -640,9 +642,6 @@ namespace ReBuzz.Core
 
             this.Theme = ReBuzzTheme.LoadCurrentTheme(this);
 
-            debugWindow = new DebugWindow();
-            DebugStreamWrite = debugWindow.DebugStreamWriter;
-
             DCWriteLine(BuildString);
 
             MidiInOutEngine = new MidiEngine(this);
@@ -918,7 +917,8 @@ namespace ReBuzz.Core
 
         public void DCWriteLine(string s)
         {
-            DebugStreamWrite.WriteLine(s);
+            s = s.Replace("\x01", "");
+            Log.Information(s);
         }
 
         public void ExecuteCommand(BuzzCommand cmd)
@@ -1369,6 +1369,8 @@ namespace ReBuzz.Core
         }
 
         public event Action<UserControl> SetPatternEditorControl;
+        public event Action<IPattern> SetPatternEditorPatternChanged;
+        public event Action<IMachine> SelectedMachineChanged;
 
         public void SetPatternEditorMachine(IMachine m)
         {
@@ -1394,31 +1396,44 @@ namespace ReBuzz.Core
             {
                 SetPatternEditorControl.Invoke(patternEditorControl);
             }
+
+            if (SelectedMachineChanged != null)
+            {
+                SelectedMachineChanged.Invoke(mc);
+            }
         }
 
         public void SetPatternEditorPattern(IPattern p)
         {
             PatternEditorPattern = p;
-            var mc = p.Machine as MachineCore;
-
-            if (mc.DLL.IsMissing)
-                return;
-
-            var em = mc.EditorMachine;
-            if (em == null)
+            if (p != null)
             {
-                // Create editor
-                CreateEditor(mc, null, null);
-                em = mc.EditorMachine;
+                var mc = p.Machine as MachineCore;
+
+                if (mc.DLL.IsMissing)
+                    return;
+
+                var em = mc.EditorMachine;
+                if (em == null)
+                {
+                    // Create editor
+                    CreateEditor(mc, null, null);
+                    em = mc.EditorMachine;
+                }
+                UserControl patternEditorControl = MachineManager.GetPatternEditorControl(em);
+                // Calling this first time will link editor machine to machine owning pattern p.
+                // Make "AssingEditorToMachineMethod"?
+                MachineManager.SetPatternEditorPattern(em, p);
+                if (SetPatternEditorControl != null && patternEditorControl != null)
+                {
+                    SetPatternEditorControl.Invoke(patternEditorControl);
+                }
             }
-            UserControl patternEditorControl = MachineManager.GetPatternEditorControl(em);
-            // Calling this first time will link editor machine to machine owning pattern p.
-            // Make "AssingEditorToMachineMethod"?
-            MachineManager.SetPatternEditorPattern(em, p);
-            if (SetPatternEditorControl != null && patternEditorControl != null)
+            else
             {
-                SetPatternEditorControl.Invoke(patternEditorControl);
+                SetPatternEditorControl.Invoke(null);
             }
+            SetPatternEditorPatternChanged?.Invoke(p);
         }
 
 
@@ -1810,6 +1825,7 @@ namespace ReBuzz.Core
 
                 // Clear pattern and sequece
                 master.PatternsList.Clear();
+                SetPatternEditorPattern(null);
                 FileEvent?.Invoke(FileEventType.Close, "Done.", null);
             }
 
@@ -1846,8 +1862,6 @@ namespace ReBuzz.Core
         public string DefaultPatternEditor { get; internal set; }
         public static bool SkipAudio;
         internal IMachine PatternEditorMachine { get; set; }
-
-
 
         internal SongTime GetSongTime()
         {
@@ -1904,6 +1918,17 @@ namespace ReBuzz.Core
                     try
                     {
                         CreateEditor(machine, editorMachine.Name, data);
+                        // Do we need to do this?
+                        foreach (var p in machine.Patterns)
+                        {
+                            MachineManager.SetPatternEditorPattern(machine.EditorMachine, p);
+                        }
+
+                        // Remove connections
+                        foreach (var output in currentEditorMachine.AllOutputs.ToArray())
+                        {
+                            new DisconnectMachinesAction(this, output).Do();
+                        }
                         RemoveMachine(currentEditorMachine);
                     }
                     catch (Exception)
@@ -1927,6 +1952,12 @@ namespace ReBuzz.Core
         internal void NotifyFileEvent(FileEventType type, string eventText, object o)
         {
             FileEvent.Invoke(type, eventText, o);
+        }
+
+        internal void DCWriteErrorLine(string s)
+        {
+            s = s.Replace("/x01", "");
+            Log.Error(s);
         }
     }
 

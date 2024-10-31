@@ -153,7 +153,12 @@ namespace ReBuzz
 
             Buzz.SetPatternEditorControl += (control) =>
             {
+                if (EditorView.editorBorder.Child != null)
+                    EditorView.editorBorder.Child.Visibility = Visibility.Collapsed;
+
                 EditorView.editorBorder.Child = control;
+                if (control != null)
+                    control.Visibility = Visibility.Visible;
             };
 
             Buzz.FullScreenChanged += (fullScreen) =>
@@ -252,7 +257,8 @@ namespace ReBuzz
                 var res = Utils.GetBuzzThemeResources(Buzz.Theme.SequenceEditor.Source);
                 seqenceEditor = new BuzzGUI.SequenceEditor.SequenceEditor(Buzz, res);
                 seqenceEditor.SetVisibility(true);
-                EditorView = new EditorView(seqenceEditor, Buzz);
+                EditorView = new EditorView(Buzz);
+                EditorView.SequenceEditor = seqenceEditor;
                 borderEditor.Child = EditorView;
 
                 // Load ToolBar
@@ -917,7 +923,7 @@ namespace ReBuzz
             var res = Utils.GetBuzzThemeResources(Buzz.Theme.SequenceEditor.Source);
             seqenceEditor = new BuzzGUI.SequenceEditor.SequenceEditor(Buzz, res);
             seqenceEditor.SetVisibility(true);
-            EditorView = new EditorView(seqenceEditor, Buzz);
+            EditorView.SequenceEditor = seqenceEditor;
             borderEditor.Child = EditorView;
 
             // Load ToolBar
@@ -959,6 +965,10 @@ namespace ReBuzz
 
                 EditorView.EditorMachine = m?.EditorMachine.DLL;
                 editor.Focus();
+            }
+            else
+            {
+                EditorView.Focus();
             }
         }
 

@@ -163,6 +163,7 @@ namespace ReBuzz.FileOps
 
         public static XMLMachineDLLs RescanMachineDLLs(ReBuzzCore buzz)
         {
+            buzz.DCWriteLine("RescanMachineDLLs");
             var xFileName = GetFullFileName();
             var f = File.Create(xFileName);
 

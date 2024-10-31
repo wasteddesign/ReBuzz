@@ -1,6 +1,7 @@
 ﻿using BuzzGUI.Common;
 using BuzzGUI.Interfaces;
 using ReBuzz.Core;
+using ReBuzz.MachineManagement;
 using System;
 using System.Collections.Generic;
 using System.IO.MemoryMappedFiles;
@@ -453,7 +454,7 @@ namespace ReBuzz.NativeMachine
 
             lock (UIMessageLock)
             {
-                List<string> instrumentList = new List<string>();
+                Dictionary<string, int> instrumentList = new Dictionary<string, int>();
                 Reset();
                 SetMessageData((int)UIMessages.UIGetInstrumentList);
                 SetMessageDataPtr(dllPtr);
@@ -465,8 +466,8 @@ namespace ReBuzz.NativeMachine
                 for (int i = 0; i < data.Length; i++)
                 {
                     if (data[i] == 0 && instrument != "")
-                    {
-                        instrumentList.Add(instrument);
+                    {   
+                        instrumentList[instrument] = 0;
                         instrument = "";
                     }
                     else
@@ -475,14 +476,13 @@ namespace ReBuzz.NativeMachine
                     }
                 }
 
-                Global.Buzz.DCWriteLine("UIGetInstrumentList: " + instrumentList);
-                return instrumentList;
+                return instrumentList.Keys.ToList();
             }
         }
 
         internal string UIGetInstrumentPath(MachineCore machine, IntPtr dllPtr, string instrumentName)
         {
-            if (machine.DLL.IsCrashed)
+            if (machine.DLL.IsCrashed || machine.DLL.Info.Version < MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_42)
             {
                 return null;
             }
@@ -500,7 +500,10 @@ namespace ReBuzz.NativeMachine
                     ret = GetMessageString();
                 }
 
-                Global.Buzz.DCWriteLine("UIGetInstrumentPath: " + ret);
+                string s1 = "UIGetInstrumentPath for " + instrumentName.Trim() + ":";
+                int spaceCount = Math.Max(60 - s1.Length, 1);
+                s1 = s1.PadRight(s1.Length + spaceCount);
+                Global.Buzz.DCWriteLine(s1 + ret);
                 return ret;
             }
         }

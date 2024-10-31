@@ -6,14 +6,18 @@
              xmlns:local="clr-namespace:ReBuzz"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid x:Name="gridEditorView">
+    <Grid x:Name="gridEditorView" FocusManager.FocusedElement="{Binding ElementName=machineBox}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <WrapPanel Margin="4,0,4,0" Grid.Row="1" Visibility="Collapsed">
+        <WrapPanel Margin="4,0,4,0" Grid.Row="1" Visibility="Visible">
+            <Label Name="machineBoxLabel" Target="machineBox" VerticalAlignment="Center" Margin="4,0,0,0">Machine:</Label>
+            <ComboBox Name="machineBox" Margin="4,4,0,4" Height="22" Width="180" SelectedItem="{Binding SelectedMachine}" ItemsSource="{Binding Machines}" DisplayMemberPath="Machine.Name" ToolTip="Machine (Alt+M)"/>
+            <Label Name="patternBoxLabel" Target="patternBox" VerticalAlignment="Center" Margin="4,0,0,0">Pattern:</Label>
+            <ComboBox Name="patternBox" Margin="4,4,0,4" Height="22" Width="100" SelectedItem="{Binding SelectedMachine.SelectedPattern}" ItemsSource="{Binding SelectedMachine.Machine.Patterns}" DisplayMemberPath="Name" ToolTip="Pattern (Alt+P)"/>
             <Label Target="kbPatternEditorBox" VerticalAlignment="Center" Margin="4,0,0,0">Editor:</Label>
             <ComboBox Name="kbPatternEditorBox" Margin="4,4,0,4" Height="22" Width="180" SelectedItem="{Binding EditorMachine}" ItemsSource="{Binding EditorMachines}" DisplayMemberPath="Name" ToolTip="Pattern Editor"/>
             <Button Name="btDefThis" Margin="4,4,0,4" Padding="4,0,4,0" ToolTip="Make default for this machine" Content="Def This"></Button>

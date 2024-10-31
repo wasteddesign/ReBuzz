@@ -14,7 +14,13 @@
             <RowDefinition Height="30"></RowDefinition>
         </Grid.RowDefinitions>
 
-        <TextBox x:Name="tbDebug" TextWrapping="Wrap" FontSize="16" IsReadOnly="true" Background="black" Foreground="WhiteSmoke" VerticalScrollBarVisibility="Visible"></TextBox>
-        <TextBox x:Name="tbDebugInput" Grid.Row="1" FontSize="16" IsReadOnly="false" Background="black" Foreground="WhiteSmoke" HorizontalScrollBarVisibility="Auto"></TextBox>
+        <RichTextBox x:Name="tbDebug"  FontFamily="Consolas" FontSize="12" IsReadOnly="true" Background="black" Foreground="WhiteSmoke" VerticalScrollBarVisibility="Visible">
+            <RichTextBox.Resources>
+                <Style TargetType="{x:Type Paragraph}">
+                    <Setter Property="Margin" Value="0"/>
+                </Style>
+            </RichTextBox.Resources>
+        </RichTextBox>
+        <TextBox x:Name="tbDebugInput" Grid.Row="1" FontFamily="Consolas" FontSize="14" IsReadOnly="false" Background="black" Foreground="WhiteSmoke" HorizontalScrollBarVisibility="Auto" VerticalContentAlignment="Center"></TextBox>
     </Grid>
 </Window>
