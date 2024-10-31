@@ -187,7 +187,8 @@ namespace ReBuzz
             patternBox.SelectionChanged += (sender, e) =>
             {
                 ReBuzz.SetPatternEditorPattern(patternBox.SelectedItem as IPattern);
-                reBuzz.ActivatePatternEditor();
+                if (ReBuzz.ActiveView == BuzzView.PatternView)
+                    reBuzz.ActivatePatternEditor();
             };
 
             ReBuzz.SelectedMachineChanged += (machine) =>
