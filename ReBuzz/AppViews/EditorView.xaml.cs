@@ -256,7 +256,7 @@ namespace ReBuzz
                         // Delete pattern
                         e.Handled = true;
                     }
-                    else if (e.Key == Key.Enter)
+                    else if (e.Key == Key.Back)
                     {
                         // Show pattern properties
                         e.Handled = true;
