@@ -241,6 +241,7 @@ namespace ReBuzz
                     }
                     else if (e.Key == Key.Enter)
                     {
+                        // Create new pattern
                         if (SelectedMachine != null)
                         {
                             if (selectedMachine.Machine.Patterns.Count == 0)
@@ -248,6 +249,16 @@ namespace ReBuzz
                                 selectedMachine.Machine.CreatePattern("00", 16);
                             }
                         }
+                        e.Handled = true;
+                    }
+                    else if (e.Key == Key.Delete)
+                    {
+                        // Delete pattern
+                        e.Handled = true;
+                    }
+                    else if (e.Key == Key.Enter)
+                    {
+                        // Show pattern properties
                         e.Handled = true;
                     }
                 }
