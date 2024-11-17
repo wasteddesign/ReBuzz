@@ -61,7 +61,7 @@ namespace ReBuzz.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 2024-08-19T07:24:13
+        ///   Looks up a localized string similar to 2024-11-13T12:36:08
         ///.
         /// </summary>
         public static string BuildDate {
@@ -71,7 +71,7 @@ namespace ReBuzz.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 1766.
+        ///   Looks up a localized string similar to 1776.
         /// </summary>
         public static string BuildNumber {
             get {

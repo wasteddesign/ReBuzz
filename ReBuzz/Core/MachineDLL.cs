@@ -104,7 +104,7 @@ namespace ReBuzz.Core
                         assembly = Assembly.LoadFile(path);
                     }
                     Type[] exportedTypes = assembly.GetExportedTypes();
-                    for (int i = 0; i < exportedTypes.Count(); i++)
+                    for (int i = 0; i < exportedTypes.Length; i++)
                     {
                         Type type = exportedTypes[i];
                         if (type.GetInterface("BuzzGUI.Interfaces.IMachineGUIFactory") != null)

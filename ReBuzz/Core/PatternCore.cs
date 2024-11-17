@@ -152,7 +152,7 @@ namespace ReBuzz.Core
                 if (index < m.AllNonInputParameters().Count())
                 {
                     var p = m.AllNonInputParameters().ElementAt(index);
-                    InsertColumn(columns.Count(), p, 0);
+                    InsertColumn(columns.Count, p, 0);
                 }
             }
             else

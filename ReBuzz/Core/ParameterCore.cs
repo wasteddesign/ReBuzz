@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
 
@@ -45,6 +46,8 @@ namespace ReBuzz.Core
         public int MaxValue { get; set; }
 
         public int NoValue { get; set; }
+
+        readonly Lock paramLock = new();
 
 
         public ParameterFlags Flags { get; set; }
@@ -263,7 +266,7 @@ namespace ReBuzz.Core
             var machine = Group.Machine as MachineCore;
 
             // Lock machine here and MachineWorkInstance.cs Tick to avid potential collision
-            lock (machine)
+            lock (paramLock)
             {
                 track = track == -1 ? 0 : track;
 

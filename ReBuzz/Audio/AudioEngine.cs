@@ -8,6 +8,7 @@ using ReBuzz.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
@@ -76,7 +77,7 @@ namespace ReBuzz.Audio
                 int bufferSize = RegistryEx.Read("BufferSize", 2048, "ASIO");
                 int sampleRate = RegistryEx.Read("SampleRate", 44100, "ASIO");
                 //AudioProvider = new AudioProvider(buzzCore, machineManager, sampleRate, 2, bufferSize, true);
-                AudioWaveProvider = new AudioWaveProvider(buzzCore, sampleRate, asioOut.DriverOutputChannelCount, bufferSize, false);
+                AudioWaveProvider = new AudioWaveProvider(buzzCore, sampleRate, asioOut.DriverOutputChannelCount, bufferSize, true);
 
                 //asioOut.Init(AudioProvider);
                 asioOut.InitRecordAndPlayback(AudioWaveProvider, 2, sampleRate);
@@ -146,7 +147,7 @@ namespace ReBuzz.Audio
                 wasapiOut = new WasapiOut();
             }
 
-            AudioProvider = new AudioProvider(buzzCore, wasapiDeviceSamplerate, wasapiOut.OutputWaveFormat.Channels, bufferSize, false);
+            AudioProvider = new AudioProvider(buzzCore, wasapiDeviceSamplerate, wasapiOut.OutputWaveFormat.Channels, bufferSize, true);
 
             try
             {
@@ -228,9 +229,11 @@ namespace ReBuzz.Audio
             }
         }
 
+        readonly Lock audioEngineLcok = new();
+
         public void FinalStop()
         {
-            lock (this)
+            lock (audioEngineLcok)
             {
                 ReBuzzCore.SkipAudio = true;
 

@@ -59,16 +59,16 @@ namespace ReBuzz.Common
             return rootObject;
         }
 
-        class ColIndex : IIndex<string, Color>
+        public class ColIndex : IIndex<string, Color>
         {
-            readonly Dictionary<string, Color> colors;
-            public ColIndex() { colors = new Dictionary<string, Color>(); }
+            public Dictionary<string, Color> Colors { get; }
+            public ColIndex() { Colors = new Dictionary<string, Color>(); }
 
             public void Add(string key, Color val)
             {
-                colors[key] = val;
+                Colors[key] = val;
             }
-            public Color this[string index] => colors.ContainsKey(index) ? colors[index] : Colors.Black;
+            public Color this[string index] => Colors.ContainsKey(index) ? Colors[index] : System.Windows.Media.Colors.Black;
         }
 
         public static IIndex<string, Color> GetThemeColors()
@@ -108,8 +108,8 @@ namespace ReBuzz.Common
             return colIndex;
         }
 
-        static readonly (string Name, uint Color)[] defaultColors = new (string Name, uint Color)[]
-        {
+        static readonly (string Name, uint Color)[] defaultColors =
+        [
             ("DC BG", 0xFF000000),
             ("DC Text", 0xFFC0C0C0),
             ("IV BG", 0xFF000000),
@@ -161,7 +161,7 @@ namespace ReBuzz.Common
             ("SE Song Position", 0xFFFFFF00),
             ("SE Text", 0xFF303021),
             ("black", 0xFF000000)
-        };
+        ];
 
         static void InitThemeColors(ColIndex colIndex)
         {
@@ -293,6 +293,7 @@ namespace ReBuzz.Common
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void FlushDenormalToZero(Sample[] samples)
         {
+            /*
             for (int i = 0; i < samples.Length; i++)
             {
                 samples[i].L += k_DENORMAL_DC;
@@ -301,6 +302,7 @@ namespace ReBuzz.Common
                 samples[i].R += k_DENORMAL_DC;
                 //samples[i].R -= k_DENORMAL_DC;
             }
+            */
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

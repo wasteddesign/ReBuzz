@@ -11,11 +11,9 @@ namespace ReBuzz.Audio
     {
         readonly WorkManager workManager;
         private readonly ReBuzzCore buzz;
-        //public WaveFormat WaveFormat { get; }
 
         WorkThreadEngine workEngine;
         readonly ManualResetEvent fillBufferEvent = new ManualResetEvent(false);
-        //readonly ManualResetEvent fillBufferDoneEvent = new ManualResetEvent(false);
 
         bool stopped;
         private readonly float[] threadBuffer;
@@ -29,6 +27,7 @@ namespace ReBuzz.Audio
         readonly Thread audioThread;
         Task audioTask;
         private readonly int channels;
+        private readonly int threadBufferSize;
         readonly EAudioThreadType threadType;
 
         public CommonAudioProvider(ReBuzzCore buzzCore, int sampleRate, int channels, int bufferSize, bool doubleBuffer)
@@ -37,7 +36,7 @@ namespace ReBuzz.Audio
             buzzCore.SelectedAudioDriverSampleRate = sampleRate;
             this.channels = channels;
 
-            int threadBufferSize = bufferSize < 16 ? 16 : bufferSize * 2; // Stereo
+            threadBufferSize = bufferSize < 16 ? 16 : bufferSize * 2; // Stereo
             int size = doubleBuffer ? threadBufferSize * 2 : threadBufferSize; // Double buffer
 
             threadBuffer = new float[size];
@@ -92,6 +91,7 @@ namespace ReBuzz.Audio
                 audioThread.IsBackground = true;
                 audioThread.Start();
             }
+            fillBufferEvent.Set();
         }
 
         public void ClearBuffer()
@@ -103,7 +103,7 @@ namespace ReBuzz.Audio
             threadBufferWriteOffset = 0;
         }
 
-        private readonly object bufferLock = new object();
+        private readonly Lock bufferLock = new();
 
         private void BufferFillThread()
         {
@@ -116,31 +116,35 @@ namespace ReBuzz.Audio
                     return;
                 }
 
-                lock (bufferLock)
+                //lock (bufferLock)
                 {
                     int fillNeed = fillBufferNeed;
                     int fillTarget;
                     while (fillNeed != 0)
                     {
-                        fillTarget = Math.Min(fillNeed, threadBuffer.Length);
-                        if (stopped)
+                        lock (bufferLock)
                         {
-                            return;
+                            fillTarget = Math.Min(fillNeed, threadBuffer.Length);
+                            fillTarget = Math.Min(fillTarget, threadBufferSize); // Fill the buffer size at a time
+                            if (stopped)
+                            {
+                                return;
+                            }
+
+                            int readSize = fillTarget - threadBufferFillLevel;
+
+                            // Do we already have enough?
+                            if (readSize <= 0)
+                            {
+                                break;
+                            }
+
+                            FillTheBuffer(readSize);
+                            fillNeed -= fillTarget;
                         }
-
-                        int readSize = fillTarget - threadBufferFillLevel;
-
-                        // Do we already have enough?
-                        if (readSize <= 0)
-                        {
-                            break;
-                        }
-
-                        FillTheBuffer(readSize);
-                        fillNeed -= fillTarget;
                     }
-                    fillBufferEvent.Reset();
                 }
+                fillBufferEvent.Reset();
             }
         }
 
@@ -212,8 +216,7 @@ namespace ReBuzz.Audio
                         readCount = threadBuffer.Length - threadBufferReadOffset;
 
                     if (readCount != 0)
-                    {
-                        //Buffer.BlockCopy(threadBuffer, threadBufferReadOffset << 2, buffer, offset << 2, readCount << 2);
+                    {   
                         for (int i = 0; i < readCount / 2; i++)
                         {
                             buffer[offset++] = threadBuffer[threadBufferReadOffset];
@@ -229,9 +232,6 @@ namespace ReBuzz.Audio
                             threadBufferReadOffset += 2;
                         }
 
-                        //offset += readCount;
-
-                        //threadBufferReadOffset += readCount;
                         if (threadBufferReadOffset == threadBuffer.Length)
                             threadBufferReadOffset = 0;
 

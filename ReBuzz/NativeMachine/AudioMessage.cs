@@ -5,13 +5,14 @@ using ReBuzz.MachineManagement;
 using System;
 using System.Collections.Generic;
 using System.IO.MemoryMappedFiles;
+using System.Threading;
 
 namespace ReBuzz.NativeMachine
 {
     // All audio message calls should return immediately. Otherwise they are considered crashed.
     internal class AudioMessage : NativeMessage
     {
-        private readonly object AudioMessageLock = new object();
+        private readonly Lock AudioMessageLock = new();
 
         public AudioMessage(ChannelType channel, MemoryMappedViewAccessor accessor, NativeMachineHost nativeMachineHost) : base(channel, accessor, nativeMachineHost)
         {

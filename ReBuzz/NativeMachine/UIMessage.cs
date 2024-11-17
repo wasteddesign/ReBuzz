@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -16,7 +17,7 @@ namespace ReBuzz.NativeMachine
 {
     internal class UIMessage : NativeMessage
     {
-        private readonly object UIMessageLock = new object();
+        private readonly Lock UIMessageLock = new();
 
         public UIMessage(ChannelType channel, MemoryMappedViewAccessor accessor, NativeMachineHost nativeMachineHost) : base(channel, accessor, nativeMachineHost)
         {

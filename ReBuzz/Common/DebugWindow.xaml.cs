@@ -6,11 +6,13 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Threading;
+using static ReBuzz.Common.Utils;
 
 namespace ReBuzz.Common
 {
@@ -29,6 +31,7 @@ namespace ReBuzz.Common
             "instruments",
             "machines",
             "loggertheme",
+            "themecolors",
         };
 
         public DebugWindow()
@@ -123,6 +126,11 @@ namespace ReBuzz.Common
                                         .WriteTo.RichTextBox(tbDebug, theme: theme)
                                         .CreateLogger();
                                 }
+                                break;
+                            case "themecolors":
+                                var cols = Global.Buzz.ThemeColors as ColIndex;
+                                foreach (var col in cols.Colors)
+                                    Log.Information(col.Key + ": " + col.Value);
                                 break;
                         }
                     }

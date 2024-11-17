@@ -497,10 +497,10 @@ namespace ReBuzz.FileOps
             var machineParameters = machine.AllParameters().ToArray();
             var savedParameters = savedMachine.AllParameters().ToArray();
             
-            for (int i = 0; i < savedParameters.Count(); i++)
+            for (int i = 0; i < savedParameters.Length; i++)
             {
                 bool found = false;
-                for (int j = 0; j < machineParameters.Count(); j++)
+                for (int j = 0; j < machineParameters.Length; j++)
                 {
                     if (savedParameters[i].Name == machineParameters[j].Name)
                     {
@@ -1536,10 +1536,10 @@ namespace ReBuzz.FileOps
             WriteString(ms, machine.DLL.Name);
 
             var gParams = machine.ParameterGroupsList[1].ParametersList;
-            uint numGlobals = (uint)gParams.Count();
+            uint numGlobals = (uint)gParams.Count;
 
             var tParams = machine.ParameterGroupsList[2].ParametersList;
-            uint numTrackParams = (uint)tParams.Count();
+            uint numTrackParams = (uint)tParams.Count;
 
             WriteUInt(ms, numGlobals);
             WriteUInt(ms, numTrackParams);
@@ -1676,7 +1676,7 @@ namespace ReBuzz.FileOps
                     machineConnectionsDict[input] = true;
             }
 
-            ushort conns = (ushort)machineConnectionsDict.Count();
+            ushort conns = (ushort)machineConnectionsDict.Count;
             WriteUShort(ms, conns);
 
             foreach (var conn in machineConnectionsDict.Keys)
@@ -1705,7 +1705,7 @@ namespace ReBuzz.FileOps
             List<IMachineConnection> connections = new List<IMachineConnection>();
             song.MachinesList.Run(m => connections.AddRange(m.AllOutputs));
             ushort numConnections = 0;
-            macs.Run(m => numConnections += (ushort)m.AllOutputs.Count());
+            macs.Run(m => numConnections += (ushort)m.AllOutputs.Count);
             WriteUShort(ms, numConnections);
             foreach (var conn in connections)
             {
@@ -1734,7 +1734,7 @@ namespace ReBuzz.FileOps
 
             foreach (MachineCore machine in machines)
             {
-                ushort patterns = (ushort)machine.Patterns.Count();
+                ushort patterns = (ushort)machine.Patterns.Count;
                 ushort tracks = (ushort)machine.TrackCount;
 
                 WriteUShort(ms, patterns);
@@ -1747,7 +1747,7 @@ namespace ReBuzz.FileOps
                     WriteUShort(ms, rows);
 
                     var patternInputs = machine.AllInputs.Where(input => !(input.Source as MachineCore).Hidden).ToArray();
-                    int inputCount = patternInputs.Count();
+                    int inputCount = patternInputs.Length;
                     for (int k = 0; k < inputCount; k++)
                     {
                         var sourceMachine = patternInputs[k].Source as MachineCore;
@@ -1855,7 +1855,7 @@ namespace ReBuzz.FileOps
 
             foreach (MachineCore machine in buzz.SongCore.MachinesList)
             {
-                ushort numPatterns = (ushort)machine.Patterns.Count();
+                ushort numPatterns = (ushort)machine.Patterns.Count;
                 WriteUShort(ms, numPatterns);
 
                 for (ushort i = 0; i < numPatterns; i++)
@@ -1913,7 +1913,7 @@ namespace ReBuzz.FileOps
             WriteInt(ms, song.LoopStart);
             WriteInt(ms, song.LoopEnd);
 
-            WriteUShort(ms, (ushort)song.SequencesList.Count());
+            WriteUShort(ms, (ushort)song.SequencesList.Count);
 
             foreach (var sequence in song.SequencesList)
             {
@@ -2046,7 +2046,7 @@ namespace ReBuzz.FileOps
                     WriteUShort(ms, 0);
                 }
 
-                byte waveLeyers = (byte)wave.LayersList.Count();
+                byte waveLeyers = (byte)wave.LayersList.Count;
                 WriteByte(ms, waveLeyers);
 
                 for (int j = 0; j < waveLeyers; j++)

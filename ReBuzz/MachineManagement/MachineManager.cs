@@ -679,7 +679,7 @@ namespace ReBuzz.MachineManagement
             if (nativeMachines.ContainsKey(machine))
             {
                 // TODO: Check if machine locks are needed elsewhere
-                lock (machine)
+                lock (machine.workLock)
                 {
                     return nativeMachines[machine].UIMessage.UIHandleGUIMessage(machine, message);
                 }

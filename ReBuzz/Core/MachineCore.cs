@@ -14,6 +14,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -25,7 +26,7 @@ namespace ReBuzz.Core
     public class MachineCore : IMachine, IMachineExtension
     {
         public static long machineHostId = 1;
-        public readonly object workLock = new object();
+        public readonly Lock workLock = new();
         //internal int level;
 
         IMachineGraph graph;

@@ -78,7 +78,7 @@ namespace ReBuzz
                     selectedMachine = value;
                     PropertyChanged.Raise(this, "SelectedMachine");
 
-                    if (selectedMachine != null && selectedMachine.Machine.Patterns.Count() == 0)
+                    if (selectedMachine != null && selectedMachine.Machine.Patterns.Count == 0)
                         machineBox.Focus();
                 }
             }

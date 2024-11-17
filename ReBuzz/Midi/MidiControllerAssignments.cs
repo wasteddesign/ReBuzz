@@ -216,7 +216,7 @@ namespace ReBuzz.Midi
 
         internal void Add(string name, int channel, int controller, int value)
         {
-            int index = midiControllers.Count();
+            int index = midiControllers.Count;
             MidiController midiController = new MidiController();
             midiController.Name = name;
             midiController.Contoller = controller;
@@ -225,7 +225,7 @@ namespace ReBuzz.Midi
 
             midiControllers.Add(midiController);
             RegSetControllerById(index, name, channel, controller);
-            RegSetNumberOfMidiControllers(midiControllers.Count());
+            RegSetNumberOfMidiControllers(midiControllers.Count);
         }
 
         internal int GetAssignmentIndex(int ctrl, int channel, int value)

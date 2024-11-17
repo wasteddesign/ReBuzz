@@ -1616,7 +1616,7 @@ namespace ReBuzz.Core
             return name + num;
         }
 
-        public static object AudioLock = new object();
+        public static Lock AudioLock = new();
         public MachineCore CreateMaster()
         {
             var machine = MachineManager.GetMaster(this);

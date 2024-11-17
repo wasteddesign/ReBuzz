@@ -126,7 +126,7 @@ namespace ReBuzz.NativeMachine
         public bool CopyMessageToSendBuffer()
         {
             bool done = false;
-            int size = sendMessageData.Count();
+            int size = sendMessageData.Count;
 
             if (size > MessageBuffer.MaxSize)
             {
@@ -242,7 +242,7 @@ namespace ReBuzz.NativeMachine
         }
         public bool CopyReplyMessageToSendBuffer()
         {
-            int size = sendMessageData.Count();
+            int size = sendMessageData.Count;
             bool done = false;
 
             if (size > MessageBuffer.MaxSize)

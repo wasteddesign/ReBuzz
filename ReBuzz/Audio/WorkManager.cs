@@ -580,9 +580,7 @@ namespace ReBuzz.Audio
                 {
                     List<Task> workTasks = new List<Task>();
 
-                    // Remove first machine from the list. We'll call it in this thread later
-
-                    foreach (var machine in workList.Keys)
+                    foreach (var machine in workList.Keys.OrderByDescending(m => m.performanceLastCount))
                     {
                         if (machine.Ready)
                         {
@@ -597,6 +595,7 @@ namespace ReBuzz.Audio
 
                                 machine.workDone = true;
                             });
+
                             workTasks.Add(t);
                         }
                     }
@@ -654,7 +653,6 @@ namespace ReBuzz.Audio
                 if (machine.workDone)
                     return;
 
-                //List<Task> workTasks = new List<Task>();
                 machine.workTasks.Clear();
 
                 // Process most time consuming branches first
@@ -667,6 +665,7 @@ namespace ReBuzz.Audio
                     {
                         // Handle inputs
                         var t = AudioEngine.TaskFactoryAudio.StartNew(() =>
+                        //var t = Task.Run(() =>
                         {
                             HandleWorkRecursive(sourceMachine, numRead);
                         });
@@ -676,7 +675,9 @@ namespace ReBuzz.Audio
 
                 // Wait all input tasks to complete
                 if (machine.workTasks.Count > 0)
+                {
                     Task.WaitAll(machine.workTasks.ToArray());
+                }
 
                 // All inputs handled (if any)
 
@@ -720,7 +721,7 @@ namespace ReBuzz.Audio
                     break;
                 }
 
-                foreach (var machine in workList.Keys)
+                foreach (var machine in workList.Keys.OrderByDescending(m => m.performanceLastCount))
                 {
                     // Add work instances to be processed
                     var workInstance = buzzCore.MachineManager.GetMachineWorkInstance(machine);
@@ -733,7 +734,7 @@ namespace ReBuzz.Audio
                 workEngine.AllJobsAdded();
 
                 // Wait all tasks to complete
-                if (workList.Keys.Count > 0)
+                if (workList.Count > 0)
                 {
                     var jobs = workEngine.AllDoneEvent();
                     jobs.WaitOne();
@@ -826,7 +827,7 @@ namespace ReBuzz.Audio
             foreach (var input in machine.AllInputs)
             {
                 var sourceMachine = input.Source as MachineCore;
-                workList[sourceMachine] = true;
+                workList[machine] = true;
             }
         }
 

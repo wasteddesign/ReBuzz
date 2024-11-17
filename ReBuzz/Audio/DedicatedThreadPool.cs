@@ -98,6 +98,7 @@ namespace Helios.Concurrency
 
         private readonly DedicatedThreadPool _pool;
 
+        private readonly Lock _tasksLock = new Lock();
         /// <summary>
         /// TBD
         /// </summary>
@@ -113,7 +114,7 @@ namespace Helios.Concurrency
         /// <param name="task">TBD</param>
         protected override void QueueTask(Task task)
         {
-            lock (_tasks)
+            lock (_tasksLock)
             {
                 _tasks.AddLast(task);
             }
@@ -147,7 +148,7 @@ namespace Helios.Concurrency
         /// <returns>TBD</returns>
         protected override bool TryDequeue(Task task)
         {
-            lock (_tasks) return _tasks.Remove(task);
+            lock (_tasksLock) return _tasks.Remove(task);
         }
 
         /// <summary>
@@ -224,7 +225,7 @@ namespace Helios.Concurrency
                     while (true)
                     {
                         Task item;
-                        lock (_tasks)
+                        lock (_tasksLock)
                         {
                             // done processing
                             if (_tasks.Count == 0)

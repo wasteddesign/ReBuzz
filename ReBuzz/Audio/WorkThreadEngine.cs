@@ -70,7 +70,7 @@ namespace ReBuzz.Audio
             }
         }
 
-        private readonly object workLock = new object();
+        private readonly Lock workLock = new();
 
         public void AddWork(MachineWorkInstance workItem)
         {

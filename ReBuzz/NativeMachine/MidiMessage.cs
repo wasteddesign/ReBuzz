@@ -1,12 +1,13 @@
 ﻿using ReBuzz.Core;
 using System;
 using System.IO.MemoryMappedFiles;
+using System.Threading;
 
 namespace ReBuzz.NativeMachine
 {
     internal class MidiMessage : NativeMessage
     {
-        private readonly object MidiLock = new object();
+        private readonly Lock MidiLock = new();
 
         public MidiMessage(ChannelType channel, MemoryMappedViewAccessor accessor, NativeMachineHost nativeMachineHost) : base(channel, accessor, nativeMachineHost)
         {
