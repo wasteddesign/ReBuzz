@@ -239,10 +239,10 @@ namespace ReBuzz.Core
         public bool CanRedo { get => ActionStack.CanRedo; }
         ManagedActionStack actionStack = new ManagedActionStack();
         private IDictionary<string, string> importDictionary;
-        internal Dictionary<MachineCore, MachineInitData> DictInitData = new Dictionary<MachineCore, MachineInitData>();
-        private bool initImportDone;
+        //internal Dictionary<MachineCore, MachineInitData> DictInitData = new Dictionary<MachineCore, MachineInitData>();
+        //private bool initImportDone;
 
-        internal bool Importing { get; set; }
+        //internal bool Importing { get; set; }
 
         public ManagedActionStack ActionStack { get => actionStack; set => actionStack = value; }
         public bool SoloMode { get; private set; }
@@ -293,10 +293,10 @@ namespace ReBuzz.Core
 
         public void ConnectMachines(IMachine src, IMachine dst, int srcchn, int dstchn, int amp, int pan)
         {
-            if (Importing)
+            //if (Importing)
             {
                 // Call native machine init before connecting
-                InitImport();
+                //InitImport();
             }
             Do(new ConnectMachinesAction(reBuzzCore, src, dst, srcchn, dstchn, amp, pan));
         }
@@ -350,25 +350,35 @@ namespace ReBuzz.Core
 
         public void BeginImport(IDictionary<string, string> machinerename)
         {
-            initImportDone = false;
-            Importing = true;
-            DictInitData.Clear();
+            //initImportDone = false;
+            //Importing = true;
+            //DictInitData.Clear();
             this.importDictionary = machinerename;
         }
 
         public void EndImport()
         {
-            foreach (var machine in MachinesList.Where(m => !m.Hidden))
+            lock (ReBuzzCore.AudioLock)
             {
-                reBuzzCore.MachineManager.ImportFinished(machine, importDictionary);
-
-                InitImport();
+                foreach (var remap in importDictionary)
+                {
+                    var machine = MachinesList.FirstOrDefault(m => m.Name == remap.Value);
+                    if (machine != null)
+                    {
+                        reBuzzCore.MachineManager.ImportFinished(machine, importDictionary);
+                        var editor = machine.EditorMachine;
+                        if (editor != null)
+                        {
+                            reBuzzCore.MachineManager.ImportFinished(editor, importDictionary);
+                        }
+                    }
+                }
             }
-            Importing = false;
-            DictInitData.Clear();
+            //Importing = false;
+            //DictInitData.Clear();
         }
-
-        private void InitImport()
+        /*
+        private void InitNativeMachines()
         {
             if (!initImportDone)
             {
@@ -383,6 +393,7 @@ namespace ReBuzz.Core
                 initImportDone = true;
             }
         }
+        */
 
         public void ImportSong(float x, float y)
         {

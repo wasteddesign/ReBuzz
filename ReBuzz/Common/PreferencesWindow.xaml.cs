@@ -114,6 +114,7 @@ namespace ReBuzz.Common
                 wpCPU.Children.Add(cbCpu);
             }
 
+            /*
             int threadType = RegistryEx.Read("AudioThreadType", 0, "Settings");
             {
                 ComboBoxItem cbi = new ComboBoxItem();
@@ -128,8 +129,10 @@ namespace ReBuzz.Common
                 cbi.Content = "None";
                 cbAudioThreadType.Items.Add(cbi);
             }
+            
 
             cbAudioThreadType.SelectedIndex = threadType;
+            */
 
             int numThreads = RegistryEx.Read("AudioThreads", 2, "Settings");
             for (int i = 1; i <= 8; i++)

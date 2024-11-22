@@ -974,7 +974,7 @@ namespace ReBuzz.NativeMachine
             }
         }
 
-        internal void UIRemapMachineNames(MachineCore machine, Dictionary<string, string> dict)
+        internal void UIRemapMachineNames(MachineCore machine, IDictionary<string, string> dict)
         {
             if (machine.DLL.IsCrashed)
             {

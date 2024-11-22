@@ -236,7 +236,7 @@ namespace ReBuzz.FileOps
                 else
                 {
                     // Don't call Init for native machines yet. Wait until all machines are loaded and then call init. Control machines might need machine info.
-                    var machineNew = buzz.MachineManager.CreateMachine(machineDLL.Name, machineDLL.Path, null, data, tracks, x, y, machineProto.Hidden, name, false);
+                    var machineNew = buzz.MachineManager.CreateMachine(machineDLL.Name, machineDLL.Path, null, data, tracks, x, y, machineProto.Hidden, name, true);
                     dictInitData[machineNew] = new MachineInitData() { data = data, tracks = tracks };
 
                     // Copy stuff from proto to real. ToDo: Clean this up;
@@ -281,15 +281,15 @@ namespace ReBuzz.FileOps
 
             // Send machine names to native machines before adding Patterns.
             // Some machines can remap machine names.
-            foreach (var machine in buzz.SongCore.MachinesList.Where(m => !m.DLL.IsManaged && !m.DLL.IsMissing))
-            {
-                buzz.MachineManager.RemapMachineNames(machine, importDictionary);
-                var idata = dictInitData[machine];
+            //foreach (var machine in buzz.SongCore.MachinesList.Where(m => !m.DLL.IsManaged && !m.DLL.IsMissing))
+            //{
+                //buzz.MachineManager.RemapMachineNames(machine, importDictionary);
+                //var idata = dictInitData[machine];
 
-                FileOpsEvent(FileEventType.StatusUpdate, "Init Machine: " + machine.Name + "...");
+                //FileOpsEvent(FileEventType.StatusUpdate, "Init Machine: " + machine.Name + "...");
                 // Call Init
-                buzz.MachineManager.CallInit(machine, idata.data, idata.tracks);
-            }
+                //buzz.MachineManager.CallInit(machine, idata.data, idata.tracks);
+            //}
 
             foreach (var machineData in songData.Machines)
             {

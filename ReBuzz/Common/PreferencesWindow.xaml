@@ -133,7 +133,7 @@
             <TabItem Header="Engine">
                 <Grid>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="30"/>
+                        <RowDefinition Height="0"/>
                         <RowDefinition Height="30"/>
                         <RowDefinition Height="30"/>
                         <RowDefinition Height="*"/>
@@ -142,8 +142,10 @@
                         <ColumnDefinition Width="330"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Margin="4" Grid.Row="0" Text="Audio Background Thread Type"/>
-                    <ComboBox Margin="4" Grid.Row="0" Grid.Column="1" Name="cbAudioThreadType" HorizontalContentAlignment="Right" HorizontalAlignment="Right" Width="200"/>                    
+                    <!--
+                    <TextBlock Margin="4" Grid.Row="0" Text="Audio Background Thread Type" />
+                    <ComboBox Margin="4" Grid.Row="0" Grid.Column="1" Name="cbAudioThreadType" HorizontalContentAlignment="Right" HorizontalAlignment="Right" Width="200"/> 
+                    -->
                     <TextBlock Margin="4" Grid.Row="1" Text="Audio Threads (Enable Multithreading from Engine Settings)"/>
                     <ComboBox Margin="4" Grid.Row="1" Grid.Column="1" Name="cbAudioThreads" HorizontalContentAlignment="Right" HorizontalAlignment="Right" Width="200"/>
                     <TextBlock Margin="4" Grid.Row="2" Text="Algorithm"/>

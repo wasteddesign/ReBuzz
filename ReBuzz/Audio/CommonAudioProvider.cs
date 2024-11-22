@@ -1,5 +1,6 @@
 ﻿using Buzz.MachineInterface;
 using BuzzGUI.Common;
+using ReBuzz.Common;
 using ReBuzz.Core;
 using System;
 using System.Threading;
@@ -24,8 +25,8 @@ namespace ReBuzz.Audio
         int threadBufferFillLevel = 0;
         int threadBufferReadOffset = 0;
         private int fillBufferNeed;
-        readonly Thread audioThread;
-        Task audioTask;
+        //readonly Thread audioThread;
+        //Task audioTask;
         private readonly int channels;
         private readonly int threadBufferSize;
         readonly EAudioThreadType threadType;
@@ -78,6 +79,7 @@ namespace ReBuzz.Audio
 
             threadType = (EAudioThreadType)RegistryEx.Read("AudioThreadType", 0, "Settings");
 
+            /*
             if (threadType == EAudioThreadType.TaskScheduler)
             {
                 // Use default scheduler
@@ -92,7 +94,24 @@ namespace ReBuzz.Audio
                 audioThread.Start();
             }
             fillBufferEvent.Set();
+            */
+
+            multimediaTimer = new MultimediaTimer() { Interval = 1 };
+            multimediaTimer.Elapsed += (o, e) =>
+            {
+                lock (bufferLock)
+                {
+                    int readSize = threadBuffer.Length - threadBufferFillLevel;
+                    if (readSize > 0)
+                    {
+                        FillTheBuffer(readSize);
+                    }
+                }
+            };
+            multimediaTimer.Start();
         }
+
+        MultimediaTimer multimediaTimer;
 
         public void ClearBuffer()
         {
@@ -104,7 +123,7 @@ namespace ReBuzz.Audio
         }
 
         private readonly Lock bufferLock = new();
-
+        /*
         private void BufferFillThread()
         {
             while (!stopped)
@@ -125,7 +144,7 @@ namespace ReBuzz.Audio
                         lock (bufferLock)
                         {
                             fillTarget = Math.Min(fillNeed, threadBuffer.Length);
-                            fillTarget = Math.Min(fillTarget, threadBufferSize); // Fill the buffer size at a time
+                            //fillTarget = Math.Min(fillTarget, threadBufferSize); // Fill the buffer size at a time
                             if (stopped)
                             {
                                 return;
@@ -147,6 +166,7 @@ namespace ReBuzz.Audio
                 fillBufferEvent.Reset();
             }
         }
+        */
 
         int FillTheBuffer(int readSize)
         {
@@ -268,7 +288,7 @@ namespace ReBuzz.Audio
                 workEngine.Stop();
                 workEngine = null;
             }
-
+            /*
             if (audioTask != null)
             {
                 try
@@ -283,6 +303,13 @@ namespace ReBuzz.Audio
             {
                 audioThread.Join();
             }
+            */
+
+            if (multimediaTimer != null)
+            {
+                multimediaTimer.Stop();
+                multimediaTimer.Dispose();
+            }    
         }
 
         internal int ReadOverride(float[] buffer, int offset, int count)

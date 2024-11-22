@@ -1,5 +1,6 @@
 ﻿using BuzzGUI.Common.Actions;
 using BuzzGUI.Interfaces;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace ReBuzz.Core.Actions.GraphActions
@@ -24,6 +25,14 @@ namespace ReBuzz.Core.Actions.GraphActions
         {
             var clone = buzz.CreateMachine(mi.MachineLib, mi.Instrument, mi.Name, mi.Data, mi.PatternEditorDllName, mi.PatternEditorData, mi.TrackCount, newX, newY);
             this.newName = clone.Name;
+
+            Dictionary<string, string> remapNames = new Dictionary<string, string>();
+            remapNames[mi.Name] = clone.Name;
+            buzz.MachineManager.ImportFinished(clone, remapNames);
+            if (clone.EditorMachine != null)
+            {
+                buzz.MachineManager.ImportFinished(clone.EditorMachine, remapNames);
+            }
         }
 
         protected override void UndoAction()

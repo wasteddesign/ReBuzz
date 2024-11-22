@@ -917,8 +917,11 @@ namespace ReBuzz.Core
 
         public void DCWriteLine(string s)
         {
-            s = s.Replace("\x01", "");
-            Log.Information(s);
+            if (s != null)
+            {
+                s = s.Replace("\x01", "");
+                Log.Information(s);
+            }
         }
 
         public void ExecuteCommand(BuzzCommand cmd)
@@ -1053,8 +1056,8 @@ namespace ReBuzz.Core
                         long processorAffinity = preferencesWindow.GetProcessorAffinity();
                         RegistryEx.Write("ProcessorAffinity", processorAffinity, "Settings");
 
-                        int threadType = preferencesWindow.cbAudioThreadType.SelectedIndex;
-                        RegistryEx.Write("AudioThreadType", threadType, "Settings");
+                        //int threadType = preferencesWindow.cbAudioThreadType.SelectedIndex;
+                        //RegistryEx.Write("AudioThreadType", threadType, "Settings");
 
                         int threadCount = preferencesWindow.cbAudioThreads.SelectedIndex + 1;
                         RegistryEx.Write("AudioThreads", threadCount, "Settings");
@@ -1548,12 +1551,12 @@ namespace ReBuzz.Core
             if (trackcount <= 0)
                 trackcount = 1;
 
-            MachineCore machineCore = MachineManager.CreateMachine(machine, path, instrument, data, trackcount, x, y, false, name, !songCore.Importing);
+            MachineCore machineCore = MachineManager.CreateMachine(machine, path, instrument, data, trackcount, x, y, false, name, true);
 
-            if (songCore.Importing)
-            {
-                songCore.DictInitData[machineCore] = new MachineInitData() { data = data, tracks = trackcount };
-            }
+            //if (songCore.Importing)
+            //{
+            //    songCore.DictInitData[machineCore] = new MachineInitData() { data = data, tracks = trackcount };
+            //}
 
             if (machineCore != null && patternEditor != null)
             {

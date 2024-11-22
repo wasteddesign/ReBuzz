@@ -160,7 +160,7 @@ namespace ReBuzz.Audio
                 Global.Buzz.DCWriteLine("Wasap error: " + ex);
                 wasapiOut = new WasapiOut();
 
-                AudioProvider = new AudioProvider(buzzCore, wasapiDeviceSamplerate, 2, bufferSize, false);
+                AudioProvider = new AudioProvider(buzzCore, wasapiDeviceSamplerate, 2, bufferSize, true);
                 wasapiOut.Init(AudioProvider);
             }
 

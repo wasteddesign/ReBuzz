@@ -424,8 +424,8 @@ namespace ReBuzz.FileOps
                 }
                 else
                 {
-                    // Don't call Init for native machines yet. Wait until all machines are loaded and then call init. Control machines might need machine info.
-                    var machineNew = buzz.MachineManager.CreateMachine(machineDLL.Name, machineDLL.Path, null, data, tracks, x, y, machineProto.Hidden, name, false);
+                    // Ignore?: Don't call Init for native machines yet. Wait until all machines are loaded and then call init. Control machines might need machine info.
+                    var machineNew = buzz.MachineManager.CreateMachine(machineDLL.Name, machineDLL.Path, null, data, tracks, x, y, machineProto.Hidden, name, true);
 
                     // Saved machine parameter count/indexes might be a different from the machine that is currently available for ReBuzz. Create parameter mappings
                     RemapLoadedMachineParameterIndex(machineNew, machineProto);
@@ -461,8 +461,6 @@ namespace ReBuzz.FileOps
                     {
                         if (!machineNew.Hidden)
                         {
-
-
                             // Keep track of machines imported, so we can undo them
                             importAction.AddMachine(machineNew);
                         }
@@ -472,22 +470,22 @@ namespace ReBuzz.FileOps
 
             // Send machine names to native machines before adding Patterns.
             // Some machines can remap machine names.
-            foreach (var machine in machines.Where(m => !m.DLL.IsMissing))
-            {
+            //foreach (var machine in machines.Where(m => !m.DLL.IsMissing))
+            //{
                 #region Init Machine Section
                 // This region can be moved to the loop end of this method if init needs to be called after every machine has been created.
-                if (!machine.DLL.IsManaged)
-                {
-                    var idata = dictInitData[machine];
-                    FileOpsEvent(FileEventType.StatusUpdate, "Init Machine: " + machine.Name + "...");
+                //if (!machine.DLL.IsManaged)
+                //{
+                    //var idata = dictInitData[machine];
+                    //FileOpsEvent(FileEventType.StatusUpdate, "Init Machine: " + machine.Name + "...");
                     // Call Init
-                    buzz.MachineManager.CallInit(machine, idata.data, idata.tracks);
-                }
+                    //buzz.MachineManager.CallInit(machine, idata.data, idata.tracks);
+                //}
                 #endregion
 
                 // Call remap machine names
-                buzz.MachineManager.RemapMachineNames(machine, importDictionary);
-            }
+                //buzz.MachineManager.RemapMachineNames(machine, importDictionary);
+            //}
         }
 
         private void RemapLoadedMachineParameterIndex(MachineCore machine, MachineCore savedMachine)
