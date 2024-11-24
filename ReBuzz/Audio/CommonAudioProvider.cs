@@ -25,8 +25,6 @@ namespace ReBuzz.Audio
         int threadBufferFillLevel = 0;
         int threadBufferReadOffset = 0;
         private int fillBufferNeed;
-        //readonly Thread audioThread;
-        //Task audioTask;
         private readonly int channels;
         private readonly int threadBufferSize;
         readonly EAudioThreadType threadType;
@@ -79,23 +77,6 @@ namespace ReBuzz.Audio
 
             threadType = (EAudioThreadType)RegistryEx.Read("AudioThreadType", 0, "Settings");
 
-            /*
-            if (threadType == EAudioThreadType.TaskScheduler)
-            {
-                // Use default scheduler
-                //Task.Factory.StartNew(() => { BufferFillThread(); }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
-                audioTask = AudioEngine.TaskFactoryAudio.StartNew(() => { BufferFillThread(); }, CancellationToken.None, TaskCreationOptions.LongRunning, AudioEngine.TaskSchedulerAudio);
-            }
-            else if (threadType == EAudioThreadType.Thread)
-            {
-                audioThread = new Thread(this.BufferFillThread);
-                audioThread.Priority = ProcessAndThreadProfile.AudioProviderThread;
-                audioThread.IsBackground = true;
-                audioThread.Start();
-            }
-            fillBufferEvent.Set();
-            */
-
             multimediaTimer = new MultimediaTimer() { Interval = 1 };
             multimediaTimer.Elapsed += (o, e) =>
             {
@@ -123,51 +104,6 @@ namespace ReBuzz.Audio
         }
 
         private readonly Lock bufferLock = new();
-        /*
-        private void BufferFillThread()
-        {
-            while (!stopped)
-            {
-                // Wait until we need to update buffer
-                fillBufferEvent.WaitOne();
-                if (stopped)
-                {
-                    return;
-                }
-
-                //lock (bufferLock)
-                {
-                    int fillNeed = fillBufferNeed;
-                    int fillTarget;
-                    while (fillNeed != 0)
-                    {
-                        lock (bufferLock)
-                        {
-                            fillTarget = Math.Min(fillNeed, threadBuffer.Length);
-                            //fillTarget = Math.Min(fillTarget, threadBufferSize); // Fill the buffer size at a time
-                            if (stopped)
-                            {
-                                return;
-                            }
-
-                            int readSize = fillTarget - threadBufferFillLevel;
-
-                            // Do we already have enough?
-                            if (readSize <= 0)
-                            {
-                                break;
-                            }
-
-                            FillTheBuffer(readSize);
-                            fillNeed -= fillTarget;
-                        }
-                    }
-                }
-                fillBufferEvent.Reset();
-            }
-        }
-        */
-
         int FillTheBuffer(int readSize)
         {
             lock (bufferLock)
@@ -288,22 +224,6 @@ namespace ReBuzz.Audio
                 workEngine.Stop();
                 workEngine = null;
             }
-            /*
-            if (audioTask != null)
-            {
-                try
-                {
-                    Task.WaitAll(audioTask);
-                }
-                catch { }
-                audioTask = null;
-            }
-
-            if (audioThread != null)
-            {
-                audioThread.Join();
-            }
-            */
 
             if (multimediaTimer != null)
             {
@@ -337,11 +257,9 @@ namespace ReBuzz.Audio
             }
             else
             {
-
                 double mul = (Math.Abs(buzz.Speed) / 20.0 + 1.0);
                 int targetCount = (int)(n * mul * 2); // Stereo
 
-                //targetCount = targetCount + workBufferOffset < fillChannel.Length ? targetCount : fillChannel.Length - workBufferOffset;
                 float[] toBuffer = new float[targetCount];
                 float[] fromBuffer = new float[n * 2];
 

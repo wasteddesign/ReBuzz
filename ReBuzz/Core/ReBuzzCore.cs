@@ -1,9 +1,6 @@
 ﻿using Buzz.MachineInterface;
 using BuzzGUI.Common;
 using BuzzGUI.Interfaces;
-using BuzzGUI.MachineView;
-using BuzzGUI.MachineView.HDRecorder;
-using BuzzGUI.PianoKeyboard;
 using Microsoft.Win32;
 using NAudio.Midi;
 using ReBuzz.Audio;
@@ -25,7 +22,6 @@ using System.Reflection;
 using System.Runtime;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -327,7 +323,7 @@ namespace ReBuzz.Core
         }
 
         // Misc
-        KeyboardWindow keyboardWindow = null;
+        //KeyboardWindow keyboardWindow = null;
         bool isPianoKeyboardVisible = false;
         public bool IsPianoKeyboardVisible
         {
@@ -335,24 +331,6 @@ namespace ReBuzz.Core
             set
             {
                 isPianoKeyboardVisible = value;
-
-                if (keyboardWindow == null)
-                {
-                    keyboardWindow = new KeyboardWindow(this);
-
-                    keyboardWindow.Topmost = true;
-                    var interop = new WindowInteropHelper(keyboardWindow);
-                    interop.Owner = MachineViewHWND;
-                }
-
-                if (isPianoKeyboardVisible == true)
-                {
-                    keyboardWindow.Show();
-                }
-                else
-                {
-                    keyboardWindow.Hide();
-                }
                 PropertyChanged.Raise(this, "IsPianoKeyboardVisible");
             }
         }
@@ -377,44 +355,15 @@ namespace ReBuzz.Core
         bool isCPUMonitorWindowVisible;
         public bool IsCPUMonitorWindowVisible { get => isCPUMonitorWindowVisible; set { isCPUMonitorWindowVisible = value; PropertyChanged.Raise(this, "IsCPUMonitorWindowVisible"); } }
 
+
         bool isHardDiskRecorderWindowVisible;
-        HDRecorderWindow hDRecorderWindow;
+
         public bool IsHardDiskRecorderWindowVisible
         {
             get => isHardDiskRecorderWindowVisible;
             set
             {
                 isHardDiskRecorderWindowVisible = value;
-
-                if (hDRecorderWindow == null)
-                {
-                    hDRecorderWindow = new HDRecorderWindow();
-                    var rd = Utils.GetUserControlXAML<ResourceDictionary>("MachineView\\MachineView.xaml");
-                    hDRecorderWindow.Resources.MergedDictionaries.Add(rd);
-
-                    hDRecorderWindow.MachineGraph = SongCore;
-
-                    hDRecorderWindow.Topmost = true;
-                    var interop = new WindowInteropHelper(hDRecorderWindow);
-                    interop.Owner = MachineViewHWND;
-
-                    hDRecorderWindow.Closed += (sender, e) =>
-                    {
-                        hDRecorderWindow.MachineGraph = null;
-                        hDRecorderWindow = null;
-                        isHardDiskRecorderWindowVisible = false;
-                        PropertyChanged.Raise(this, "IsHardDiskRecorderWindowVisible");
-                    };
-                }
-
-                if (isHardDiskRecorderWindowVisible == true)
-                {
-                    hDRecorderWindow.Show();
-                }
-                else
-                {
-                    hDRecorderWindow.Close();
-                }
                 PropertyChanged.Raise(this, "IsHardDiskRecorderWindowVisible");
             }
         }
@@ -702,20 +651,6 @@ namespace ReBuzz.Core
                 {
                     var machine = m as MachineCore;
                     machine.UpdateLastEngineThread();
-                }
-            };
-
-            if (MachineView.StaticSettings.ShowEngineThreads)
-                dtEngineThread.Start();
-
-            MachineView.StaticSettings.PropertyChanged += (s, e) =>
-            {
-                if (e.PropertyName == "ShowEngineThreads")
-                {
-                    if (MachineView.StaticSettings.ShowEngineThreads)
-                        dtEngineThread.Start();
-                    else
-                        dtEngineThread.Stop();
                 }
             };
         }
@@ -1351,6 +1286,8 @@ namespace ReBuzz.Core
             MIDIActivity = true;
 
             //MIDIInput?.Invoke(data);
+
+            // Some UI components require MIDIInput.Invoke to be called from UI thread (Midi Keyboard)
             Application.Current.Dispatcher.BeginInvoke(new Action(() =>
                 MIDIInput?.Invoke(data)
             ));

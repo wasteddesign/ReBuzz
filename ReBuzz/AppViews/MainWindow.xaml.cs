@@ -2,6 +2,8 @@
 using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
 using BuzzGUI.MachineView;
+using BuzzGUI.MachineView.HDRecorder;
+using BuzzGUI.PianoKeyboard;
 using BuzzGUI.SequenceEditor;
 using BuzzGUI.ToolBar;
 using BuzzGUI.WavetableView;
@@ -17,6 +19,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using System.Windows.Automation.Provider;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
@@ -38,8 +41,10 @@ namespace ReBuzz
         InfoView InfoView { get; set; }
 
         StatusWindow statusWindow;
+        HDRecorderWindow hDRecorderWindow;
 
         readonly SplashScreenWindow splashScreenWindow;
+        KeyboardWindow keyboardWindow = null;
 
         WDE.ModernSequenceEditor.SequenceEditor ModernSequenceEditor { get; set; }
         WDE.ModernSequenceEditorHorizontal.SequenceEditor ModernSequenceEditorHorizontal { get; set; }
@@ -68,7 +73,6 @@ namespace ReBuzz
         string statusBarItem2;
         private WindowStyle mainWindowStyle;
         private UserControl ToolBarControl;
-
 
         public string StatusBarItem2
         {
@@ -121,6 +125,20 @@ namespace ReBuzz
             song.ShowMachineViewContextMenu += (x, y) =>
             {
                 MachineView.ContextMenu.IsOpen = true;
+            };
+
+            if (MachineView.StaticSettings.ShowEngineThreads)
+                Buzz.dtEngineThread.Start();
+
+            MachineView.StaticSettings.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == "ShowEngineThreads")
+                {
+                    if (MachineView.StaticSettings.ShowEngineThreads)
+                        Buzz.dtEngineThread.Start();
+                    else
+                        Buzz.dtEngineThread.Stop();
+                }
             };
 
             machineManager = new MachineManager(song);
@@ -197,23 +215,6 @@ namespace ReBuzz
             this.Loaded += (sender, e) =>
             {
                 splashScreenWindow.UpdateText("Init views");
-                /*
-                Utils.InitUtils(this);
-
-                CreateThemedGUI();
-
-                BuzzGUIStartup.Startup();
-                // Need to get the HWND from Buzz
-                machineManager.Buzz = buzzCore;
-                Buzz.CreateMaster();
-
-                string audioDriver = RegistryEx.Read("AudioDriver", "WASAPI", "Settings");
-                Buzz.SelectedAudioDriver = audioDriver;
-
-                song.SongEnd = 64;
-                song.LoopEnd = 64;
-                return;
-                */
 
                 // Machine View
                 var rd = Utils.GetUserControlXAML<ResourceDictionary>(Buzz.Theme.MachineView.Source);
@@ -304,8 +305,6 @@ namespace ReBuzz
                 {
                     BuzzGUI.BuzzUpdate.UpdateService.CheckForUpdates(Buzz);
                 }
-
-                // Buzz.TestRun();
             };
 
             this.Closing += (sender, e) =>
@@ -357,6 +356,57 @@ namespace ReBuzz
                 else if (e.PropertyName == "InfoText")
                 {
                     InfoView.tbInfo.Text = Buzz.InfoText;
+                }
+                else if (e.PropertyName == "IsHardDiskRecorderWindowVisible")
+                {
+                    if (hDRecorderWindow == null && Buzz.IsHardDiskRecorderWindowVisible == true)
+                    {
+                        hDRecorderWindow = new HDRecorderWindow();
+                        var rd = Utils.GetUserControlXAML<ResourceDictionary>("MachineView\\MachineView.xaml");
+                        hDRecorderWindow.Resources.MergedDictionaries.Add(rd);
+
+                        hDRecorderWindow.MachineGraph = Buzz.SongCore;
+
+                        hDRecorderWindow.Topmost = true;
+                        var interop = new WindowInteropHelper(hDRecorderWindow);
+                        interop.Owner = Buzz.MachineViewHWND;
+
+                        hDRecorderWindow.Closed += (sender, e) =>
+                        {
+                            hDRecorderWindow.MachineGraph = null;
+                            hDRecorderWindow = null;
+                            Buzz.IsHardDiskRecorderWindowVisible = false;
+                        };
+                    }
+
+                    if (Buzz.IsHardDiskRecorderWindowVisible == true)
+                    {
+                        hDRecorderWindow.Show();
+                    }
+                    else if (hDRecorderWindow != null)
+                    {
+                        hDRecorderWindow.Close();
+                    }
+                }
+                else if (e.PropertyName == "IsPianoKeyboardVisible")
+                {
+                    if (keyboardWindow == null)
+                    {
+                        keyboardWindow = new KeyboardWindow(Buzz);
+
+                        keyboardWindow.Topmost = true;
+                        var interop = new WindowInteropHelper(keyboardWindow);
+                        interop.Owner = Buzz.MachineViewHWND;
+                    }
+
+                    if (Buzz.IsPianoKeyboardVisible == true)
+                    {
+                        keyboardWindow.Show();
+                    }
+                    else
+                    {
+                        keyboardWindow.Hide();
+                    }
                 }
             };
 

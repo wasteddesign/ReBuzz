@@ -47,8 +47,7 @@ namespace ReBuzz.Core
 
         public int NoValue { get; set; }
 
-        readonly Lock paramLock = new();
-
+        //readonly Lock paramLock = new();
 
         public ParameterFlags Flags { get; set; }
 
@@ -265,8 +264,8 @@ namespace ReBuzz.Core
 
             var machine = Group.Machine as MachineCore;
 
-            // Lock machine here and MachineWorkInstance.cs Tick to avid potential collision
-            lock (paramLock)
+            // Lock machine here and MachineWorkInstance.cs Tick to avoid potential collision
+            lock (machine.workLock)
             {
                 track = track == -1 ? 0 : track;
 
