@@ -23,6 +23,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -32,6 +33,8 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Timer = System.Timers.Timer;
+
+[assembly: InternalsVisibleTo("ReBuzzTests")] //bug
 
 namespace ReBuzz.Core
 {
