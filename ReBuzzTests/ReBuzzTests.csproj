@@ -11,6 +11,11 @@
   <ItemGroup>
     <PackageReference Include="AtmaFileSystem" Version="7.1.1" />
     <PackageReference Include="coverlet.collector" Version="6.0.2" />
+    <PackageReference Include="FluentAssertions" Version="6.12.2" />
+    <PackageReference Include="FluentAssertions.Analyzers" Version="0.34.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="NUnit" Version="4.2.2" />
     <PackageReference Include="NUnit.Analyzers" Version="4.4.0">
@@ -25,7 +30,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Using Include="NUnit.Framework" />
+    <Reference Include="BuzzGUI.Common">
+      <HintPath>..\..\..\..\..\..\Program Files\ReBuzz\BuzzGUI.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="BuzzGUI.Interfaces">
+      <HintPath>..\..\..\..\..\..\Program Files\ReBuzz\BuzzGUI.Interfaces.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
+  <ItemGroup>
+    <Using Include="NUnit.Framework" />
+  </ItemGroup>
 </Project>

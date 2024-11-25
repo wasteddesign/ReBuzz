@@ -529,7 +529,7 @@ namespace ReBuzz.Core
 
                 modified = value;
                 Application.Current.Dispatcher.BeginInvoke(() =>
-                PropertyChanged.Raise(this, "Modified"));
+                  PropertyChanged.Raise(this, "Modified"));
             }
         }
         public IPattern PatternEditorPattern { get; private set; }
