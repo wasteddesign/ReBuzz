@@ -61,6 +61,7 @@ public class Driver : IDisposable
     _reBuzzCore.PropertyChanged += (sender, args) => { };
     _reBuzzCore.ScanDlls();
     _reBuzzCore.CreateMaster();
+    Global.Buzz = _reBuzzCore;
 
     _reBuzzCore.ExecuteCommand(BuzzCommand.NewFile);
 

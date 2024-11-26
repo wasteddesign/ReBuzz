@@ -22,7 +22,7 @@ namespace ReBuzz
         {
             IMachine machine;
             IPattern selectedPattern;
-            private ReBuzzCore reBuzz;
+            private IBuzz reBuzz;
 
             public event PropertyChangedEventHandler PropertyChanged;
 
@@ -51,7 +51,7 @@ namespace ReBuzz
                 }
             }
 
-            public MachineVM(ReBuzzCore rb)
+            public MachineVM(IBuzz rb)
             {
                 this.reBuzz = rb;
             }

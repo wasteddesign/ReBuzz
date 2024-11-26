@@ -14,7 +14,7 @@ namespace ReBuzz.MachineManagement
 
         }
 
-        public List<Instrument> CreateInstrumentsList(ReBuzzCore buzz, MachineDatabase mdb)
+        public List<Instrument> CreateInstrumentsList(IBuzz buzz, MachineDatabase mdb)
         {
             list.Clear();
 

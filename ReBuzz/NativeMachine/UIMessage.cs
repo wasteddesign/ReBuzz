@@ -57,7 +57,7 @@ namespace ReBuzz.NativeMachine
             }
         }
 
-        internal bool UILoadLibrarySync(ReBuzzCore buzz, MachineCore machine, string libname, string path)
+        internal bool UILoadLibrarySync(IBuzz buzz, MachineCore machine, string libname, string path)
         {
             if (machine.DLL.IsCrashed)
             {

@@ -3,16 +3,17 @@ using NAudio.Midi;
 using ReBuzz.Core;
 using System;
 using System.Collections.Generic;
+using BuzzGUI.Interfaces;
 
 namespace ReBuzz.Midi
 {
     internal class MidiEngine
     {
-        private readonly ReBuzzCore buzz;
+        private readonly IBuzz buzz;
         private readonly Dictionary<int, MidiInDevice> midiIns = new Dictionary<int, MidiInDevice>();
         private readonly Dictionary<int, MidiOut> midiOuts = new Dictionary<int, MidiOut>();
 
-        public MidiEngine(ReBuzzCore buzz)
+        public MidiEngine(IBuzz buzz)
         {
             this.buzz = buzz;
         }

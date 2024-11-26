@@ -376,7 +376,7 @@ namespace ReBuzz.MachineManagement
             return name;
         }
 
-        public MachineCore GetMaster(ReBuzzCore buzz)
+        public MachineCore GetMaster(IBuzz buzz)
         {
             MachineCore machine = new MachineCore(song);
             machine.Name = "Master";

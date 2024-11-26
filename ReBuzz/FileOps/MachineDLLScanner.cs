@@ -22,7 +22,7 @@ namespace ReBuzz.FileOps
         {
         }
 
-        public static Dictionary<string, MachineDLL> GetMachineDLLs(ReBuzzCore buzz)
+        public static Dictionary<string, MachineDLL> GetMachineDLLs(IBuzz buzz)
         {
             XMLMachineDLLs xmlMachines = null;
             FileStream f = null;
@@ -32,7 +32,7 @@ namespace ReBuzz.FileOps
                 if (File.Exists(xmlFilePath))
                 {
                     f = File.OpenRead(xmlFilePath);
-                    xmlMachines = LoadMachineDLLs(f);
+                    xmlMachines = LoadMachineDLLs(f, buzz);
 
                     if (xmlMachines != null)
                     {
@@ -124,7 +124,7 @@ namespace ReBuzz.FileOps
             }
         }
 
-        public static XMLMachineDLLs LoadMachineDLLs(Stream input)
+        public static XMLMachineDLLs LoadMachineDLLs(Stream input, IBuzz buzz)
         {
             if (input == null)
             {
@@ -138,10 +138,10 @@ namespace ReBuzz.FileOps
             {
                 o = s.Deserialize(r);
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 //MessageBox.Show("Error loading Machine DLL Cache Data:\n\n" + e.ToString(), "Machine DLL Cache Load Error", MessageBoxButton.OK);
-                Global.Buzz.DCWriteLine("Error loading Machine DLL Cache Data. Rebuilding cache...");
+                buzz.DCWriteLine("Error loading Machine DLL Cache Data. Rebuilding cache...");
             }
             r.Close();
             input.Close();
@@ -161,7 +161,7 @@ namespace ReBuzz.FileOps
             return dir;
         }
 
-        public static XMLMachineDLLs RescanMachineDLLs(ReBuzzCore buzz)
+        public static XMLMachineDLLs RescanMachineDLLs(IBuzz buzz)
         {
             buzz.DCWriteLine("RescanMachineDLLs");
             var xFileName = GetFullFileName();

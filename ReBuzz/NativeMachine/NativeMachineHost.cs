@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Threading;
+using BuzzGUI.Interfaces;
 
 namespace ReBuzz.NativeMachine
 {
@@ -35,7 +36,7 @@ namespace ReBuzz.NativeMachine
             this.sharedId = sharedId + DateTime.Now.Ticks;
         }
 
-        public void InitHost(ReBuzzCore buzz, bool host64)
+        public void InitHost(IBuzz buzz, bool host64)
         {
             if (IsConnected)
                 return;

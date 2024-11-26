@@ -5,13 +5,14 @@ using ReBuzz.Core;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using BuzzGUI.Interfaces;
 
 namespace ReBuzz.Audio
 {
     internal class CommonAudioProvider
     {
         readonly WorkManager workManager;
-        private readonly ReBuzzCore buzz;
+        private readonly IBuzz buzz;
 
         WorkThreadEngine workEngine;
         readonly ManualResetEvent fillBufferEvent = new ManualResetEvent(false);

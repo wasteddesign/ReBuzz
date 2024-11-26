@@ -9,13 +9,13 @@ namespace ReBuzz.Midi
 {
     internal class MidiControllerAssignments
     {
-        private readonly ReBuzzCore buzz;
+        private readonly IBuzz buzz;
         private readonly List<MidiController> midiControllers = new List<MidiController>();
         private readonly List<MidiController> midiReBuzzControllers = new List<MidiController>();
 
         public IList<MidiController> ReBuzzMIDIControllers { get { return midiReBuzzControllers; } }
         public IList<MidiController> MIDIControllers { get { return midiControllers; } }
-        internal MidiControllerAssignments(ReBuzzCore reBuzzCore)
+        internal MidiControllerAssignments(IBuzz reBuzzCore)
         {
             buzz = reBuzzCore;
             LoadAssignments();

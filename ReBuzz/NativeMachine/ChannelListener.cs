@@ -1,12 +1,13 @@
 ﻿using BuzzGUI.Common;
 using ReBuzz.Core;
 using System.Threading;
+using BuzzGUI.Interfaces;
 
 namespace ReBuzz.NativeMachine
 {
     internal class ChannelListener
     {
-        internal ReBuzzCore buzz;
+        internal IBuzz buzz;
 
         public ChannelType Channel { get; }
         private readonly NativeMessage msg;
@@ -16,7 +17,7 @@ namespace ReBuzz.NativeMachine
         public EventWaitHandle WaitHandlePing { get; }
         public EventWaitHandle WaitHandlePong { get; }
 
-        public ChannelListener(ChannelType channel, ThreadPriority priority, string eventId, NativeMessage msg, ReBuzzCore buzz)
+        public ChannelListener(ChannelType channel, ThreadPriority priority, string eventId, NativeMessage msg, IBuzz buzz)
         {
             this.buzz = buzz;
             Channel = channel;
