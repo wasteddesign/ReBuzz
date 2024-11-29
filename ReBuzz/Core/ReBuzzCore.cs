@@ -54,8 +54,6 @@ namespace ReBuzz.Core
         public static readonly int SubTicsPerTick = 8;
         internal static BuzzGlobalState GlobalState;
         public static string AppDataPath = "ReBuzz";
-        readonly DebugWindow debugWindow = new DebugWindow();
-        //private readonly ConcurrentStreamWriter DebugStreamWrite;
 
         public readonly bool AUTO_CONVERT_WAVES = false;
 
@@ -257,7 +255,7 @@ namespace ReBuzz.Core
 
         public IMenuItem MachineIndex { get; set; }
 
-        PreferencesWindow preferencesWindow;
+        
 
         // MIDI
         IMachine midiFocusMachine;
@@ -863,8 +861,7 @@ namespace ReBuzz.Core
         {
             if (cmd == BuzzCommand.DebugConsole)
             {
-                debugWindow.Show();
-                debugWindow.BringToTop();
+                BuzzCommandRaised.Invoke(cmd);
             }
             else if (cmd == BuzzCommand.About)
             {
@@ -872,21 +869,7 @@ namespace ReBuzz.Core
             }
             else if (cmd == BuzzCommand.Exit)
             {
-                if (Modified)
-                {
-                    var result = Utils.MessageBox("Save changes to " + (SongCore.SongName == null ? "Untitled" : SongCore.SongName), "ReBuzz", MessageBoxButton.YesNoCancel);
-                    if (result == MessageBoxResult.Yes)
-                    {
-                        SaveSongFile(SongCore.SongName);
-                    }
-                    else if (result == MessageBoxResult.Cancel)
-                    {
-                        return;
-                    }
-                }
-                playing = false;
-                Release();
-                Environment.Exit(0);
+                BuzzCommandRaised.Invoke(cmd);
             }
             else if (cmd == BuzzCommand.Stop)
             {
@@ -947,73 +930,7 @@ namespace ReBuzz.Core
             */
             else if (cmd == BuzzCommand.Preferences)
             {
-                if (preferencesWindow == null)
-                {
-                    preferencesWindow = new PreferencesWindow(this);
-                    var rd = Utils.GetUserControlXAML<ResourceDictionary>("MachineView\\MVResources.xaml");
-                    preferencesWindow.Resources.MergedDictionaries.Add(rd);
-                    if (preferencesWindow.ShowDialog() == true)
-                    {
-                        MidiInOutEngine.ReleaseAll();
-
-                        List<int> midiIns = new List<int>();
-                        foreach (var item in preferencesWindow.lbMidiInputs.Items)
-                        {
-                            var lbItem = item as PreferencesWindow.ControllerCheckboxVM;
-                            if (lbItem.Checked)
-                                midiIns.Add(lbItem.Id);
-                        }
-                        MidiEngine.SetMidiInputDevices(midiIns);
-                        MidiInOutEngine.OpenMidiInDevices();
-
-
-                        List<int> midiOuts = new List<int>();
-                        foreach (var item in preferencesWindow.lbMidiOutputs.Items)
-                        {
-                            var lbItem = item as PreferencesWindow.ControllerCheckboxVM;
-                            if (lbItem.Checked)
-                                midiOuts.Add(lbItem.Id);
-                        }
-                        MidiEngine.SetMidiOutputDevices(midiOuts);
-                        MidiInOutEngine.OpenMidiOutDevices();
-
-                        MidiControllerAssignments.ClearAll();
-                        foreach (PreferencesWindow.ControllerVM item in preferencesWindow.lvControllers.Items)
-                        {
-                            MidiControllerAssignments.Add(item.Name, item.Channel - 1, item.Controller, item.Value);
-                        }
-
-                        MIDIControllers = MidiControllerAssignments.GetMidiControllerNames().ToReadOnlyCollection();
-
-                        AudioEngine.FinalStop();
-                        AudioEngine.ReleaseAudioDriver();
-
-                        long processorAffinity = preferencesWindow.GetProcessorAffinity();
-                        RegistryEx.Write("ProcessorAffinity", processorAffinity, "Settings");
-
-                        //int threadType = preferencesWindow.cbAudioThreadType.SelectedIndex;
-                        //RegistryEx.Write("AudioThreadType", threadType, "Settings");
-
-                        int threadCount = preferencesWindow.cbAudioThreads.SelectedIndex + 1;
-                        RegistryEx.Write("AudioThreads", threadCount, "Settings");
-
-                        int algorithm = preferencesWindow.cbAlgorithms.SelectedIndex;
-                        RegistryEx.Write("WorkAlgorithm", algorithm, "Settings");
-
-                        if (SelectedAudioDriver != null)
-                        {
-                            try
-                            {
-                                AudioEngine.CreateAudioOut(SelectedAudioDriver);
-                                AudioEngine.Play();
-                            }
-                            catch { }
-                        }
-
-                        Utils.SetProcessorAffinityMask(true);
-                    }
-                    preferencesWindow = null;
-                }
+                BuzzCommandRaised?.Invoke(cmd);
             }
         }
 

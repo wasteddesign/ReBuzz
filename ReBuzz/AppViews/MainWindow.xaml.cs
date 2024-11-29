@@ -12,12 +12,14 @@ using ReBuzz.Common;
 using ReBuzz.Core;
 using ReBuzz.FileOps;
 using ReBuzz.MachineManagement;
+using ReBuzz.Midi;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Automation.Provider;
 using System.Windows.Controls;
@@ -40,6 +42,10 @@ namespace ReBuzz
         UserControl WavetableControl { get; set; }
         InfoView InfoView { get; set; }
 
+        PreferencesWindow preferencesWindow;
+
+        readonly DebugWindow debugWindow = new DebugWindow();
+
         StatusWindow statusWindow;
         HDRecorderWindow hDRecorderWindow;
 
@@ -49,7 +55,7 @@ namespace ReBuzz
         WDE.ModernSequenceEditor.SequenceEditor ModernSequenceEditor { get; set; }
         WDE.ModernSequenceEditorHorizontal.SequenceEditor ModernSequenceEditorHorizontal { get; set; }
 
-        readonly MachineManager machineManager;
+        MachineManager machineManager;
         ToolBarVM ToolBarVM { get; set; }
 
         MachineDatabase MachineDB { get; set; }
@@ -87,18 +93,80 @@ namespace ReBuzz
             }
         }
 
-        public MainWindow()
+        void StartReBuzzEngineStep1()
         {
-            DataContext = this;
-
-            InitializeComponent();
-
             ReBuzzCore buzzCore = new ReBuzzCore();
             Buzz = buzzCore;
             Buzz.PropertyChanged += Buzz_PropertyChanged;
 
             BuzzGUIStartup.PreInit();
             Global.Buzz = Buzz;
+        }
+
+        // Native machines need a window handle.
+        void StartReBuzzEngineStep2(Window wnd)
+        {
+            SongCore song = new SongCore();
+            song.BuzzCore = Buzz;
+            Buzz.SongCore = song;
+
+            Buzz.MachineViewHWND = new WindowInteropHelper(wnd).EnsureHandle();
+            Buzz.MainWindowHandle = Buzz.MachineViewHWND;
+            Global.MachineViewHwndSource = HwndSource.FromHwnd(Buzz.MachineViewHWND);
+
+            Buzz.StartEvents();
+        }
+
+        void StartReBuzzEngineStep3()
+        {
+            machineManager = new MachineManager(Buzz.SongCore);
+            Buzz.MachineManager = machineManager;
+
+            Buzz.AudioEngine = new AudioEngine(Buzz);
+            Buzz.AudioDriversList = Buzz.AudioEngine.AudioDevices().Select(ae => ae.Name).ToList();
+        }
+
+        void StartReBuzzEngineStep4()
+        {
+            Buzz.ScanDlls();
+
+            // Call after MachineDLLs are read
+            MachineDB = new MachineDatabase(Buzz);
+            MachineDB.DatabaseEvent += (str) =>
+            {
+                splashScreenWindow.UpdateText(str);
+            };
+            MachineDB.CreateDB();
+            Buzz.MachineDB = MachineDB;
+
+            // Init stuff before loading anything else
+            Buzz.ThemeColors = Common.Utils.GetThemeColors();
+        }
+
+        void StartReBuzzEngineStep5()
+        {
+            // Need to get the HWND from Buzz
+            machineManager.Buzz = Buzz;
+            Buzz.CreateMaster();
+
+            string audioDriver = RegistryEx.Read("AudioDriver", "WASAPI", "Settings");
+            Buzz.SelectedAudioDriver = audioDriver;
+        }
+
+        void ShutDownReBuzzEngine()
+        {
+            Buzz.AudioEngine.FinalStop();
+            machineManager.Buzz = null;
+            Buzz.Release();
+        }
+
+        public MainWindow()
+        {
+            DataContext = this;
+
+            InitializeComponent();
+
+            StartReBuzzEngineStep1();
 
             splashScreenWindow = SplashScreenWindow.CreateAsync("Loading..", this);
 
@@ -112,15 +180,10 @@ namespace ReBuzz
                 TextOptions.SetTextFormattingMode(this, TextFormattingMode.Display);
             }
 
-            SongCore song = new SongCore();
-            song.BuzzCore = buzzCore;
-            Buzz.SongCore = song;
+            StartReBuzzEngineStep2(this);
 
-            Buzz.StartEvents();
-
-            Buzz.MachineViewHWND = new WindowInteropHelper(this).EnsureHandle();
-            Buzz.MainWindowHandle = Buzz.MachineViewHWND;
-            Global.MachineViewHwndSource = HwndSource.FromHwnd(Buzz.MachineViewHWND);
+            var buzzCore = Buzz;
+            var song = buzzCore.SongCore;
 
             song.ShowMachineViewContextMenu += (x, y) =>
             {
@@ -141,26 +204,11 @@ namespace ReBuzz
                 }
             };
 
-            machineManager = new MachineManager(song);
-            Buzz.MachineManager = machineManager;
-
-            Buzz.AudioEngine = new AudioEngine(Buzz);
-            Buzz.AudioDriversList = Buzz.AudioEngine.AudioDevices().Select(ae => ae.Name).ToList();
+            StartReBuzzEngineStep3();
 
             splashScreenWindow.UpdateText("Scan Plugin DLLs");
-            Buzz.ScanDlls();
 
-            // Call after MachineDLLs are read
-            MachineDB = new MachineDatabase(Buzz);
-            MachineDB.DatabaseEvent += (str) =>
-            {
-                splashScreenWindow.UpdateText(str);
-            };
-            MachineDB.CreateDB();
-            Buzz.MachineDB = MachineDB;
-
-            // Init stuff before loading anything else
-            Buzz.ThemeColors = Common.Utils.GetThemeColors();
+            StartReBuzzEngineStep4();
 
             Buzz.PatternEditorActivated += Buzz_PatternEditorActivated;
             Buzz.SequenceEditorActivated += Buzz_SequenceEditorActivated;
@@ -277,12 +325,7 @@ namespace ReBuzz
 
                 CreateSequenceView(song);
 
-                // Need to get the HWND from Buzz
-                machineManager.Buzz = buzzCore;
-                Buzz.CreateMaster();
-
-                string audioDriver = RegistryEx.Read("AudioDriver", "WASAPI", "Settings");
-                Buzz.SelectedAudioDriver = audioDriver;
+                StartReBuzzEngineStep5();
 
                 song.SongEnd = 16;
                 song.LoopEnd = 16;
@@ -323,7 +366,7 @@ namespace ReBuzz
                     }
                 }
 
-                Buzz.AudioEngine.FinalStop();
+                ShutDownReBuzzEngine();
 
                 seqenceEditor.Song = null;
                 seqenceEditor.Release();
@@ -331,11 +374,8 @@ namespace ReBuzz
                 ToolBarVM.Song = null;
                 ToolBarVM.Buzz = null;
 
-                machineManager.Buzz = null;
-
                 Buzz.PropertyChanged -= Buzz_PropertyChanged;
                 Global.GeneralSettings.PropertyChanged -= GeneralSettings_PropertyChanged;
-                Buzz.Release();
             };
 
             this.Closed += (sender, e) =>
@@ -599,12 +639,103 @@ namespace ReBuzz
                     aboutWindow.Resources.MergedDictionaries.Add(rdw.Resources);
                     aboutWindow.ShowDialog();
                 }
-                if (cmd == BuzzCommand.NewFile)
+                else if (cmd == BuzzCommand.NewFile)
                 {
                     SequenceEditor.ViewSettings.TimeSignatureList.Set(0, 16);
                     song.Associations.Clear();
                     seqenceEditor.Song = song;
                     song.ActionStack = new ManagedActionStack();
+                }
+                else if (cmd == BuzzCommand.Exit)
+                {
+                    if (Buzz.Modified)
+                    {
+                        var result = Utils.MessageBox("Save changes to " + (Buzz.SongCore.SongName == null ? "Untitled" : Buzz.SongCore.SongName), "ReBuzz", MessageBoxButton.YesNoCancel);
+                        if (result == MessageBoxResult.Yes)
+                        {
+                            Buzz.SaveSongFile(Buzz.SongCore.SongName);
+                        }
+                        else if (result == MessageBoxResult.Cancel)
+                        {
+                            return;
+                        }
+                    }
+                    Buzz.Playing = false;
+                    Buzz.Release();
+
+                    Environment.Exit(0);
+                }
+                else if (cmd == BuzzCommand.DebugConsole)
+                {
+                    debugWindow.Show();
+                    debugWindow.BringToTop();
+                }
+                else if (cmd == BuzzCommand.Preferences)
+                {
+                    if (preferencesWindow == null)
+                    {
+                        preferencesWindow = new PreferencesWindow(Buzz);
+                        var rd = Utils.GetUserControlXAML<ResourceDictionary>("MachineView\\MVResources.xaml");
+                        preferencesWindow.Resources.MergedDictionaries.Add(rd);
+                        if (preferencesWindow.ShowDialog() == true)
+                        {
+                            Buzz.MidiInOutEngine.ReleaseAll();
+
+                            List<int> midiIns = new List<int>();
+                            foreach (var item in preferencesWindow.lbMidiInputs.Items)
+                            {
+                                var lbItem = item as PreferencesWindow.ControllerCheckboxVM;
+                                if (lbItem.Checked)
+                                    midiIns.Add(lbItem.Id);
+                            }
+                            MidiEngine.SetMidiInputDevices(midiIns);
+                            Buzz.MidiInOutEngine.OpenMidiInDevices();
+
+
+                            List<int> midiOuts = new List<int>();
+                            foreach (var item in preferencesWindow.lbMidiOutputs.Items)
+                            {
+                                var lbItem = item as PreferencesWindow.ControllerCheckboxVM;
+                                if (lbItem.Checked)
+                                    midiOuts.Add(lbItem.Id);
+                            }
+                            MidiEngine.SetMidiOutputDevices(midiOuts);
+                            Buzz.MidiInOutEngine.OpenMidiOutDevices();
+
+                            Buzz.MidiControllerAssignments.ClearAll();
+                            foreach (PreferencesWindow.ControllerVM item in preferencesWindow.lvControllers.Items)
+                            {
+                                Buzz.MidiControllerAssignments.Add(item.Name, item.Channel - 1, item.Controller, item.Value);
+                            }
+
+                            Buzz.MIDIControllers = Buzz.MidiControllerAssignments.GetMidiControllerNames().ToReadOnlyCollection();
+
+                            Buzz.AudioEngine.FinalStop();
+                            Buzz.AudioEngine.ReleaseAudioDriver();
+
+                            long processorAffinity = preferencesWindow.GetProcessorAffinity();
+                            RegistryEx.Write("ProcessorAffinity", processorAffinity, "Settings");
+
+                            int threadCount = preferencesWindow.cbAudioThreads.SelectedIndex + 1;
+                            RegistryEx.Write("AudioThreads", threadCount, "Settings");
+
+                            int algorithm = preferencesWindow.cbAlgorithms.SelectedIndex;
+                            RegistryEx.Write("WorkAlgorithm", algorithm, "Settings");
+
+                            if (Buzz.SelectedAudioDriver != null)
+                            {
+                                try
+                                {
+                                    Buzz.AudioEngine.CreateAudioOut(Buzz.SelectedAudioDriver);
+                                    Buzz.AudioEngine.Play();
+                                }
+                                catch { }
+                            }
+
+                            Utils.SetProcessorAffinityMask(true);
+                        }
+                        preferencesWindow = null;
+                    }
                 }
             };
 
