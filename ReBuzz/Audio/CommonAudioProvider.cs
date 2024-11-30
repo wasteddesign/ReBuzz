@@ -5,6 +5,7 @@ using ReBuzz.Core;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
 
 namespace ReBuzz.Audio
@@ -30,7 +31,13 @@ namespace ReBuzz.Audio
         private readonly int threadBufferSize;
         readonly EAudioThreadType threadType;
 
-        public CommonAudioProvider(ReBuzzCore buzzCore, int sampleRate, int channels, int bufferSize, bool doubleBuffer)
+        public CommonAudioProvider(
+          ReBuzzCore buzzCore,
+          EngineSettings engineSettings,
+          int sampleRate,
+          int channels,
+          int bufferSize,
+          bool doubleBuffer)
         {
             this.buzz = buzzCore;
             buzzCore.SelectedAudioDriverSampleRate = sampleRate;
@@ -74,7 +81,7 @@ namespace ReBuzz.Audio
                 workEngine.Start();
             }
 
-            workManager = new WorkManager(buzzCore, workEngine, algorithm);
+            workManager = new WorkManager(buzzCore, workEngine, algorithm, engineSettings);
 
             threadType = (EAudioThreadType)RegistryEx.Read("AudioThreadType", 0, "Settings");
 

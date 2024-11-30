@@ -55,6 +55,7 @@ namespace ReBuzz.FileOps
         private int masterInputCount;
         private Dictionary<int,int> remappedWaveReferences;
         private readonly List<SequenceCore> bmxSequences;
+        private readonly string buzzPath;
 
         enum SectionType
         {
@@ -81,13 +82,14 @@ namespace ReBuzz.FileOps
             XQES = 0x58514553  // Sequence properties
         }
 
-        public BMXFile(ReBuzzCore buzz)
+        public BMXFile(ReBuzzCore buzz, string buzzPath)
         {
             this.buzz = buzz;
             machines = new List<MachineCore>();
             connections = new List<MachineConnectionCore>();
             bmxSequences = new List<SequenceCore>();
             remappedWaveReferences = new Dictionary<int, int>();
+            this.buzzPath = buzzPath;
         }
 
         public void Load(string path, float x = 0, float y = 0, ImportSongAction importAction = null)
@@ -2203,7 +2205,7 @@ namespace ReBuzz.FileOps
             MachineCore machine = machines.FirstOrDefault(m => m.Name == name);
             if (machine == null)
             {
-                machine = new MachineCore(buzz.SongCore);
+                machine = new MachineCore(buzz.SongCore, buzzPath);
                 machine.Name = name;
                 machines.Add(machine);
             }

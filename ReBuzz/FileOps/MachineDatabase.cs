@@ -24,26 +24,28 @@ namespace ReBuzz.FileOps
         private readonly ReBuzzCore buzz;
         NativeMachine.NativeMachineHost nativeMachineHost;
         NativeMachine.NativeMachineHost nativeMachineHost64;
+        private string buzzPath;
 
         internal MenuItemCore IndexMenu { get; private set; }
         public Dictionary<int, InstrumentInfo> DictLibRef { get; set; }
 
-        public MachineDatabase(ReBuzzCore buzz)
+        public MachineDatabase(ReBuzzCore buzz, string buzzPath)
         {
             this.buzz = buzz;
             DictLibRef = new Dictionary<int, InstrumentInfo>();
             IndexMenu = new MenuItemCore();
+            this.buzzPath = buzzPath;
         }
 
         public void CreateDB()
         {
-            string filepath = Path.Combine(Global.BuzzPath, @"gear\index.txt");
+            string filepath = Path.Combine(buzzPath, @"gear\index.txt");
             try
             {
-                nativeMachineHost = new NativeMachine.NativeMachineHost("Index");
+                nativeMachineHost = new NativeMachine.NativeMachineHost("Index", buzzPath);
                 nativeMachineHost.InitHost(buzz, false); // 32 bit
 
-                nativeMachineHost64 = new NativeMachine.NativeMachineHost("Index64");
+                nativeMachineHost64 = new NativeMachine.NativeMachineHost("Index64", buzzPath);
                 nativeMachineHost64.InitHost(buzz, true); // 64 bit
 
                 IndexMenu = ParseMenu(filepath);
@@ -213,7 +215,7 @@ namespace ReBuzz.FileOps
                 {
                     bool is64Bit = (machineDll as MachineDLL).Is64Bit;
                     var uiMessage = is64Bit ? nativeMachineHost64.UIMessage : nativeMachineHost.UIMessage;
-                    var machine = new MachineCore(buzz.SongCore, is64Bit);
+                    var machine = new MachineCore(buzz.SongCore, buzzPath, is64Bit);
                     if (!uiMessage.UILoadLibrarySync(buzz, machine, loaderLib, machineDll.Path))
                     {
                         buzz.DCWriteErrorLine("Error loading machine: " + loaderLib);

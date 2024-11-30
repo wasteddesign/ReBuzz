@@ -10,6 +10,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using BuzzGUI.Common.Settings;
 
 namespace ReBuzz.Audio
 {
@@ -32,7 +33,7 @@ namespace ReBuzz.Audio
         internal static BuzzMasterInfo MasterInfoStruct;
         unsafe internal static byte[] MasterInfoData = new byte[sizeof(BuzzMasterInfo)];
 
-        bool multiThreadingEnalbed = false;
+        bool multiThreadingEnabled = false;
 
         private readonly ReBuzzCore buzzCore;
         readonly WorkThreadEngine workEngine;
@@ -45,11 +46,12 @@ namespace ReBuzz.Audio
 
         float[] playWaveBuffer = new float[256 * 2];
 
-        public WorkManager(ReBuzzCore buzzCore, WorkThreadEngine workEngine, int algorithm)
+        public WorkManager(ReBuzzCore buzzCore, WorkThreadEngine workEngine, int algorithm, EngineSettings settings)
         {
             this.buzzCore = buzzCore;
             this.workEngine = workEngine;
             this.algorithm = algorithm;
+            engineSettings = settings;
         }
         internal void CopyMasterInfo()
         {
@@ -73,7 +75,7 @@ namespace ReBuzz.Audio
             {
                 long time = DateTime.Now.Ticks;
 
-                multiThreadingEnalbed = Global.EngineSettings.Multithreading;
+                multiThreadingEnabled = engineSettings.Multithreading;
 
                 var subTickInfo = ReBuzzCore.subTickInfo;
                 var masterInfo = ReBuzzCore.masterInfo;
@@ -238,7 +240,7 @@ namespace ReBuzz.Audio
             int noRecord = 1 << 16;
             foreach (var machine in buzzCore.SongCore.MachinesList.Where(m => !m.DLL.IsManaged))
             {
-                if (ReBuzzCore.masterInfo.PosInTick == 0 || (Global.EngineSettings.SubTickTiming && ReBuzzCore.subTickInfo.PosInSubTick == 0 && machine.DLL.Info.Version >= MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_42))
+                if (ReBuzzCore.masterInfo.PosInTick == 0 || (engineSettings.SubTickTiming && ReBuzzCore.subTickInfo.PosInSubTick == 0 && machine.DLL.Info.Version >= MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_42))
                 {
                     foreach (var p in machine.ParameterGroups[1].Parameters)
                     {
@@ -264,10 +266,8 @@ namespace ReBuzz.Audio
             }
         }
 
-        internal static void UpdatePatternPositions(int sampleCount)
+        internal void UpdatePatternPositions(int sampleCount)
         {
-            var buzzCore = Global.Buzz as ReBuzzCore;
-
             // Clear all pattern play positions
             foreach (var machine in buzzCore.SongCore.Machines)
             {
@@ -381,7 +381,7 @@ namespace ReBuzz.Audio
                     // Tick should be inexpensive operation so no tasks?
                     // Some old machines don't support subtick
                     if (ReBuzzCore.masterInfo.PosInTick == 0 ||
-                        (Global.EngineSettings.SubTickTiming && ReBuzzCore.subTickInfo.PosInSubTick == 0 && machine.DLL.Info.Version > MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_42))
+                        (engineSettings.SubTickTiming && ReBuzzCore.subTickInfo.PosInSubTick == 0 && machine.DLL.Info.Version > MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_42))
                     {
                         var t = AudioEngine.TaskFactoryAudio.StartNew(() =>
                         {
@@ -512,7 +512,7 @@ namespace ReBuzz.Audio
             if (master == null)
                 return workSamplesCount;
 
-            if (!multiThreadingEnalbed)
+            if (!multiThreadingEnabled)
             {
                 HandleWorkAlgorithmSingleThread(master, workSamplesCount);
             }
@@ -621,6 +621,8 @@ namespace ReBuzz.Audio
         }
 
         readonly List<Task> workTasks = new List<Task>(100);
+        private readonly EngineSettings engineSettings;
+
         void HandleWorkList(int numRead)
         {
             workTasks.Clear();
@@ -798,7 +800,7 @@ namespace ReBuzz.Audio
         }
         private void CollectEditorMachinesThatCanWork()
         {
-            foreach (var mac in (Global.Buzz.Song as SongCore).MachinesList)
+            foreach (var mac in (buzzCore.Song as SongCore).MachinesList)
             {
                 var machine = mac;
                 // Was work called for this editor machine already?
@@ -811,7 +813,7 @@ namespace ReBuzz.Audio
 
         private void CollectControlMachinesThatCanWork()
         {
-            foreach (var mac in Global.Buzz.Song.Machines)
+            foreach (var mac in buzzCore.Song.Machines)
             {
                 var machine = mac as MachineCore;
                 // Was work called for this control machine already?

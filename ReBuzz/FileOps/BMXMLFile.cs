@@ -13,6 +13,7 @@ using System.Text;
 using System.Windows;
 using System.Xml;
 using System.Xml.Serialization;
+using BuzzGUI.Common;
 using static ReBuzz.FileOps.BMXFile;
 
 namespace ReBuzz.FileOps
@@ -28,9 +29,11 @@ namespace ReBuzz.FileOps
         private ImportSongAction importAction;
 
         List<MachineCore> machines;
+        private readonly string buzzPath;
 
-        public BMXMLFile(ReBuzzCore buzz)
+        public BMXMLFile(ReBuzzCore buzz, string buzzPath)
         {
+            this.buzzPath = buzzPath;
             this.buzz = buzz;
             machines = new List<MachineCore>();
         }
@@ -160,7 +163,7 @@ namespace ReBuzz.FileOps
                 int tracks = machineData.ParameterGroups[2].TrackCount;
 
                 MachineDLL machineDLL = new MachineDLL();
-                MachineCore machineProto = new MachineCore(buzz.SongCore);
+                MachineCore machineProto = new MachineCore(buzz.SongCore, buzzPath);
                 string name = XmlConvert.DecodeName(machineData.Name);
                 if (Encoding.ASCII.GetBytes(name)[0] == 1)
                 {

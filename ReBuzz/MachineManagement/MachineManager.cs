@@ -12,6 +12,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using BuzzGUI.Common.Settings;
 
 namespace ReBuzz.MachineManagement
 {
@@ -68,10 +69,12 @@ namespace ReBuzz.MachineManagement
 
         private readonly SongCore song;
 
-        internal MachineManager(SongCore song)
+        internal MachineManager(SongCore song, EngineSettings settings, string buzzPath)
         {
             this.song = song;
             IsSingleProcessMode = false;
+            engineSettings = settings;
+            this.buzzPath = buzzPath;
         }
 
         // instrumentPath == null or "" if instruments are not supported
@@ -79,7 +82,7 @@ namespace ReBuzz.MachineManagement
         {
             //lock (ReBuzzCore.AudioLock)
             {
-                MachineCore machine = new MachineCore(song);
+                MachineCore machine = new MachineCore(song, buzzPath);
                 machine.InstrumentName = instrument;
                 machine.Position = new Tuple<float, float>(x, y);
                 machine.Hidden = hidden;
@@ -177,6 +180,8 @@ namespace ReBuzz.MachineManagement
 
         NativeMachineHost nativeMachineHostSingleProcess32;
         NativeMachineHost nativeMachineHostSingleProcess64;
+        private EngineSettings engineSettings;
+        private string buzzPath;
 
         void CreateNativeMachine(MachineCore machine, string instrument, int trackCount, byte[] data, bool callInit = true)
         {
@@ -187,7 +192,7 @@ namespace ReBuzz.MachineManagement
                 {
                     if (nativeMachineHostSingleProcess64 == null)
                     {
-                        nativeMachineHostSingleProcess64 = new NativeMachineHost("ReBuzzConnectID");
+                        nativeMachineHostSingleProcess64 = new NativeMachineHost("ReBuzzConnectID", buzzPath);
                         nativeMachineHostSingleProcess64.InitHost(Buzz, machine.MachineDLL.Is64Bit);
                     }
                     nativeMachineHost = nativeMachineHostSingleProcess64;
@@ -196,7 +201,7 @@ namespace ReBuzz.MachineManagement
                 {
                     if (nativeMachineHostSingleProcess32 == null)
                     {
-                        nativeMachineHostSingleProcess32 = new NativeMachineHost("ReBuzzConnectID");
+                        nativeMachineHostSingleProcess32 = new NativeMachineHost("ReBuzzConnectID", buzzPath);
                         nativeMachineHostSingleProcess32.InitHost(Buzz, machine.MachineDLL.Is64Bit);
                     }
                     nativeMachineHost = nativeMachineHostSingleProcess32;
@@ -204,7 +209,7 @@ namespace ReBuzz.MachineManagement
             }
             else
             {
-                nativeMachineHost = new NativeMachineHost("ReBuzzConnectID");
+                nativeMachineHost = new NativeMachineHost("ReBuzzConnectID", buzzPath);
                 nativeMachineHost.InitHost(Buzz, machine.MachineDLL.Is64Bit);
             }
 
@@ -378,7 +383,7 @@ namespace ReBuzz.MachineManagement
 
         public MachineCore GetMaster(IBuzz buzz)
         {
-            MachineCore machine = new MachineCore(song);
+            MachineCore machine = new MachineCore(song, buzzPath);
             machine.Name = "Master";
             machine.InputChannelCount = 1;
             machine.OutputChannelCount = 0;
@@ -395,7 +400,7 @@ namespace ReBuzz.MachineManagement
             dll.IsOutOfProcess = false;
             dll.Is64Bit = true;
             dll.Buzz = buzz;
-            dll.Path = Global.BuzzPath + "\\Gear";
+            dll.Path = buzzPath + "\\Gear";
             dll.Name = "Master";
 
             //dll.TextColor = Global.Buzz.ThemeColors["MV Machine Text"] != null ? Global.Buzz.ThemeColors["MV Machine Text"] : Colors.GhostWhite;
@@ -884,7 +889,7 @@ namespace ReBuzz.MachineManagement
         {
             if (!workInstances.ContainsKey(machine))
             {
-                var mwi = new MachineWorkInstance(machine, Buzz);
+                var mwi = new MachineWorkInstance(machine, Buzz, engineSettings);
                 workInstances[machine] = mwi;
                 return mwi;
             }

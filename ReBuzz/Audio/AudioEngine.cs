@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+using BuzzGUI.Common.Settings;
 
 
 namespace ReBuzz.Audio
@@ -46,10 +47,12 @@ namespace ReBuzz.Audio
         private readonly ReBuzzCore buzzCore;
         WasapiCapture wasapiCapture;
 
-        public AudioEngine(ReBuzzCore buzzCore)
+        public AudioEngine(ReBuzzCore buzzCore, EngineSettings settings, string buzzPath)
         {
+            this.buzzPath = buzzPath;
             this.buzzCore = buzzCore;
             CreateScheduler();
+            engineSettings = settings;
         }
 
         internal static DedicatedThreadPoolTaskScheduler TaskSchedulerAudio { get; private set; }
@@ -147,7 +150,7 @@ namespace ReBuzz.Audio
                 wasapiOut = new WasapiOut();
             }
 
-            AudioProvider = new AudioProvider(buzzCore, wasapiDeviceSamplerate, wasapiOut.OutputWaveFormat.Channels, bufferSize, true);
+            AudioProvider = new AudioProvider(buzzCore, engineSettings, wasapiDeviceSamplerate, wasapiOut.OutputWaveFormat.Channels, bufferSize, true);
 
             try
             {
@@ -157,10 +160,10 @@ namespace ReBuzz.Audio
             {
                 wasapiOut.Dispose();
                 AudioProvider.Stop();
-                Global.Buzz.DCWriteLine("Wasap error: " + ex);
+                buzzCore.DCWriteLine("Wasap error: " + ex);
                 wasapiOut = new WasapiOut();
 
-                AudioProvider = new AudioProvider(buzzCore, wasapiDeviceSamplerate, 2, bufferSize, true);
+                AudioProvider = new AudioProvider(buzzCore, engineSettings, wasapiDeviceSamplerate, 2, bufferSize, true);
                 wasapiOut.Init(AudioProvider);
             }
 
@@ -211,7 +214,7 @@ namespace ReBuzz.Audio
             //var latency = (int)dxOut.GetType().GetField("desiredLatency", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(dxOut);
 
             int buffer = 2 * latency * samplerate / 1000;
-            AudioProvider = new AudioProvider(buzzCore, samplerate, 2, buffer, true);
+            AudioProvider = new AudioProvider(buzzCore, engineSettings, samplerate, 2, buffer, true);
 
             dxOut.Init(AudioProvider);
             SelectedOutDevice = new AudioOutDevice() { Name = deviceName, Type = AudioOutType.DirectSound, WavePlayer = dxOut };
@@ -225,7 +228,7 @@ namespace ReBuzz.Audio
             }
             catch (Exception e)
             {
-                Global.Buzz.DCWriteLine("WavePlayer error: " + e.Message);
+                buzzCore.DCWriteLine("WavePlayer error: " + e.Message);
             }
         }
 
@@ -235,7 +238,7 @@ namespace ReBuzz.Audio
         {
             lock (audioEngineLcok)
             {
-                ReBuzzCore.SkipAudio = true;
+                ReBuzzCore.SkipAudio = true; //bug global dependency
 
                 AudioProvider?.Stop();
                 AudioProvider = null;
@@ -346,12 +349,15 @@ namespace ReBuzz.Audio
             }
             catch (Exception e)
             {
-                Global.Buzz.DCWriteLine("Audio Driver Error: " + e.Message);
+                buzzCore.DCWriteLine("Audio Driver Error: " + e.Message);
             }
         }
 
         WasapiConfigWindow wasapiConfigWindow;
         AsioConfigWindow asioConfigWindow;
+        private readonly EngineSettings engineSettings;
+        private readonly string buzzPath;
+
         internal void ShowControlPanel()
         {
             if (SelectedOutDevice != null)
@@ -369,7 +375,7 @@ namespace ReBuzz.Audio
                                 asio.ShowControlPanel();
                             };
 
-                            var rd = Utils.GetUserControlXAML<ResourceDictionary>("MachineView\\MVResources.xaml");
+                            var rd = Utils.GetUserControlXAML<ResourceDictionary>("MachineView\\MVResources.xaml", buzzPath);
                             asioConfigWindow.Resources.MergedDictionaries.Add(rd);
                             if (asioConfigWindow.ShowDialog() == true)
                             {
@@ -385,7 +391,7 @@ namespace ReBuzz.Audio
                         if (wasapiConfigWindow == null)
                         {
                             wasapiConfigWindow = new WasapiConfigWindow();
-                            var rd = Utils.GetUserControlXAML<ResourceDictionary>("MachineView\\MVResources.xaml");
+                            var rd = Utils.GetUserControlXAML<ResourceDictionary>("MachineView\\MVResources.xaml", buzzPath);
                             wasapiConfigWindow.Resources.MergedDictionaries.Add(rd);
                             if (wasapiConfigWindow.ShowDialog() == true)
                             {

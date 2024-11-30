@@ -17,41 +17,41 @@ namespace ReBuzz.Common
 {
     public class Utils
     {
-        public static ResourceDictionary GetBuzzThemeResources(string theme)
+        public static ResourceDictionary GetBuzzThemeResources(string theme, string buzzPath)
         {
             ResourceDictionary res = new ResourceDictionary();
 
             try
             {
                 string selectedTheme = Global.Buzz.SelectedTheme == "<default>" ? "Default" : Global.Buzz.SelectedTheme;
-                string skinPath = Global.BuzzPath + "\\Themes\\" + selectedTheme + "\\" + theme;
+                string skinPath = buzzPath + "\\Themes\\" + selectedTheme + "\\" + theme;
 
                 res = XamlReaderEx.LoadHack(skinPath) as ResourceDictionary;
             }
             catch (Exception)
             {
-                string skinPath = Global.BuzzPath + "\\Themes\\Default\\" + theme;
+                string skinPath = buzzPath + "\\Themes\\Default\\" + theme;
                 res = XamlReaderEx.LoadHack(skinPath) as ResourceDictionary;
             }
 
             return res;
         }
 
-        public static T GetUserControlXAML<T>(string xaml)
+        public static T GetUserControlXAML<T>(string xaml, string buzzPath)
         {
             T rootObject;
 
             try
             {
                 string selectedTheme = Global.Buzz.SelectedTheme == "<default>" ? "Default" : Global.Buzz.SelectedTheme;
-                string skinPath = Global.BuzzPath + "\\Themes\\" + selectedTheme + "\\" + xaml;
+                string skinPath = buzzPath + "\\Themes\\" + selectedTheme + "\\" + xaml;
 
                 rootObject = (T)XamlReaderEx.LoadHack(skinPath);
 
             }
             catch (Exception)
             {
-                string skinPath = Global.BuzzPath + "\\Themes\\Default\\" + xaml;
+                string skinPath = buzzPath + "\\Themes\\Default\\" + xaml;
                 StreamReader mysr = new StreamReader(skinPath);
                 rootObject = (T)XamlReaderEx.LoadHack(skinPath);
             }
@@ -71,7 +71,7 @@ namespace ReBuzz.Common
             public Color this[string index] => Colors.ContainsKey(index) ? Colors[index] : System.Windows.Media.Colors.Black;
         }
 
-        public static IIndex<string, Color> GetThemeColors()
+        public static IIndex<string, Color> GetThemeColors(string buzzPath)
         {
             ColIndex colIndex = new ColIndex();
 
@@ -82,7 +82,7 @@ namespace ReBuzz.Common
 
             if (selectedTheme != "Default")
             {
-                string skinPath = Global.BuzzPath + "\\Themes\\" + selectedTheme;
+                string skinPath = buzzPath + "\\Themes\\" + selectedTheme;
 
                 string[] readText = File.ReadAllLines(skinPath);
                 string[] delimiterChars = {
@@ -185,12 +185,12 @@ namespace ReBuzz.Common
             return GCHandle.FromIntPtr(ptr).Target;
         }
 
-        internal static List<string> GetThemes()
+        internal static List<string> GetThemes(string buzzPath)
         {
             List<string> themes = new List<string>();
             themes.Add("<default>");
 
-            foreach (var file in Directory.GetFiles(Global.BuzzPath + "\\Themes", "*.col"))
+            foreach (var file in Directory.GetFiles(buzzPath + "\\Themes", "*.col"))
             {
                 themes.Add(Path.GetFileNameWithoutExtension(file));
             }

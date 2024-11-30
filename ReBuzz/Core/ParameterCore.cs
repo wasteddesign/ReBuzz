@@ -169,7 +169,7 @@ namespace ReBuzz.Core
         internal class EventManager
         {
             public event Action<IParameter, int> Event;
-            public void CallEvent(IParameter parameter, int track)
+            public void CallEvent(IBuzz buzz, IParameter parameter, int track)
             {
                 if (Event != null)
                 {
@@ -182,7 +182,7 @@ namespace ReBuzz.Core
                         }
                         catch (Exception e)
                         {
-                            Global.Buzz.DCWriteLine(e.Message);
+                            buzz.DCWriteLine(e.Message);
                         }
                     }), DispatcherPriority.Normal);
                 }
@@ -220,11 +220,11 @@ namespace ReBuzz.Core
 
         static bool describeValueEventPending = false;
         readonly DispatcherTimer dtDescribeEvent;
-        internal void InvokeEvents(int track)
+        internal void InvokeEvents(IBuzz buzz, int track)
         {
             if (valueChangedEvent.TryGetValue(track, out EventManager em))
             {
-                em.CallEvent(this, track);
+                em.CallEvent(buzz, this, track);
             }
 
             // Aviod invoking valueDescrtiptionChangedEvent to minimize calls to native machines

@@ -140,7 +140,7 @@ namespace ReBuzz.Common
 
             Loaded += (sender, e) =>
             {
-                var rd = Utils.GetUserControlXAML<Window>("ParameterWindowShell.xaml");
+                var rd = Utils.GetUserControlXAML<Window>("ParameterWindowShell.xaml", Global.BuzzPath);
                 Resources.MergedDictionaries.Add(rd.Resources);
 
                 PreviewMouseWheel += (sender, e) =>

@@ -1,4 +1,6 @@
-﻿using NAudio.Wave;
+﻿using BuzzGUI.Common;
+using BuzzGUI.Common.Settings;
+using NAudio.Wave;
 using ReBuzz.Core;
 
 namespace ReBuzz.Audio
@@ -9,11 +11,17 @@ namespace ReBuzz.Audio
 
         public CommonAudioProvider AudioSampleProvider { get; }
 
-        public AudioProvider(ReBuzzCore buzzCore, int sampleRate, int channels, int bufferSize, bool doubleBuffer)
+        public AudioProvider(
+          ReBuzzCore buzzCore,
+          EngineSettings engineSettings,
+          int sampleRate,
+          int channels,
+          int bufferSize,
+          bool doubleBuffer)
         {
             // Make this multi-channel compatible
             WaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(sampleRate, channels);
-            AudioSampleProvider = new CommonAudioProvider(buzzCore, sampleRate, channels, bufferSize, doubleBuffer);
+            AudioSampleProvider = new CommonAudioProvider(buzzCore, engineSettings, sampleRate, channels, bufferSize, doubleBuffer);
         }
 
         public void ClearBuffer()

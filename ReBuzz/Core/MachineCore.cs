@@ -435,8 +435,9 @@ namespace ReBuzz.Core
         public bool Hidden { get; internal set; }
         public MachineCore EditorMachine { get; internal set; }
 
-        public MachineCore(SongCore machineGraph, bool is64Bit = false)
+        public MachineCore(SongCore machineGraph, string buzzPath, bool is64Bit = false)
         {
+            this.buzzPath = buzzPath;
             graph = machineGraph;
 
             parameterGroups = new List<ParameterGroup>();
@@ -604,7 +605,7 @@ namespace ReBuzz.Core
                 ParameterWindowVM pWindowVM = new ParameterWindowVM();
                 pWindowVM.Machine = this;
 
-                parameterWindow = Utils.GetUserControlXAML<Window>("ParameterWindow.xaml");
+                parameterWindow = Utils.GetUserControlXAML<Window>("ParameterWindow.xaml", buzzPath);
                 Window window = (Window)HwndSource.FromHwnd(graph.Buzz.MachineViewHWND).RootVisual;
                 parameterWindow.Owner = window;
 
@@ -675,7 +676,7 @@ namespace ReBuzz.Core
                         {
                             if (DLL.GUIFactoryDecl.UseThemeStyles)
                             {
-                                var r = Utils.GetBuzzThemeResources("ParameterWindow.xaml");
+                                var r = Utils.GetBuzzThemeResources("ParameterWindow.xaml", buzzPath);
                                 machineGUIWindow.Resources.MergedDictionaries.Add(r);
                             }
                         };
@@ -748,7 +749,7 @@ namespace ReBuzz.Core
                         {
                             if (DLL.GUIFactoryDecl.UseThemeStyles)
                             {
-                                var r = Utils.GetUserControlXAML<Window>("ParameterWindow.xaml");
+                                var r = Utils.GetUserControlXAML<Window>("ParameterWindow.xaml", buzzPath);
                                 machineGUIWindow.Resources.MergedDictionaries.Add(r.Resources);
                             }
                         };
@@ -883,7 +884,7 @@ namespace ReBuzz.Core
                 case MachineDialog.Rename:
 
                     var renameWindow = new RenameMachineWindow(name);
-                    var rd = Utils.GetUserControlXAML<ResourceDictionary>("MachineView\\MVResources.xaml");
+                    var rd = Utils.GetUserControlXAML<ResourceDictionary>("MachineView\\MVResources.xaml", buzzPath);
                     renameWindow.Resources.MergedDictionaries.Add(rd);
                     if (renameWindow.ShowDialog() == true)
                     {
@@ -1277,6 +1278,7 @@ namespace ReBuzz.Core
         internal long performanceLastCount;
         internal long performanceBranchCount;
         internal Dictionary<int, int> remappedLoadedMachineParameterIndexes;
+        private readonly string buzzPath;
 
         internal void SetMachineTrackCount(int trackCount)
         {

@@ -1,9 +1,13 @@
 ﻿using FluentAssertions.Execution;
+using ReBuzz;
+using System.Diagnostics;
 
 namespace ReBuzzTests;
 
 public class Tests
 {
+
+
   [Test]
   [Apartment(ApartmentState.STA)]
   public void ReadsGearFilesOnCreation()

@@ -20,6 +20,7 @@ namespace ReBuzz.NativeMachine
         private ChannelListener channelListenerMIDI;
         private ChannelListener channelListenerUI;
         private ChannelListener channelListenerHost;
+        private readonly string buzzPath;
 
         public bool Host64 { get; private set; }
         public HostMessage HostMessage { get; private set; }
@@ -31,18 +32,19 @@ namespace ReBuzz.NativeMachine
 
         public bool IsConnected { get; set; }
 
-        public NativeMachineHost(string sharedId)
+        public NativeMachineHost(string sharedId, string buzzPath)
         {
-            this.sharedId = sharedId + DateTime.Now.Ticks;
+          this.sharedId = sharedId + DateTime.Now.Ticks;
+          this.buzzPath = buzzPath;
         }
 
-        public void InitHost(IBuzz buzz, bool host64)
+        public void InitHost(ReBuzzCore buzz, bool host64)
         {
             if (IsConnected)
                 return;
 
             Host64 = host64;
-            string path = host64 ? Global.BuzzPath + "\\bin64\\ReBuzzEngine64.exe" : Global.BuzzPath + "\\bin32\\ReBuzzEngine32.exe";
+            string path = host64 ? buzzPath + "\\bin64\\ReBuzzEngine64.exe" : buzzPath + "\\bin32\\ReBuzzEngine32.exe";
 
             int mapSize = IPC.GetSharedPageSize();
             mappedFile = MemoryMappedFile.CreateNew(sharedId, mapSize);

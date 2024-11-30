@@ -7,7 +7,7 @@ namespace ReBuzz.NativeMachine
 {
     internal class ChannelListener
     {
-        internal IBuzz buzz;
+        internal ReBuzzCore buzz;
 
         public ChannelType Channel { get; }
         private readonly NativeMessage msg;
@@ -17,7 +17,7 @@ namespace ReBuzz.NativeMachine
         public EventWaitHandle WaitHandlePing { get; }
         public EventWaitHandle WaitHandlePong { get; }
 
-        public ChannelListener(ChannelType channel, ThreadPriority priority, string eventId, NativeMessage msg, IBuzz buzz)
+        public ChannelListener(ChannelType channel, ThreadPriority priority, string eventId, NativeMessage msg, ReBuzzCore buzz)
         {
             this.buzz = buzz;
             Channel = channel;
