@@ -1,4 +1,8 @@
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Reflection;
 using System.Windows;
 using AtmaFileSystem;
 using AtmaFileSystem.IO;
@@ -52,7 +56,7 @@ public class Driver : IDisposable
     var engineSettings = Global.EngineSettings;
     var registryRoot = Global.RegistryRoot;
     //bug var buzzPath = Global.BuzzPath;
-    var buzzPath = "C:\\Program Files\\ReBuzz\\";
+    var buzzPath = "C:\\Program Files\\ReBuzz\\"; //bug
     _reBuzzCore = new ReBuzzCore(generalSettings, engineSettings, buzzPath, registryRoot, new FakeMachineDLLScanner());
     Global.Buzz = _reBuzzCore;
     _reBuzzCore.AudioEngine = new AudioEngine(_reBuzzCore, engineSettings, buzzPath);
@@ -71,8 +75,11 @@ public class Driver : IDisposable
     _reBuzzCore.ScanDlls();
     _reBuzzCore.CreateMaster();
 
-    _reBuzzCore.ExecuteCommand(BuzzCommand.NewFile);
+  }
 
+  public void NewFile()
+  {
+    _reBuzzCore.ExecuteCommand(BuzzCommand.NewFile);
   }
 
   private void SetupDirectoryStructure()
@@ -97,14 +104,18 @@ internal class FakeMachineDLLScanner : IMachineDLLScanner
 {
   public Dictionary<string, MachineDLL> GetMachineDLLs(ReBuzzCore buzz, string buzzPath)
   {
+    var assemblyLocation = AbsoluteDirectoryPath.OfCurrentWorkingDirectory().AddFileName("StubMachine.dll");
+    //bug delete the test machines
+    //bug set the buzz path correctly
+    DynamicCompiler.CompileAndSave(FakeModernPatternEditor.GetSourceCode(), assemblyLocation);
+
     return new Dictionary<string, MachineDLL>()
     {
       ["Modern Pattern Editor"] = new()
       {
         Name = "Modern Pattern Editor",
         Buzz = buzz,
-        //bug Path = "C:\\Program Files\\ReBuzz\\Gear\\Generators\\Modern Pattern Editor.NET.dll",
-        Path = "C:\\Program Files\\ReBuzz\\Gear\\Generators\\ReBuzz Audio In.NET.dll",
+        Path = assemblyLocation.ToString(),
         Is64Bit = true,
         IsCrashed = false,
         IsManaged = true,
