@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
@@ -11,7 +10,6 @@ using BuzzGUI.Interfaces;
 using FluentAssertions;
 using ReBuzz.Audio;
 using ReBuzz.Core;
-using ReBuzz.FileOps;
 using ReBuzz.MachineManagement;
 using ReBuzz.ManagedMachine;
 
@@ -43,6 +41,8 @@ public class Driver : IDisposable
     _gearGeneratorsDir = _gearDir.AddDirectoryName("Generators");
     _themesDir = rebuzzRootDir.AddDirectoryName("Themes");
   }
+
+  public ReBuzzCore ReBuzzCore => _reBuzzCore; //bug hide
 
   public void AssertGearMachinesConsistOf(ImmutableList<string> expectedMachineNames)
   {
@@ -94,58 +94,17 @@ public class Driver : IDisposable
   {
     //bug not yet _reBuzzCore.ExecuteCommand(BuzzCommand.Exit); //bug logs
   }
-}
 
-internal class FakeMachineDLLScanner : IMachineDLLScanner //bug move
-{
-  public Dictionary<string, MachineDLL> GetMachineDLLs(ReBuzzCore buzz, string buzzPath)
+  public void AssertRequiredPropertiesAreInitialized()
   {
-    var assemblyLocation = AbsoluteDirectoryPath.OfCurrentWorkingDirectory().AddFileName("StubMachine.dll"); //bug
-    //bug delete the test machines
-    //bug set the buzz path correctly
-    DynamicCompiler.CompileAndSave(FakeModernPatternEditor.GetSourceCode(), assemblyLocation);
-
-    return new Dictionary<string, MachineDLL>() //bug fill some of this stuff from machine decl
-    {
-      ["Modern Pattern Editor"] = new()
-      {
-        Name = "Modern Pattern Editor",
-        Buzz = buzz,
-        Path = assemblyLocation.ToString(),
-        Is64Bit = true,
-        IsCrashed = false,
-        IsManaged = true,
-        IsLoaded = false,
-        IsMissing = false,
-        IsOutOfProcess = false,
-        ManagedDLL = null,
-        MachineInfo = new MachineInfo()
-        {
-          Flags = MachineInfoFlags.NO_OUTPUT | MachineInfoFlags.CONTROL_MACHINE | MachineInfoFlags.PATTERN_EDITOR | MachineInfoFlags.LOAD_DATA_RUNTIME,
-          Author = "WDE",
-          InternalVersion = 0,
-          MaxTracks = 0,
-          MinTracks = 0,
-          Name = "Modern Pattern Editor",
-          ShortName = "MPE",
-          Type = MachineType.Generator,
-          Version = 66
-        },
-        Presets = null,
-        SHA1Hash = "258A3DE5BA33E71D69271E36557EA8E4E582298E",
-        GUIFactoryDecl = new MachineGUIFactoryDecl {IsGUIResizable = true, PreferWindowedGUI = true, UseThemeStyles = false},
-        ModuleHandle = 0,
-      },
-    };
-  }
-
-  public void AddMachineDllsToDictionary(XMLMachineDLL[] xMLMachineDLLs, Dictionary<string, MachineDLL> md)
-  {
-    
-  }
-
-  public XMLMachineDLL ValidateDll(ReBuzzCore buzz, string libName, string path, string buzzPath)
-  {
-    throw new NotImplementedException("should not be called");
+    //bug is this really needed?
+    ReBuzzCore.Should().NotBeNull();
+    ReBuzzCore.Gear.Should().NotBeNull();
+    ReBuzzCore.Gear.Machine.Should().NotBeEmpty();
+    ReBuzzCore.AudioEngine.Should().NotBeNull();
+    ReBuzzCore.SongCore.Should().NotBeNull();
+    ReBuzzCore.SongCore.BuzzCore.Should().Be(ReBuzzCore);
+    ReBuzzCore.SongCore.WavetableCore.Should().NotBeNull();
+    ReBuzzCore.MachineManager.Should().NotBeNull();
   }
 }

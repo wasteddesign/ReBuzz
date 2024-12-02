@@ -1,4 +1,5 @@
-﻿using System.Threading;
+using System.Threading;
+using FluentAssertions;
 
 namespace ReBuzzTests;
 
@@ -12,6 +13,7 @@ public class Tests
 
     driver.Start();
 
+    driver.AssertRequiredPropertiesAreInitialized();
     driver.AssertGearMachinesConsistOf([
       "Jeskola Pianoroll",
       "Modern Pattern Editor",
@@ -31,7 +33,6 @@ public class Tests
       "BTDSys Pulsar"
     ]);
 
-    driver.NewFile(); //bug
+    driver.NewFile();
   }
-
 }
