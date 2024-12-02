@@ -238,7 +238,7 @@ namespace ReBuzz.Audio
         {
             lock (audioEngineLcok)
             {
-                ReBuzzCore.SkipAudio = true; //bug global dependency
+                ReBuzzCore.SkipAudio = true;
 
                 AudioProvider?.Stop();
                 AudioProvider = null;

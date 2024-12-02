@@ -52,12 +52,9 @@ public class Driver : IDisposable
   public void Start()
   {
     SetupDirectoryStructure();
-    var generalSettings = Global.GeneralSettings;
     var engineSettings = Global.EngineSettings;
-    var registryRoot = Global.RegistryRoot;
-    //bug var buzzPath = Global.BuzzPath;
-    var buzzPath = "C:\\Program Files\\ReBuzz\\"; //bug
-    _reBuzzCore = new ReBuzzCore(generalSettings, engineSettings, buzzPath, registryRoot, new FakeMachineDLLScanner());
+    var buzzPath = Global.BuzzPath;
+    _reBuzzCore = new ReBuzzCore(Global.GeneralSettings, Global.EngineSettings, Global.BuzzPath, Global.RegistryRoot, new FakeMachineDLLScanner());
     Global.Buzz = _reBuzzCore;
     _reBuzzCore.AudioEngine = new AudioEngine(_reBuzzCore, engineSettings, buzzPath);
     var songCore = new SongCore();
@@ -69,12 +66,11 @@ public class Driver : IDisposable
     
     //bug needed for new file
     _reBuzzCore.SongCore.WavetableCore = new WavetableCore(_reBuzzCore);
-    _reBuzzCore.OpenFile += s => { }; //bug
-    _reBuzzCore.PropertyChanged += (sender, args) => { };
-    _reBuzzCore.SetPatternEditorControl += (control) => { };
+    _reBuzzCore.OpenFile += s => { TestContext.Out.WriteLine("OpenFile: " + s); }; //bug
+    _reBuzzCore.PropertyChanged += (sender, args) => { TestContext.Out.WriteLine("PropertyChanged: " + args.PropertyName); };
+    _reBuzzCore.SetPatternEditorControl += (control) => { TestContext.Out.WriteLine( "SetPatternEditorControl: " + control); };
     _reBuzzCore.ScanDlls();
     _reBuzzCore.CreateMaster();
-
   }
 
   public void NewFile()
@@ -100,16 +96,16 @@ public class Driver : IDisposable
   }
 }
 
-internal class FakeMachineDLLScanner : IMachineDLLScanner
+internal class FakeMachineDLLScanner : IMachineDLLScanner //bug move
 {
   public Dictionary<string, MachineDLL> GetMachineDLLs(ReBuzzCore buzz, string buzzPath)
   {
-    var assemblyLocation = AbsoluteDirectoryPath.OfCurrentWorkingDirectory().AddFileName("StubMachine.dll");
+    var assemblyLocation = AbsoluteDirectoryPath.OfCurrentWorkingDirectory().AddFileName("StubMachine.dll"); //bug
     //bug delete the test machines
     //bug set the buzz path correctly
     DynamicCompiler.CompileAndSave(FakeModernPatternEditor.GetSourceCode(), assemblyLocation);
 
-    return new Dictionary<string, MachineDLL>()
+    return new Dictionary<string, MachineDLL>() //bug fill some of this stuff from machine decl
     {
       ["Modern Pattern Editor"] = new()
       {

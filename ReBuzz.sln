@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReBuzz", "ReBuzz\ReBuzz.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReBuzzTests", "ReBuzzTests\ReBuzzTests.csproj", "{E5B85632-7E1C-4770-B9CD-196D3698CCAA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StubMachine", "StubMachine\StubMachine.csproj", "{1CBEEF41-3275-4F1A-BE52-86DF78EC8CDD}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,14 +31,6 @@ Global
 		{E5B85632-7E1C-4770-B9CD-196D3698CCAA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E5B85632-7E1C-4770-B9CD-196D3698CCAA}.Release|x64.ActiveCfg = Release|Any CPU
 		{E5B85632-7E1C-4770-B9CD-196D3698CCAA}.Release|x64.Build.0 = Release|Any CPU
-		{1CBEEF41-3275-4F1A-BE52-86DF78EC8CDD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1CBEEF41-3275-4F1A-BE52-86DF78EC8CDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1CBEEF41-3275-4F1A-BE52-86DF78EC8CDD}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{1CBEEF41-3275-4F1A-BE52-86DF78EC8CDD}.Debug|x64.Build.0 = Debug|Any CPU
-		{1CBEEF41-3275-4F1A-BE52-86DF78EC8CDD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1CBEEF41-3275-4F1A-BE52-86DF78EC8CDD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1CBEEF41-3275-4F1A-BE52-86DF78EC8CDD}.Release|x64.ActiveCfg = Release|Any CPU
-		{1CBEEF41-3275-4F1A-BE52-86DF78EC8CDD}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

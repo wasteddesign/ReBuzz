@@ -20,7 +20,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
@@ -30,8 +29,6 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using BuzzGUI.Common.Settings;
 using Timer = System.Timers.Timer;
-
-[assembly: InternalsVisibleTo("ReBuzzTests")] //bug﻿
 
 namespace ReBuzz.Core
 {

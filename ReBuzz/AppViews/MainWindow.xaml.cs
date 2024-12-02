@@ -95,9 +95,13 @@ namespace ReBuzz
 
     void StartReBuzzEngineStep1()
     {
-      ReBuzzCore buzzCore = new ReBuzzCore(Global.GeneralSettings, Global.EngineSettings, Global.BuzzPath, Global.RegistryRoot, new MachineDLLScanner());
+      ReBuzzCore buzzCore = new ReBuzzCore(Global.GeneralSettings,
+        Global.EngineSettings,
+        Global.BuzzPath,
+        Global.RegistryRoot,
+        new MachineDLLScanner());
+      buzzCore.PropertyChanged += Buzz_PropertyChanged;
       Buzz = buzzCore;
-      Buzz.PropertyChanged += Buzz_PropertyChanged;
 
       BuzzGUIStartup.PreInit();
       Global.Buzz = Buzz;
