@@ -7,7 +7,6 @@ using BuzzGUI.PianoKeyboard;
 using BuzzGUI.SequenceEditor;
 using BuzzGUI.ToolBar;
 using BuzzGUI.WavetableView;
-using ReBuzz.Audio;
 using ReBuzz.Common;
 using ReBuzz.Core;
 using ReBuzz.FileOps;
@@ -19,20 +18,25 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Windows;
-using System.Windows.Automation.Provider;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
+using ReBuzz.AppViews;
 
 namespace ReBuzz
 {
+  internal interface IInitializationObserver //bug rethink the location
+  {
+    void NotifyMachineManagerCreated(MachineManager machineManager);
+    //bug may be not needed - currently machine database is created outside. void NotifyMachineDbCreated(MachineDatabase machineDb);
+  }
+
   /// <summary>
   /// Interaction logic for MainWindow.xaml
   /// </summary>
-  public partial class MainWindow : Window, INotifyPropertyChanged
+  public partial class MainWindow : Window, INotifyPropertyChanged, IInitializationObserver
   {
     ReBuzzCore Buzz { get; set; }
     EditorView EditorView { get; set; }
@@ -58,7 +62,7 @@ namespace ReBuzz
     MachineManager machineManager;
     ToolBarVM ToolBarVM { get; set; }
 
-    MachineDatabase MachineDB { get; set; }
+    IMachineDatabase MachineDB { get; set; }
 
     public event PropertyChangedEventHandler PropertyChanged;
 
@@ -93,68 +97,9 @@ namespace ReBuzz
       }
     }
 
-    void StartReBuzzEngineStep1()
+    void IInitializationObserver.NotifyMachineManagerCreated(MachineManager machineManager)
     {
-      ReBuzzCore buzzCore = new ReBuzzCore(Global.GeneralSettings,
-        Global.EngineSettings,
-        Global.BuzzPath,
-        Global.RegistryRoot,
-        new MachineDLLScanner());
-      buzzCore.PropertyChanged += Buzz_PropertyChanged;
-      Buzz = buzzCore;
-
-      BuzzGUIStartup.PreInit();
-      Global.Buzz = Buzz;
-    }
-
-    // Native machines need a window handle.
-    void StartReBuzzEngineStep2(Window wnd)
-    {
-      SongCore song = new SongCore();
-      song.BuzzCore = Buzz;
-      Buzz.SongCore = song;
-
-      Buzz.MachineViewHWND = new WindowInteropHelper(wnd).EnsureHandle();
-      Buzz.MainWindowHandle = Buzz.MachineViewHWND;
-      Global.MachineViewHwndSource = HwndSource.FromHwnd(Buzz.MachineViewHWND);
-
-      Buzz.StartEvents();
-    }
-
-    void StartReBuzzEngineStep3()
-    {
-      machineManager = new MachineManager(Buzz.SongCore, Global.EngineSettings, Global.BuzzPath);
-      Buzz.MachineManager = machineManager;
-
-      Buzz.AudioEngine = new AudioEngine(Buzz, Global.EngineSettings, Global.BuzzPath);
-      Buzz.AudioDriversList = Buzz.AudioEngine.AudioDevices().Select(ae => ae.Name).ToList();
-    }
-
-    void StartReBuzzEngineStep4()
-    {
-      Buzz.ScanDlls();
-
-      // Call after MachineDLLs are read
-      MachineDB = new MachineDatabase(Buzz, Global.BuzzPath);
-      MachineDB.DatabaseEvent += (str) =>
-      {
-        splashScreenWindow.UpdateText(str);
-      };
-      MachineDB.CreateDB();
-      Buzz.MachineDB = MachineDB;
-
-      // Init stuff before loading anything else
-      Buzz.ThemeColors = Common.Utils.GetThemeColors(Global.BuzzPath);
-    }
-
-    void StartReBuzzEngineStep5()
-    {
-      // Need to get the HWND from Buzz
-      machineManager.Buzz = Buzz;
-      Buzz.CreateMaster();
-
-      string audioDriver = RegistryEx.Read("AudioDriver", "WASAPI", "Settings");
-      Buzz.SelectedAudioDriver = audioDriver;
+      this.machineManager = machineManager;
     }
 
     void ShutDownReBuzzEngine()
@@ -170,12 +115,25 @@ namespace ReBuzz
 
       InitializeComponent();
 
-      StartReBuzzEngineStep1();
+      var generalSettings = Global.GeneralSettings;
+      var engineSettings = Global.EngineSettings;
+      var buzzPath = Global.BuzzPath;
+      var registryRoot = Global.RegistryRoot;
+      Buzz = new ReBuzzCore(generalSettings,
+        engineSettings,
+        buzzPath,
+        registryRoot,
+        new MachineDLLScanner());
+
+      var reBuzzCoreInitialization = new ReBuzzCoreInitialization(Buzz, buzzPath);
+      reBuzzCoreInitialization.StartReBuzzEngineStep1(Buzz_PropertyChanged);
+
+      BuzzGUIStartup.PreInit();
 
       splashScreenWindow = SplashScreenWindow.CreateAsync("Loading..", this);
 
-      Global.GeneralSettings.PropertyChanged += GeneralSettings_PropertyChanged;
-      if (Global.GeneralSettings.WPFIdealFontMetrics)
+      generalSettings.PropertyChanged += GeneralSettings_PropertyChanged;
+      if (generalSettings.WPFIdealFontMetrics)
       {
         TextOptions.SetTextFormattingMode(this, TextFormattingMode.Ideal);
       }
@@ -184,7 +142,7 @@ namespace ReBuzz
         TextOptions.SetTextFormattingMode(this, TextFormattingMode.Display);
       }
 
-      StartReBuzzEngineStep2(this);
+      reBuzzCoreInitialization.StartReBuzzEngineStep2(new WindowInteropHelper(this).EnsureHandle());
 
       var buzzCore = Buzz;
       var song = buzzCore.SongCore;
@@ -208,68 +166,71 @@ namespace ReBuzz
         }
       };
 
-      StartReBuzzEngineStep3();
+      reBuzzCoreInitialization.StartReBuzzEngineStep3(engineSettings, this);
 
       splashScreenWindow.UpdateText("Scan Plugin DLLs");
+      MachineDB = new MachineDatabase(buzzCore, buzzPath); //bug maybe instead just copy or create false execs? Then move this inside step 4? Maybe test the database in isolation first?
 
-      StartReBuzzEngineStep4();
-
-      Buzz.PatternEditorActivated += Buzz_PatternEditorActivated;
-      Buzz.SequenceEditorActivated += Buzz_SequenceEditorActivated;
-      Buzz.ShowSettings += (activeTab) =>
-      {
-        SettingsWindow.Show(MachineView, activeTab);
-      };
-
-      Buzz.SetPatternEditorControl += (control) =>
-      {
-        if (EditorView.editorBorder.Child != null)
-          EditorView.editorBorder.Child.Visibility = Visibility.Collapsed;
-
-        EditorView.editorBorder.Child = control;
-        if (control != null)
-          control.Visibility = Visibility.Visible;
-      };
-
-      Buzz.FullScreenChanged += (fullScreen) =>
-      {
-        if (fullScreen)
+      reBuzzCoreInitialization.StartReBuzzEngineStep4(MachineDB,
+        machineDbDatabaseEvent: (str) =>
         {
-          this.mainWindowStyle = mainWindow.WindowStyle;
-          mainWindow.WindowState = WindowState.Maximized;
-          mainWindow.WindowStyle = WindowStyle.None;
-        }
-        else
+          splashScreenWindow.UpdateText(str);
+        },
+        onPatternEditorActivated: Buzz_PatternEditorActivated,
+        onSequenceEditorActivated: Buzz_SequenceEditorActivated,
+        onShowSettings: (activeTab) =>
         {
-          mainWindow.WindowStyle = mainWindowStyle;
-          mainWindow.WindowState = WindowState.Normal;
-        }
-      };
+          SettingsWindow.Show(MachineView,
+            activeTab);
+        },
+        onSetPatternEditorControl: (control) =>
+        {
+          if (EditorView.editorBorder.Child != null)
+            EditorView.editorBorder.Child.Visibility = Visibility.Collapsed;
 
-      Buzz.ThemeChanged += (theme) =>
-      {
-        Buzz.ActiveView = BuzzView.MachineView; // ToDo: Machine View issue without changing the ActiveView
-        CreateThemedGUI();
-      };
+          EditorView.editorBorder.Child = control;
+          if (control != null)
+            control.Visibility = Visibility.Visible;
+        },
+        onFullScreenChanged: (fullScreen) =>
+        {
+          if (fullScreen)
+          {
+            mainWindowStyle = mainWindow.WindowStyle;
+            mainWindow.WindowState = WindowState.Maximized;
+            mainWindow.WindowStyle = WindowStyle.None;
+          }
+          else
+          {
+            mainWindow.WindowStyle = mainWindowStyle;
+            mainWindow.WindowState = WindowState.Normal;
+          }
+        },
+        onThemeChanged: (theme) =>
+        {
+          Buzz.ActiveView = BuzzView.MachineView; // ToDo: Machine View issue without changing the ActiveView
+          CreateThemedGUI();
+        });
+
+
 
       SizeChanged += (sender, e) =>
       {
         ResizeModernSequenceEditor();
       };
 
-      Buzz.OpenFile += (fileName) =>
+      reBuzzCoreInitialization.StartReBuzzEngineStep5(onOpenFile: fileName =>
       {
         statusWindow = StatusWindow.CreateAsync(fileName, this);
         Buzz.FileEvent += Buzz_FileEvent;
-
-      };
+      });
 
       this.Loaded += (sender, e) =>
       {
         splashScreenWindow.UpdateText("Init views");
 
         // Machine View
-        var rd = Utils.GetUserControlXAML<ResourceDictionary>(Buzz.Theme.MachineView.Source, Global.BuzzPath);
+        var rd = Utils.GetUserControlXAML<ResourceDictionary>(Buzz.Theme.MachineView.Source, buzzPath);
         MachineView = new MachineView(buzzCore, rd);
         MachineView.MachineGraph = song;
         MachineView.Foreground = new SolidColorBrush(Global.Buzz.ThemeColors["MV Text"]);
@@ -290,24 +251,24 @@ namespace ReBuzz
 
         Buzz.StartTimer();
 
-        rd = Utils.GetUserControlXAML<ResourceDictionary>(Buzz.Theme.MainWindow.Source, Global.BuzzPath);
+        rd = Utils.GetUserControlXAML<ResourceDictionary>(Buzz.Theme.MainWindow.Source, buzzPath);
         this.Style = rd["ThemeWindowStyle"] as Style;
         this.Resources.MergedDictionaries.Add(rd);
 
         // Wavetable
         WavetableVM = new WavetableVM();
-        WavetableControl = Utils.GetUserControlXAML<UserControl>(Buzz.Theme.WavetableView.Source, Global.BuzzPath);
+        WavetableControl = Utils.GetUserControlXAML<UserControl>(Buzz.Theme.WavetableView.Source, buzzPath);
         WavetableControl.DataContext = WavetableVM;
         WavetableVM.Wavetable = song.Wavetable;
 
         // Info view
         InfoView = new InfoView();
-        rd = Utils.GetUserControlXAML<ResourceDictionary>(Buzz.Theme.InfoView.Source, Global.BuzzPath);
+        rd = Utils.GetUserControlXAML<ResourceDictionary>(Buzz.Theme.InfoView.Source, buzzPath);
         InfoView.Resources.MergedDictionaries.Add(rd);
         borderInfo.Child = InfoView;
 
         // Editor view
-        var res = Utils.GetBuzzThemeResources(Buzz.Theme.SequenceEditor.Source, Global.BuzzPath);
+        var res = Utils.GetBuzzThemeResources(Buzz.Theme.SequenceEditor.Source, buzzPath);
         seqenceEditor = new BuzzGUI.SequenceEditor.SequenceEditor(Buzz, res);
         seqenceEditor.SetVisibility(true);
         EditorView = new EditorView(Buzz);
@@ -318,7 +279,7 @@ namespace ReBuzz
         ToolBarVM = new ToolBarVM();
         ToolBarVM.Buzz = Buzz;
         ToolBarVM.Song = song;
-        ToolBarControl = Common.Utils.GetUserControlXAML<UserControl>(Buzz.Theme.ToolBar.Source, Global.BuzzPath);
+        ToolBarControl = Common.Utils.GetUserControlXAML<UserControl>(Buzz.Theme.ToolBar.Source, buzzPath);
         ToolBarControl.DataContext = ToolBarVM;
         mainGrid.Children.Add(ToolBarControl);
         Grid.SetRow(ToolBarControl, 0);
@@ -329,7 +290,7 @@ namespace ReBuzz
 
         CreateSequenceView(song);
 
-        StartReBuzzEngineStep5();
+        reBuzzCoreInitialization.StartReBuzzEngineStep6();
 
         song.SongEnd = 16;
         song.LoopEnd = 16;
@@ -348,7 +309,7 @@ namespace ReBuzz
         Topmost = false; // important
         Focus();         // important
 
-        if (Global.GeneralSettings.CheckForUpdates)
+        if (generalSettings.CheckForUpdates)
         {
           BuzzGUI.BuzzUpdate.UpdateService.CheckForUpdates(Buzz);
         }
@@ -379,7 +340,7 @@ namespace ReBuzz
         ToolBarVM.Buzz = null;
 
         Buzz.PropertyChanged -= Buzz_PropertyChanged;
-        Global.GeneralSettings.PropertyChanged -= GeneralSettings_PropertyChanged;
+        generalSettings.PropertyChanged -= GeneralSettings_PropertyChanged;
       };
 
       this.Closed += (sender, e) =>
@@ -406,7 +367,7 @@ namespace ReBuzz
           if (hDRecorderWindow == null && Buzz.IsHardDiskRecorderWindowVisible == true)
           {
             hDRecorderWindow = new HDRecorderWindow();
-            var rd = Utils.GetUserControlXAML<ResourceDictionary>("MachineView\\MachineView.xaml", Global.BuzzPath);
+            var rd = Utils.GetUserControlXAML<ResourceDictionary>("MachineView\\MachineView.xaml", buzzPath);
             hDRecorderWindow.Resources.MergedDictionaries.Add(rd);
 
             hDRecorderWindow.MachineGraph = Buzz.SongCore;
@@ -540,7 +501,7 @@ namespace ReBuzz
           case BuzzView.SequenceView:
             {
               // FIXME
-              if (Global.GeneralSettings.SequenceView == SequenceEditorType.ModernVertical)
+              if (generalSettings.SequenceView == SequenceEditorType.ModernVertical)
               {
                 if (cmd == BuzzCommand.Copy)
                 {
@@ -638,7 +599,7 @@ namespace ReBuzz
           AboutWindow aboutWindow = new AboutWindow("(build " + Buzz.BuildNumber + ")");
           aboutWindow.Owner = this;
           aboutWindow.Topmost = true;
-          var rdw = Utils.GetUserControlXAML<Window>("ParameterWindowShell.xaml", Global.BuzzPath);
+          var rdw = Utils.GetUserControlXAML<Window>("ParameterWindowShell.xaml", buzzPath);
 
           aboutWindow.Resources.MergedDictionaries.Add(rdw.Resources);
           aboutWindow.ShowDialog();
@@ -679,7 +640,7 @@ namespace ReBuzz
           if (preferencesWindow == null)
           {
             preferencesWindow = new PreferencesWindow(Buzz);
-            var rd = Utils.GetUserControlXAML<ResourceDictionary>("MachineView\\MVResources.xaml", Global.BuzzPath);
+            var rd = Utils.GetUserControlXAML<ResourceDictionary>("MachineView\\MVResources.xaml", buzzPath);
             preferencesWindow.Resources.MergedDictionaries.Add(rd);
             if (preferencesWindow.ShowDialog() == true)
             {
@@ -748,7 +709,7 @@ namespace ReBuzz
         if (e.Key == Key.F1)
         {
           // Help
-          var ps = new ProcessStartInfo(System.IO.Path.Combine(Global.BuzzPath, "Help/index.html"))
+          var ps = new ProcessStartInfo(System.IO.Path.Combine(buzzPath, "Help/index.html"))
           {
             UseShellExecute = true,
             Verb = "open"

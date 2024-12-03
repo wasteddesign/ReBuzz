@@ -9,8 +9,17 @@ using System.Windows;
 
 namespace ReBuzz.FileOps
 {
-    internal class MachineDatabase
-    {
+  internal interface IMachineDatabase //bug
+  {
+    event Action<string> DatabaseEvent;
+    Dictionary<int, MachineDatabase.InstrumentInfo> DictLibRef { get; set; }
+    void CreateDB();
+    string GetLibName(int id);
+    MenuItemCore IndexMenu { get; }
+  }
+
+  internal class MachineDatabase : IMachineDatabase
+  {
         internal struct InstrumentInfo
         {
             public string libName;
@@ -26,7 +35,10 @@ namespace ReBuzz.FileOps
         NativeMachine.NativeMachineHost nativeMachineHost64;
         private string buzzPath;
 
-        internal MenuItemCore IndexMenu { get; private set; }
+        private MenuItemCore IndexMenu { get; set; }
+
+        MenuItemCore IMachineDatabase.IndexMenu => IndexMenu;
+
         public Dictionary<int, InstrumentInfo> DictLibRef { get; set; }
 
         public MachineDatabase(ReBuzzCore buzz, string buzzPath)
@@ -58,7 +70,6 @@ namespace ReBuzz.FileOps
                 MessageBox.Show(ex.Message);
             }
         }
-
 
         public string GetLibName(int id)
         {

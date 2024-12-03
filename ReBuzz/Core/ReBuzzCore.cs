@@ -502,8 +502,8 @@ namespace ReBuzz.Core
     public IntPtr MainWindowHandle { get; internal set; }
     public MachineManager MachineManager { get; internal set; }
 
-    MachineDatabase machineDB;
-    internal MachineDatabase MachineDB
+    IMachineDatabase machineDB;
+    internal IMachineDatabase MachineDB
     {
       get => machineDB;
       set
@@ -765,7 +765,7 @@ namespace ReBuzz.Core
       MachineDLLsList = machineDllScanner.GetMachineDLLs(this, buzzPath);
     }
 
-    internal void UpdateInstrumentList(MachineDatabase mdb)
+    internal void UpdateInstrumentList(IMachineDatabase mdb)
     {
       InstrumentManager instrumentManager = new InstrumentManager();
       InstrumentList = instrumentManager.CreateInstrumentsList(this, mdb);
