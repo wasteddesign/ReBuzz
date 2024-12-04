@@ -883,6 +883,7 @@ namespace ReBuzz.Core
       }
       else if (cmd == BuzzCommand.Exit)
       {
+        //bug bug bug bug bug 
         BuzzCommandRaised.Invoke(cmd);
       }
       else if (cmd == BuzzCommand.Stop)

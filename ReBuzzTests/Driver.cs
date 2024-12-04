@@ -23,11 +23,11 @@ public class Driver : IDisposable, IInitializationObserver
   private readonly AbsoluteDirectoryPath _themesDir;
   private ReBuzzCore reBuzzCore;
   private readonly AbsoluteDirectoryPath _gearEffectsDir;
-  private readonly AbsoluteDirectoryPath _gearGeneratorsDir;
+  private readonly AbsoluteDirectoryPath _gearGeneratorsDir; //bug eliminate all underscores
 
   static Driver()
   {
-    if (Application.Current == null) //bug hack
+    if (Application.Current == null)
     {
       new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
     }
@@ -92,6 +92,7 @@ public class Driver : IDisposable, IInitializationObserver
         //bug
         reBuzzCore.Playing = false;
         reBuzzCore.Release();
+        Application.Current.Shutdown();
       }
     };
   }

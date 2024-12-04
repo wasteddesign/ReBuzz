@@ -105,7 +105,7 @@ namespace ReBuzz
     void ShutDownReBuzzEngine()
     {
       Buzz.AudioEngine.FinalStop();
-      machineManager.Buzz = null;
+      Buzz.MachineManager.Buzz = null;
       Buzz.Release();
     }
 
