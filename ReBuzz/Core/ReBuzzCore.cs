@@ -1,17 +1,4 @@
-﻿using Buzz.MachineInterface;
-using BuzzGUI.Common;
-using BuzzGUI.Interfaces;
-using Microsoft.Win32;
-using NAudio.Midi;
-using ReBuzz.Audio;
-using ReBuzz.Common;
-using ReBuzz.Core.Actions.GraphActions;
-using ReBuzz.FileOps;
-using ReBuzz.MachineManagement;
-using ReBuzz.Midi;
-using ReBuzz.Properties;
-using Serilog;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -27,7 +14,20 @@ using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
+using Buzz.MachineInterface;
+using BuzzGUI.Common;
 using BuzzGUI.Common.Settings;
+using BuzzGUI.Interfaces;
+using Microsoft.Win32;
+using NAudio.Midi;
+using ReBuzz.Audio;
+using ReBuzz.Common;
+using ReBuzz.Core.Actions.GraphActions;
+using ReBuzz.FileOps;
+using ReBuzz.MachineManagement;
+using ReBuzz.Midi;
+using ReBuzz.Properties;
+using Serilog;
 using Timer = System.Timers.Timer;
 
 namespace ReBuzz.Core
@@ -45,7 +45,7 @@ namespace ReBuzz.Core
     public int StateFlags;
     public byte MIDIFiltering;
     public byte SongClosing;
-  };
+  }
 
   public class ReBuzzCore : IBuzz, INotifyPropertyChanged
   {
@@ -109,7 +109,7 @@ namespace ReBuzz.Core
             master.ParameterGroups[1].Parameters[1].SetValue(0, value);
           }
           // Actual BPM is changed in WorkManager
-          Application.Current.Dispatcher.BeginInvoke(() =>
+          dispatcher.BeginInvoke(() =>
           {
             try
             {
@@ -140,7 +140,7 @@ namespace ReBuzz.Core
             master.ParameterGroups[1].Parameters[2].SetValue(0, value);
           }
           // Actual TPB is changed in WorkManager
-          Application.Current.Dispatcher.BeginInvoke(() =>
+          dispatcher.BeginInvoke(() =>
           {
             try
             {
@@ -165,7 +165,7 @@ namespace ReBuzz.Core
         preparePlaying = false;
         playing = true;
         GlobalState.StateFlags |= SF_PLAYING;
-        Application.Current.Dispatcher.BeginInvoke(() =>
+        dispatcher.BeginInvoke(() =>
         {
           PropertyChanged.Raise(this, "Playing");
         });
@@ -174,7 +174,7 @@ namespace ReBuzz.Core
       return false;
     }
 
-    bool preparePlaying = false;
+    bool preparePlaying;
 
     public bool Playing
     {
@@ -217,9 +217,9 @@ namespace ReBuzz.Core
         recording = value;
 
         if (recording)
-          ReBuzzCore.GlobalState.StateFlags |= SF_RECORDING;
+          GlobalState.StateFlags |= SF_RECORDING;
         else
-          ReBuzzCore.GlobalState.StateFlags &= ~SF_RECORDING;
+          GlobalState.StateFlags &= ~SF_RECORDING;
 
         if (recording && !playing)
         {
@@ -287,7 +287,7 @@ namespace ReBuzz.Core
       }
     }
 
-    private bool midiFocusLocked = false;
+    private bool midiFocusLocked;
     public bool MIDIFocusLocked { get => midiFocusLocked; set { midiFocusLocked = value; PropertyChanged.Raise(this, "MIDIFocusLocked"); } }
 
     private bool midiActivity;
@@ -320,7 +320,7 @@ namespace ReBuzz.Core
 
     // Misc
     //KeyboardWindow keyboardWindow = null;
-    bool isPianoKeyboardVisible = false;
+    bool isPianoKeyboardVisible;
     public bool IsPianoKeyboardVisible
     {
       get => isPianoKeyboardVisible;
@@ -341,9 +341,6 @@ namespace ReBuzz.Core
         if (isSettingsWindowVisible)
         {
           ShowSettings.Invoke("");
-        }
-        else
-        {
         }
       }
     }
@@ -430,7 +427,7 @@ namespace ReBuzz.Core
       get => masterInfo.SamplesPerSec;
       set
       {
-        lock (ReBuzzCore.AudioLock)
+        lock (AudioLock)
         {
           masterInfo.SamplesPerSec = value;
           UpdateMasterInfo();
@@ -464,7 +461,7 @@ namespace ReBuzz.Core
       }
     }
 
-    bool overrideAudioDriver = false;
+    bool overrideAudioDriver;
 
     public bool OverrideAudioDriver
     {
@@ -477,7 +474,7 @@ namespace ReBuzz.Core
 
     public IEditContext EditContext { get; set; }
 
-    long performanceCountTime = 0;
+    long performanceCountTime;
     internal BuzzPerformanceData PerformanceCurrent { get; set; }
     public BuzzPerformanceData PerformanceData { get; set; }
 
@@ -489,10 +486,10 @@ namespace ReBuzz.Core
 
     public string SelectedTheme
     {
-      get => RegistryEx.Read<string>("Theme", "<default>", "Settings");
+      get => RegistryEx.Read("Theme", "<default>", "Settings");
       set
       {
-        RegistryEx.Write<string>("Theme", value, "Settings");
+        RegistryEx.Write("Theme", value, "Settings");
         if (ThemeChanged != null)
         {
           ThemeChanged.Invoke(value);
@@ -524,8 +521,8 @@ namespace ReBuzz.Core
           return;
 
         modified = value;
-        Application.Current.Dispatcher.BeginInvoke(() =>
-        PropertyChanged.Raise(this, "Modified"));
+        dispatcher.BeginInvoke(() =>
+          PropertyChanged.Raise(this, "Modified"));
       }
     }
     public IPattern PatternEditorPattern { get; private set; }
@@ -554,13 +551,15 @@ namespace ReBuzz.Core
       EngineSettings engineSettings,
       string buzzPath,
       string registryRoot,
-      IMachineDLLScanner machineDllScanner)
+      IMachineDLLScanner machineDllScanner, 
+      IUiDispatcher dispatcher)
     {
       this.generalSettings = generalSettings;
       this.engineSettings = engineSettings;
       this.buzzPath = buzzPath;
       this.registryRoot = registryRoot;
       this.machineDllScanner = machineDllScanner;
+      this.dispatcher = dispatcher;
 
       // Init process and thread priorities
       ProcessAndThreadProfile.Profile2();
@@ -571,14 +570,14 @@ namespace ReBuzz.Core
       generalSettings.PropertyChanged += GeneralSettings_PropertyChanged;
       engineSettings.PropertyChanged += EngineSettings_PropertyChanged;
 
-      masterInfo = new MasterInfoExtended()
+      masterInfo = new MasterInfoExtended
       {
         SamplesPerSec = 44100,
         SamplesPerTick = (int)((60 * 44100) / (126 * 4.0)),
         TicksPerSec = (float)(126 * 4 / 60.0)
       };
 
-      subTickInfo = new SubTickInfoExtended()
+      subTickInfo = new SubTickInfoExtended
       {
         CurrentSubTick = 0,
         PosInSubTick = 0
@@ -597,11 +596,11 @@ namespace ReBuzz.Core
       maxSampleLeft = -1;
       maxSampleRight = -1;
 
-      this.Gear = Gear.LoadGearFile(buzzPath + "\\Gear\\gear_defaults.xml");
+      Gear = Gear.LoadGearFile(buzzPath + "\\Gear\\gear_defaults.xml");
       var moreGear = Gear.LoadGearFile(buzzPath + "\\Gear\\gear.xml");
       Gear.Merge(moreGear);
 
-      this.Theme = ReBuzzTheme.LoadCurrentTheme(this, buzzPath);
+      Theme = ReBuzzTheme.LoadCurrentTheme(this, buzzPath);
 
       DCWriteLine(BuildString);
 
@@ -615,7 +614,7 @@ namespace ReBuzz.Core
       themes = Utils.GetThemes(buzzPath);
 
       AppDomain currentDomain = AppDomain.CurrentDomain;
-      currentDomain.AssemblyResolve += new ResolveEventHandler(MyResolveEventHandler);
+      currentDomain.AssemblyResolve += MyResolveEventHandler;
 
       timerAutomaticBackups = new Timer();
       timerAutomaticBackups.Interval = 10000;
@@ -844,7 +843,7 @@ namespace ReBuzz.Core
       }
       catch { }
 
-      MachineDB = new MachineDatabase(this, buzzPath);
+      MachineDB = new MachineDatabase(this, buzzPath, dispatcher);
       UpdateInstrumentList(MachineDB);
     }
 
@@ -972,7 +971,8 @@ namespace ReBuzz.Core
           SaveSongFile(SongCore.SongName);
           return true;
         }
-        else if (result == MessageBoxResult.Cancel)
+
+        if (result == MessageBoxResult.Cancel)
         {
           return false;
         }
@@ -1005,7 +1005,7 @@ namespace ReBuzz.Core
       int maxFiles = Math.Min(files.Count, 10);
       for (int i = 0; i < maxFiles; i++)
       {
-        regkey.SetValue("File" + (i + 1).ToString(), files[i]);
+        regkey.SetValue("File" + (i + 1), files[i]);
       }
     }
 
@@ -1048,27 +1048,25 @@ namespace ReBuzz.Core
           OpenFile.Invoke(filename);
           bmxFile.Load(filename);
         }
-        else
+
+        try
         {
-          try
+          bmxFile.FileEvent += (type, eventText, o) =>
           {
-            bmxFile.FileEvent += (type, eventText, o) =>
-            {
-              FileEvent?.Invoke(type, eventText, o);
-            };
+            FileEvent?.Invoke(type, eventText, o);
+          };
 
-            OpenFile.Invoke(filename);
-            bmxFile.Load(filename);
-          }
-          catch (Exception e)
-          {
+          OpenFile.Invoke(filename);
+          bmxFile.Load(filename);
+        }
+        catch (Exception e)
+        {
 
-            MessageBox.Show(e.InnerException.Message, "Error loading " + filename);
-            bmxFile.EndFileOperation(false);
-            NewSong();
-            SkipAudio = false;
-            return;
-          }
+          MessageBox.Show(e.InnerException.Message, "Error loading " + filename);
+          bmxFile.EndFileOperation(false);
+          NewSong();
+          SkipAudio = false;
+          return;
         }
 
         SongCore.SongName = filename;
@@ -1113,11 +1111,11 @@ namespace ReBuzz.Core
       IReBuzzFile file;
       if (filterIndex == 1 || filterIndex == 2)
       {
-        file = new BMXFile(this, buzzPath);
+        file = new BMXFile(this, buzzPath, dispatcher);
       }
       else
       {
-        file = new BMXMLFile(this, buzzPath);
+        file = new BMXMLFile(this, buzzPath, dispatcher);
       }
       return file;
     }
@@ -1128,11 +1126,11 @@ namespace ReBuzz.Core
       string extension = Path.GetExtension(path);
       if (extension == ".bmx" || extension == ".bmw")
       {
-        file = new BMXFile(this, buzzPath);
+        file = new BMXFile(this, buzzPath, dispatcher);
       }
       else
       {
-        file = new BMXMLFile(this, buzzPath);
+        file = new BMXMLFile(this, buzzPath, dispatcher);
       }
       return file;
     }
@@ -1175,7 +1173,7 @@ namespace ReBuzz.Core
         }
         catch (Exception ex)
         {
-          Utils.MessageBox("Error saving file " + filename + "\n\n" + ex.ToString(), "Error saving file.");
+          Utils.MessageBox("Error saving file " + filename + "\n\n" + ex, "Error saving file.");
         }
       }
 
@@ -1217,7 +1215,7 @@ namespace ReBuzz.Core
       //MIDIInput?.Invoke(data);
 
       // Some UI components require MIDIInput.Invoke to be called from UI thread (Midi Keyboard)
-      Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+      dispatcher.BeginInvoke(new Action(() =>
           MIDIInput?.Invoke(data)
       ));
     }
@@ -1338,8 +1336,8 @@ namespace ReBuzz.Core
     }
 
     const double VUMeterRange = 80.0;
-    float maxSampleLeft = 0;
-    float maxSampleRight = 0;
+    float maxSampleLeft;
+    float maxSampleRight;
 
     internal Gear Gear { get; }
     internal void MasterTapSamples(float[] resSamples, int offset, int count)
@@ -1361,14 +1359,13 @@ namespace ReBuzz.Core
         samples[i] = resSamples[offset + i];
       }
 
-      Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+      dispatcher.BeginInvoke(() =>
       {
         if (MasterTap != null)
         {
           MasterTap.Invoke(samples, true, s);
         }
-      }
-      ));
+      });
     }
 
     internal MachineCore CloneMachine(MachineCore machineToClone, float x, float y)
@@ -1420,7 +1417,7 @@ namespace ReBuzz.Core
       if (trackcount <= 0)
         trackcount = 1;
 
-      MachineCore machineCore = MachineManager.CreateMachine(machine, path, instrument, data, trackcount, x, y, false, name, true);
+      MachineCore machineCore = MachineManager.CreateMachine(machine, path, instrument, data, trackcount, x, y, false, name);
 
       //if (songCore.Importing)
       //{
@@ -1732,6 +1729,7 @@ namespace ReBuzz.Core
     private readonly EngineSettings engineSettings;
     private readonly string buzzPath;
     private readonly IMachineDLLScanner machineDllScanner;
+    private readonly IUiDispatcher dispatcher;
 
     public string InfoText { get => infoText; internal set { infoText = value; PropertyChanged.Raise(this, "InfoText"); } }
 
@@ -1790,7 +1788,7 @@ namespace ReBuzz.Core
         if (Gear.HasSameDataFormat(machine.EditorMachine.DLL.Name, editorMachine.Name))
           data = machine.EditorMachine.Data;
 
-        lock (ReBuzzCore.AudioLock)
+        lock (AudioLock)
         {
           try
           {

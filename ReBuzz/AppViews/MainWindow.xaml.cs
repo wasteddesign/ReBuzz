@@ -83,6 +83,7 @@ namespace ReBuzz
     string statusBarItem2;
     private WindowStyle mainWindowStyle;
     private UserControl ToolBarControl;
+    private readonly WindowsGuiDispatcher windowsGuiDispatcher = new WindowsGuiDispatcher();
 
     public string StatusBarItem2
     {
@@ -123,9 +124,9 @@ namespace ReBuzz
         engineSettings,
         buzzPath,
         registryRoot,
-        new MachineDLLScanner());
+        new MachineDLLScanner(windowsGuiDispatcher), windowsGuiDispatcher);
 
-      var reBuzzCoreInitialization = new ReBuzzCoreInitialization(Buzz, buzzPath);
+      var reBuzzCoreInitialization = new ReBuzzCoreInitialization(Buzz, buzzPath, windowsGuiDispatcher);
       reBuzzCoreInitialization.StartReBuzzEngineStep1(Buzz_PropertyChanged);
 
       BuzzGUIStartup.PreInit();
@@ -169,7 +170,7 @@ namespace ReBuzz
       reBuzzCoreInitialization.StartReBuzzEngineStep3(engineSettings, this);
 
       splashScreenWindow.UpdateText("Scan Plugin DLLs");
-      MachineDB = new MachineDatabase(buzzCore, buzzPath); //bug maybe instead just copy or create false execs? Then move this inside step 4? Maybe test the database in isolation first?
+      MachineDB = new MachineDatabase(buzzCore, buzzPath, windowsGuiDispatcher); //bug maybe instead just copy or create false execs? Then move this inside step 4? Maybe test the database in isolation first?
 
       reBuzzCoreInitialization.StartReBuzzEngineStep4(MachineDB,
         machineDbDatabaseEvent: (str) =>

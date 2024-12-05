@@ -32,6 +32,12 @@ namespace ReBuzz.ManagedMachine
         public MachineParameter[] trackParameters;
         internal MachineDecl machineInfo;
         internal ConstructorInfo constructor;
+        private readonly IUiDispatcher dispatcher;
+
+        public ManagedMachineDLL(IUiDispatcher dispatcher)
+        {
+          this.dispatcher = dispatcher;
+        }
 
         public void LoadManagedMachine(string path)
         {
@@ -223,7 +229,7 @@ namespace ReBuzz.ManagedMachine
 
         private void CreateParameter(MachineParameter mPar, ParameterGroup pg)
         {
-            ParameterCore p = new ParameterCore();
+            ParameterCore p = new ParameterCore(dispatcher);
             p.Name = mPar.Name;
             p.Type = mPar.Type;
             p.Flags = mPar.Flags;

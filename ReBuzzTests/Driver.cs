@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Windows;
+using System.Windows.Threading;
 using AtmaFileSystem;
 using AtmaFileSystem.IO;
 using BuzzGUI.Common;
@@ -27,11 +28,6 @@ public class Driver : IDisposable, IInitializationObserver
 
   static Driver()
   {
-    if (Application.Current == null)
-    {
-      new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
-    }
-
     AssertionOptions.FormattingOptions.MaxLines = 10000;
   }
 
@@ -60,10 +56,11 @@ public class Driver : IDisposable, IInitializationObserver
     var generalSettings = Global.GeneralSettings;
     var registryRoot = Global.RegistryRoot;
 
-    reBuzzCore = new ReBuzzCore(generalSettings, engineSettings, buzzPath, registryRoot, new FakeMachineDLLScanner());
+    var dispatcher = new GuiLessDispatcher();
+    reBuzzCore = new ReBuzzCore(generalSettings, engineSettings, buzzPath, registryRoot, new FakeMachineDLLScanner(), dispatcher);
     reBuzzCore.SelectedTheme = "<default>"; //bug this is actually written to registry!
 
-    var initialization = new ReBuzzCoreInitialization(reBuzzCore, buzzPath);
+    var initialization = new ReBuzzCoreInitialization(reBuzzCore, buzzPath, dispatcher);
     initialization.StartReBuzzEngineStep1((_, args) =>
     {
       TestContext.Out.WriteLine("PropertyChanged: " + args.PropertyName);
@@ -92,7 +89,6 @@ public class Driver : IDisposable, IInitializationObserver
         //bug
         reBuzzCore.Playing = false;
         reBuzzCore.Release();
-        Application.Current.Shutdown();
       }
     };
   }
@@ -141,6 +137,24 @@ public class Driver : IDisposable, IInitializationObserver
   //bug {
   //bug   TestContext.Out.WriteLine("MachineDb created");
   //bug }
+}
+
+public class GuiLessDispatcher : IUiDispatcher //bug
+{
+  public void Invoke(Action action)
+  {
+    action();
+  }
+
+  public void BeginInvoke(Action action)
+  {
+    action();
+  }
+
+  public void BeginInvoke(Action action, DispatcherPriority priority)
+  {
+    action();
+  }
 }
 
 internal class FakeMachineDb : IMachineDatabase

@@ -47,12 +47,13 @@ namespace ReBuzz.Audio
         private readonly ReBuzzCore buzzCore;
         WasapiCapture wasapiCapture;
 
-        public AudioEngine(ReBuzzCore buzzCore, EngineSettings settings, string buzzPath)
+        public AudioEngine(ReBuzzCore buzzCore, EngineSettings settings, string buzzPath, IUiDispatcher dispatcher)
         {
             this.buzzPath = buzzPath;
             this.buzzCore = buzzCore;
             CreateScheduler();
             engineSettings = settings;
+            this.dispatcher = dispatcher;
         }
 
         internal static DedicatedThreadPoolTaskScheduler TaskSchedulerAudio { get; private set; }
@@ -71,7 +72,7 @@ namespace ReBuzz.Audio
 
         public void CreateASIOOut(string deviceName)
         {
-            Application.Current.Dispatcher.Invoke(() =>
+            dispatcher.Invoke(() =>
             {
                 var asioOut = new AsioOut(deviceName); // This needs to be called from UI thread
 
@@ -105,7 +106,7 @@ namespace ReBuzz.Audio
         private void AsioOut_DriverResetRequest(object sender, EventArgs e)
         {
             // Seems to work better if we reset the audio device after call.
-            Application.Current.Dispatcher.BeginInvoke(() =>
+            dispatcher.BeginInvoke(() =>
             {
                 CreateAudioOut(SelectedOutDevice.Name);
                 Play();
@@ -319,10 +320,7 @@ namespace ReBuzz.Audio
 
         internal void CreateAudioOut(string audioDriver)
         {
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                FinalStop();
-            });
+            dispatcher.Invoke(FinalStop);
             ReleaseAudioDriver();
 
             var device = AudioDevices().FirstOrDefault(x => x.Name == audioDriver);
@@ -357,6 +355,7 @@ namespace ReBuzz.Audio
         AsioConfigWindow asioConfigWindow;
         private readonly EngineSettings engineSettings;
         private readonly string buzzPath;
+        private readonly IUiDispatcher dispatcher;
 
         internal void ShowControlPanel()
         {

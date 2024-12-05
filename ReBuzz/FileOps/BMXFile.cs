@@ -56,6 +56,7 @@ namespace ReBuzz.FileOps
         private Dictionary<int,int> remappedWaveReferences;
         private readonly List<SequenceCore> bmxSequences;
         private readonly string buzzPath;
+        private readonly IUiDispatcher dispatcher;
 
         enum SectionType
         {
@@ -82,7 +83,7 @@ namespace ReBuzz.FileOps
             XQES = 0x58514553  // Sequence properties
         }
 
-        public BMXFile(ReBuzzCore buzz, string buzzPath)
+        public BMXFile(ReBuzzCore buzz, string buzzPath, IUiDispatcher dispatcher)
         {
             this.buzz = buzz;
             machines = new List<MachineCore>();
@@ -90,6 +91,7 @@ namespace ReBuzz.FileOps
             bmxSequences = new List<SequenceCore>();
             remappedWaveReferences = new Dictionary<int, int>();
             this.buzzPath = buzzPath;
+            this.dispatcher = dispatcher;
         }
 
         public void Load(string path, float x = 0, float y = 0, ImportSongAction importAction = null)
@@ -257,7 +259,7 @@ namespace ReBuzz.FileOps
 
                     for (int j = 0; j < numGlobals + numTrackParams; j++)
                     {
-                        ParameterCore parameter = new ParameterCore();
+                        ParameterCore parameter = new ParameterCore(dispatcher);
                         parameter.Type = (ParameterType)ReadByte(fs);
                         parameter.Name = ReadString(fs);
                         parameter.MinValue = ReadInt(fs);
@@ -943,7 +945,7 @@ namespace ReBuzz.FileOps
                                 if (!targetMachine.DLL.IsMissing)
                                 {
                                     // Negative group is Buzz midi column invisible to editors. Used by Note Matrix.
-                                    targetParameter = (group != -1 && indexInGroup != -1) ? targetMachine.ParameterGroups[group].Parameters[indexInGroup] : ParameterCore.GetMidiParameter(targetMachine);
+                                    targetParameter = (group != -1 && indexInGroup != -1) ? targetMachine.ParameterGroups[group].Parameters[indexInGroup] : ParameterCore.GetMidiParameter(targetMachine, dispatcher);
                                 }
                             }
 
@@ -2205,7 +2207,7 @@ namespace ReBuzz.FileOps
             MachineCore machine = machines.FirstOrDefault(m => m.Name == name);
             if (machine == null)
             {
-                machine = new MachineCore(buzz.SongCore, buzzPath);
+                machine = new MachineCore(buzz.SongCore, buzzPath, dispatcher);
                 machine.Name = name;
                 machines.Add(machine);
             }

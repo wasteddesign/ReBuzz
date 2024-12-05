@@ -37,7 +37,7 @@ namespace ReBuzz.Core
                     playPosition = value;
                     ReBuzzCore.GlobalState.SongPosition = playPosition;
 
-                    Application.Current.Dispatcher.BeginInvoke(() =>
+                    dispatcher.BeginInvoke(() =>
                     {
                         PropertyChanged.Raise(this, "PlayPosition");
                     });
@@ -165,8 +165,9 @@ namespace ReBuzz.Core
         public event Action<int> SequenceRemoved;
         public event Action<int> SequenceChanged;
 
-        public SongCore()
+        public SongCore(IUiDispatcher dispatcher)
         {
+          this.dispatcher = dispatcher;
         }
 
         public void AddSequence(IMachine m, int index)
@@ -239,6 +240,8 @@ namespace ReBuzz.Core
         public bool CanRedo { get => ActionStack.CanRedo; }
         ManagedActionStack actionStack = new ManagedActionStack();
         private IDictionary<string, string> importDictionary;
+
+        private readonly IUiDispatcher dispatcher;
         //internal Dictionary<MachineCore, MachineInitData> DictInitData = new Dictionary<MachineCore, MachineInitData>();
         //private bool initImportDone;
 

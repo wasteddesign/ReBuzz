@@ -22,9 +22,9 @@ namespace ReBuzz.FileOps
     XMLMachineDLL ValidateDll(ReBuzzCore buzz, string libName, string path, string buzzPath);
   }
 
-  internal class MachineDLLScanner : IMachineDLLScanner
+  internal class MachineDLLScanner(IUiDispatcher dispatcher) : IMachineDLLScanner
   {
-        static readonly string dllDataFileName = "MachineDLLCache.xml";
+    static readonly string dllDataFileName = "MachineDLLCache.xml";
 
         public Dictionary<string, MachineDLL> GetMachineDLLs(ReBuzzCore buzz, string buzzPath)
         {
@@ -47,7 +47,7 @@ namespace ReBuzz.FileOps
                         var generatorDllFiles = GetDllList(filepath);
                         if (Global.GeneralSettings.AlwaysRescanPlugins || xmlMachines.NumDLLsInEffectsFolder != effectDllFiles.Count || xmlMachines.NumDLLsGeneratorsFolder != generatorDllFiles.Count)
                         {
-                            xmlMachines = RescanMachineDLLs(buzz, buzzPath);
+                            xmlMachines = RescanMachineDLLs(buzz, buzzPath, dispatcher);
                         }
                     }
                 }
@@ -63,7 +63,7 @@ namespace ReBuzz.FileOps
             {
                 if (xmlMachines == null)
                 {
-                    xmlMachines = RescanMachineDLLs(buzz, buzzPath);
+                    xmlMachines = RescanMachineDLLs(buzz, buzzPath, dispatcher);
                 }
             }
             catch (Exception e)
@@ -81,7 +81,7 @@ namespace ReBuzz.FileOps
             catch (Exception)
             {
                 //MessageBox.Show("AddMachineDllsToDictionary error:\n\n" + e.ToString(), "Machine DLL Cache Load Error", MessageBoxButton.OK);
-                xmlMachines = RescanMachineDLLs(buzz, buzzPath);
+                xmlMachines = RescanMachineDLLs(buzz, buzzPath, dispatcher);
                 md.Clear();
                 AddMachineDllsToDictionary(xmlMachines.EffectMachineDLLs, md);
                 AddMachineDllsToDictionary(xmlMachines.GeneratorMachineDLLs, md);
@@ -165,16 +165,16 @@ namespace ReBuzz.FileOps
             return dir;
         }
 
-        public static XMLMachineDLLs RescanMachineDLLs(ReBuzzCore buzz, string buzzPath)
+        public static XMLMachineDLLs RescanMachineDLLs(ReBuzzCore buzz, string buzzPath, IUiDispatcher dispatcher)
         {
             buzz.DCWriteLine("RescanMachineDLLs");
             var xFileName = GetFullFileName();
             var f = File.Create(xFileName);
 
-            NativeMachine.NativeMachineHost nativeMachineHost = new NativeMachine.NativeMachineHost("ScanDLLs", buzzPath);
+            NativeMachine.NativeMachineHost nativeMachineHost = new NativeMachine.NativeMachineHost("ScanDLLs", buzzPath, dispatcher);
             nativeMachineHost.InitHost(buzz, false);
 
-            NativeMachine.NativeMachineHost nativeMachineHost64 = new NativeMachine.NativeMachineHost("ScanDLLs64", buzzPath);
+            NativeMachine.NativeMachineHost nativeMachineHost64 = new NativeMachine.NativeMachineHost("ScanDLLs64", buzzPath, dispatcher);
             nativeMachineHost64.InitHost(buzz, true);
 
             string filepath = Path.Combine(buzzPath, @"Gear\Effects");
@@ -186,8 +186,8 @@ namespace ReBuzz.FileOps
             machineDLLs.NumDLLsInEffectsFolder = effectDllFiles.Count;
             machineDLLs.NumDLLsGeneratorsFolder = generatorDllFiles.Count;
 
-            List<XMLMachineDLL> effectsList = ValidateDlls(buzz, nativeMachineHost, nativeMachineHost64, effectDllFiles, buzzPath);
-            List<XMLMachineDLL> generatorsList = ValidateDlls(buzz, nativeMachineHost, nativeMachineHost64, generatorDllFiles, buzzPath);
+            List<XMLMachineDLL> effectsList = ValidateDlls(buzz, nativeMachineHost, nativeMachineHost64, effectDllFiles, buzzPath, dispatcher);
+            List<XMLMachineDLL> generatorsList = ValidateDlls(buzz, nativeMachineHost, nativeMachineHost64, generatorDllFiles, buzzPath, dispatcher);
 
             machineDLLs.EffectMachineDLLs = effectsList.ToArray();
             machineDLLs.GeneratorMachineDLLs = generatorsList.ToArray();
@@ -218,7 +218,7 @@ namespace ReBuzz.FileOps
             output.Close();
         }
 
-        private static List<XMLMachineDLL> ValidateDlls(ReBuzzCore buzz, NativeMachine.NativeMachineHost nativeMachineHost, NativeMachine.NativeMachineHost nativeMachineHost64, List<FileInfo> machineDllFiles, string buzzPath)
+        private static List<XMLMachineDLL> ValidateDlls(ReBuzzCore buzz, NativeMachine.NativeMachineHost nativeMachineHost, NativeMachine.NativeMachineHost nativeMachineHost64, List<FileInfo> machineDllFiles, string buzzPath, IUiDispatcher dispatcher)
         {
             List<XMLMachineDLL> machineDLLs = new List<XMLMachineDLL>();
 
@@ -230,7 +230,7 @@ namespace ReBuzz.FileOps
                 XMLMachineDLL mDll = null;
                 try
                 {
-                    mDll = ValidateDll(buzz, file.Name, file.FullName, nativeMachineHost, nativeMachineHost64, buzzPath);
+                    mDll = ValidateDll(buzz, file.Name, file.FullName, nativeMachineHost, nativeMachineHost64, buzzPath, dispatcher);
                     if (mDll != null)
                     {
                         machineDLLs.Add(mDll);
@@ -244,7 +244,7 @@ namespace ReBuzz.FileOps
             return machineDLLs;
         }
 
-        public static XMLMachineDLL ValidateDll(ReBuzzCore buzz, string libName, string path, NativeMachine.NativeMachineHost nativeMachineHost, NativeMachine.NativeMachineHost nativeMachineHost64, string buzzPath)
+        public static XMLMachineDLL ValidateDll(ReBuzzCore buzz, string libName, string path, NativeMachine.NativeMachineHost nativeMachineHost, NativeMachine.NativeMachineHost nativeMachineHost64, string buzzPath, IUiDispatcher dispatcher)
         {
             var uiMessage = nativeMachineHost.UIMessage;
             var uiMessage64 = nativeMachineHost64.UIMessage;
@@ -257,7 +257,7 @@ namespace ReBuzz.FileOps
             {
                 libName = libName.Remove(libName.Length - 8);
 
-                ManagedMachineDLL managedMachineDLL = new ManagedMachineDLL();
+                ManagedMachineDLL managedMachineDLL = new ManagedMachineDLL(dispatcher);
                 managedMachineDLL.LoadManagedMachine(path);
 
                 XMLMachineDLL mDll = new XMLMachineDLL();
@@ -293,7 +293,7 @@ namespace ReBuzz.FileOps
             else if (libName.EndsWith("x64.dll"))
             {
                 libName = libName.Remove(libName.Length - 8);
-                var machine = new MachineCore(buzz.SongCore, buzzPath);
+                var machine = new MachineCore(buzz.SongCore, buzzPath, dispatcher);
                 machine.MachineDLL.Is64Bit = true;
                 if (uiMessage64.UILoadLibrarySync(buzz, machine, libName, path))
                 {
@@ -324,7 +324,7 @@ namespace ReBuzz.FileOps
             else
             {
                 libName = libName.Remove(libName.Length - 4);
-                var machine = new MachineCore(buzz.SongCore, buzzPath);
+                var machine = new MachineCore(buzz.SongCore, buzzPath, dispatcher);
 
                 if (uiMessage.UILoadLibrarySync(buzz, machine, libName, path))
                 {
@@ -356,13 +356,13 @@ namespace ReBuzz.FileOps
 
         public XMLMachineDLL ValidateDll(ReBuzzCore buzz, string libName, string path, string buzzPath)
         {
-            NativeMachine.NativeMachineHost nativeMachineHost = new NativeMachine.NativeMachineHost("ScanDLLs", buzzPath);
+            NativeMachine.NativeMachineHost nativeMachineHost = new NativeMachine.NativeMachineHost("ScanDLLs", buzzPath, dispatcher);
             nativeMachineHost.InitHost(buzz, false);
 
-            NativeMachine.NativeMachineHost nativeMachineHost64 = new NativeMachine.NativeMachineHost("ScanDLLs64", buzzPath);
+            NativeMachine.NativeMachineHost nativeMachineHost64 = new NativeMachine.NativeMachineHost("ScanDLLs64", buzzPath, dispatcher);
             nativeMachineHost64.InitHost(buzz, true);
 
-            return ValidateDll(buzz, libName, path, nativeMachineHost, nativeMachineHost64, buzzPath);
+            return ValidateDll(buzz, libName, path, nativeMachineHost, nativeMachineHost64, buzzPath, dispatcher);
         }
 
         public static List<FileInfo> GetDllList(string filepath)

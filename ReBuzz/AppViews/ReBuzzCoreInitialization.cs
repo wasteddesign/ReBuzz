@@ -12,7 +12,7 @@ using ReBuzz.MachineManagement;
 
 namespace ReBuzz.AppViews;
 
-public class ReBuzzCoreInitialization(ReBuzzCore buzz, string buzzPath)
+public class ReBuzzCoreInitialization(ReBuzzCore buzz, string buzzPath, IUiDispatcher dispatcher)
 {
   internal void StartReBuzzEngineStep1(PropertyChangedEventHandler onPropertyChanged)
   {
@@ -23,7 +23,7 @@ public class ReBuzzCoreInitialization(ReBuzzCore buzz, string buzzPath)
   // Native machines need a window handle.
   internal void StartReBuzzEngineStep2(IntPtr machineViewHwnd)
   {
-    var song = new SongCore();
+    var song = new SongCore(dispatcher);
     song.BuzzCore = buzz;
     buzz.SongCore = song;
 
@@ -36,10 +36,11 @@ public class ReBuzzCoreInitialization(ReBuzzCore buzz, string buzzPath)
 
   internal void StartReBuzzEngineStep3(EngineSettings engineSettings, IInitializationObserver observer)
   {
-    var machineManager = new MachineManager(buzz.SongCore, engineSettings, buzzPath);
+    var machineManager = new MachineManager(buzz.SongCore, engineSettings, buzzPath, dispatcher);
     buzz.MachineManager = machineManager;
 
-    buzz.AudioEngine = new AudioEngine(buzz, engineSettings, buzzPath);
+    buzz.AudioEngine = new 
+      AudioEngine(buzz, engineSettings, buzzPath, dispatcher);
     buzz.AudioDriversList = buzz.AudioEngine.AudioDevices().Select(ae => ae.Name).ToList();
     observer.NotifyMachineManagerCreated(machineManager);
   }

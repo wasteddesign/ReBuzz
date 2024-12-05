@@ -9,8 +9,7 @@ namespace ReBuzzTests;
 public class Tests
 {
   [Test]
-  [Apartment(ApartmentState.STA)]
-  public void ReadsGearFilesOnCreation()
+  public void ReadsGearFilesOnCreation([Values(1,2)] int z)
   {
     using var driver = new Driver();
 

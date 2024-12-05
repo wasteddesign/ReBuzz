@@ -111,6 +111,7 @@ namespace ReBuzz.Core
                     j++;
                 }
 
+                //bug leave for now, get to it later
                 Application.Current.Dispatcher.BeginInvoke(new Action(() =>
                 {
                     if (Tap != null)

@@ -21,6 +21,7 @@ namespace ReBuzz.NativeMachine
         private ChannelListener channelListenerUI;
         private ChannelListener channelListenerHost;
         private readonly string buzzPath;
+        private readonly IUiDispatcher dispatcher;
 
         public bool Host64 { get; private set; }
         public HostMessage HostMessage { get; private set; }
@@ -32,10 +33,11 @@ namespace ReBuzz.NativeMachine
 
         public bool IsConnected { get; set; }
 
-        public NativeMachineHost(string sharedId, string buzzPath)
+        public NativeMachineHost(string sharedId, string buzzPath, IUiDispatcher dispatcher)
         {
           this.sharedId = sharedId + DateTime.Now.Ticks;
           this.buzzPath = buzzPath;
+          this.dispatcher = dispatcher;
         }
 
         public void InitHost(ReBuzzCore buzz, bool host64)
@@ -52,7 +54,7 @@ namespace ReBuzz.NativeMachine
 
             HostMessage = new HostMessage(ChannelType.HostChannel, accessor, this);
             HostMessage.MessageEvent += HostMessage_MessageEvent;
-            UIMessage = new UIMessage(ChannelType.UIChannel, accessor, this);
+            UIMessage = new UIMessage(ChannelType.UIChannel, accessor, this, dispatcher);
             AudioMessage = new AudioMessage(ChannelType.AudioChannel, accessor, this);
             MidiMessage = new MidiMessage(ChannelType.MidiChannel, accessor, this);
 

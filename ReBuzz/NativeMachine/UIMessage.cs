@@ -18,9 +18,11 @@ namespace ReBuzz.NativeMachine
     internal class UIMessage : NativeMessage
     {
         private readonly Lock UIMessageLock = new();
+        private readonly IUiDispatcher dispatcher;
 
-        public UIMessage(ChannelType channel, MemoryMappedViewAccessor accessor, NativeMachineHost nativeMachineHost) : base(channel, accessor, nativeMachineHost)
+        public UIMessage(ChannelType channel, MemoryMappedViewAccessor accessor, NativeMachineHost nativeMachineHost, IUiDispatcher dispatcher) : base(channel, accessor, nativeMachineHost)
         {
+          this.dispatcher = dispatcher;
         }
 
         public override event EventHandler<EventArgs> MessageEvent;
@@ -558,7 +560,7 @@ namespace ReBuzz.NativeMachine
         {
             lock (UIMessageLock)
             {
-                ParameterCore parameter = new ParameterCore();
+                ParameterCore parameter = new ParameterCore(dispatcher);
                 parameter.Type = (ParameterType)GetMessageData<int>();
                 parameter.Name = GetMessageString();
                 parameter.Description = GetMessageString();

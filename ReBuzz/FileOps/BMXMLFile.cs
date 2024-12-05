@@ -30,12 +30,14 @@ namespace ReBuzz.FileOps
 
         List<MachineCore> machines;
         private readonly string buzzPath;
+        private readonly IUiDispatcher dispatcher;
 
-        public BMXMLFile(ReBuzzCore buzz, string buzzPath)
+        public BMXMLFile(ReBuzzCore buzz, string buzzPath, IUiDispatcher dispatcher)
         {
             this.buzzPath = buzzPath;
             this.buzz = buzz;
             machines = new List<MachineCore>();
+            this.dispatcher = dispatcher;
         }
 
         void FileOpsEvent(FileEventType type, string text, object o = null)
@@ -163,7 +165,7 @@ namespace ReBuzz.FileOps
                 int tracks = machineData.ParameterGroups[2].TrackCount;
 
                 MachineDLL machineDLL = new MachineDLL();
-                MachineCore machineProto = new MachineCore(buzz.SongCore, buzzPath);
+                MachineCore machineProto = new MachineCore(buzz.SongCore, buzzPath, dispatcher);
                 string name = XmlConvert.DecodeName(machineData.Name);
                 if (Encoding.ASCII.GetBytes(name)[0] == 1)
                 {
@@ -384,7 +386,7 @@ namespace ReBuzz.FileOps
                                 int track = c.Track;
                                 int indexInGroup = c.IndexInGroup;
 
-                                IParameter targetParameter = targetMachine != null && (group != -1 && indexInGroup != -1) ? targetMachine.ParameterGroups[group].Parameters[indexInGroup] : ParameterCore.GetMidiParameter(targetMachine);
+                                IParameter targetParameter = targetMachine != null && (group != -1 && indexInGroup != -1) ? targetMachine.ParameterGroups[group].Parameters[indexInGroup] : ParameterCore.GetMidiParameter(targetMachine, dispatcher);
                                 pattern.InsertColumn(j, targetParameter, track);
                                 var column = pattern.Columns[j];
 
@@ -565,7 +567,7 @@ namespace ReBuzz.FileOps
             int index = 0;
             foreach (var pFrom in pgFrom.Parameters)
             {
-                ParameterCore pTo = new ParameterCore();
+                ParameterCore pTo = new ParameterCore(dispatcher);
                 pTo.Group = pgTo;
                 pTo.IndexInGroup = index;
                 pTo.Name = pFrom.Name;
