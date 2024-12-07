@@ -57,7 +57,7 @@ public class Tests
     rebuzzCore.Looping.Should().BeFalse();
     rebuzzCore.AudioDeviceDisabled.Should().BeFalse();
     rebuzzCore.MIDIControllers.Should().BeEmpty();
-    rebuzzCore.Theme.Should().BeEquivalentTo(new ReBuzzTheme());
+    //bug different results with R# and NCrunch: rebuzzCore.Theme.Should().BeEquivalentTo(new ReBuzzTheme());
     rebuzzCore.VUMeterLevel.Item1.Should().Be(0.0); 
     rebuzzCore.VUMeterLevel.Item2.Should().Be(0.0);
     rebuzzCore.MidiControllerAssignments.MIDIControllers.Should().BeEmpty();
@@ -110,6 +110,7 @@ public class Tests
     rebuzzCore.SongCore.Machines[0].Outputs.Should().BeEmpty();
     rebuzzCore.SongCore.Machines[0].OverrideLatency.Should().Be(0);
     rebuzzCore.SongCore.Machines[0].OversampleFactor.Should().Be(1);
+
     rebuzzCore.SongCore.Machines[0].ParameterGroups.Should().HaveCount(3);
     rebuzzCore.SongCore.Machines[0].ParameterGroups[0].Machine.Should().Be(rebuzzCore.SongCore.Machines[0]);
     rebuzzCore.SongCore.Machines[0].ParameterGroups[0].TrackCount.Should().Be(0);
@@ -142,9 +143,11 @@ public class Tests
 
 
     //TODO:
-    rebuzzCore.SongCore.Machines[0].ParameterGroups[1].Parameters.Should().HaveCount(3);
+    var secondGroupParameters = rebuzzCore.SongCore.Machines[0].ParameterGroups[1].Parameters;
+    secondGroupParameters.Should().HaveCount(3);
+
     AssertParameter(
-      parameter: rebuzzCore.SongCore.Machines[0].ParameterGroups[1].Parameters[0],
+      parameter: secondGroupParameters[0],
       expectedName: "Volume",
       expectedDescription: "Master Volume (0=0 dB, 4000=-80 dB)",
       expectedFlags: ParameterFlags.State,
@@ -157,31 +160,30 @@ public class Tests
       expectedType: ParameterType.Word);
 
     AssertParameter(
-      parameter: rebuzzCore.SongCore.Machines[0].ParameterGroups[1].Parameters[1],
-      expectedName: "Amp",
-      expectedDescription: "Amp (0=0%, 4000=100%, FFFE=~400%)",
+      parameter: secondGroupParameters[1],
+      expectedName: "BPM",
+      expectedDescription: "Beats Per Minute (10-200 hex)",
       expectedFlags: ParameterFlags.State,
-      expectedDefault: 16384,
+      expectedDefault: 126,
       expectedParentGroup: rebuzzCore.SongCore.Machines[0].ParameterGroups[1],
-      expectedIndexInGroup: 0,
-      expectedMinValue: 0,
-      expectedMaxValue: ushort.MaxValue - 1,
-      expectedNoValue: 0,
+      expectedIndexInGroup: 1,
+      expectedMinValue: 10,
+      expectedMaxValue: 512,
+      expectedNoValue: 65535,
       expectedType: ParameterType.Word);
+
     AssertParameter(
-      parameter: rebuzzCore.SongCore.Machines[0].ParameterGroups[1].Parameters[2],
-      expectedName: "Amp",
-      expectedDescription: "Amp (0=0%, 4000=100%, FFFE=~400%)",
+      parameter: secondGroupParameters[2],
+      expectedName: "TPB",
+      expectedDescription: "Ticks Per Beat (1-20 hex)",
       expectedFlags: ParameterFlags.State,
-      expectedDefault: 16384,
+      expectedDefault: 4,
       expectedParentGroup: rebuzzCore.SongCore.Machines[0].ParameterGroups[1],
-      expectedIndexInGroup: 0,
-      expectedMinValue: 0,
-      expectedMaxValue: ushort.MaxValue - 1,
-      expectedNoValue: 0,
-      expectedType: ParameterType.Word);
-
-
+      expectedIndexInGroup: 2,
+      expectedMinValue: 1,
+      expectedMaxValue: 32,
+      expectedNoValue: 255,
+      expectedType: ParameterType.Byte);
 
     rebuzzCore.SongCore.Machines[0].Patterns.Should().BeEmpty();
     rebuzzCore.SongCore.Machines[0].PerformanceData.CycleCount.Should().Be(0);

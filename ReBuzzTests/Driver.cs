@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Threading;
 using AtmaFileSystem;
@@ -33,7 +34,7 @@ public class Driver : IDisposable, IInitializationObserver
 
   public Driver()
   {
-    var rebuzzRootDir = AbsoluteDirectoryPath.Value(Global.BuzzPath);
+    var rebuzzRootDir = AbsoluteDirectoryPath.OfExecutingAssembly();
     _gearDir = rebuzzRootDir.AddDirectoryName("Gear");
     _gearEffectsDir = _gearDir.AddDirectoryName("Effects");
     _gearGeneratorsDir = _gearDir.AddDirectoryName("Generators");
@@ -52,7 +53,7 @@ public class Driver : IDisposable, IInitializationObserver
     SetupDirectoryStructure();
 
     var engineSettings = Global.EngineSettings;
-    var buzzPath = Global.BuzzPath;
+    var buzzPath = AbsoluteDirectoryPath.OfExecutingAssembly().ToString();
     var generalSettings = Global.GeneralSettings;
     var registryRoot = Global.RegistryRoot;
 
@@ -112,7 +113,7 @@ public class Driver : IDisposable, IInitializationObserver
 
   public void Dispose()
   {
-    reBuzzCore.ExecuteCommand(BuzzCommand.Exit); //bug logs
+    reBuzzCore?.ExecuteCommand(BuzzCommand.Exit); //bug logs
   }
 
   public void AssertRequiredPropertiesAreInitialized()
