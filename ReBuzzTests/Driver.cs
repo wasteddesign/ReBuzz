@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Windows;
@@ -26,6 +27,7 @@ public class Driver : IDisposable, IInitializationObserver
   private ReBuzzCore reBuzzCore;
   private readonly AbsoluteDirectoryPath _gearEffectsDir;
   private readonly AbsoluteDirectoryPath _gearGeneratorsDir; //bug eliminate all underscores
+  private readonly AbsoluteDirectoryPath _rebuzzRootDir = AbsoluteDirectoryPath.Value(Path.GetTempPath()).AddDirectoryName("ReBuzzTestData").AddDirectoryName(Guid.NewGuid().ToString());
 
   static Driver()
   {
@@ -34,11 +36,10 @@ public class Driver : IDisposable, IInitializationObserver
 
   public Driver()
   {
-    var rebuzzRootDir = AbsoluteDirectoryPath.OfExecutingAssembly();
-    _gearDir = rebuzzRootDir.AddDirectoryName("Gear");
+    _gearDir = _rebuzzRootDir.AddDirectoryName("Gear"); //bug delete the dir after test (if possible)
     _gearEffectsDir = _gearDir.AddDirectoryName("Effects");
     _gearGeneratorsDir = _gearDir.AddDirectoryName("Generators");
-    _themesDir = rebuzzRootDir.AddDirectoryName("Themes");
+    _themesDir = _rebuzzRootDir.AddDirectoryName("Themes");
   }
 
   public ReBuzzCore ReBuzzCore => reBuzzCore; //bug hide
@@ -53,12 +54,12 @@ public class Driver : IDisposable, IInitializationObserver
     SetupDirectoryStructure();
 
     var engineSettings = Global.EngineSettings;
-    var buzzPath = AbsoluteDirectoryPath.OfExecutingAssembly().ToString();
+    var buzzPath = _rebuzzRootDir.ToString();
     var generalSettings = Global.GeneralSettings;
     var registryRoot = Global.RegistryRoot;
 
     var dispatcher = new GuiLessDispatcher();
-    reBuzzCore = new ReBuzzCore(generalSettings, engineSettings, buzzPath, registryRoot, new FakeMachineDLLScanner(), dispatcher);
+    reBuzzCore = new ReBuzzCore(generalSettings, engineSettings, buzzPath, registryRoot, new FakeMachineDLLScanner(_gearDir), dispatcher);
     reBuzzCore.SelectedTheme = "<default>"; //bug this is actually written to registry!
 
     var initialization = new ReBuzzCoreInitialization(reBuzzCore, buzzPath, dispatcher);
@@ -138,6 +139,10 @@ public class Driver : IDisposable, IInitializationObserver
   //bug {
   //bug   TestContext.Out.WriteLine("MachineDb created");
   //bug }
+  public void AssertInitialState()
+  {
+    InitialStateAssertions.AssertInitialState(_gearDir, this.ReBuzzCore);
+  }
 }
 
 public class GuiLessDispatcher : IUiDispatcher //bug

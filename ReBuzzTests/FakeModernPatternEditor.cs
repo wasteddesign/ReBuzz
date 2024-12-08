@@ -6,10 +6,11 @@ using AtmaFileSystem.IO;
 using Buzz.MachineInterface;
 using BuzzGUI.Common;
 using BuzzGUI.Interfaces;
+using ReBuzz.Core;
 
 namespace ReBuzzTests;
 
-[MachineDecl(Name = "Modern Pattern Editor", ShortName = "MPE", Author = "WDE", MaxTracks = 0)]
+[MachineDecl(Name = "Modern Pattern Editor", ShortName = "MPE", Author = "WDE", MaxTracks = 1, InputCount = 0, OutputCount = 0)]
 public class FakeModernPatternEditor : IBuzzMachine, INotifyPropertyChanged
 {
   IBuzzMachineHost host;
