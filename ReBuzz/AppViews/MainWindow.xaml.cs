@@ -19,9 +19,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Windows;
-using System.Windows.Automation.Provider;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
@@ -1102,7 +1100,7 @@ namespace ReBuzz
                 seqenceEditor.Release();
             }
             var res = Utils.GetBuzzThemeResources(Buzz.Theme.SequenceEditor.Source);
-            seqenceEditor = new BuzzGUI.SequenceEditor.SequenceEditor(Buzz, res);
+            seqenceEditor = new SequenceEditor(Buzz, res);
             seqenceEditor.SetVisibility(true);
             EditorView.SequenceEditor = seqenceEditor;
             borderEditor.Child = EditorView;

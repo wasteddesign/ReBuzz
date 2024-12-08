@@ -245,7 +245,10 @@ namespace ReBuzz.Audio
 
                 try
                 {
-                    SelectedOutDevice?.WavePlayer?.Stop();
+                    if (SelectedOutDevice?.WavePlayer?.PlaybackState != PlaybackState.Stopped)
+                    {
+                        SelectedOutDevice?.WavePlayer?.Stop();
+                    }
                 }
                 catch (Exception e)
                 {
@@ -260,7 +263,10 @@ namespace ReBuzz.Audio
         {
             try
             {
-                SelectedOutDevice?.WavePlayer?.Stop();
+                if (SelectedOutDevice?.WavePlayer?.PlaybackState != PlaybackState.Stopped)
+                {
+                    SelectedOutDevice?.WavePlayer?.Stop();
+                }
                 ClearAudioBuffer();
             }
             catch (Exception e)

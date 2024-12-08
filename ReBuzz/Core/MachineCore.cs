@@ -1,5 +1,6 @@
 ﻿using Buzz.MachineInterface;
 using BuzzGUI.Common;
+using BuzzGUI.Common.Templates;
 using BuzzGUI.Interfaces;
 using BuzzGUI.MachineView;
 using BuzzGUI.ParameterWindow;
@@ -8,6 +9,7 @@ using ReBuzz.Common.Interfaces;
 using ReBuzz.ManagedMachine;
 using ReBuzz.NativeMachine;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -35,7 +37,7 @@ namespace ReBuzz.Core
         MachineDLL machineDLL;
         public IMachineDLL DLL { get => machineDLL; }
 
-        internal Dictionary<ParameterCore, int> parametersChanged = new Dictionary<ParameterCore, int>();
+        internal ConcurrentDictionary<ParameterCore, int> parametersChanged = new ConcurrentDictionary<ParameterCore, int>();
 
         internal MachineDLL MachineDLL { get => machineDLL; set => machineDLL = value; }
 
@@ -45,7 +47,15 @@ namespace ReBuzz.Core
             get
             {
                 // Return only input connections that are coming from a) visible machines and b) non control machines
-                return inputs.Where(x => x.Source.OutputChannelCount > 0 && !(x.Source as MachineCore).Hidden).ToReadOnlyCollection();
+                List<IMachineConnection> connections = new List<IMachineConnection>();
+
+                foreach (var input in inputs)
+                {
+                    if (input.Source.OutputChannelCount > 0 && !(input.Source as MachineCore).Hidden)
+                            connections.Add(input);
+                }
+                return connections.AsReadOnly();
+                //return inputs.Where(x => x.Source.OutputChannelCount > 0 && !(x.Source as MachineCore).Hidden).ToReadOnlyCollection();
             }
         }
 
@@ -56,7 +66,14 @@ namespace ReBuzz.Core
         {
             get
             {
-                return outputs.Where(x => x.Destination.InputChannelCount > 0 && !(x.Destination as MachineCore).Hidden).ToReadOnlyCollection();
+                List<IMachineConnection> connections = new List<IMachineConnection>();
+                foreach (var output in outputs)
+                {
+                    if (output.Destination.InputChannelCount > 0 && !(output.Destination as MachineCore).Hidden)
+                        connections.Add(output);
+                }
+                return connections.AsReadOnly();
+                //return outputs.Where(x => x.Destination.InputChannelCount > 0 && !(x.Destination as MachineCore).Hidden).ToReadOnlyCollection();
             }
         }
 

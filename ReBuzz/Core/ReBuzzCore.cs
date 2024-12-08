@@ -1030,6 +1030,10 @@ namespace ReBuzz.Core
                 if (false)
                 {
                     // Test
+                    bmxFile.FileEvent += (type, eventText, o) =>
+                    {
+                        FileEvent?.Invoke(type, eventText, o);
+                    };
                     OpenFile.Invoke(filename);
                     bmxFile.Load(filename);
                 }
@@ -1054,6 +1058,7 @@ namespace ReBuzz.Core
                         SkipAudio = false;
                         return;
                     }
+                    
                 }
 
                 SongCore.SongName = filename;
