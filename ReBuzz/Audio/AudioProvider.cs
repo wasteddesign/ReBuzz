@@ -17,11 +17,12 @@ namespace ReBuzz.Audio
           int sampleRate,
           int channels,
           int bufferSize,
-          bool doubleBuffer)
+          bool doubleBuffer, 
+          IRegistryEx registryEx)
         {
             // Make this multi-channel compatible
             WaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(sampleRate, channels);
-            AudioSampleProvider = new CommonAudioProvider(buzzCore, engineSettings, sampleRate, channels, bufferSize, doubleBuffer);
+            AudioSampleProvider = new CommonAudioProvider(buzzCore, engineSettings, sampleRate, channels, bufferSize, doubleBuffer, registryEx);
         }
 
         public void ClearBuffer()

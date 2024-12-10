@@ -4,6 +4,7 @@ using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
+using ReBuzz.Core;
 
 namespace BuzzDotNet.Audio
 {
@@ -12,13 +13,16 @@ namespace BuzzDotNet.Audio
     /// </summary>
     public partial class WasapiConfigWindow : Window
     {
-        public WasapiConfigWindow()
+      private readonly IRegistryEx registryEx;
+
+      public WasapiConfigWindow(IRegistryEx registryEx)
         {
+            this.registryEx = registryEx;
             DataContext = this;
             InitializeComponent();
 
             // Out
-            string wasapiDeviceID = RegistryEx.Read("DeviceID", "", "WASAPI");
+            string wasapiDeviceID = this.registryEx.Read("DeviceID", "", "WASAPI");
             ComboBoxItem selectedItem = null;
             var enumerator = new MMDeviceEnumerator();
             foreach (var wasapi in enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active))
@@ -39,7 +43,7 @@ namespace BuzzDotNet.Audio
             }
 
             // In
-            string wasapiDeviceIDIn = RegistryEx.Read("DeviceIDIn", "", "WASAPI");
+            string wasapiDeviceIDIn = this.registryEx.Read("DeviceIDIn", "", "WASAPI");
             selectedItem = null;
             enumerator = new MMDeviceEnumerator();
 
@@ -62,7 +66,7 @@ namespace BuzzDotNet.Audio
                 cbDevicesIn.SelectedIndex = 0;
             }
 
-            int wasapiDeviceSamplerate = RegistryEx.Read("SampleRate", 44100, "WASAPI");
+            int wasapiDeviceSamplerate = this.registryEx.Read("SampleRate", 44100, "WASAPI");
 
             ComboBoxItem cbiSampleRate = new ComboBoxItem() { Content = "44100", Tag = 44100 };
             cbSampleRate.Items.Add(cbiSampleRate);
@@ -90,7 +94,7 @@ namespace BuzzDotNet.Audio
             cbSampleRate.SelectedItem = srItem;
 
             // Mode
-            int wasapiMode = RegistryEx.Read("Mode", 0, "WASAPI");
+            int wasapiMode = this.registryEx.Read("Mode", 0, "WASAPI");
 
             ComboBoxItem cbiMode = new ComboBoxItem() { Content = "Shared", Tag = 0 };
             cbMode.Items.Add(cbiMode);
@@ -100,7 +104,7 @@ namespace BuzzDotNet.Audio
             cbMode.SelectedIndex = wasapiMode;
 
             // Poll
-            int wasapiPoll = RegistryEx.Read("Poll", 0, "WASAPI");
+            int wasapiPoll = this.registryEx.Read("Poll", 0, "WASAPI");
 
             ComboBoxItem cbiPoll = new ComboBoxItem() { Content = "False", Tag = 0 };
             cbPoll.Items.Add(cbiPoll);
@@ -110,7 +114,7 @@ namespace BuzzDotNet.Audio
             cbPoll.SelectedIndex = wasapiPoll;
 
             // Latency
-            int currentBufferSize = RegistryEx.Read("BufferSize", 1024, "WASAPI");
+            int currentBufferSize = this.registryEx.Read("BufferSize", 1024, "WASAPI");
             int bufferSize = 16;
             int selectedIndex = 10;
             for (int i = 0; i < 10; i++)
@@ -146,11 +150,11 @@ namespace BuzzDotNet.Audio
 
         public void SaveSelection()
         {
-            RegistryEx.Write("DeviceID", (cbDevices.SelectedItem as ComboBoxItem).Tag, "WASAPI");
-            RegistryEx.Write("DeviceIDIn", (cbDevicesIn.SelectedItem as ComboBoxItem).Tag, "WASAPI");
-            RegistryEx.Write("SampleRate", (int)(cbSampleRate.SelectedItem as ComboBoxItem).Tag, "WASAPI");
-            RegistryEx.Write("Mode", cbMode.SelectedIndex, "WASAPI");
-            RegistryEx.Write("Poll", cbPoll.SelectedIndex, "WASAPI");
+            registryEx.Write("DeviceID", (cbDevices.SelectedItem as ComboBoxItem).Tag, "WASAPI");
+            registryEx.Write("DeviceIDIn", (cbDevicesIn.SelectedItem as ComboBoxItem).Tag, "WASAPI");
+            registryEx.Write("SampleRate", (int)(cbSampleRate.SelectedItem as ComboBoxItem).Tag, "WASAPI");
+            registryEx.Write("Mode", cbMode.SelectedIndex, "WASAPI");
+            registryEx.Write("Poll", cbPoll.SelectedIndex, "WASAPI");
 
             int bufferSize = 1024;
             ComboBoxItem bsItem = (ComboBoxItem)cbBufferSize.SelectedItem;
@@ -158,7 +162,7 @@ namespace BuzzDotNet.Audio
             {
                 bufferSize = (int)bsItem.Tag;
             }
-            RegistryEx.Write("BufferSize", bufferSize, "WASAPI");
+            registryEx.Write("BufferSize", bufferSize, "WASAPI");
         }
     }
 }

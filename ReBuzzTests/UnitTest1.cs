@@ -21,16 +21,16 @@ namespace ReBuzzTests;
 
 public class Tests
 {
-  [Test]
-  public void ReadsGearFilesOnCreation([Values(1,2)] int x)
-  {
-    using var driver = new Driver();
+    [Test]
+    public void ReadsGearFilesOnCreation([Values(1, 2)] int x)
+    {
+        using var driver = new Driver();
 
-    driver.Start();
+        driver.Start();
 
-    driver.AssertRequiredPropertiesAreInitialized();
-    driver.AssertGearMachinesConsistOf([
-      "Jeskola Pianoroll",
+        driver.AssertRequiredPropertiesAreInitialized();
+        driver.AssertGearMachinesConsistOf([
+          "Jeskola Pianoroll",
       "Modern Pattern Editor",
       "Jeskola Pattern XP",
       "Jeskola Pattern XP mod",
@@ -46,10 +46,10 @@ public class Tests
       "Rymix*",
       "FireSledge ParamEQ",
       "BTDSys Pulsar"
-    ]);
+        ]);
 
-    driver.NewFile();
+        driver.NewFile();
 
-    driver.AssertInitialState();
-  }
+        driver.AssertInitialState();
+    }
 }

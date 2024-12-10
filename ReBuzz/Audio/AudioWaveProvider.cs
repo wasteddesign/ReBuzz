@@ -11,10 +11,10 @@ namespace ReBuzz.Audio
 
         public CommonAudioProvider AudioSampleProvider { get; }
 
-        public AudioWaveProvider(ReBuzzCore buzzCore, int sampleRate, int channels, int bufferSize, bool doubleBuffer)
+        public AudioWaveProvider(ReBuzzCore buzzCore, int sampleRate, int channels, int bufferSize, bool doubleBuffer, IRegistryEx registryEx)
         {
             WaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(sampleRate, channels);
-            AudioSampleProvider = new CommonAudioProvider(buzzCore, Global.EngineSettings, sampleRate, channels, bufferSize, doubleBuffer);
+            AudioSampleProvider = new CommonAudioProvider(buzzCore, Global.EngineSettings, sampleRate, channels, bufferSize, doubleBuffer, registryEx);
         }
 
         public void ClearBuffer()

@@ -12,6 +12,7 @@ using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
+using ReBuzz.Core;
 
 namespace ReBuzz.Common
 {
@@ -199,10 +200,10 @@ namespace ReBuzz.Common
         }
 
 
-        internal static void SetProcessorAffinityMask(bool ideal)
+        internal static void SetProcessorAffinityMask(IRegistryEx registryEx, bool ideal)
         {
             var process = Process.GetCurrentProcess();
-            long processorAffinityMask = RegistryEx.Read("ProcessorAffinity", 0xFFFFFFFF, "Settings");
+            long processorAffinityMask = registryEx.Read("ProcessorAffinity", 0xFFFFFFFF, "Settings");
             try
             {
                 if (processorAffinityMask < process.ProcessorAffinity)

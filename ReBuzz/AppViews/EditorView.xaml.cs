@@ -122,6 +122,8 @@ namespace ReBuzz
             }
         }
         SequenceEditor sequenceEditor;
+        private readonly IRegistryEx registryEx;
+
         public SequenceEditor SequenceEditor
         {
             get => sequenceEditor;
@@ -139,8 +141,9 @@ namespace ReBuzz
 
         public ReBuzzCore ReBuzz { get; }
 
-        public EditorView(ReBuzzCore reBuzz)
+        public EditorView(ReBuzzCore reBuzz, IRegistryEx registryEx)
         {
+            this.registryEx = registryEx;
             ReBuzz = reBuzz;
             DataContext = this;
             InitializeComponent();
@@ -160,12 +163,12 @@ namespace ReBuzz
             btDefThis.Click += (sender, e) =>
             {
                 if (ReBuzz.PatternEditorMachine != null)
-                    RegistryEx.Write(ReBuzz.PatternEditorMachine.DLL.Name, editorMachine.Name, "Settings");
+                    this.registryEx.Write(ReBuzz.PatternEditorMachine.DLL.Name, editorMachine.Name, "Settings");
             };
 
             btDefAll.Click += (sender, e) =>
             {
-                RegistryEx.Write("DefaultPE", editorMachine.Name, "Settings");
+                this.registryEx.Write("DefaultPE", editorMachine.Name, "Settings");
             };
 
             ReBuzz.SetPatternEditorPatternChanged += (pattern) =>

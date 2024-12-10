@@ -83,6 +83,7 @@ namespace ReBuzz
     private WindowStyle mainWindowStyle;
     private UserControl ToolBarControl;
     private readonly WindowsGuiDispatcher windowsGuiDispatcher = new WindowsGuiDispatcher();
+    private readonly IRegistryEx registryEx = new RegistryExInstance();
 
     public string StatusBarItem2
     {
@@ -123,9 +124,9 @@ namespace ReBuzz
         engineSettings,
         buzzPath,
         registryRoot,
-        new MachineDLLScanner(windowsGuiDispatcher), windowsGuiDispatcher);
+        new MachineDLLScanner(windowsGuiDispatcher), windowsGuiDispatcher, registryEx);
 
-      var reBuzzCoreInitialization = new ReBuzzCoreInitialization(Buzz, buzzPath, windowsGuiDispatcher);
+      var reBuzzCoreInitialization = new ReBuzzCoreInitialization(Buzz, buzzPath, windowsGuiDispatcher, registryEx);
       reBuzzCoreInitialization.StartReBuzzEngineStep1(Buzz_PropertyChanged);
 
       BuzzGUIStartup.PreInit();
@@ -271,7 +272,7 @@ namespace ReBuzz
         var res = Utils.GetBuzzThemeResources(Buzz.Theme.SequenceEditor.Source, buzzPath);
         seqenceEditor = new BuzzGUI.SequenceEditor.SequenceEditor(Buzz, res);
         seqenceEditor.SetVisibility(true);
-        EditorView = new EditorView(Buzz);
+        EditorView = new EditorView(Buzz, registryEx);
         EditorView.SequenceEditor = seqenceEditor;
         borderEditor.Child = EditorView;
 
@@ -639,7 +640,7 @@ namespace ReBuzz
         {
           if (preferencesWindow == null)
           {
-            preferencesWindow = new PreferencesWindow(Buzz);
+            preferencesWindow = new PreferencesWindow(Buzz, registryEx);
             var rd = Utils.GetUserControlXAML<ResourceDictionary>("MachineView\\MVResources.xaml", buzzPath);
             preferencesWindow.Resources.MergedDictionaries.Add(rd);
             if (preferencesWindow.ShowDialog() == true)
@@ -653,7 +654,7 @@ namespace ReBuzz
                 if (lbItem.Checked)
                   midiIns.Add(lbItem.Id);
               }
-              MidiEngine.SetMidiInputDevices(midiIns);
+              MidiEngine.SetMidiInputDevices(registryEx, midiIns);
               Buzz.MidiInOutEngine.OpenMidiInDevices();
 
 
@@ -664,7 +665,7 @@ namespace ReBuzz
                 if (lbItem.Checked)
                   midiOuts.Add(lbItem.Id);
               }
-              MidiEngine.SetMidiOutputDevices(midiOuts);
+              MidiEngine.SetMidiOutputDevices(registryEx, midiOuts);
               Buzz.MidiInOutEngine.OpenMidiOutDevices();
 
               Buzz.MidiControllerAssignments.ClearAll();
@@ -679,13 +680,13 @@ namespace ReBuzz
               Buzz.AudioEngine.ReleaseAudioDriver();
 
               long processorAffinity = preferencesWindow.GetProcessorAffinity();
-              RegistryEx.Write("ProcessorAffinity", processorAffinity, "Settings");
+              registryEx.Write("ProcessorAffinity", processorAffinity, "Settings");
 
               int threadCount = preferencesWindow.cbAudioThreads.SelectedIndex + 1;
-              RegistryEx.Write("AudioThreads", threadCount, "Settings");
+              registryEx.Write("AudioThreads", threadCount, "Settings");
 
               int algorithm = preferencesWindow.cbAlgorithms.SelectedIndex;
-              RegistryEx.Write("WorkAlgorithm", algorithm, "Settings");
+              registryEx.Write("WorkAlgorithm", algorithm, "Settings");
 
               if (Buzz.SelectedAudioDriver != null)
               {
@@ -697,7 +698,7 @@ namespace ReBuzz
                 catch { }
               }
 
-              Utils.SetProcessorAffinityMask(true);
+              Utils.SetProcessorAffinityMask(registryEx, true);
             }
             preferencesWindow = null;
           }

@@ -37,7 +37,7 @@ namespace ReBuzz.Audio
           int sampleRate,
           int channels,
           int bufferSize,
-          bool doubleBuffer)
+          bool doubleBuffer, IRegistryEx registryEx)
         {
             this.buzz = buzzCore;
             buzzCore.SelectedAudioDriverSampleRate = sampleRate;
@@ -57,7 +57,7 @@ namespace ReBuzz.Audio
             for (int i = 0; i < 64; i++)
                 threadBufferChannel[i] = new float[size];
 
-            long processorAffinityMask = RegistryEx.Read("ProcessorAffinity", 0xFFFFFFFF, "Settings");
+            long processorAffinityMask = registryEx.Read("ProcessorAffinity", 0xFFFFFFFF, "Settings");
 
             int processorCount = Environment.ProcessorCount;
             int numAudioThreads = 0;
@@ -69,8 +69,8 @@ namespace ReBuzz.Audio
                 }
             }
 
-            int algorithm = RegistryEx.Read("WorkAlgorithm", 1, "Settings");
-            int threadCount = RegistryEx.Read("AudioThreads", 4, "Settings");
+            int algorithm = registryEx.Read("WorkAlgorithm", 1, "Settings");
+            int threadCount = registryEx.Read("AudioThreads", 4, "Settings");
 
             if (algorithm == 0 || algorithm == 1)
             {
@@ -83,7 +83,7 @@ namespace ReBuzz.Audio
 
             workManager = new WorkManager(buzzCore, workEngine, algorithm, engineSettings);
 
-            threadType = (EAudioThreadType)RegistryEx.Read("AudioThreadType", 0, "Settings");
+            threadType = (EAudioThreadType)registryEx.Read("AudioThreadType", 0, "Settings");
 
             multimediaTimer = new MultimediaTimer() { Interval = 1 };
             multimediaTimer.Elapsed += (o, e) =>

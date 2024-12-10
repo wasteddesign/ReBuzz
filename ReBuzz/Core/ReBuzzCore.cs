@@ -409,7 +409,7 @@ namespace ReBuzz.Core
             if (AudioEngine.SelectedOutDevice != null)
             {
               selectedAudioDriver = AudioEngine.SelectedOutDevice.Name;
-              RegistryEx.Write("AudioDriver", selectedAudioDriver, "Settings");
+              registryEx.Write("AudioDriver", selectedAudioDriver, "Settings");
               AudioEngine.Play();
               PropertyChanged.Raise(this, "SelectedAudioDriver");
             }
@@ -486,10 +486,10 @@ namespace ReBuzz.Core
 
     public string SelectedTheme
     {
-      get => RegistryEx.Read("Theme", "<default>", "Settings");
+      get => registryEx.Read("Theme", "<default>", "Settings");
       set
       {
-        RegistryEx.Write("Theme", value, "Settings");
+        registryEx.Write("Theme", value, "Settings");
         if (ThemeChanged != null)
         {
           ThemeChanged.Invoke(value);
@@ -552,8 +552,10 @@ namespace ReBuzz.Core
       string buzzPath,
       string registryRoot,
       IMachineDLLScanner machineDllScanner, 
-      IUiDispatcher dispatcher)
+      IUiDispatcher dispatcher, 
+      IRegistryEx registryEx)
     {
+      this.registryEx = registryEx;
       this.generalSettings = generalSettings;
       this.engineSettings = engineSettings;
       this.buzzPath = buzzPath;
@@ -604,11 +606,11 @@ namespace ReBuzz.Core
 
       DCWriteLine(BuildString);
 
-      MidiInOutEngine = new MidiEngine(this);
+      MidiInOutEngine = new MidiEngine(this, this.registryEx);
       MidiInOutEngine.OpenMidiInDevices();
       MidiInOutEngine.OpenMidiOutDevices();
 
-      MidiControllerAssignments = new MidiControllerAssignments(this, registryRoot);
+      MidiControllerAssignments = new MidiControllerAssignments(this, this.registryEx, registryRoot);
       MIDIControllers = MidiControllerAssignments.GetMidiControllerNames().ToReadOnlyCollection();
 
       themes = Utils.GetThemes(buzzPath);
@@ -649,7 +651,7 @@ namespace ReBuzz.Core
       */
 
       Process.GetCurrentProcess().PriorityClass = ProcessAndThreadProfile.ProcessPriorityClassMainProcess;
-      Utils.SetProcessorAffinityMask(true);
+      Utils.SetProcessorAffinityMask(this.registryEx, true);
 
       dtEngineThread = new DispatcherTimer();
       dtEngineThread.Interval = TimeSpan.FromSeconds(1 / 30.0);
@@ -983,7 +985,7 @@ namespace ReBuzz.Core
 
     private void UpdateRecentFilesList(string fileName)
     {
-      var files = RegistryEx.ReadNumberedList<string>("File", "Recent File List").ToList();
+      var files = registryEx.ReadNumberedList<string>("File", "Recent File List").ToList();
       foreach (var file in files.ToArray())
       {
         if (file == fileName)
@@ -1730,6 +1732,7 @@ namespace ReBuzz.Core
     private readonly string buzzPath;
     private readonly IMachineDLLScanner machineDllScanner;
     private readonly IUiDispatcher dispatcher;
+    private readonly IRegistryEx registryEx;
 
     public string InfoText { get => infoText; internal set { infoText = value; PropertyChanged.Raise(this, "InfoText"); } }
 

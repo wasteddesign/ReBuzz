@@ -12,7 +12,7 @@ using ReBuzz.MachineManagement;
 
 namespace ReBuzz.AppViews;
 
-public class ReBuzzCoreInitialization(ReBuzzCore buzz, string buzzPath, IUiDispatcher dispatcher)
+public class ReBuzzCoreInitialization(ReBuzzCore buzz, string buzzPath, IUiDispatcher dispatcher, IRegistryEx registryEx)
 {
   internal void StartReBuzzEngineStep1(PropertyChangedEventHandler onPropertyChanged)
   {
@@ -40,7 +40,7 @@ public class ReBuzzCoreInitialization(ReBuzzCore buzz, string buzzPath, IUiDispa
     buzz.MachineManager = machineManager;
 
     buzz.AudioEngine = new 
-      AudioEngine(buzz, engineSettings, buzzPath, dispatcher);
+      AudioEngine(buzz, engineSettings, buzzPath, dispatcher, registryEx);
     buzz.AudioDriversList = buzz.AudioEngine.AudioDevices().Select(ae => ae.Name).ToList();
     observer.NotifyMachineManagerCreated(machineManager);
   }
@@ -85,7 +85,7 @@ public class ReBuzzCoreInitialization(ReBuzzCore buzz, string buzzPath, IUiDispa
     buzz.MachineManager.Buzz = buzz;
     buzz.CreateMaster();
 
-    string audioDriver = RegistryEx.Read("AudioDriver", "WASAPI", "Settings");
+    string audioDriver = registryEx.Read("AudioDriver", "WASAPI", "Settings");
     buzz.SelectedAudioDriver = audioDriver;
   }
 }

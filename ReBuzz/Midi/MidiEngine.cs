@@ -9,12 +9,14 @@ namespace ReBuzz.Midi
 {
     internal class MidiEngine
     {
+        private readonly IRegistryEx registryEx;
         private readonly IBuzz buzz;
         private readonly Dictionary<int, MidiInDevice> midiIns = new Dictionary<int, MidiInDevice>();
         private readonly Dictionary<int, MidiOut> midiOuts = new Dictionary<int, MidiOut>();
 
-        public MidiEngine(IBuzz buzz)
+        public MidiEngine(IBuzz buzz, IRegistryEx registryEx)
         {
+            this.registryEx = registryEx;
             this.buzz = buzz;
         }
 
@@ -85,14 +87,14 @@ namespace ReBuzz.Midi
         }
 
 
-        internal static IList<string> GetMidiControllers()
+        internal static IList<string> GetMidiControllers(IRegistryEx registryEx)
         {
             List<string> list = new List<string>();
 
-            int numMidiControllers = RegistryEx.Read("numMidiControllers", 0, "Settings");
+            int numMidiControllers = registryEx.Read("numMidiControllers", 0, "Settings");
             for (int i = 0; i < numMidiControllers; i++)
             {
-                list.Add(RegistryEx.Read("MidiController" + i, "", "Settings"));
+                list.Add(registryEx.Read("MidiController" + i, "", "Settings"));
             }
 
             return list;
@@ -112,12 +114,12 @@ namespace ReBuzz.Midi
                 strOpenDevices += device.ToString("D2");
             }
 
-            RegistryEx.Write("OpenMidiInDevs", strOpenDevices, "Settings");
+            registryEx.Write("OpenMidiInDevs", strOpenDevices, "Settings");
         }
 
         internal void OpenMidiInDevices()
         {
-            string strOpenDevices = RegistryEx.Read("OpenMidiInDevs", "", "Settings");
+            string strOpenDevices = registryEx.Read("OpenMidiInDevs", "", "Settings");
 
             while (strOpenDevices.Length > 0)
             {
@@ -129,7 +131,7 @@ namespace ReBuzz.Midi
             }
         }
 
-        internal static void SetMidiInputDevices(List<int> midiIns)
+        internal static void SetMidiInputDevices(IRegistryEx registryEx, List<int> midiIns)
         {
             string strOpenDevices = "";
 
@@ -138,7 +140,7 @@ namespace ReBuzz.Midi
                 strOpenDevices += device.ToString("D2");
             }
 
-            RegistryEx.Write("OpenMidiInDevs", strOpenDevices, "Settings");
+            registryEx.Write("OpenMidiInDevs", strOpenDevices, "Settings");
         }
 
         internal IEnumerable<int> GetMidiOutputDevices()
@@ -155,12 +157,12 @@ namespace ReBuzz.Midi
                 strOpenDevices += device.ToString("D2");
             }
 
-            RegistryEx.Write("OpenMidiOutDevs", strOpenDevices, "Settings");
+            registryEx.Write("OpenMidiOutDevs", strOpenDevices, "Settings");
         }
 
         internal void OpenMidiOutDevices()
         {
-            string strOpenDevices = RegistryEx.Read("OpenMidiOutDevs", "", "Settings");
+            string strOpenDevices = registryEx.Read("OpenMidiOutDevs", "", "Settings");
 
             while (strOpenDevices.Length > 0)
             {
@@ -172,7 +174,7 @@ namespace ReBuzz.Midi
             }
         }
 
-        internal static void SetMidiOutputDevices(List<int> midiOuts)
+        internal static void SetMidiOutputDevices(IRegistryEx registryEx, List<int> midiOuts)
         {
             string strOpenDevices = "";
 
@@ -181,7 +183,7 @@ namespace ReBuzz.Midi
                 strOpenDevices += device.ToString("D2");
             }
 
-            RegistryEx.Write("OpenMidiOutDevs", strOpenDevices, "Settings");
+            registryEx.Write("OpenMidiOutDevs", strOpenDevices, "Settings");
         }
     }
 }
