@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using AtmaFileSystem;
 using Buzz.MachineInterface;
 using BuzzGUI.Common;

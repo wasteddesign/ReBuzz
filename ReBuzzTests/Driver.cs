@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Windows;
 using System.Windows.Threading;
 using AtmaFileSystem;
 using AtmaFileSystem.IO;
@@ -13,7 +11,6 @@ using BuzzGUI.Interfaces;
 using FluentAssertions;
 using ReBuzz;
 using ReBuzz.AppViews;
-using ReBuzz.Audio;
 using ReBuzz.Core;
 using ReBuzz.FileOps;
 using ReBuzz.MachineManagement;
@@ -22,27 +19,28 @@ namespace ReBuzzTests;
 
 public class Driver : IDisposable, IInitializationObserver
 {
+  private static readonly AbsoluteDirectoryPath TestDataRootPath = AbsoluteDirectoryPath.Value(Path.GetTempPath()).AddDirectoryName("ReBuzzTestData");
   private readonly AbsoluteDirectoryPath _gearDir;
   private readonly AbsoluteDirectoryPath _themesDir;
   private ReBuzzCore reBuzzCore;
   private readonly AbsoluteDirectoryPath _gearEffectsDir;
   private readonly AbsoluteDirectoryPath _gearGeneratorsDir; //bug eliminate all underscores
-  private readonly AbsoluteDirectoryPath _rebuzzRootDir = AbsoluteDirectoryPath.Value(Path.GetTempPath()).AddDirectoryName("ReBuzzTestData").AddDirectoryName(Guid.NewGuid().ToString());
+  private readonly AbsoluteDirectoryPath _reBuzzRootDir =
+    TestDataRootPath.AddDirectoryName($"{Guid.NewGuid()}__{DateTime.UtcNow.Ticks}");
 
   static Driver()
   {
     AssertionOptions.FormattingOptions.MaxLines = 10000;
+    AttemptToCleanupTestRootDirs();
   }
 
   public Driver()
   {
-    _gearDir = _rebuzzRootDir.AddDirectoryName("Gear"); //bug delete the dir after test (if possible)
+    _gearDir = _reBuzzRootDir.AddDirectoryName("Gear"); //bug delete the dir after test (if possible)
     _gearEffectsDir = _gearDir.AddDirectoryName("Effects");
     _gearGeneratorsDir = _gearDir.AddDirectoryName("Generators");
-    _themesDir = _rebuzzRootDir.AddDirectoryName("Themes");
+    _themesDir = _reBuzzRootDir.AddDirectoryName("Themes");
   }
-
-  public ReBuzzCore ReBuzzCore => reBuzzCore; //bug hide
 
   public void AssertGearMachinesConsistOf(ImmutableList<string> expectedMachineNames)
   {
@@ -54,9 +52,9 @@ public class Driver : IDisposable, IInitializationObserver
     SetupDirectoryStructure();
 
     var engineSettings = Global.EngineSettings;
-    var buzzPath = _rebuzzRootDir.ToString();
+    var buzzPath = _reBuzzRootDir.ToString();
     var generalSettings = Global.GeneralSettings;
-    var registryRoot = Global.RegistryRoot;
+    var registryRoot = "Software\\ReBuzzTest\\";
 
     var dispatcher = new GuiLessDispatcher();
     reBuzzCore = new ReBuzzCore(generalSettings, engineSettings, buzzPath, registryRoot, new FakeMachineDLLScanner(_gearDir), dispatcher);
@@ -120,14 +118,14 @@ public class Driver : IDisposable, IInitializationObserver
   public void AssertRequiredPropertiesAreInitialized()
   {
     //bug is this really needed?
-    ReBuzzCore.Should().NotBeNull();
-    ReBuzzCore.Gear.Should().NotBeNull();
-    ReBuzzCore.Gear.Machine.Should().NotBeEmpty();
-    ReBuzzCore.AudioEngine.Should().NotBeNull();
-    ReBuzzCore.SongCore.Should().NotBeNull();
-    ReBuzzCore.SongCore.BuzzCore.Should().Be(ReBuzzCore);
-    ReBuzzCore.SongCore.WavetableCore.Should().NotBeNull();
-    ReBuzzCore.MachineManager.Should().NotBeNull();
+    reBuzzCore.Should().NotBeNull();
+    reBuzzCore.Gear.Should().NotBeNull();
+    reBuzzCore.Gear.Machine.Should().NotBeEmpty();
+    reBuzzCore.AudioEngine.Should().NotBeNull();
+    reBuzzCore.SongCore.Should().NotBeNull();
+    reBuzzCore.SongCore.BuzzCore.Should().Be(reBuzzCore);
+    reBuzzCore.SongCore.WavetableCore.Should().NotBeNull();
+    reBuzzCore.MachineManager.Should().NotBeNull();
   }
 
   void IInitializationObserver.NotifyMachineManagerCreated(MachineManager machineManager)
@@ -135,17 +133,29 @@ public class Driver : IDisposable, IInitializationObserver
     TestContext.Out.WriteLine("MachineManager created");
   }
 
-  //bug void IInitializationObserver.NotifyMachineDbCreated(IMachineDatabase machineDb)
-  //bug {
-  //bug   TestContext.Out.WriteLine("MachineDb created");
-  //bug }
   public void AssertInitialState()
   {
-    InitialStateAssertions.AssertInitialState(_gearDir, this.ReBuzzCore);
+    InitialStateAssertions.AssertInitialState(_gearDir, this.reBuzzCore);
   }
-}
 
-public class GuiLessDispatcher : IUiDispatcher //bug
+  private static void AttemptToCleanupTestRootDirs()
+  {
+    foreach (var singleTestRoot in TestDataRootPath.EnumerateDirectories())
+    {
+      try
+      {
+        singleTestRoot.Delete(true);
+        TestContext.Out.WriteLine("Deleted " + singleTestRoot);
+      }
+      catch
+      {
+        TestContext.Out.WriteLine("Could not delete " + singleTestRoot);
+      }
+    }
+  }
+} 
+
+public class GuiLessDispatcher : IUiDispatcher //bug move
 {
   public void Invoke(Action action)
   {
@@ -163,7 +173,7 @@ public class GuiLessDispatcher : IUiDispatcher //bug
   }
 }
 
-internal class FakeMachineDb : IMachineDatabase
+internal class FakeMachineDb : IMachineDatabase //bug move
 {
   public event Action<string>? DatabaseEvent;
 

@@ -12,14 +12,17 @@ namespace ReBuzz.Midi
         private readonly IBuzz buzz;
         private readonly List<MidiController> midiControllers = new List<MidiController>();
         private readonly List<MidiController> midiReBuzzControllers = new List<MidiController>();
+        private readonly string registryRoot;
 
         public IList<MidiController> ReBuzzMIDIControllers { get { return midiReBuzzControllers; } }
         public IList<MidiController> MIDIControllers { get { return midiControllers; } }
-        internal MidiControllerAssignments(IBuzz reBuzzCore)
+        
+        internal MidiControllerAssignments(IBuzz reBuzzCore, string registryRoot)
         {
             buzz = reBuzzCore;
             LoadAssignments();
             buzz.MIDIInput += SendMidi;
+            this.registryRoot = registryRoot;
         }
 
         SongCore song;
@@ -85,7 +88,7 @@ namespace ReBuzz.Midi
 
         internal void ClearAll()
         {
-            RegClearAllMidiControllers(midiControllers.Count);
+            RegClearAllMidiControllers(midiControllers.Count, registryRoot);
 
             midiReBuzzControllers.Clear();
             midiControllers.Clear();
@@ -187,9 +190,9 @@ namespace ReBuzz.Midi
             RegistryEx.Write("numMidiControllers", num, "Settings");
         }
 
-        public static void RegClearAllMidiControllers(int numControllers)
+        public static void RegClearAllMidiControllers(int numControllers, string registryRoot)
         {
-            string regKeyBase = Global.RegistryRoot + "Settings\\MidiController";
+            string regKeyBase = registryRoot + "Settings\\MidiController";
             int id = 0;
 
             for (int i = 0; i < numControllers; i++)
@@ -243,6 +246,7 @@ namespace ReBuzz.Midi
         }
 
         readonly List<ContollerBinding> contollerBindings = new List<ContollerBinding>();
+
         internal void BindParameter(ParameterCore parameterCore, int track, int mcindex)
         {
             ContollerBinding contollerBind = new ContollerBinding(parameterCore, track, mcindex);

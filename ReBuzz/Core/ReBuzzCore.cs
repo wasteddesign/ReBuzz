@@ -608,7 +608,7 @@ namespace ReBuzz.Core
       MidiInOutEngine.OpenMidiInDevices();
       MidiInOutEngine.OpenMidiOutDevices();
 
-      MidiControllerAssignments = new MidiControllerAssignments(this);
+      MidiControllerAssignments = new MidiControllerAssignments(this, registryRoot);
       MIDIControllers = MidiControllerAssignments.GetMidiControllerNames().ToReadOnlyCollection();
 
       themes = Utils.GetThemes(buzzPath);

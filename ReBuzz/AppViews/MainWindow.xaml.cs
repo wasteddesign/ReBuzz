@@ -27,10 +27,9 @@ using ReBuzz.AppViews;
 
 namespace ReBuzz
 {
-  internal interface IInitializationObserver //bug rethink the location
+  internal interface IInitializationObserver
   {
     void NotifyMachineManagerCreated(MachineManager machineManager);
-    //bug may be not needed - currently machine database is created outside. void NotifyMachineDbCreated(MachineDatabase machineDb);
   }
 
   /// <summary>

@@ -58,11 +58,9 @@ public class ReBuzzCoreInitialization(ReBuzzCore buzz, string buzzPath, IUiDispa
     buzz.ScanDlls();
 
     // Call after MachineDLLs are read
-    //bug var machineDb = new MachineDatabase(buzz, buzzPath);
     machineDb.DatabaseEvent += machineDbDatabaseEvent;
     machineDb.CreateDB();
     buzz.MachineDB = machineDb;
-    //bug window.NotifyMachineDbCreated(machineDb);
 
     // Init stuff before loading anything else
     buzz.ThemeColors = Common.Utils.GetThemeColors(buzzPath);
