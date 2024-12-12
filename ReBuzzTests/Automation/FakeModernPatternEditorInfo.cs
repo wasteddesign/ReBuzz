@@ -2,7 +2,7 @@ using AtmaFileSystem;
 using BuzzGUI.Interfaces;
 using ReBuzz.Core;
 
-namespace ReBuzzTests;
+namespace ReBuzzTests.Automation;
 
 public static class FakeModernPatternEditorInfo
 {

@@ -3,18 +3,20 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Windows.Threading;
 using AtmaFileSystem;
 using AtmaFileSystem.IO;
 using BuzzGUI.Common;
 using BuzzGUI.Interfaces;
 using FluentAssertions;
+using libsndfile;
+using Microsoft.Win32;
 using ReBuzz;
 using ReBuzz.AppViews;
 using ReBuzz.Core;
 using ReBuzz.FileOps;
 using ReBuzz.MachineManagement;
+using ReBuzzTests.Automation;
 
 namespace ReBuzzTests;
 
@@ -55,28 +57,29 @@ public class Driver : IDisposable, IInitializationObserver
         var engineSettings = Global.EngineSettings;
         var buzzPath = _reBuzzRootDir.ToString();
         var generalSettings = Global.GeneralSettings;
+        var registryRoot = "Software\\ReBuzzTest\\"; //bug not every part of code uses RegistryEx
 
         var dispatcher = new GuiLessDispatcher();
-        var registryExInstance = new ProductionDataProtectingRegistryEx(new RegistryExInstance());
-        reBuzzCore = new ReBuzzCore(generalSettings, engineSettings, buzzPath, Global.RegistryRoot, new FakeMachineDLLScanner(gearDir), dispatcher, registryExInstance);
+        var registryExInstance = new FakeInMemoryRegistry();
+        reBuzzCore = new ReBuzzCore(generalSettings, engineSettings, buzzPath, registryRoot, new FakeMachineDLLScanner(gearDir), dispatcher, registryExInstance);
         reBuzzCore.SelectedTheme = "<default>"; //bug this is actually written to registry!
 
         var initialization = new ReBuzzCoreInitialization(reBuzzCore, buzzPath, dispatcher, registryExInstance);
-        initialization.StartReBuzzEngineStep1((_, args) =>
+        initialization.StartReBuzzEngineStep1((sender, args) =>
         {
-            TestContext.Out.WriteLine("PropertyChanged: " + args.PropertyName);
+            TestContext.Out.WriteLine($"PropertyChanged: {args.PropertyName}");
         });
         initialization.StartReBuzzEngineStep2(IntPtr.MaxValue);
         initialization.StartReBuzzEngineStep3(engineSettings, this);
         initialization.StartReBuzzEngineStep4(
           machineDb: new FakeMachineDb(),
-          machineDbDatabaseEvent: s => { TestContext.Out.WriteLine("DatabaseEvent: " + s); },
+          machineDbDatabaseEvent: s => { TestContext.Out.WriteLine($"DatabaseEvent: {s}"); },
           onPatternEditorActivated: () => { TestContext.Out.WriteLine("OnPatternEditorActivated"); },
           onSequenceEditorActivated: () => { TestContext.Out.WriteLine("OnSequenceEditorActivated"); },
-          onShowSettings: s => { TestContext.Out.WriteLine("OnShowSettings: " + s); },
-          onSetPatternEditorControl: control => { TestContext.Out.WriteLine("SetPatternEditorControl: " + control); },
-          onFullScreenChanged: b => { TestContext.Out.WriteLine("OnFullScreenChanged: " + b); },
-          onThemeChanged: s => { TestContext.Out.WriteLine("OnThemeChanged: " + s); }
+          onShowSettings: s => { TestContext.Out.WriteLine($"OnShowSettings: {s}"); },
+          onSetPatternEditorControl: control => { TestContext.Out.WriteLine($"SetPatternEditorControl: {control}"); },
+          onFullScreenChanged: b => { TestContext.Out.WriteLine($"OnFullScreenChanged: {b}"); },
+          onThemeChanged: s => { TestContext.Out.WriteLine($"OnThemeChanged: {s}"); }
         );
 
         initialization.StartReBuzzEngineStep5(s => { TestContext.Out.WriteLine("OpenFile: " + s); });
@@ -154,59 +157,6 @@ public class Driver : IDisposable, IInitializationObserver
             }
         }
     }
-}
-
-public class ProductionDataProtectingRegistryEx(IRegistryEx registryExInstance) : IRegistryEx //bug move
-{
-    private readonly Lock lockObject = new();
-    private readonly Dictionary<(string Path, string Key), object> registry = new();
-    public void Write<T>(string key, T x, string path = "BuzzGUI")
-    {
-        lock (lockObject)
-        {
-            Console.WriteLine("Write to memory: " + key + " " + x + " " + path); //bug
-            registry[(path, key)] = x;
-        }
-    }
-
-    public T Read<T>(string key, T def, string path = "BuzzGUI")
-    {
-        lock (lockObject)
-        {
-            T result;
-            if (registry.TryGetValue((path, key), out var cachedResult))
-            {
-                result = (T)cachedResult;
-            }
-            else
-            {
-                result = registryExInstance.Read(key, def, path);
-            }
-
-            Console.WriteLine("Read: " + key + " " + result + " " + path);
-            return result;
-        }
-    }
-
-    public IEnumerable<T> ReadNumberedList<T>(string key, string path = "BuzzGUI")
-    {
-        lock (lockObject)
-        {
-            IEnumerable<T> numberedList;
-            if (registry.TryGetValue((path, key), out var cachedResult))
-            {
-                numberedList = (IEnumerable<T>)cachedResult;
-            }
-            else
-            {
-                numberedList = registryExInstance.ReadNumberedList<T>(key, path);
-            }
-
-            Console.WriteLine("ReadNumberedList: " + key + " [" + string.Join(", ", numberedList) + "] " + path);
-            return numberedList;
-        }
-    }
-
 }
 
 public class GuiLessDispatcher : IUiDispatcher //bug move

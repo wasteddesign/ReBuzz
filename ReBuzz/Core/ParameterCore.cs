@@ -169,22 +169,22 @@ namespace ReBuzz.Core
         }
         internal class EventManager(IUiDispatcher dispatcher)
         {
-          public event Action<IParameter, int> Event;
+            public event Action<IParameter, int> Event;
             public void CallEvent(IBuzz buzz, IParameter parameter, int track)
             {
                 if (Event != null)
                 {
                     dispatcher.BeginInvoke(() =>
                     {
-                      try
-                      {
-                        if (Event != null)
-                          Event(parameter, track);
-                      }
-                      catch (Exception e)
-                      {
-                        buzz.DCWriteLine(e.Message);
-                      }
+                        try
+                        {
+                            if (Event != null)
+                                Event(parameter, track);
+                        }
+                        catch (Exception e)
+                        {
+                            buzz.DCWriteLine(e.Message);
+                        }
                     }, DispatcherPriority.Normal);
                 }
             }
@@ -381,17 +381,17 @@ namespace ReBuzz.Core
         {
             ParameterCore p = new ParameterCore(dispatcher)
             {
-              Type = Type,
-              Name = Name,
-              MinValue = MinValue,
-              MaxValue = MaxValue,
-              DefValue = DefValue,
-              NoValue = NoValue,
-              Flags = Flags,
-              Description = Description,
-              Group = Group,
-              IndexInGroup = IndexInGroup,
-              values = values
+                Type = Type,
+                Name = Name,
+                MinValue = MinValue,
+                MaxValue = MaxValue,
+                DefValue = DefValue,
+                NoValue = NoValue,
+                Flags = Flags,
+                Description = Description,
+                Group = Group,
+                IndexInGroup = IndexInGroup,
+                values = values
             };
 
             return p;

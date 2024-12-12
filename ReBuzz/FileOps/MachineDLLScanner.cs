@@ -15,16 +15,16 @@ using System.Xml.Serialization;
 
 namespace ReBuzz.FileOps
 {
-  internal interface IMachineDLLScanner
-  {
-    Dictionary<string, MachineDLL> GetMachineDLLs(ReBuzzCore buzz, string buzzPath);
-    void AddMachineDllsToDictionary(XMLMachineDLL[] xMLMachineDLLs, Dictionary<string, MachineDLL> md);
-    XMLMachineDLL ValidateDll(ReBuzzCore buzz, string libName, string path, string buzzPath);
-  }
+    internal interface IMachineDLLScanner
+    {
+        Dictionary<string, MachineDLL> GetMachineDLLs(ReBuzzCore buzz, string buzzPath);
+        void AddMachineDllsToDictionary(XMLMachineDLL[] xMLMachineDLLs, Dictionary<string, MachineDLL> md);
+        XMLMachineDLL ValidateDll(ReBuzzCore buzz, string libName, string path, string buzzPath);
+    }
 
-  internal class MachineDLLScanner(IUiDispatcher dispatcher) : IMachineDLLScanner
-  {
-    static readonly string dllDataFileName = "MachineDLLCache.xml";
+    internal class MachineDLLScanner(IUiDispatcher dispatcher) : IMachineDLLScanner
+    {
+        static readonly string dllDataFileName = "MachineDLLCache.xml";
 
         public Dictionary<string, MachineDLL> GetMachineDLLs(ReBuzzCore buzz, string buzzPath)
         {

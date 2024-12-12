@@ -108,7 +108,7 @@ namespace ReBuzz.Core
 
 
         readonly int sampleCount = 0;
-        public int SampleCount { get => AdjustSampleCount( SampleCount16Bit ); }
+        public int SampleCount { get => AdjustSampleCount(SampleCount16Bit); }
         public int RootNote { get; set; }
         public int SampleRate { get; set; }
         public int LoopStart { get => AdjustSampleCount(LoopStart16Bit); set => LoopStart16Bit = ReverseAdjustSampleCount(value); }
@@ -123,9 +123,11 @@ namespace ReBuzz.Core
         internal int LoopEnd16Bit { get; set; }
         internal int LoopStart16Bit { get; set; }
 
-        
+
         internal bool extended;
-        public bool Extended { get => extended;
+        public bool Extended
+        {
+            get => extended;
             internal set
             {
                 extended = value;
@@ -165,8 +167,8 @@ namespace ReBuzz.Core
             }
 
             //offset = ReverseAdjustSampleCount(offset);
-            
-            fixed ( float* dest = output)
+
+            fixed (float* dest = output)
             {
                 int bufferIndex = (ChannelCount * offset + channel) * bytesPerSample + offsetAddBytes;
                 for (int i = 0; i < count; i++)
@@ -206,7 +208,7 @@ namespace ReBuzz.Core
                                 break;
                         }
                     }
-                            
+
                     j += outstride;
                     bufferIndex += ChannelCount * bytesPerSample;
                 }

@@ -17,7 +17,7 @@ namespace ReBuzz.Audio
           int sampleRate,
           int channels,
           int bufferSize,
-          bool doubleBuffer, 
+          bool doubleBuffer,
           IRegistryEx registryEx)
         {
             // Make this multi-channel compatible

@@ -1,10 +1,10 @@
-using System;
-using System.Collections.Generic;
 using AtmaFileSystem;
 using ReBuzz.Core;
 using ReBuzz.FileOps;
+using System;
+using System.Collections.Generic;
 
-namespace ReBuzzTests;
+namespace ReBuzzTests.Automation;
 
 internal class FakeMachineDLLScanner(AbsoluteDirectoryPath gearPath) : IMachineDLLScanner //bug move
 {

@@ -16,7 +16,7 @@ namespace ReBuzz.Midi
 
         public IList<MidiController> ReBuzzMIDIControllers { get { return midiReBuzzControllers; } }
         public IList<MidiController> MIDIControllers { get { return midiControllers; } }
-        
+
         internal MidiControllerAssignments(IBuzz reBuzzCore, IRegistryEx registryEx, string registryRoot)
         {
             this.registryEx = registryEx;
@@ -204,7 +204,7 @@ namespace ReBuzz.Midi
                 string key = regKeyBase + id;
                 try
                 {
-                    Registry.CurrentUser.DeleteSubKey(key);
+                    registryEx.DeleteCurrentUserSubkey(key);
                 }
                 catch { }
 

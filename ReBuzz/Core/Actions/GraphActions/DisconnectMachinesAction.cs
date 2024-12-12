@@ -15,9 +15,11 @@ namespace ReBuzz.Core.Actions.GraphActions
 
         //private MachineConnectionCore mc;
         private readonly ReBuzzCore buzz;
+        private readonly IUiDispatcher dispatcher;
 
-        public DisconnectMachinesAction(ReBuzzCore buzz, IMachineConnection mc)
+        public DisconnectMachinesAction(ReBuzzCore buzz, IMachineConnection mc, IUiDispatcher dispatcher)
         {
+            this.dispatcher = dispatcher;
             this.sourceName = mc.Source.Name;
             this.destinationName = mc.Destination.Name;
             this.sourceChannel = mc.SourceChannel;
@@ -36,6 +38,7 @@ namespace ReBuzz.Core.Actions.GraphActions
             this.destinationChannel = destinationChannel;
             this.amp = amp;
             this.pan = pan;
+            dispatcher = new WindowsGuiDispatcher();
         }
 
         protected override void DoAction()
@@ -69,7 +72,7 @@ namespace ReBuzz.Core.Actions.GraphActions
         {
             lock (ReBuzzCore.AudioLock)
             {
-                MachineConnectionCore mc = new MachineConnectionCore();
+                MachineConnectionCore mc = new MachineConnectionCore(dispatcher);
                 mc.Source = buzz.SongCore.MachinesList.FirstOrDefault(m => m.Name == sourceName);
                 mc.Destination = buzz.SongCore.MachinesList.FirstOrDefault(m => m.Name == destinationName);
                 mc.SourceChannel = sourceChannel;

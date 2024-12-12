@@ -13,9 +13,9 @@ namespace BuzzDotNet.Audio
     /// </summary>
     public partial class WasapiConfigWindow : Window
     {
-      private readonly IRegistryEx registryEx;
+        private readonly IRegistryEx registryEx;
 
-      public WasapiConfigWindow(IRegistryEx registryEx)
+        public WasapiConfigWindow(IRegistryEx registryEx)
         {
             this.registryEx = registryEx;
             DataContext = this;

@@ -18,7 +18,7 @@ namespace ReBuzz
     /// </summary>
     public partial class EditorView : UserControl, INotifyPropertyChanged
     {
-        public class MachineVM: INotifyPropertyChanged
+        public class MachineVM : INotifyPropertyChanged
         {
             IMachine machine;
             IPattern selectedPattern;
@@ -88,7 +88,7 @@ namespace ReBuzz
         public IMachineDLL EditorMachine
         {
             get => editorMachine; set
-            {   
+            {
                 var previous = editorMachine;
                 if (editorMachine != value)
                 {

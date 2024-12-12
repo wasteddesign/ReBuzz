@@ -288,12 +288,12 @@ namespace ReBuzz.FileOps
             // Some machines can remap machine names.
             //foreach (var machine in buzz.SongCore.MachinesList.Where(m => !m.DLL.IsManaged && !m.DLL.IsMissing))
             //{
-                //buzz.MachineManager.RemapMachineNames(machine, importDictionary);
-                //var idata = dictInitData[machine];
+            //buzz.MachineManager.RemapMachineNames(machine, importDictionary);
+            //var idata = dictInitData[machine];
 
-                //FileOpsEvent(FileEventType.StatusUpdate, "Init Machine: " + machine.Name + "...");
-                // Call Init
-                //buzz.MachineManager.CallInit(machine, idata.data, idata.tracks);
+            //FileOpsEvent(FileEventType.StatusUpdate, "Init Machine: " + machine.Name + "...");
+            // Call Init
+            //buzz.MachineManager.CallInit(machine, idata.data, idata.tracks);
             //}
 
             foreach (var machineData in songData.Machines)
@@ -321,7 +321,7 @@ namespace ReBuzz.FileOps
                 if (machineFrom == null || machineTo == null)
                     continue;
 
-                MachineConnectionCore connection = new MachineConnectionCore();
+                MachineConnectionCore connection = new MachineConnectionCore(dispatcher);
                 connection.Amp = cData.Amp;
                 connection.Pan = cData.Pan;
                 connection.SourceChannel = cData.SourceChannel;
@@ -342,7 +342,7 @@ namespace ReBuzz.FileOps
                     {
                         machineTo.InputChannelCount = 1;
                     }
-                    new ConnectMachinesAction(buzz, connection).Do();
+                    new ConnectMachinesAction(buzz, connection, dispatcher).Do();
                 }
             }
 

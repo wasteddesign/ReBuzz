@@ -22,7 +22,7 @@ namespace ReBuzz.NativeMachine
 
         public UIMessage(ChannelType channel, MemoryMappedViewAccessor accessor, NativeMachineHost nativeMachineHost, IUiDispatcher dispatcher) : base(channel, accessor, nativeMachineHost)
         {
-          this.dispatcher = dispatcher;
+            this.dispatcher = dispatcher;
         }
 
         public override event EventHandler<EventArgs> MessageEvent;
@@ -469,7 +469,7 @@ namespace ReBuzz.NativeMachine
                 for (int i = 0; i < data.Length; i++)
                 {
                     if (data[i] == 0 && instrument != "")
-                    {   
+                    {
                         instrumentList[instrument] = 0;
                         instrument = "";
                     }

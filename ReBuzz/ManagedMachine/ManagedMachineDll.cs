@@ -36,7 +36,7 @@ namespace ReBuzz.ManagedMachine
 
         public ManagedMachineDLL(IUiDispatcher dispatcher)
         {
-          this.dispatcher = dispatcher;
+            this.dispatcher = dispatcher;
         }
 
         public void LoadManagedMachine(string path)

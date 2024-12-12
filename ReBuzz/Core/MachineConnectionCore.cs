@@ -111,15 +111,13 @@ namespace ReBuzz.Core
                     j++;
                 }
 
-                //bug leave for now, get to it later
-                Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                guiDispatcher.BeginInvoke(() =>
                 {
                     if (Tap != null)
                     {
                         Tap.Invoke(samples, stereo, songTime);
                     }
-                }
-                ));
+                });
             }
         }
 
@@ -164,13 +162,15 @@ namespace ReBuzz.Core
             }
         }
 
-        public MachineConnectionCore()
+        public MachineConnectionCore(IUiDispatcher guiDispatcher)
         {
             interpolatorAmp.Value = amp;
+            this.guiDispatcher = guiDispatcher;
         }
 
-        public MachineConnectionCore(MachineCore source, int sourceChannel, MachineCore destination, int destinationChannel, int amp, int pan)
+        public MachineConnectionCore(MachineCore source, int sourceChannel, MachineCore destination, int destinationChannel, int amp, int pan, IUiDispatcher guiDispatcher)
         {
+            this.guiDispatcher = guiDispatcher;
             Source = source;
             this.sourceChannel = sourceChannel;
             Destination = destination;
@@ -186,6 +186,7 @@ namespace ReBuzz.Core
         }
 
         Sample[] buffer = new Sample[256];
+        private readonly IUiDispatcher guiDispatcher;
         public Sample[] Buffer { get => buffer; set => buffer = value; }
 
         public event Action<float[], bool, SongTime> Tap;

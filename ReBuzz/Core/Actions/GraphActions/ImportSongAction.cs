@@ -72,7 +72,7 @@ namespace ReBuzz.Core.Actions.GraphActions
                 foreach (var output in machine.AllOutputs.ToArray())
                 {
                     if (output.Destination.DLL.Info.Type == MachineType.Master)
-                        new DisconnectMachinesAction(buzz, output).Do();
+                        new DisconnectMachinesAction(buzz, output, new WindowsGuiDispatcher()).Do();
                 }
 
                 // Clear waves

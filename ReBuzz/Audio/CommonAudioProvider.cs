@@ -180,7 +180,7 @@ namespace ReBuzz.Audio
                         readCount = threadBuffer.Length - threadBufferReadOffset;
 
                     if (readCount != 0)
-                    {   
+                    {
                         for (int i = 0; i < readCount / 2; i++)
                         {
                             buffer[offset++] = threadBuffer[threadBufferReadOffset];
@@ -237,7 +237,7 @@ namespace ReBuzz.Audio
             {
                 multimediaTimer.Stop();
                 multimediaTimer.Dispose();
-            }    
+            }
         }
 
         internal int ReadOverride(float[] buffer, int offset, int count)

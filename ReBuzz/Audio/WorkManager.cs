@@ -605,7 +605,7 @@ namespace ReBuzz.Audio
                 }
             }
         }
- 
+
         internal void HandleWorkAlgorithmRecursive(MachineCore master, int numRead)
         {
             workList.Clear();

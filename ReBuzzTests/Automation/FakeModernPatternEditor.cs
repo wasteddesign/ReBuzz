@@ -1,14 +1,13 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using AtmaFileSystem;
+﻿using AtmaFileSystem;
 using AtmaFileSystem.IO;
 using Buzz.MachineInterface;
 using BuzzGUI.Common;
 using BuzzGUI.Interfaces;
-using ReBuzz.Core;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
 
-namespace ReBuzzTests;
+namespace ReBuzzTests.Automation;
 
 [MachineDecl(Name = "Modern Pattern Editor", ShortName = "MPE", Author = "WDE", MaxTracks = 1, InputCount = 0, OutputCount = 0)]
 public class FakeModernPatternEditor : IBuzzMachine, INotifyPropertyChanged

@@ -35,9 +35,9 @@ namespace ReBuzz.NativeMachine
 
         public NativeMachineHost(string sharedId, string buzzPath, IUiDispatcher dispatcher)
         {
-          this.sharedId = sharedId + DateTime.Now.Ticks;
-          this.buzzPath = buzzPath;
-          this.dispatcher = dispatcher;
+            this.sharedId = sharedId + DateTime.Now.Ticks;
+            this.buzzPath = buzzPath;
+            this.dispatcher = dispatcher;
         }
 
         public void InitHost(ReBuzzCore buzz, bool host64)

@@ -9,17 +9,17 @@ using System.Windows;
 
 namespace ReBuzz.FileOps
 {
-  internal interface IMachineDatabase //bug
-  {
-    event Action<string> DatabaseEvent;
-    Dictionary<int, MachineDatabase.InstrumentInfo> DictLibRef { get; set; }
-    void CreateDB();
-    string GetLibName(int id);
-    MenuItemCore IndexMenu { get; }
-  }
+    internal interface IMachineDatabase //bug
+    {
+        event Action<string> DatabaseEvent;
+        Dictionary<int, MachineDatabase.InstrumentInfo> DictLibRef { get; set; }
+        void CreateDB();
+        string GetLibName(int id);
+        MenuItemCore IndexMenu { get; }
+    }
 
-  internal class MachineDatabase : IMachineDatabase
-  {
+    internal class MachineDatabase : IMachineDatabase
+    {
         internal struct InstrumentInfo
         {
             public string libName;
@@ -246,7 +246,7 @@ namespace ReBuzz.FileOps
                     {
                         MenuItemCore menuIterator = rootMenu;
                         var splitted = instr.Split('/').Select(p => p.Trim()).ToList();
-                        
+
                         for (int i = 0; i < splitted.Count; i++)
                         {
                             string menuPath = splitted[i];

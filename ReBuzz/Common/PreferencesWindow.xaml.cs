@@ -16,9 +16,9 @@ namespace ReBuzz.Common
     /// </summary>
     public partial class PreferencesWindow : Window, INotifyPropertyChanged
     {
-      private readonly IRegistryEx registryEx;
+        private readonly IRegistryEx registryEx;
 
-      public class ControllerVM : INotifyPropertyChanged
+        public class ControllerVM : INotifyPropertyChanged
         {
             public string Name { get; set; }
             public int Channel { get; set; }

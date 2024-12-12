@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Windows.Media;
 using AtmaFileSystem;
 using BuzzGUI.Interfaces;
 using FluentAssertions;
@@ -8,8 +5,11 @@ using FluentAssertions.Execution;
 using ReBuzz.Core;
 using ReBuzz.MachineManagement;
 using ReBuzz.ManagedMachine;
+using System.Collections.Generic;
+using System.Linq;
+using System.Windows.Media;
 
-namespace ReBuzzTests;
+namespace ReBuzzTests.Automation;
 
 public static class InitialStateAssertions
 {
