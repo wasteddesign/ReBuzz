@@ -137,9 +137,14 @@ public class Driver : IDisposable, IInitializationObserver
         TestContext.Out.WriteLine("MachineManager created");
     }
 
-    public void AssertInitialState()
+    public void AssertInitialStateAfterNewFile()
     {
-        InitialStateAssertions.AssertInitialState(gearDir, this.reBuzzCore);
+        InitialStateAssertions.AssertInitialState(gearDir, reBuzzCore, new InitialStateAfterNewFileAssertions());
+    }
+
+    public void AssertInitialStateAfterAppStart()
+    {
+        InitialStateAssertions.AssertInitialState(gearDir, reBuzzCore, new InitialStateAfterAppStartAssertions());
     }
 
     private static void AttemptToCleanupTestRootDirs()
