@@ -1,4 +1,5 @@
 using AtmaFileSystem;
+using Buzz.MachineInterface;
 using BuzzGUI.Interfaces;
 using FluentAssertions;
 using FluentAssertions.Execution;
@@ -10,6 +11,164 @@ using System.Linq;
 using System.Windows.Media;
 
 namespace ReBuzzTests.Automation;
+
+public record ExpectedParameter //bug move
+{
+    public ParameterType ExpectedType;
+    public int ExpectedNoValue;
+    public int ExpectedMaxValue;
+    public int ExpectedMinValue;
+    public int ExpectedDefault;
+    public ParameterFlags ExpectedFlags;
+    public string ExpectedDescription;
+    public string ExpectedName;
+
+    public ExpectedParameter(
+        string expectedName,
+        string expectedDescription,
+        ParameterFlags expectedFlags,
+        int expectedDefault,
+        int expectedMinValue,
+        int expectedMaxValue,
+        int expectedNoValue,
+        ParameterType expectedType)
+    {
+        ExpectedName = expectedName;
+        ExpectedDescription = expectedDescription;
+        ExpectedFlags = expectedFlags;
+        ExpectedDefault = expectedDefault;
+        ExpectedMinValue = expectedMinValue;
+        ExpectedMaxValue = expectedMaxValue;
+        ExpectedNoValue = expectedNoValue;
+        ExpectedType = expectedType;
+    }
+
+    public static ExpectedParameter ATrackParam()
+    {
+        return new ExpectedParameter(
+            expectedName: "ATrackParam",
+            expectedDescription: "ATrackParam",
+            expectedFlags: ParameterFlags.State,
+            expectedDefault: 0,
+            expectedMinValue: 0,
+            expectedMaxValue: 127,
+            expectedNoValue: 255,
+            expectedType: ParameterType.Byte);
+    }
+
+    public static ExpectedParameter Bypass()
+    {
+        return new ExpectedParameter(
+            expectedName: "Bypass",
+            expectedDescription: "Bypass",
+            expectedFlags: ParameterFlags.State,
+            expectedDefault: 0,
+            expectedMinValue: 0,
+            expectedMaxValue: 1,
+            expectedNoValue: 255,
+            expectedType: ParameterType.Switch);
+    }
+
+    public static ExpectedParameter Gain()
+    {
+        return new ExpectedParameter(
+            expectedName: "Gain",
+            expectedDescription: "Gain",
+            expectedFlags: ParameterFlags.State,
+            expectedDefault: 80,
+            expectedMinValue: 0,
+            expectedMaxValue: 127,
+            expectedNoValue: 255,
+            expectedType: ParameterType.Byte);
+    }
+
+    internal void AssertIsMatchedBy(
+        string name,
+        string description,
+        ParameterFlags flags,
+        int defValue,
+        int minValue,
+        int maxValue,
+        int noValue,
+        ParameterType type)
+    {
+        using (new AssertionScope())
+        {
+            name.Should().Be(ExpectedName);
+            description.Should().Be(ExpectedDescription);
+            flags.Should().Be(ExpectedFlags);
+            defValue.Should().Be(ExpectedDefault);
+            minValue.Should().Be(ExpectedMinValue);
+            maxValue.Should().Be(ExpectedMaxValue);
+            noValue.Should().Be(ExpectedNoValue);
+            type.Should().Be(ExpectedType);
+        }
+    }
+
+    public static ExpectedParameter Pan()
+    {
+        return new ExpectedParameter(expectedName: "Pan",
+            expectedDescription: "Pan (0=Left, 4000=Center, 8000=Right)",
+            expectedFlags: ParameterFlags.State,
+            expectedDefault: 16384,
+            expectedMinValue: 0,
+            expectedMaxValue: short.MaxValue + 1,
+            expectedNoValue: 0,
+            expectedType: ParameterType.Word);
+    }
+
+    public static ExpectedParameter Volume()
+    {
+        return new ExpectedParameter(
+            expectedName: "Volume",
+            expectedDescription: "Master Volume (0=0 dB, 4000=-80 dB)",
+            expectedFlags: ParameterFlags.State,
+            expectedDefault: 0,
+            expectedMinValue: 0,
+            expectedMaxValue: 16384,
+            expectedNoValue: ushort.MaxValue,
+            expectedType: ParameterType.Word);
+    }
+
+    public static ExpectedParameter Bpm()
+    {
+        return new ExpectedParameter(
+            expectedName: "BPM",
+            expectedDescription: "Beats Per Minute (10-200 hex)",
+            expectedFlags: ParameterFlags.State,
+            expectedDefault: 126,
+            expectedMinValue: 10,
+            expectedMaxValue: 512,
+            expectedNoValue: 65535,
+            expectedType: ParameterType.Word);
+    }
+
+    public static ExpectedParameter Tpb()
+    {
+        return new ExpectedParameter(
+            expectedName: "TPB",
+            expectedDescription: "Ticks Per Beat (1-20 hex)",
+            expectedFlags: ParameterFlags.State,
+            expectedDefault: 4,
+            expectedMinValue: 1,
+            expectedMaxValue: 32,
+            expectedNoValue: 255,
+            expectedType: ParameterType.Byte);
+    }
+
+    public static ExpectedParameter Amp()
+    {
+        return new ExpectedParameter(
+            expectedName: "Amp",
+            expectedDescription: "Amp (0=0%, 4000=100%, FFFE=~400%)",
+            expectedFlags: ParameterFlags.State,
+            expectedDefault: 16384,
+            expectedMinValue: 0,
+            expectedMaxValue: ushort.MaxValue - 1,
+            expectedNoValue: 0,
+            expectedType: ParameterType.Word);
+    }
+}
 
 public static class InitialStateAssertions
 {
@@ -58,8 +217,10 @@ public static class InitialStateAssertions
     { "SE Text", Color.FromArgb(0xFF, 0x30, 0x30, 0x21) }, { "black", Color.FromArgb(0xFF, 0x00, 0x00, 0x00) }
   };
 
-    public static void AssertInitialState(AbsoluteDirectoryPath gearDir, ReBuzzCore reBuzzCore)
+    public static void AssertInitialState(AbsoluteDirectoryPath gearDir, ReBuzzCore reBuzzCore, IAdditionalInitialStateAssertions additionalAssertions)
     {
+        reBuzzCore.AudioEngine.SelectedOutDevice.Should().BeNull();
+
         // Assertions for ReBuzzCore properties
         reBuzzCore.HostVersion.Should().Be(66);
         reBuzzCore.BPM.Should().Be(126);
@@ -69,17 +230,8 @@ public static class InitialStateAssertions
         reBuzzCore.Recording.Should().BeFalse();
         reBuzzCore.Looping.Should().BeFalse();
         reBuzzCore.AudioDeviceDisabled.Should().BeFalse();
-        reBuzzCore.MIDIControllers.Should().BeEmpty();
-        //bug different results with R# and NCrunch: rebuzzCore.Theme.Should().BeEquivalentTo(new ReBuzzTheme());
         reBuzzCore.VUMeterLevel.Item1.Should().Be(0.0);
         reBuzzCore.VUMeterLevel.Item2.Should().Be(0.0);
-        reBuzzCore.MidiControllerAssignments.MIDIControllers.Should().BeEmpty();
-        reBuzzCore.MidiControllerAssignments.ReBuzzMIDIControllers.Should().BeEmpty();
-        reBuzzCore.MidiControllerAssignments.Song.Should().Be(reBuzzCore.SongCore);
-
-        AssertInitialStateOfSongAndSongCore(reBuzzCore.SongCore, reBuzzCore.Song, reBuzzCore, gearDir);
-
-        // Additional assertions for ReBuzzCore properties
 
         foreach (var (key, value) in ColorDictionary)
         {
@@ -87,9 +239,16 @@ public static class InitialStateAssertions
         }
 
         reBuzzCore.MachineIndex.Should().BeEquivalentTo(new MenuItemCore());
+
+        reBuzzCore.MIDIControllers.Should().BeEmpty();
+        reBuzzCore.MidiControllerAssignments.MIDIControllers.Should().BeEmpty();
+        reBuzzCore.MidiControllerAssignments.ReBuzzMIDIControllers.Should().BeEmpty();
+        reBuzzCore.MidiControllerAssignments.Song.Should().Be(reBuzzCore.SongCore);
+        reBuzzCore.MIDIControllers.Should().BeEmpty();
         reBuzzCore.MIDIFocusMachine.Should().Be(reBuzzCore.SongCore.MachinesList[0]);
         reBuzzCore.MIDIFocusLocked.Should().BeFalse();
         reBuzzCore.MIDIActivity.Should().BeFalse();
+
         reBuzzCore.IsPianoKeyboardVisible.Should().BeFalse();
         reBuzzCore.IsSettingsWindowVisible.Should().BeFalse();
         reBuzzCore.IsCPUMonitorWindowVisible.Should().BeFalse();
@@ -103,31 +262,60 @@ public static class InitialStateAssertions
         reBuzzCore.MachineDLLsList.Should().HaveCount(1);
         reBuzzCore.AUTO_CONVERT_WAVES.Should().BeFalse();
 
-        AssertInitialStateOfMachineManager(reBuzzCore.MachineManager, reBuzzCore);
-
+        AssertInitialStateOfSongAndSongCore(
+            reBuzzCore.SongCore,
+            reBuzzCore.Song,
+            reBuzzCore,
+            gearDir,
+            additionalAssertions);
+        AssertInitialStateOfMachineManager(
+            reBuzzCore.MachineManager,
+            reBuzzCore,
+            additionalAssertions,
+            gearDir);
         AssertFakeModernPatternEditor(reBuzzCore.MachineDLLsList, reBuzzCore, gearDir);
-        //TODO
+        AssertGlobalReBuzzCoreStaticProperties();
+    }
 
-        //bug more assertions and take some of this from the fake machine scanner.
-
-        //
-        //// Assertions for static properties
+    private static void AssertGlobalReBuzzCoreStaticProperties()
+    {
         ReBuzzCore.buildNumber.Should().NotBe(0);
         ReBuzzCore.AppDataPath.Should().Be("ReBuzz");
-        ReBuzzCore.GlobalState.AudioFrame.Should().Be(0);
-        ReBuzzCore.GlobalState.ADWritePos.Should().Be(0);
-        ReBuzzCore.GlobalState.ADPlayPos.Should().Be(0);
-        ReBuzzCore.GlobalState.SongPosition.Should().Be(0);
-        ReBuzzCore.GlobalState.LoopStart.Should().Be(0);
-        ReBuzzCore.GlobalState.LoopEnd.Should().Be(16);
-        ReBuzzCore.GlobalState.SongEnd.Should().Be(16);
-        ReBuzzCore.GlobalState.StateFlags.Should().Be(0);
-        ReBuzzCore.GlobalState.MIDIFiltering.Should().Be(0);
-        ReBuzzCore.GlobalState.SongClosing.Should().Be(0);
+        ReBuzzCore.AudioLock.IsHeldByCurrentThread.Should().BeFalse();
+        ReBuzzCore.SF_PLAYING.Should().Be(1);
+        ReBuzzCore.SF_RECORDING.Should().Be(2);
+        ReBuzzCore.SkipAudio.Should().BeFalse();
+        ReBuzzCore.SubTicsPerTick.Should().Be(8);
+        AssertMasterInfoInitialState(ReBuzzCore.masterInfo);
+        AssertInitialStateOfGlobalState(ReBuzzCore.GlobalState);
+    }
+
+    private static void AssertMasterInfoInitialState(MasterInfoExtended masterInfoExtended)
+    {
+        AssertMasterInfoInitialState((MasterInfo)ReBuzzCore.masterInfo);
+        masterInfoExtended.AverageSamplesPerTick.Should().Be(5250);
+    }
+
+    private static void AssertInitialStateOfGlobalState(BuzzGlobalState buzzGlobalState)
+    {
+        buzzGlobalState.AudioFrame.Should().Be(0);
+        buzzGlobalState.ADWritePos.Should().Be(0);
+        buzzGlobalState.ADPlayPos.Should().Be(0);
+        buzzGlobalState.SongPosition.Should().Be(0);
+        buzzGlobalState.LoopStart.Should().Be(0);
+        buzzGlobalState.LoopEnd.Should().Be(16);
+        buzzGlobalState.SongEnd.Should().Be(16);
+        buzzGlobalState.StateFlags.Should().Be(0);
+        buzzGlobalState.MIDIFiltering.Should().Be(0);
+        buzzGlobalState.SongClosing.Should().Be(0);
     }
 
     private static void AssertInitialStateOfSongAndSongCore(
-      SongCore songCore, ISong song, ReBuzzCore reBuzzCore, AbsoluteDirectoryPath gearDir)
+        SongCore songCore,
+        ISong song,
+        ReBuzzCore reBuzzCore,
+        AbsoluteDirectoryPath gearDir,
+        IAdditionalInitialStateAssertions additionalAssertions)
     {
         songCore.BuzzCore.Should().Be(reBuzzCore);
         songCore.ActionStack.Actions.Should().BeEmpty();
@@ -148,28 +336,37 @@ public static class InitialStateAssertions
         songCore.Wavetable.Volume.Should().Be(0);
         songCore.Wavetable.Waves.Should().Equal(Enumerable.Range(0, 200).Select(_ => null as IWave).ToArray());
         songCore.Machines.Should().HaveCount(1);
-        songCore.MachinesList.Should().Equal(songCore.Machines.Cast<MachineCore>());
 
-        AssertIsMasterMachine(songCore.Machines[0], reBuzzCore, gearDir);
+        AssertIsMasterMachine(songCore.Machines[0], reBuzzCore, gearDir, additionalAssertions);
+        songCore.MachinesList[0].Should().Be(songCore.Machines[0]);
+        additionalAssertions.AssertInitialStateOfSongCore(songCore, gearDir, reBuzzCore);
 
         song.Should().BeSameAs(songCore);
     }
 
-    private static void AssertInitialStateOfMachineManager(MachineManager machineManager, ReBuzzCore rebuzzCore)
+    private static void AssertInitialStateOfMachineManager(
+        MachineManager machineManager, ReBuzzCore reBuzzCore, IAdditionalInitialStateAssertions additionalAssertions,
+        AbsoluteDirectoryPath gearDir)
     {
         machineManager.Should().NotBeNull();
-        machineManager.Buzz.Should().Be(rebuzzCore);
+        machineManager.Buzz.Should().Be(reBuzzCore);
         machineManager.IsSingleProcessMode.Should().BeFalse();
-        machineManager.ManagedMachines.Should().BeEmpty();
         machineManager.NativeMachines.Should().BeEmpty();
+        additionalAssertions.AssertInitialStateOfMachineManager(reBuzzCore, gearDir, machineManager);
     }
 
-    private static void AssertFakeModernPatternEditor(
+    private static void AssertFakeModernPatternEditor( //bug use this
       Dictionary<string, MachineDLL> machineDlLsList, ReBuzzCore reBuzzCore, AbsoluteDirectoryPath gearDir)
     {
         var modernPatternEditor = machineDlLsList["Modern Pattern Editor"];
+        AssertFakeModernPatternEditor(reBuzzCore, gearDir, modernPatternEditor);
+    }
+
+    internal static void AssertFakeModernPatternEditor(
+        ReBuzzCore reBuzzCore, AbsoluteDirectoryPath gearDir, MachineDLL modernPatternEditor)
+    {
         var modernPatternEditorDll = FakeModernPatternEditorInfo.GetMachineDll(reBuzzCore,
-          gearDir.AddFileName("StubMachine.dll"));
+            gearDir.AddFileName("StubMachine.dll"));
         modernPatternEditor.Buzz.Should().Be(reBuzzCore);
         modernPatternEditor.Path.Should().Be(modernPatternEditorDll.Path);
         modernPatternEditor.Name.Should().Be(modernPatternEditorDll.Name);
@@ -199,18 +396,41 @@ public static class InitialStateAssertions
         modernPatternEditor.ManagedDLL.constructor.Should().NotBeNull();
 
         modernPatternEditor.ManagedDLL.globalParameters.Should().HaveCount(2);
-        AssertParameter(modernPatternEditor.ManagedDLL.globalParameters[0], "Gain", "Gain", ParameterFlags.State, 80, 0, 127, 255, ParameterType.Byte);
-        AssertParameter(modernPatternEditor.ManagedDLL.globalParameters[1], "Bypass", "Bypass", ParameterFlags.State, 0, 0, 1, 255, ParameterType.Switch);
+        AssertGlobalParameters(modernPatternEditor.ManagedDLL.globalParameters[0], modernPatternEditor.ManagedDLL.globalParameters[1]);
 
         modernPatternEditor.ManagedDLL.trackParameters.Should().HaveCount(1);
-        AssertParameter(modernPatternEditor.ManagedDLL.trackParameters[0], "ATrackParam", "ATrackParam", ParameterFlags.State, 0, 0, 127, 255, ParameterType.Byte);
+        AssertParameter(modernPatternEditor.ManagedDLL.trackParameters[0], ExpectedParameter.ATrackParam());
 
         modernPatternEditor.ManagedDLL.machineType.Name.Should().Be(nameof(FakeModernPatternEditor));
         modernPatternEditor.Presets.Should().BeNull();
-
     }
 
-    private static void AssertIsMasterMachine(IMachine machine, ReBuzzCore rebuzzCore, AbsoluteDirectoryPath gearDir)
+    private static void AssertGlobalParameters(MachineParameter parameter1, MachineParameter parameter2)
+    {
+        AssertParameter(parameter: parameter1, ExpectedParameter.Gain());
+        AssertParameter(parameter: parameter2, ExpectedParameter.Bypass());
+    }
+
+    internal static void AssertGlobalParameters(ParameterCore parameter1, ParameterCore parameter2, IParameterGroup parameterGroup)
+    {
+        AssertParameter(
+            parameter: parameter1,
+            expectedParameter: ExpectedParameter.Gain(),
+            expectedParentGroup: parameterGroup,
+            expectedIndexInGroup: 0);
+        AssertParameter(
+            parameter: parameter2,
+            expectedParameter: ExpectedParameter.Bypass(),
+            expectedParentGroup: parameterGroup,
+            expectedIndexInGroup: 1);
+    }
+
+
+    internal static void AssertIsMasterMachine(
+        IMachine machine,
+        ReBuzzCore rebuzzCore,
+        AbsoluteDirectoryPath gearDir,
+        IAdditionalInitialStateAssertions additionalAssertions)
     {
         machine.Name.Should().Be("Master");
         machine.Attributes.Should().BeEmpty();
@@ -243,30 +463,8 @@ public static class InitialStateAssertions
         machine.ParameterGroups[0].TrackCount.Should().Be(0);
 
         machine.ParameterGroups[0].Parameters.Should().HaveCount(2);
-        AssertParameter(
-          parameter: machine.ParameterGroups[0].Parameters[0],
-          expectedName: "Amp",
-          expectedDescription: "Amp (0=0%, 4000=100%, FFFE=~400%)",
-          expectedFlags: ParameterFlags.State,
-          expectedDefault: 16384,
-          expectedParentGroup: machine.ParameterGroups[0],
-          expectedIndexInGroup: 0,
-          expectedMinValue: 0,
-          expectedMaxValue: ushort.MaxValue - 1,
-          expectedNoValue: 0,
-          expectedType: ParameterType.Word);
-        AssertParameter(
-          parameter: machine.ParameterGroups[0].Parameters[1],
-          expectedName: "Pan",
-          expectedDescription: "Pan (0=Left, 4000=Center, 8000=Right)",
-          expectedFlags: ParameterFlags.State,
-          expectedDefault: 16384,
-          expectedParentGroup: machine.ParameterGroups[0],
-          expectedIndexInGroup: 1,
-          expectedMinValue: 0,
-          expectedMaxValue: short.MaxValue + 1,
-          expectedNoValue: 0,
-          expectedType: ParameterType.Word);
+        IParameterGroup machineParameterGroup = machine.ParameterGroups[0];
+        AssertMasterParameters(machineParameterGroup, machineParameterGroup.Parameters[0], machineParameterGroup.Parameters[1]);
 
 
         //TODO:
@@ -274,43 +472,22 @@ public static class InitialStateAssertions
         secondGroupParameters.Should().HaveCount(3);
 
         AssertParameter(
-          parameter: secondGroupParameters[0],
-          expectedName: "Volume",
-          expectedDescription: "Master Volume (0=0 dB, 4000=-80 dB)",
-          expectedFlags: ParameterFlags.State,
-          expectedDefault: 0,
-          expectedParentGroup: machine.ParameterGroups[1],
-          expectedIndexInGroup: 0,
-          expectedMinValue: 0,
-          expectedMaxValue: 16384,
-          expectedNoValue: ushort.MaxValue,
-          expectedType: ParameterType.Word);
+          parameter: secondGroupParameters[0], 
+          expectedParameter: ExpectedParameter.Volume(),
+          expectedParentGroup: machine.ParameterGroups[1], 
+          expectedIndexInGroup: 0);
 
         AssertParameter(
-          parameter: secondGroupParameters[1],
-          expectedName: "BPM",
-          expectedDescription: "Beats Per Minute (10-200 hex)",
-          expectedFlags: ParameterFlags.State,
-          expectedDefault: 126,
-          expectedParentGroup: machine.ParameterGroups[1],
-          expectedIndexInGroup: 1,
-          expectedMinValue: 10,
-          expectedMaxValue: 512,
-          expectedNoValue: 65535,
-          expectedType: ParameterType.Word);
+          parameter: secondGroupParameters[1], 
+          expectedParameter: ExpectedParameter.Bpm(),
+          expectedParentGroup: machine.ParameterGroups[1], 
+          expectedIndexInGroup: 1);
 
         AssertParameter(
-          parameter: secondGroupParameters[2],
-          expectedName: "TPB",
-          expectedDescription: "Ticks Per Beat (1-20 hex)",
-          expectedFlags: ParameterFlags.State,
-          expectedDefault: 4,
-          expectedParentGroup: machine.ParameterGroups[1],
-          expectedIndexInGroup: 2,
-          expectedMinValue: 1,
-          expectedMaxValue: 32,
-          expectedNoValue: 255,
-          expectedType: ParameterType.Byte);
+          parameter: secondGroupParameters[2], 
+          expectedParameter: ExpectedParameter.Tpb(),
+          expectedParentGroup: machine.ParameterGroups[1], 
+          expectedIndexInGroup: 2);
 
         machine.Patterns.Should().BeEmpty();
         machine.PerformanceData.CycleCount.Should().Be(0);
@@ -320,7 +497,7 @@ public static class InitialStateAssertions
         machine.Position.Item1.Should().Be(0);
         machine.Position.Item2.Should().Be(0);
         machine.ManagedMachine.Should().BeNull();
-        machine.PatternEditorDLL.Should().BeNull(); //bug investigate!!
+        additionalAssertions.AssertInitialStateOfPatternEditor(rebuzzCore, gearDir, machine);
         machine.DLL.Buzz.Should().Be(rebuzzCore);
         machine.DLL.Info.Should().BeEquivalentTo(new MachineInfo
         {
@@ -346,55 +523,105 @@ public static class InitialStateAssertions
         machine.DLL.SHA1Hash.Should().BeNull();
     }
 
-    private static void AssertParameter(
-      IParameter parameter,
-      string expectedName,
-      string expectedDescription,
-      ParameterFlags expectedFlags,
-      int expectedDefault,
-      IParameterGroup expectedParentGroup,
-      int expectedIndexInGroup,
-      int expectedMinValue,
-      int expectedMaxValue,
-      int expectedNoValue,
-      ParameterType expectedType)
+    internal static void AssertMasterParameters(IParameterGroup machineParameterGroup, IParameter parameter1, IParameter parameter2)
+    {
+        AssertParameter(
+            parameter: parameter1, 
+            expectedParameter: ExpectedParameter.Amp(),
+            expectedParentGroup: machineParameterGroup, 
+            expectedIndexInGroup: 0);
+        AssertParameter(
+            parameter: parameter2,
+            expectedParameter: ExpectedParameter.Pan(),
+            expectedParentGroup: machineParameterGroup,
+            expectedIndexInGroup: 1);
+    }
+
+    internal static void AssertParameter(
+        IParameter parameter,
+        ExpectedParameter expectedParameter,
+        IParameterGroup expectedParentGroup,
+        int expectedIndexInGroup)
     {
         using (new AssertionScope())
         {
-            parameter.Name.Should().Be(expectedName);
-            parameter.Description.Should().Be(expectedDescription);
-            parameter.Flags.Should().Be(expectedFlags);
-            parameter.DefValue.Should().Be(expectedDefault);
+            expectedParameter.AssertIsMatchedBy(
+                name: parameter.Name,
+                description: parameter.Description,
+                flags: parameter.Flags,
+                defValue: parameter.DefValue,
+                minValue: parameter.MinValue,
+                maxValue: parameter.MaxValue,
+                noValue: parameter.NoValue,
+                type: parameter.Type);
             parameter.Group.Should().Be(expectedParentGroup);
             parameter.IndexInGroup.Should().Be(expectedIndexInGroup);
-            parameter.MinValue.Should().Be(expectedMinValue);
-            parameter.MaxValue.Should().Be(expectedMaxValue);
-            parameter.NoValue.Should().Be(expectedNoValue);
-            parameter.Type.Should().Be(expectedType);
         }
     }
 
     private static void AssertParameter(
-      MachineParameter parameter,
-      string expectedName,
-      string expectedDescription,
-      ParameterFlags expectedFlags,
-      int expectedDefault,
-      int expectedMinValue,
-      int expectedMaxValue,
-      int expectedNoValue,
-      ParameterType expectedType)
+      MachineParameter parameter, ExpectedParameter expectedParameter)
     {
-        using (new AssertionScope())
-        {
-            parameter.Name.Should().Be(expectedName);
-            parameter.Description.Should().Be(expectedDescription);
-            parameter.Flags.Should().Be(expectedFlags);
-            parameter.DefValue.Should().Be(expectedDefault);
-            parameter.MinValue.Should().Be(expectedMinValue);
-            parameter.MaxValue.Should().Be(expectedMaxValue);
-            parameter.NoValue.Should().Be(expectedNoValue);
-            parameter.Type.Should().Be(expectedType);
-        }
+        expectedParameter.AssertIsMatchedBy(
+            name: parameter.Name,
+            description: parameter.Description,
+            flags: parameter.Flags,
+            defValue: parameter.DefValue,
+            minValue: parameter.MinValue,
+            maxValue: parameter.MaxValue,
+            noValue: parameter.NoValue,
+            type: parameter.Type);
+    }
+
+    internal static void AssertInitialPerformanceData(MachinePerformanceData performanceData)
+    {
+        performanceData.CycleCount.Should().Be(0);
+        performanceData.MaxEngineLockTime.Should().Be(0);
+        performanceData.PerformanceCount.Should().Be(0);
+        performanceData.SampleCount.Should().Be(0);
+    }
+
+    internal static void AssertFakeModernPatternEditor(
+        IBuzzMachine managedMachine, ManagedMachineHost managedMachineHost)
+    {
+        managedMachine.Should().BeEquivalentTo(new FakeModernPatternEditor(managedMachineHost));
+    }
+
+    internal static void AssertMasterInfoInitialState(MasterInfo masterInfo)
+    {
+        masterInfo.BeatsPerMin.Should().Be(126);
+        masterInfo.GrooveData.Should().Be(0);
+        masterInfo.GrooveSize.Should().Be(0);
+        masterInfo.PosInGroove.Should().Be(0);
+        masterInfo.PosInTick.Should().Be(0);
+        masterInfo.SamplesPerSec.Should().Be(44100);
+        masterInfo.TicksPerBeat.Should().Be(4);
+        masterInfo.TicksPerSec.Should().Be(8.4f);
+    }
+
+    internal static void AssertSubTickInfoInitialState(SubTickInfo subTickInfo)
+    {
+        subTickInfo.CurrentSubTick.Should().Be(0);
+        subTickInfo.PosInSubTick.Should().Be(0);
+        subTickInfo.SamplesPerSubTick.Should().Be(262);
+        subTickInfo.SubTicksPerTick.Should().Be(20);
+    }
+
+    internal static void AssertFakeModernPatternEditorHostInitialState(
+        ReBuzzCore reBuzzCore, ManagedMachineHost managedMachineHost)
+    {
+        AssertFakeModernPatternEditor(managedMachineHost.ManagedMachine, managedMachineHost);
+        AssertMasterInfoInitialState(managedMachineHost.MasterInfo);
+        AssertSubTickInfoInitialState(managedMachineHost.SubTickInfo);
+        managedMachineHost.Commands.Should().BeEquivalentTo(new FakeModernPatternEditor(managedMachineHost).Commands);
+        managedMachineHost.InputChannelCount.Should().Be(1);
+        managedMachineHost.OutputChannelCount.Should().Be(1);
+        managedMachineHost.IsControlMachine.Should().BeFalse();
+        managedMachineHost.Latency.Should().Be(0);
+        managedMachineHost.Machine.Should()
+            .Be(reBuzzCore.MachineManager.ManagedMachines.Keys.Single(machine =>
+                machine.Name == managedMachineHost.Machine.Name));
+        managedMachineHost.MachineState.Should().NotBeEmpty();
+        managedMachineHost.PatternEditorControl.Should().BeNull();
     }
 }

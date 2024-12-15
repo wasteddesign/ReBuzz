@@ -52,18 +52,6 @@ public class DynamicCompiler
 
         ms.Seek(0, SeekOrigin.Begin);
 
-        while (true)
-        {
-            try
-            {
-                File.WriteAllBytes(assemblyLocation.ToString(), ms.ToArray());
-                break;
-            }
-            catch (IOException)
-            {
-                TestContext.Progress.WriteLine("Waiting for file to not be needed by another process...");
-            }
-        }
-
+        File.WriteAllBytes(assemblyLocation.ToString(), ms.ToArray());
     }
 }
