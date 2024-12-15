@@ -1072,8 +1072,6 @@ namespace ReBuzz.Core
                         NewSong();
                         SkipAudio = false;
                         return;
-                    }
-                    
                 }
 
                 SongCore.SongName = filename;
@@ -1097,6 +1095,7 @@ namespace ReBuzz.Core
                 AudioEngine.Play();
                 //Playing = playing;
             }
+            
         }
 
         internal void ImportSong(float x, float y)

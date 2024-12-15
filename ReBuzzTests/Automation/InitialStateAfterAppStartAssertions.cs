@@ -46,28 +46,28 @@ namespace ReBuzzTests.Automation
             machineCore.workLock.IsHeldByCurrentThread.Should().BeFalse();
             machineCore.Graph.Should().Be(reBuzzCore.SongCore);
             machineCore.parametersChanged.Should().HaveCount(5);
-            var changedParameter1 = machineCore.parametersChanged.ToList()[0];
-            var changedParameter2 = machineCore.parametersChanged.ToList()[1];
-            var changedParameter3 = machineCore.parametersChanged.ToList()[2];
-            var changedParameter4 = machineCore.parametersChanged.ToList()[3];
-            var changedParameter5 = machineCore.parametersChanged.ToList()[4];
+            var ampParam = machineCore.parametersChanged.ToList().Single(p => p.Key.Name == "Amp");
+            var panParam = machineCore.parametersChanged.ToList().Single(p => p.Key.Name == "Pan");
+            var gainParam = machineCore.parametersChanged.ToList().Single(p => p.Key.Name == "Gain");
+            var bypassParam = machineCore.parametersChanged.ToList().Single(p => p.Key.Name == "Bypass");
+            var aTrackParam = machineCore.parametersChanged.ToList().Single(p => p.Key.Name == "ATrackParam");
 
             InitialStateAssertions.AssertMasterParameters(
                 ((IMachine)machineCore).ParameterGroups[0],
-                changedParameter1.Key,
-                changedParameter2.Key);
-            changedParameter1.Value.Should().Be(0);
-            changedParameter2.Value.Should().Be(0);
+                ampParam.Key,
+                panParam.Key);
+            ampParam.Value.Should().Be(0);
+            panParam.Value.Should().Be(0);
 
-            InitialStateAssertions.AssertGlobalParameters(changedParameter3.Key, changedParameter4.Key, ((IMachine)machineCore).ParameterGroups[1]);
-            changedParameter3.Value.Should().Be(0);
-            changedParameter4.Value.Should().Be(0);
+            InitialStateAssertions.AssertGlobalParameters(gainParam.Key, bypassParam.Key, ((IMachine)machineCore).ParameterGroups[1]);
+            gainParam.Value.Should().Be(0);
+            bypassParam.Value.Should().Be(0);
             InitialStateAssertions.AssertParameter(
-                parameter: changedParameter5.Key, 
+                parameter: aTrackParam.Key, 
                 expectedParameter: ExpectedParameter.ATrackParam(),
                 expectedParentGroup: ((IMachine)machineCore).ParameterGroups[2], 
                 expectedIndexInGroup: 0);
-            changedParameter5.Value.Should().Be(0);
+            aTrackParam.Value.Should().Be(0);
 
             machineCore.Inputs.Should().BeEmpty();
             machineCore.AllInputs.Should().BeEmpty();

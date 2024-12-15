@@ -411,15 +411,15 @@ public static class InitialStateAssertions
         AssertParameter(parameter: parameter2, ExpectedParameter.Bypass());
     }
 
-    internal static void AssertGlobalParameters(ParameterCore parameter1, ParameterCore parameter2, IParameterGroup parameterGroup)
+    internal static void AssertGlobalParameters(ParameterCore gainParam, ParameterCore bypassParam, IParameterGroup parameterGroup)
     {
         AssertParameter(
-            parameter: parameter1,
+            parameter: gainParam,
             expectedParameter: ExpectedParameter.Gain(),
             expectedParentGroup: parameterGroup,
             expectedIndexInGroup: 0);
         AssertParameter(
-            parameter: parameter2,
+            parameter: bypassParam,
             expectedParameter: ExpectedParameter.Bypass(),
             expectedParentGroup: parameterGroup,
             expectedIndexInGroup: 1);
@@ -523,15 +523,15 @@ public static class InitialStateAssertions
         machine.DLL.SHA1Hash.Should().BeNull();
     }
 
-    internal static void AssertMasterParameters(IParameterGroup machineParameterGroup, IParameter parameter1, IParameter parameter2)
+    internal static void AssertMasterParameters(IParameterGroup machineParameterGroup, IParameter ampParameter, IParameter panParameter)
     {
         AssertParameter(
-            parameter: parameter1, 
+            parameter: ampParameter, 
             expectedParameter: ExpectedParameter.Amp(),
             expectedParentGroup: machineParameterGroup, 
             expectedIndexInGroup: 0);
         AssertParameter(
-            parameter: parameter2,
+            parameter: panParameter,
             expectedParameter: ExpectedParameter.Pan(),
             expectedParentGroup: machineParameterGroup,
             expectedIndexInGroup: 1);
