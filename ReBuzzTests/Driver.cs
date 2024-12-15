@@ -119,19 +119,6 @@ public class Driver : IDisposable, IInitializationObserver
         reBuzzCore?.ExecuteCommand(BuzzCommand.Exit); //bug logs
     }
 
-    public void AssertRequiredPropertiesAreInitialized()
-    {
-        //bug is this really needed?
-        reBuzzCore.Should().NotBeNull();
-        reBuzzCore.Gear.Should().NotBeNull();
-        reBuzzCore.Gear.Machine.Should().NotBeEmpty();
-        reBuzzCore.AudioEngine.Should().NotBeNull();
-        reBuzzCore.SongCore.Should().NotBeNull();
-        reBuzzCore.SongCore.BuzzCore.Should().Be(reBuzzCore);
-        reBuzzCore.SongCore.WavetableCore.Should().NotBeNull();
-        reBuzzCore.MachineManager.Should().NotBeNull();
-    }
-
     void IInitializationObserver.NotifyMachineManagerCreated(MachineManager machineManager)
     {
         TestContext.Out.WriteLine("MachineManager created");

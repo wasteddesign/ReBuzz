@@ -219,6 +219,8 @@ public static class InitialStateAssertions
 
     public static void AssertInitialState(AbsoluteDirectoryPath gearDir, ReBuzzCore reBuzzCore, IAdditionalInitialStateAssertions additionalAssertions)
     {
+        reBuzzCore.AudioEngine.SelectedOutDevice.Should().BeNull();
+
         // Assertions for ReBuzzCore properties
         reBuzzCore.HostVersion.Should().Be(66);
         reBuzzCore.BPM.Should().Be(126);
@@ -228,17 +230,8 @@ public static class InitialStateAssertions
         reBuzzCore.Recording.Should().BeFalse();
         reBuzzCore.Looping.Should().BeFalse();
         reBuzzCore.AudioDeviceDisabled.Should().BeFalse();
-        reBuzzCore.MIDIControllers.Should().BeEmpty();
-        //bug different results with R# and NCrunch: rebuzzCore.Theme.Should().BeEquivalentTo(new ReBuzzTheme());
         reBuzzCore.VUMeterLevel.Item1.Should().Be(0.0);
         reBuzzCore.VUMeterLevel.Item2.Should().Be(0.0);
-        reBuzzCore.MidiControllerAssignments.MIDIControllers.Should().BeEmpty();
-        reBuzzCore.MidiControllerAssignments.ReBuzzMIDIControllers.Should().BeEmpty();
-        reBuzzCore.MidiControllerAssignments.Song.Should().Be(reBuzzCore.SongCore);
-
-        AssertInitialStateOfSongAndSongCore(reBuzzCore.SongCore, reBuzzCore.Song, reBuzzCore, gearDir, additionalAssertions);
-
-        // Additional assertions for ReBuzzCore properties
 
         foreach (var (key, value) in ColorDictionary)
         {
@@ -246,9 +239,16 @@ public static class InitialStateAssertions
         }
 
         reBuzzCore.MachineIndex.Should().BeEquivalentTo(new MenuItemCore());
+
+        reBuzzCore.MIDIControllers.Should().BeEmpty();
+        reBuzzCore.MidiControllerAssignments.MIDIControllers.Should().BeEmpty();
+        reBuzzCore.MidiControllerAssignments.ReBuzzMIDIControllers.Should().BeEmpty();
+        reBuzzCore.MidiControllerAssignments.Song.Should().Be(reBuzzCore.SongCore);
+        reBuzzCore.MIDIControllers.Should().BeEmpty();
         reBuzzCore.MIDIFocusMachine.Should().Be(reBuzzCore.SongCore.MachinesList[0]);
         reBuzzCore.MIDIFocusLocked.Should().BeFalse();
         reBuzzCore.MIDIActivity.Should().BeFalse();
+
         reBuzzCore.IsPianoKeyboardVisible.Should().BeFalse();
         reBuzzCore.IsSettingsWindowVisible.Should().BeFalse();
         reBuzzCore.IsCPUMonitorWindowVisible.Should().BeFalse();
@@ -262,27 +262,52 @@ public static class InitialStateAssertions
         reBuzzCore.MachineDLLsList.Should().HaveCount(1);
         reBuzzCore.AUTO_CONVERT_WAVES.Should().BeFalse();
 
-        AssertInitialStateOfMachineManager(reBuzzCore.MachineManager, reBuzzCore, additionalAssertions, gearDir);
-
+        AssertInitialStateOfSongAndSongCore(
+            reBuzzCore.SongCore,
+            reBuzzCore.Song,
+            reBuzzCore,
+            gearDir,
+            additionalAssertions);
+        AssertInitialStateOfMachineManager(
+            reBuzzCore.MachineManager,
+            reBuzzCore,
+            additionalAssertions,
+            gearDir);
         AssertFakeModernPatternEditor(reBuzzCore.MachineDLLsList, reBuzzCore, gearDir);
-        //TODO
+        AssertGlobalReBuzzCoreStaticProperties();
+    }
 
-        //bug more assertions and take some of this from the fake machine scanner.
-
-        //
-        //// Assertions for static properties
+    private static void AssertGlobalReBuzzCoreStaticProperties()
+    {
         ReBuzzCore.buildNumber.Should().NotBe(0);
         ReBuzzCore.AppDataPath.Should().Be("ReBuzz");
-        ReBuzzCore.GlobalState.AudioFrame.Should().Be(0);
-        ReBuzzCore.GlobalState.ADWritePos.Should().Be(0);
-        ReBuzzCore.GlobalState.ADPlayPos.Should().Be(0);
-        ReBuzzCore.GlobalState.SongPosition.Should().Be(0);
-        ReBuzzCore.GlobalState.LoopStart.Should().Be(0);
-        ReBuzzCore.GlobalState.LoopEnd.Should().Be(16);
-        ReBuzzCore.GlobalState.SongEnd.Should().Be(16);
-        ReBuzzCore.GlobalState.StateFlags.Should().Be(0);
-        ReBuzzCore.GlobalState.MIDIFiltering.Should().Be(0);
-        ReBuzzCore.GlobalState.SongClosing.Should().Be(0);
+        ReBuzzCore.AudioLock.IsHeldByCurrentThread.Should().BeFalse();
+        ReBuzzCore.SF_PLAYING.Should().Be(1);
+        ReBuzzCore.SF_RECORDING.Should().Be(2);
+        ReBuzzCore.SkipAudio.Should().BeFalse();
+        ReBuzzCore.SubTicsPerTick.Should().Be(8);
+        AssertMasterInfoInitialState(ReBuzzCore.masterInfo);
+        AssertInitialStateOfGlobalState(ReBuzzCore.GlobalState);
+    }
+
+    private static void AssertMasterInfoInitialState(MasterInfoExtended masterInfoExtended)
+    {
+        AssertMasterInfoInitialState((MasterInfo)ReBuzzCore.masterInfo);
+        masterInfoExtended.AverageSamplesPerTick.Should().Be(5250);
+    }
+
+    private static void AssertInitialStateOfGlobalState(BuzzGlobalState buzzGlobalState)
+    {
+        buzzGlobalState.AudioFrame.Should().Be(0);
+        buzzGlobalState.ADWritePos.Should().Be(0);
+        buzzGlobalState.ADPlayPos.Should().Be(0);
+        buzzGlobalState.SongPosition.Should().Be(0);
+        buzzGlobalState.LoopStart.Should().Be(0);
+        buzzGlobalState.LoopEnd.Should().Be(16);
+        buzzGlobalState.SongEnd.Should().Be(16);
+        buzzGlobalState.StateFlags.Should().Be(0);
+        buzzGlobalState.MIDIFiltering.Should().Be(0);
+        buzzGlobalState.SongClosing.Should().Be(0);
     }
 
     private static void AssertInitialStateOfSongAndSongCore(
@@ -314,7 +339,7 @@ public static class InitialStateAssertions
 
         AssertIsMasterMachine(songCore.Machines[0], reBuzzCore, gearDir, additionalAssertions);
         songCore.MachinesList[0].Should().Be(songCore.Machines[0]);
-        additionalAssertions.AssertSongCore(songCore, gearDir, reBuzzCore);
+        additionalAssertions.AssertInitialStateOfSongCore(songCore, gearDir, reBuzzCore);
 
         song.Should().BeSameAs(songCore);
     }
@@ -327,7 +352,7 @@ public static class InitialStateAssertions
         machineManager.Buzz.Should().Be(reBuzzCore);
         machineManager.IsSingleProcessMode.Should().BeFalse();
         machineManager.NativeMachines.Should().BeEmpty();
-        additionalAssertions.AssertMachineManager(reBuzzCore, gearDir, machineManager);
+        additionalAssertions.AssertInitialStateOfMachineManager(reBuzzCore, gearDir, machineManager);
     }
 
     private static void AssertFakeModernPatternEditor( //bug use this
@@ -472,7 +497,7 @@ public static class InitialStateAssertions
         machine.Position.Item1.Should().Be(0);
         machine.Position.Item2.Should().Be(0);
         machine.ManagedMachine.Should().BeNull();
-        additionalAssertions.AssertPatternEditor(rebuzzCore, gearDir, machine);
+        additionalAssertions.AssertInitialStateOfPatternEditor(rebuzzCore, gearDir, machine);
         machine.DLL.Buzz.Should().Be(rebuzzCore);
         machine.DLL.Info.Should().BeEquivalentTo(new MachineInfo
         {

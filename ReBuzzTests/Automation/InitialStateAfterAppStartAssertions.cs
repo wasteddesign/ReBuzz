@@ -13,19 +13,19 @@ namespace ReBuzzTests.Automation
 {
     public class InitialStateAfterAppStartAssertions : IAdditionalInitialStateAssertions
     {
-        public void AssertSongCore(SongCore songCore, AbsoluteDirectoryPath gearDir, ReBuzzCore reBuzzCore)
+        public void AssertInitialStateOfSongCore(SongCore songCore, AbsoluteDirectoryPath gearDir, ReBuzzCore reBuzzCore)
         {
             songCore.MachinesList.Should().HaveCount(2);
             AssertMachineCore(reBuzzCore, gearDir, songCore.MachinesList[1],
                 reBuzzCore.MachineManager.ManagedMachines.First().Value);
         }
 
-        public void AssertPatternEditor(ReBuzzCore reBuzzCore, AbsoluteDirectoryPath gearDir, IMachine machine)
+        public void AssertInitialStateOfPatternEditor(ReBuzzCore reBuzzCore, AbsoluteDirectoryPath gearDir, IMachine machine)
         {
             InitialStateAssertions.AssertFakeModernPatternEditor(reBuzzCore, gearDir, (MachineDLL)machine.PatternEditorDLL);
         }
 
-        public void AssertMachineManager(
+        public void AssertInitialStateOfMachineManager(
             ReBuzzCore reBuzzCore, AbsoluteDirectoryPath gearDir, MachineManager machineManager)
         {
             machineManager.ManagedMachines.Should().HaveCount(1);

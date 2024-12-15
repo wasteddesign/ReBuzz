@@ -9,7 +9,6 @@ public class Tests
 
         driver.Start();
 
-        driver.AssertRequiredPropertiesAreInitialized();  //bug what to do with this one? Maybe add to the initial state assertion?
         driver.AssertGearMachinesConsistOf([ //bug what to do with this one? Maybe add to the initial state assertion?
             "Jeskola Pianoroll",
             "Modern Pattern Editor",
