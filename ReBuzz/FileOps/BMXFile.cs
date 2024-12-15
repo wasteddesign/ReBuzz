@@ -7,6 +7,7 @@ using ReBuzz.Core.Actions.GraphActions;
 using ReBuzz.MachineManagement;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 using System.IO;
 using System.Linq;
 using System.Security.AccessControl;
@@ -423,6 +424,9 @@ namespace ReBuzz.FileOps
                     {
                         // Update Position
                         machineProto.Position = new Tuple<float, float>(x, y);
+                        // Update tpb & bpm immediately if machines read these during creation
+                        buzz.BPM = machineProto.ParameterGroups[1].Parameters[1].GetValue(0);
+                        buzz.TPB = machineProto.ParameterGroups[1].Parameters[2].GetValue(0);
                     }
                     machines[j] = machineProto;
                 }
@@ -531,14 +535,14 @@ namespace ReBuzz.FileOps
                 // Set the defaul/saved state of parameters. Skip non-state, notes and input group
                 if (paramtersTo[i].Flags.HasFlag(ParameterFlags.State) && paramtersTo[i].Type != ParameterType.Note && group != 0)
                 {
-                    if (machineTo.DLL.IsManaged)
-                    {
+                    //if (machineTo.DLL.IsManaged)
+                    //{
                         paramtersTo[i].SetValue(track, paramtersFrom[i].GetValue(track));
-                    }
-                    else
-                    {
-                        paramtersTo[i].DirectSetValue(track, paramtersFrom[i].GetValue(track));
-                    }
+                    //}
+                    //else
+                    //{
+                    //    paramtersTo[i].DirectSetValue(track, paramtersFrom[i].GetValue(track));
+                    //}
                 }
             }
         }

@@ -1067,8 +1067,8 @@ namespace ReBuzz
                 seqenceEditor.Song = null;
                 seqenceEditor.Release();
             }
-            var res = Utils.GetBuzzThemeResources(Buzz.Theme.SequenceEditor.Source, buzzPath);
-            seqenceEditor = new BuzzGUI.SequenceEditor.SequenceEditor(Buzz, res);
+            var res = Utils.GetBuzzThemeResources(Buzz.Theme.SequenceEditor.Source);
+            seqenceEditor = new SequenceEditor(Buzz, res);
             seqenceEditor.SetVisibility(true);
             EditorView.SequenceEditor = seqenceEditor;
             borderEditor.Child = EditorView;
