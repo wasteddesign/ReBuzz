@@ -1,35 +1,36 @@
 using AtmaFileSystem;
 using ReBuzz.Core;
 using ReBuzz.FileOps;
-using System;
 using System.Collections.Generic;
 
 namespace ReBuzzTests.Automation;
 
-internal class FakeMachineDLLScanner(AbsoluteDirectoryPath gearPath) : IMachineDLLScanner //bug move
+internal class FakeMachineDLLScanner(AbsoluteDirectoryPath gearPath) : IMachineDLLScanner
 {
-    //bug breaks CQS
-    public Dictionary<string, MachineDLL> GetMachineDLLs(ReBuzzCore buzz, string buzzPath)
+    private readonly Dictionary<string, MachineDLL> machineDllsByName = new();
+
+    public void AddFakeModernPatternEditor(ReBuzzCore buzz)
     {
-        var assemblyLocation = gearPath.AddFileName("StubMachine.dll"); //bug
-                                                                        //bug delete the test machines after the test
-                                                                        //bug set the buzz path correctly
+        var assemblyLocation = gearPath.AddFileName(FakeModernPatternEditorInfo.DllName);
         DynamicCompiler.CompileAndSave(FakeModernPatternEditor.GetSourceCode(), assemblyLocation);
 
         var modernPatternEditorDll = FakeModernPatternEditorInfo.GetMachineDll(buzz, assemblyLocation);
-        return new Dictionary<string, MachineDLL>() //bug fill some of this stuff from machine decl
-        {
-            [modernPatternEditorDll.Name] = modernPatternEditorDll,
-        };
+        machineDllsByName[modernPatternEditorDll.Name] = modernPatternEditorDll;
+    }
+
+    public Dictionary<string, MachineDLL> GetMachineDLLs(ReBuzzCore buzz, string buzzPath)
+    {
+        return machineDllsByName;
     }
 
     public void AddMachineDllsToDictionary(XMLMachineDLL[] xMLMachineDLLs, Dictionary<string, MachineDLL> md)
     {
-        throw new NotImplementedException("Not called anywhere in the current tests");
+        Assert.Fail("Not called anywhere yet in the current tests");
     }
 
     public XMLMachineDLL ValidateDll(ReBuzzCore buzz, string libName, string path, string buzzPath)
     {
-        throw new NotImplementedException("Not called anywhere in the current tests");
+        Assert.Fail("Not called anywhere yet in the current tests");
+        return null!;
     }
 }

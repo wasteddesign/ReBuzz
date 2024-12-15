@@ -16,7 +16,7 @@ public class InitialStateAfterNewFileAssertions : IAdditionalInitialStateAsserti
 
     public void AssertInitialStateOfPatternEditor(ReBuzzCore reBuzzCore, AbsoluteDirectoryPath gearDir, IMachine machine)
     {
-        machine.PatternEditorDLL.Should().BeNull(); //bug investigate!!
+        machine.PatternEditorDLL.Should().BeNull();
     }
 
     public void AssertInitialStateOfMachineManager(

@@ -17,9 +17,19 @@ public class DynamicCompiler
         // Referencing these types only to ensure the dlls containing them are loaded
         _ = new[]
         {
-            typeof(object), typeof(INotifyPropertyChanged), typeof(PropertyChangedEventHandler), typeof(int),
-            typeof(double), typeof(Path), typeof(IBuzzMachine), typeof(AbsoluteFilePath), typeof(MenuItemVM),
-            typeof(Attribute), typeof(Attribute), typeof(Enumerable), typeof(System.Runtime.GCSettings)
+            typeof(object),
+            typeof(INotifyPropertyChanged),
+            typeof(PropertyChangedEventHandler),
+            typeof(int),
+            typeof(double),
+            typeof(Path),
+            typeof(IBuzzMachine),
+            typeof(AbsoluteFilePath),
+            typeof(MenuItemVM),
+            typeof(Attribute),
+            typeof(Attribute),
+            typeof(Enumerable),
+            typeof(System.Runtime.GCSettings)
         };
 
         var syntaxTree = CSharpSyntaxTree.ParseText(code);

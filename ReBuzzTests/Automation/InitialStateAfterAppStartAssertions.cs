@@ -64,7 +64,7 @@ namespace ReBuzzTests.Automation
             bypassParam.Value.Should().Be(0);
             InitialStateAssertions.AssertParameter(
                 parameter: aTrackParam.Key, 
-                expectedParameter: ExpectedParameter.ATrackParam(),
+                expectedParameter: ExpectedMachineParameter.ATrackParam(),
                 expectedParentGroup: ((IMachine)machineCore).ParameterGroups[2], 
                 expectedIndexInGroup: 0);
             aTrackParam.Value.Should().Be(0);

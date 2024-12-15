@@ -9,166 +9,9 @@ using ReBuzz.ManagedMachine;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Media;
+using ReBuzz.FileOps;
 
 namespace ReBuzzTests.Automation;
-
-public record ExpectedParameter //bug move
-{
-    public ParameterType ExpectedType;
-    public int ExpectedNoValue;
-    public int ExpectedMaxValue;
-    public int ExpectedMinValue;
-    public int ExpectedDefault;
-    public ParameterFlags ExpectedFlags;
-    public string ExpectedDescription;
-    public string ExpectedName;
-
-    public ExpectedParameter(
-        string expectedName,
-        string expectedDescription,
-        ParameterFlags expectedFlags,
-        int expectedDefault,
-        int expectedMinValue,
-        int expectedMaxValue,
-        int expectedNoValue,
-        ParameterType expectedType)
-    {
-        ExpectedName = expectedName;
-        ExpectedDescription = expectedDescription;
-        ExpectedFlags = expectedFlags;
-        ExpectedDefault = expectedDefault;
-        ExpectedMinValue = expectedMinValue;
-        ExpectedMaxValue = expectedMaxValue;
-        ExpectedNoValue = expectedNoValue;
-        ExpectedType = expectedType;
-    }
-
-    public static ExpectedParameter ATrackParam()
-    {
-        return new ExpectedParameter(
-            expectedName: "ATrackParam",
-            expectedDescription: "ATrackParam",
-            expectedFlags: ParameterFlags.State,
-            expectedDefault: 0,
-            expectedMinValue: 0,
-            expectedMaxValue: 127,
-            expectedNoValue: 255,
-            expectedType: ParameterType.Byte);
-    }
-
-    public static ExpectedParameter Bypass()
-    {
-        return new ExpectedParameter(
-            expectedName: "Bypass",
-            expectedDescription: "Bypass",
-            expectedFlags: ParameterFlags.State,
-            expectedDefault: 0,
-            expectedMinValue: 0,
-            expectedMaxValue: 1,
-            expectedNoValue: 255,
-            expectedType: ParameterType.Switch);
-    }
-
-    public static ExpectedParameter Gain()
-    {
-        return new ExpectedParameter(
-            expectedName: "Gain",
-            expectedDescription: "Gain",
-            expectedFlags: ParameterFlags.State,
-            expectedDefault: 80,
-            expectedMinValue: 0,
-            expectedMaxValue: 127,
-            expectedNoValue: 255,
-            expectedType: ParameterType.Byte);
-    }
-
-    internal void AssertIsMatchedBy(
-        string name,
-        string description,
-        ParameterFlags flags,
-        int defValue,
-        int minValue,
-        int maxValue,
-        int noValue,
-        ParameterType type)
-    {
-        using (new AssertionScope())
-        {
-            name.Should().Be(ExpectedName);
-            description.Should().Be(ExpectedDescription);
-            flags.Should().Be(ExpectedFlags);
-            defValue.Should().Be(ExpectedDefault);
-            minValue.Should().Be(ExpectedMinValue);
-            maxValue.Should().Be(ExpectedMaxValue);
-            noValue.Should().Be(ExpectedNoValue);
-            type.Should().Be(ExpectedType);
-        }
-    }
-
-    public static ExpectedParameter Pan()
-    {
-        return new ExpectedParameter(expectedName: "Pan",
-            expectedDescription: "Pan (0=Left, 4000=Center, 8000=Right)",
-            expectedFlags: ParameterFlags.State,
-            expectedDefault: 16384,
-            expectedMinValue: 0,
-            expectedMaxValue: short.MaxValue + 1,
-            expectedNoValue: 0,
-            expectedType: ParameterType.Word);
-    }
-
-    public static ExpectedParameter Volume()
-    {
-        return new ExpectedParameter(
-            expectedName: "Volume",
-            expectedDescription: "Master Volume (0=0 dB, 4000=-80 dB)",
-            expectedFlags: ParameterFlags.State,
-            expectedDefault: 0,
-            expectedMinValue: 0,
-            expectedMaxValue: 16384,
-            expectedNoValue: ushort.MaxValue,
-            expectedType: ParameterType.Word);
-    }
-
-    public static ExpectedParameter Bpm()
-    {
-        return new ExpectedParameter(
-            expectedName: "BPM",
-            expectedDescription: "Beats Per Minute (10-200 hex)",
-            expectedFlags: ParameterFlags.State,
-            expectedDefault: 126,
-            expectedMinValue: 10,
-            expectedMaxValue: 512,
-            expectedNoValue: 65535,
-            expectedType: ParameterType.Word);
-    }
-
-    public static ExpectedParameter Tpb()
-    {
-        return new ExpectedParameter(
-            expectedName: "TPB",
-            expectedDescription: "Ticks Per Beat (1-20 hex)",
-            expectedFlags: ParameterFlags.State,
-            expectedDefault: 4,
-            expectedMinValue: 1,
-            expectedMaxValue: 32,
-            expectedNoValue: 255,
-            expectedType: ParameterType.Byte);
-    }
-
-    public static ExpectedParameter Amp()
-    {
-        return new ExpectedParameter(
-            expectedName: "Amp",
-            expectedDescription: "Amp (0=0%, 4000=100%, FFFE=~400%)",
-            expectedFlags: ParameterFlags.State,
-            expectedDefault: 16384,
-            expectedMinValue: 0,
-            expectedMaxValue: ushort.MaxValue - 1,
-            expectedNoValue: 0,
-            expectedType: ParameterType.Word);
-    }
-}
 
 public static class InitialStateAssertions
 {
@@ -219,6 +62,8 @@ public static class InitialStateAssertions
 
     public static void AssertInitialState(AbsoluteDirectoryPath gearDir, ReBuzzCore reBuzzCore, IAdditionalInitialStateAssertions additionalAssertions)
     {
+        AssertInitialStateOfGear(reBuzzCore.Gear);
+
         reBuzzCore.AudioEngine.SelectedOutDevice.Should().BeNull();
 
         // Assertions for ReBuzzCore properties
@@ -355,7 +200,7 @@ public static class InitialStateAssertions
         additionalAssertions.AssertInitialStateOfMachineManager(reBuzzCore, gearDir, machineManager);
     }
 
-    private static void AssertFakeModernPatternEditor( //bug use this
+    private static void AssertFakeModernPatternEditor(
       Dictionary<string, MachineDLL> machineDlLsList, ReBuzzCore reBuzzCore, AbsoluteDirectoryPath gearDir)
     {
         var modernPatternEditor = machineDlLsList["Modern Pattern Editor"];
@@ -366,7 +211,7 @@ public static class InitialStateAssertions
         ReBuzzCore reBuzzCore, AbsoluteDirectoryPath gearDir, MachineDLL modernPatternEditor)
     {
         var modernPatternEditorDll = FakeModernPatternEditorInfo.GetMachineDll(reBuzzCore,
-            gearDir.AddFileName("StubMachine.dll"));
+            gearDir.AddFileName(FakeModernPatternEditorInfo.DllName));
         modernPatternEditor.Buzz.Should().Be(reBuzzCore);
         modernPatternEditor.Path.Should().Be(modernPatternEditorDll.Path);
         modernPatternEditor.Name.Should().Be(modernPatternEditorDll.Name);
@@ -399,7 +244,7 @@ public static class InitialStateAssertions
         AssertGlobalParameters(modernPatternEditor.ManagedDLL.globalParameters[0], modernPatternEditor.ManagedDLL.globalParameters[1]);
 
         modernPatternEditor.ManagedDLL.trackParameters.Should().HaveCount(1);
-        AssertParameter(modernPatternEditor.ManagedDLL.trackParameters[0], ExpectedParameter.ATrackParam());
+        AssertParameter(modernPatternEditor.ManagedDLL.trackParameters[0], ExpectedMachineParameter.ATrackParam());
 
         modernPatternEditor.ManagedDLL.machineType.Name.Should().Be(nameof(FakeModernPatternEditor));
         modernPatternEditor.Presets.Should().BeNull();
@@ -407,20 +252,20 @@ public static class InitialStateAssertions
 
     private static void AssertGlobalParameters(MachineParameter parameter1, MachineParameter parameter2)
     {
-        AssertParameter(parameter: parameter1, ExpectedParameter.Gain());
-        AssertParameter(parameter: parameter2, ExpectedParameter.Bypass());
+        AssertParameter(parameter: parameter1, ExpectedMachineParameter.Gain());
+        AssertParameter(parameter: parameter2, ExpectedMachineParameter.Bypass());
     }
 
     internal static void AssertGlobalParameters(ParameterCore gainParam, ParameterCore bypassParam, IParameterGroup parameterGroup)
     {
         AssertParameter(
             parameter: gainParam,
-            expectedParameter: ExpectedParameter.Gain(),
+            expectedParameter: ExpectedMachineParameter.Gain(),
             expectedParentGroup: parameterGroup,
             expectedIndexInGroup: 0);
         AssertParameter(
             parameter: bypassParam,
-            expectedParameter: ExpectedParameter.Bypass(),
+            expectedParameter: ExpectedMachineParameter.Bypass(),
             expectedParentGroup: parameterGroup,
             expectedIndexInGroup: 1);
     }
@@ -463,29 +308,27 @@ public static class InitialStateAssertions
         machine.ParameterGroups[0].TrackCount.Should().Be(0);
 
         machine.ParameterGroups[0].Parameters.Should().HaveCount(2);
-        IParameterGroup machineParameterGroup = machine.ParameterGroups[0];
+        var machineParameterGroup = machine.ParameterGroups[0];
         AssertMasterParameters(machineParameterGroup, machineParameterGroup.Parameters[0], machineParameterGroup.Parameters[1]);
 
-
-        //TODO:
         var secondGroupParameters = machine.ParameterGroups[1].Parameters;
         secondGroupParameters.Should().HaveCount(3);
 
         AssertParameter(
           parameter: secondGroupParameters[0], 
-          expectedParameter: ExpectedParameter.Volume(),
+          expectedParameter: ExpectedMachineParameter.Volume(),
           expectedParentGroup: machine.ParameterGroups[1], 
           expectedIndexInGroup: 0);
 
         AssertParameter(
           parameter: secondGroupParameters[1], 
-          expectedParameter: ExpectedParameter.Bpm(),
+          expectedParameter: ExpectedMachineParameter.Bpm(),
           expectedParentGroup: machine.ParameterGroups[1], 
           expectedIndexInGroup: 1);
 
         AssertParameter(
           parameter: secondGroupParameters[2], 
-          expectedParameter: ExpectedParameter.Tpb(),
+          expectedParameter: ExpectedMachineParameter.Tpb(),
           expectedParentGroup: machine.ParameterGroups[1], 
           expectedIndexInGroup: 2);
 
@@ -527,19 +370,19 @@ public static class InitialStateAssertions
     {
         AssertParameter(
             parameter: ampParameter, 
-            expectedParameter: ExpectedParameter.Amp(),
+            expectedParameter: ExpectedMachineParameter.Amp(),
             expectedParentGroup: machineParameterGroup, 
             expectedIndexInGroup: 0);
         AssertParameter(
             parameter: panParameter,
-            expectedParameter: ExpectedParameter.Pan(),
+            expectedParameter: ExpectedMachineParameter.Pan(),
             expectedParentGroup: machineParameterGroup,
             expectedIndexInGroup: 1);
     }
 
     internal static void AssertParameter(
         IParameter parameter,
-        ExpectedParameter expectedParameter,
+        ExpectedMachineParameter expectedParameter,
         IParameterGroup expectedParentGroup,
         int expectedIndexInGroup)
     {
@@ -560,7 +403,7 @@ public static class InitialStateAssertions
     }
 
     private static void AssertParameter(
-      MachineParameter parameter, ExpectedParameter expectedParameter)
+      MachineParameter parameter, ExpectedMachineParameter expectedParameter)
     {
         expectedParameter.AssertIsMatchedBy(
             name: parameter.Name,
@@ -623,5 +466,28 @@ public static class InitialStateAssertions
                 machine.Name == managedMachineHost.Machine.Name));
         managedMachineHost.MachineState.Should().NotBeEmpty();
         managedMachineHost.PatternEditorControl.Should().BeNull();
+    }
+
+    public static void AssertInitialStateOfGear(Gear gear)
+    {
+        gear.Machine.Select(m => m.Name).Should().Equal(new[]
+        {
+            "Jeskola Pianoroll",
+            "Modern Pattern Editor",
+            "Jeskola Pattern XP",
+            "Jeskola Pattern XP mod",
+            "Modern Pianoroll",
+            "Polac VST 1.1",
+            "Polac VSTi 1.1",
+            "Jeskola XS-1",
+            "CyanPhase Buzz OverLoader",
+            "CyanPhase DX Instrument Adapter",
+            "CyanPhase DX Effect Adapter",
+            "CyanPhase DMO Effect Adapter",
+            "11-MidiCCout",
+            "Rymix*",
+            "FireSledge ParamEQ",
+            "BTDSys Pulsar"
+        });
     }
 }

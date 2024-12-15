@@ -39,4 +39,6 @@ public static class FakeModernPatternEditorInfo
             ModuleHandle = 0,
         };
     }
+
+    public static string DllName => "FakeModernPatternEditor.dll";
 }

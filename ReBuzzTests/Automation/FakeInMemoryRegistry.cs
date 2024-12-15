@@ -4,9 +4,10 @@ using System.Threading;
 
 namespace ReBuzzTests.Automation;
 
-internal class FakeInMemoryRegistry: IRegistryEx //bug move
+internal class FakeInMemoryRegistry : IRegistryEx
 {
     private readonly Lock lockObject = new();
+
     private readonly Dictionary<(string Path, string Key), object> registryDictionary = new()
     {
         [("ASIO", "SampleRate")] = 44100,
@@ -18,15 +19,16 @@ internal class FakeInMemoryRegistry: IRegistryEx //bug move
         [("BuzzGUI\\EngineSettings", "SubTickTiming")] = true,
         [("BuzzGUI\\MachineViewSettings", "SignalAnalysisMode")] = "VST",
         [("BuzzGUI\\SequenceEditorSettings", "HideEditor")] = true,
-        [("BuzzGUI\\SignalAnalysisVSTWindow", "DefaultSignalAnalysisVST")] = @"C:\Program Files\ReBuzz\Gear\Vst\JoaCHIP Quick Meter.dll",
-        [("Recent File List", "File1")] = @"D:\Songs\Song1.bmx",
-        [("Recent File List", "File2")] = @"D:\Songs\Song2.bmx",
-        [("Recent File List", "File3")] = @"D:\Songs\Song3.bmx",
-        [("Recent File List", "File4")] = @"D:\Songs\Song4.bmx",
-        [("Recent File List", "File5")] = @"D:\Songs\Song5.bmx",
-        [("Recent File List", "File6")] = @"D:\Songs\Song6.bmx",
-        [("Recent File List", "File7")] = @"D:\Songs\Song7.bmx",
-        [("Recent File List", "File8")] = @"D:\Songs\Song8.bmx",
+        [("BuzzGUI\\SignalAnalysisVSTWindow", "DefaultSignalAnalysisVST")] =
+            @"C:\Program Files\ReBuzz\Gear\Vst\JoaCHIP Quick Meter.dll",
+        [("Recent File List", "File1")] = @"C:\Songs\Song1.bmx",
+        [("Recent File List", "File2")] = @"C:\Songs\Song2.bmx",
+        [("Recent File List", "File3")] = @"C:\Songs\Song3.bmx",
+        [("Recent File List", "File4")] = @"C:\Songs\Song4.bmx",
+        [("Recent File List", "File5")] = @"C:\Songs\Song5.bmx",
+        [("Recent File List", "File6")] = @"C:\Songs\Song6.bmx",
+        [("Recent File List", "File7")] = @"C:\Songs\Song7.bmx",
+        [("Recent File List", "File8")] = @"C:\Songs\Song8.bmx",
         [("Settings", "DefaultPE")] = "Modern Pattern Editor",
         [("Settings", "Theme")] = "<default>",
         [("Settings", "BuzzPath64")] = @"C:\Program Files\ReBuzz\",
@@ -55,14 +57,14 @@ internal class FakeInMemoryRegistry: IRegistryEx //bug move
     {
         lock (lockObject)
         {
-            TestContext.Out.WriteLine($"Write to memory: {path}=>{key}=>{x}"); //bug
+            TestContext.Out.WriteLine($"Write to memory: {path}=>{key}=>{x}");
             registryDictionary[(path, key)] = x;
         }
     }
 
     public T Read<T>(string key, T def, string path = "BuzzGUI")
     {
-        lock (lockObject) //bug
+        lock (lockObject)
         {
             if (registryDictionary.TryGetValue((path, key), out var cachedResult))
             {

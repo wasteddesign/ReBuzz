@@ -1,9 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Windows.Threading;
 using AtmaFileSystem;
 using AtmaFileSystem.IO;
 using BuzzGUI.Common;
@@ -16,38 +14,35 @@ using ReBuzz.AppViews;
 using ReBuzz.Core;
 using ReBuzz.FileOps;
 using ReBuzz.MachineManagement;
-using ReBuzzTests.Automation;
 
-namespace ReBuzzTests;
+namespace ReBuzzTests.Automation;
 
 public class Driver : IDisposable, IInitializationObserver
 {
     private static readonly AbsoluteDirectoryPath TestDataRootPath = AbsoluteDirectoryPath.Value(Path.GetTempPath()).AddDirectoryName("ReBuzzTestData");
     private readonly AbsoluteDirectoryPath gearDir;
-    private readonly AbsoluteDirectoryPath _themesDir;
+    private readonly AbsoluteDirectoryPath themesDir;
     private ReBuzzCore reBuzzCore;
-    private readonly AbsoluteDirectoryPath _gearEffectsDir;
-    private readonly AbsoluteDirectoryPath _gearGeneratorsDir; //bug eliminate all underscores
-    private readonly AbsoluteDirectoryPath _reBuzzRootDir =
+    private readonly AbsoluteDirectoryPath gearEffectsDir;
+    private readonly AbsoluteDirectoryPath gearGeneratorsDir;
+    private readonly AbsoluteDirectoryPath reBuzzRootDir =
       TestDataRootPath.AddDirectoryName($"{Guid.NewGuid()}__{DateTime.UtcNow.Ticks}");
 
     static Driver()
     {
         AssertionOptions.FormattingOptions.MaxLines = 10000;
+
+        // Cleaning up on start because the machine dlls created in previous test run
+        // were probably held locked by the previous test process which prevented deleting them.
         AttemptToCleanupTestRootDirs();
     }
 
     public Driver()
     {
-        gearDir = _reBuzzRootDir.AddDirectoryName("Gear"); //bug delete the dir after test (if possible)
-        _gearEffectsDir = gearDir.AddDirectoryName("Effects");
-        _gearGeneratorsDir = gearDir.AddDirectoryName("Generators");
-        _themesDir = _reBuzzRootDir.AddDirectoryName("Themes");
-    }
-
-    public void AssertGearMachinesConsistOf(ImmutableList<string> expectedMachineNames)
-    {
-        reBuzzCore.Gear.Machine.Select(m => m.Name).Should().Equal(expectedMachineNames);
+        gearDir = reBuzzRootDir.AddDirectoryName("Gear");
+        gearEffectsDir = gearDir.AddDirectoryName("Effects");
+        gearGeneratorsDir = gearDir.AddDirectoryName("Generators");
+        themesDir = reBuzzRootDir.AddDirectoryName("Themes");
     }
 
     public void Start()
@@ -55,21 +50,22 @@ public class Driver : IDisposable, IInitializationObserver
         SetupDirectoryStructure();
 
         var engineSettings = Global.EngineSettings;
-        var buzzPath = _reBuzzRootDir.ToString();
+        var buzzPath = reBuzzRootDir.ToString();
         var generalSettings = Global.GeneralSettings;
-        var registryRoot = "Software\\ReBuzzTest\\"; //bug not every part of code uses RegistryEx
+        var registryRoot = Global.RegistryRoot; //Should not matter as the registry is in memory
 
-        var dispatcher = new GuiLessDispatcher();
+        var dispatcher = new FakeDispatcher();
         var registryExInstance = new FakeInMemoryRegistry();
-        reBuzzCore = new ReBuzzCore(generalSettings, engineSettings, buzzPath, registryRoot, new FakeMachineDLLScanner(gearDir), dispatcher, registryExInstance);
-        reBuzzCore.SelectedTheme = "<default>"; //bug this is actually written to registry!
+        var fakeMachineDllScanner = new FakeMachineDLLScanner(gearDir);
+        reBuzzCore = new ReBuzzCore(generalSettings, engineSettings, buzzPath, registryRoot, fakeMachineDllScanner, dispatcher, registryExInstance);
+        fakeMachineDllScanner.AddFakeModernPatternEditor(reBuzzCore);
 
         var initialization = new ReBuzzCoreInitialization(reBuzzCore, buzzPath, dispatcher, registryExInstance);
         initialization.StartReBuzzEngineStep1((sender, args) =>
         {
             TestContext.Out.WriteLine($"PropertyChanged: {args.PropertyName}");
         });
-        initialization.StartReBuzzEngineStep2(IntPtr.MaxValue);
+        initialization.StartReBuzzEngineStep2(nint.MaxValue);
         initialization.StartReBuzzEngineStep3(engineSettings, this);
         initialization.StartReBuzzEngineStep4(
           machineDb: new FakeMachineDb(),
@@ -90,7 +86,6 @@ public class Driver : IDisposable, IInitializationObserver
             TestContext.Out.WriteLine("Command: " + command);
             if (command == BuzzCommand.Exit)
             {
-                //bug
                 reBuzzCore.Playing = false;
                 reBuzzCore.Release();
             }
@@ -105,9 +100,9 @@ public class Driver : IDisposable, IInitializationObserver
     private void SetupDirectoryStructure()
     {
         gearDir.Create();
-        _gearEffectsDir.Create();
-        _gearGeneratorsDir.Create();
-        _themesDir.Create();
+        gearEffectsDir.Create();
+        gearGeneratorsDir.Create();
+        themesDir.Create();
         foreach (var gearFile in AbsoluteDirectoryPath.OfThisFile().AddDirectoryName("Gear").EnumerateFiles())
         {
             gearFile.Copy(gearDir + gearFile.FileName(), overwrite: true);
@@ -116,7 +111,8 @@ public class Driver : IDisposable, IInitializationObserver
 
     public void Dispose()
     {
-        reBuzzCore?.ExecuteCommand(BuzzCommand.Exit); //bug logs
+        reBuzzCore?.ExecuteCommand(BuzzCommand.Exit);
+        AttemptToCleanupTestRootDirs();
     }
 
     void IInitializationObserver.NotifyMachineManagerCreated(MachineManager machineManager)
@@ -149,40 +145,4 @@ public class Driver : IDisposable, IInitializationObserver
             }
         }
     }
-}
-
-public class GuiLessDispatcher : IUiDispatcher //bug move
-{
-    public void Invoke(Action action)
-    {
-        action();
-    }
-
-    public void BeginInvoke(Action action)
-    {
-        action();
-    }
-
-    public void BeginInvoke(Action action, DispatcherPriority priority)
-    {
-        action();
-    }
-}
-
-internal class FakeMachineDb : IMachineDatabase //bug move
-{
-    public event Action<string>? DatabaseEvent;
-
-    public Dictionary<int, MachineDatabase.InstrumentInfo> DictLibRef { get; set; } = new();
-    public void CreateDB()
-    {
-
-    }
-
-    public string GetLibName(int id)
-    {
-        return "NOT_IMPLEMENTED";
-    }
-
-    public MenuItemCore IndexMenu { get; } = new MenuItemCore();
 }

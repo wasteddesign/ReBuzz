@@ -9,7 +9,7 @@ using System.Windows;
 
 namespace ReBuzz.FileOps
 {
-    internal interface IMachineDatabase //bug
+    internal interface IMachineDatabase
     {
         event Action<string> DatabaseEvent;
         Dictionary<int, MachineDatabase.InstrumentInfo> DictLibRef { get; set; }
