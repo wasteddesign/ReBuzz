@@ -6,6 +6,7 @@ using ReBuzz.Core;
 using ReBuzz.MachineManagement;
 using ReBuzz.ManagedMachine;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace ReBuzzTests.Automation
@@ -37,7 +38,10 @@ namespace ReBuzzTests.Automation
         }
 
         private void AssertMachineCore(
-            ReBuzzCore reBuzzCore, AbsoluteDirectoryPath gearDir, MachineCore machineCore, ManagedMachineHost managedMachineHost)
+            ReBuzzCore reBuzzCore,
+            AbsoluteDirectoryPath gearDir,
+            MachineCore machineCore,
+            ManagedMachineHost managedMachineHost)
         {
             machineCore.workLock.IsHeldByCurrentThread.Should().BeFalse();
             machineCore.Graph.Should().Be(reBuzzCore.SongCore);
@@ -47,29 +51,16 @@ namespace ReBuzzTests.Automation
             var changedParameter3 = machineCore.parametersChanged.ToList()[2];
             var changedParameter4 = machineCore.parametersChanged.ToList()[3];
             var changedParameter5 = machineCore.parametersChanged.ToList()[4];
-            InitialStateAssertions.AssertParameter(
-                parameter: changedParameter1.Key, 
-                expectedParameter: ExpectedParameter.Amp(),
-                expectedParentGroup: ((IMachine)machineCore).ParameterGroups[0], 
-                expectedIndexInGroup: 0);
+
+            InitialStateAssertions.AssertMasterParameters(
+                ((IMachine)machineCore).ParameterGroups[0],
+                changedParameter1.Key,
+                changedParameter2.Key);
             changedParameter1.Value.Should().Be(0);
-            InitialStateAssertions.AssertParameter(
-                parameter: changedParameter2.Key, 
-                expectedParameter: ExpectedParameter.Pan(),
-                expectedParentGroup: ((IMachine)machineCore).ParameterGroups[0], 
-                expectedIndexInGroup: 1);
             changedParameter2.Value.Should().Be(0);
-            InitialStateAssertions.AssertParameter(
-                parameter: changedParameter3.Key, 
-                expectedParameter: ExpectedParameter.Gain(),
-                expectedParentGroup: ((IMachine)machineCore).ParameterGroups[1], 
-                expectedIndexInGroup: 0);
+
+            InitialStateAssertions.AssertGlobalParameters(changedParameter3.Key, changedParameter4.Key, ((IMachine)machineCore).ParameterGroups[1]);
             changedParameter3.Value.Should().Be(0);
-            InitialStateAssertions.AssertParameter(
-                parameter: changedParameter4.Key, 
-                expectedParameter: ExpectedParameter.Bypass(),
-                expectedParentGroup: ((IMachine)machineCore).ParameterGroups[1], 
-                expectedIndexInGroup: 1);
             changedParameter4.Value.Should().Be(0);
             InitialStateAssertions.AssertParameter(
                 parameter: changedParameter5.Key, 

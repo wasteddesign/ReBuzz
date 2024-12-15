@@ -371,8 +371,7 @@ public static class InitialStateAssertions
         modernPatternEditor.ManagedDLL.constructor.Should().NotBeNull();
 
         modernPatternEditor.ManagedDLL.globalParameters.Should().HaveCount(2);
-        AssertParameter(parameter: modernPatternEditor.ManagedDLL.globalParameters[0], ExpectedParameter.Gain());
-        AssertParameter(parameter: modernPatternEditor.ManagedDLL.globalParameters[1], ExpectedParameter.Bypass());
+        AssertGlobalParameters(modernPatternEditor.ManagedDLL.globalParameters[0], modernPatternEditor.ManagedDLL.globalParameters[1]);
 
         modernPatternEditor.ManagedDLL.trackParameters.Should().HaveCount(1);
         AssertParameter(modernPatternEditor.ManagedDLL.trackParameters[0], ExpectedParameter.ATrackParam());
@@ -381,8 +380,31 @@ public static class InitialStateAssertions
         modernPatternEditor.Presets.Should().BeNull();
     }
 
+    private static void AssertGlobalParameters(MachineParameter parameter1, MachineParameter parameter2)
+    {
+        AssertParameter(parameter: parameter1, ExpectedParameter.Gain());
+        AssertParameter(parameter: parameter2, ExpectedParameter.Bypass());
+    }
+
+    internal static void AssertGlobalParameters(ParameterCore parameter1, ParameterCore parameter2, IParameterGroup parameterGroup)
+    {
+        AssertParameter(
+            parameter: parameter1,
+            expectedParameter: ExpectedParameter.Gain(),
+            expectedParentGroup: parameterGroup,
+            expectedIndexInGroup: 0);
+        AssertParameter(
+            parameter: parameter2,
+            expectedParameter: ExpectedParameter.Bypass(),
+            expectedParentGroup: parameterGroup,
+            expectedIndexInGroup: 1);
+    }
+
+
     internal static void AssertIsMasterMachine(
-        IMachine machine, ReBuzzCore rebuzzCore, AbsoluteDirectoryPath gearDir,
+        IMachine machine,
+        ReBuzzCore rebuzzCore,
+        AbsoluteDirectoryPath gearDir,
         IAdditionalInitialStateAssertions additionalAssertions)
     {
         machine.Name.Should().Be("Master");
@@ -416,16 +438,8 @@ public static class InitialStateAssertions
         machine.ParameterGroups[0].TrackCount.Should().Be(0);
 
         machine.ParameterGroups[0].Parameters.Should().HaveCount(2);
-        AssertParameter(
-            parameter: machine.ParameterGroups[0].Parameters[0], 
-            expectedParameter: ExpectedParameter.Amp(),
-            expectedParentGroup: machine.ParameterGroups[0], 
-            expectedIndexInGroup: 0);
-        AssertParameter(
-            parameter: machine.ParameterGroups[0].Parameters[1],
-            expectedParameter: ExpectedParameter.Pan(),
-            expectedParentGroup: machine.ParameterGroups[0],
-            expectedIndexInGroup: 1);
+        IParameterGroup machineParameterGroup = machine.ParameterGroups[0];
+        AssertMasterParameters(machineParameterGroup, machineParameterGroup.Parameters[0], machineParameterGroup.Parameters[1]);
 
 
         //TODO:
@@ -482,6 +496,20 @@ public static class InitialStateAssertions
         machine.DLL.Path.Should().Be(gearDir.ToString());
         machine.DLL.Presets.Should().BeNull();
         machine.DLL.SHA1Hash.Should().BeNull();
+    }
+
+    internal static void AssertMasterParameters(IParameterGroup machineParameterGroup, IParameter parameter1, IParameter parameter2)
+    {
+        AssertParameter(
+            parameter: parameter1, 
+            expectedParameter: ExpectedParameter.Amp(),
+            expectedParentGroup: machineParameterGroup, 
+            expectedIndexInGroup: 0);
+        AssertParameter(
+            parameter: parameter2,
+            expectedParameter: ExpectedParameter.Pan(),
+            expectedParentGroup: machineParameterGroup,
+            expectedIndexInGroup: 1);
     }
 
     internal static void AssertParameter(
