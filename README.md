@@ -19,16 +19,36 @@ Requires:
 2. [Latest Microsoft Visual C++ Redistributable](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170)
 
 ## How to build?
-1. Install [ReBuzz](https://github.com/wasteddesign/ReBuzz/releases/latest))
-2. Clone/download this repo
-3. Open the solution in Visual Studio
-4. Update solution dependencies (Dependencies-->Assemblies) to reference assemblies included in the ReBuzz app folder.
-5. Build ReBuzz and copy ReBuzz.exe, dll and pdb files to ReBuzz install folder
-6. Open project preferences and in the Debug section click 'Open debug launch profiles UI'
-   * Click 'Create a new profile'
-   * Choose 'Executable' and select ReBuzz.exe in the ReBuzz install directory
-7. Choose the new debug profile and run the app
+1. Get all the solution parts:
+2. 
+ a. ReBuzz (this repo)
+ b. ReBuzzGUI
+ c. ReBuzzEngine
+ d. ModernPatternEditor
+ e. ReBuzzRunTime (https://github.com/themarcnet/ReBuzzRunTime)
+ f. ReBuzz3rdParty (https://github.com/themarcnet/ReBuzz3rdParty) - **IMPORTANT: Get with --recurse-submodules**
 
+3. Your directory layout should be:
+ - root\
+  - root\ModernPatternEditor
+  - root\ReBuzz
+  - root\ReBuzz3rdParty
+  - root\ReBuzzEngine
+  - root\ReBuzzGUI
+  - root\ReBuzzRunTime
+
+4. Load the ReBuzz.sln (located at root\ReBuzz\ReBuzz.sln)
+
+5. Ensure ReBuzz is the Startup project. It should be highlighted bold in the Solution Explorer.
+ a. If it is not, then right click the ReBuzz project in Solution Explorer, and select "Set as Startup Project"
+
+6. Build.
+
+7. The result should be output to (depending on if Debug or Release is selected):
+ - root\ReBuzz\bin\Debug\net9.0-windows\
+ - root\ReBuzz\bin\Release\net9.0-windows\
+
+8. You should be able to run ReBuzz directly from here.
 
 ## How can I help?
 All the basic functionality is implemented but there many areas to improve. In general, contributions are needed in every part of the software, but here are few items to look into:
