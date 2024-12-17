@@ -27,11 +27,6 @@ using ReBuzz.AppViews;
 
 namespace ReBuzz
 {
-    internal interface IInitializationObserver
-    {
-        void NotifyMachineManagerCreated(MachineManager machineManager);
-    }
-
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
@@ -83,7 +78,7 @@ namespace ReBuzz
         private WindowStyle mainWindowStyle;
         private UserControl ToolBarControl;
         private readonly IUiDispatcher windowsGuiDispatcher = new WindowsGuiDispatcher();
-        private readonly IRegistryEx registryEx = new RegistryExInstance();
+        private readonly IRegistryEx registryEx = new WindowsRegistry();
         private readonly string buzzPath = Global.BuzzPath;
 
         public string StatusBarItem2

@@ -163,12 +163,12 @@ namespace ReBuzz
             btDefThis.Click += (sender, e) =>
             {
                 if (ReBuzz.PatternEditorMachine != null)
-                    this.registryEx.Write(ReBuzz.PatternEditorMachine.DLL.Name, editorMachine.Name, "Settings");
+                    registryEx.Write(ReBuzz.PatternEditorMachine.DLL.Name, editorMachine.Name, "Settings");
             };
 
             btDefAll.Click += (sender, e) =>
             {
-                this.registryEx.Write("DefaultPE", editorMachine.Name, "Settings");
+                registryEx.Write("DefaultPE", editorMachine.Name, "Settings");
             };
 
             ReBuzz.SetPatternEditorPatternChanged += (pattern) =>

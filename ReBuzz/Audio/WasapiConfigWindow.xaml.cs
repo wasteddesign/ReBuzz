@@ -22,7 +22,7 @@ namespace BuzzDotNet.Audio
             InitializeComponent();
 
             // Out
-            string wasapiDeviceID = this.registryEx.Read("DeviceID", "", "WASAPI");
+            string wasapiDeviceID = registryEx.Read("DeviceID", "", "WASAPI");
             ComboBoxItem selectedItem = null;
             var enumerator = new MMDeviceEnumerator();
             foreach (var wasapi in enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active))
@@ -43,7 +43,7 @@ namespace BuzzDotNet.Audio
             }
 
             // In
-            string wasapiDeviceIDIn = this.registryEx.Read("DeviceIDIn", "", "WASAPI");
+            string wasapiDeviceIDIn = registryEx.Read("DeviceIDIn", "", "WASAPI");
             selectedItem = null;
             enumerator = new MMDeviceEnumerator();
 
@@ -66,7 +66,7 @@ namespace BuzzDotNet.Audio
                 cbDevicesIn.SelectedIndex = 0;
             }
 
-            int wasapiDeviceSamplerate = this.registryEx.Read("SampleRate", 44100, "WASAPI");
+            int wasapiDeviceSamplerate = registryEx.Read("SampleRate", 44100, "WASAPI");
 
             ComboBoxItem cbiSampleRate = new ComboBoxItem() { Content = "44100", Tag = 44100 };
             cbSampleRate.Items.Add(cbiSampleRate);
@@ -94,7 +94,7 @@ namespace BuzzDotNet.Audio
             cbSampleRate.SelectedItem = srItem;
 
             // Mode
-            int wasapiMode = this.registryEx.Read("Mode", 0, "WASAPI");
+            int wasapiMode = registryEx.Read("Mode", 0, "WASAPI");
 
             ComboBoxItem cbiMode = new ComboBoxItem() { Content = "Shared", Tag = 0 };
             cbMode.Items.Add(cbiMode);
@@ -104,7 +104,7 @@ namespace BuzzDotNet.Audio
             cbMode.SelectedIndex = wasapiMode;
 
             // Poll
-            int wasapiPoll = this.registryEx.Read("Poll", 0, "WASAPI");
+            int wasapiPoll = registryEx.Read("Poll", 0, "WASAPI");
 
             ComboBoxItem cbiPoll = new ComboBoxItem() { Content = "False", Tag = 0 };
             cbPoll.Items.Add(cbiPoll);
@@ -114,7 +114,7 @@ namespace BuzzDotNet.Audio
             cbPoll.SelectedIndex = wasapiPoll;
 
             // Latency
-            int currentBufferSize = this.registryEx.Read("BufferSize", 1024, "WASAPI");
+            int currentBufferSize = registryEx.Read("BufferSize", 1024, "WASAPI");
             int bufferSize = 16;
             int selectedIndex = 10;
             for (int i = 0; i < 10; i++)

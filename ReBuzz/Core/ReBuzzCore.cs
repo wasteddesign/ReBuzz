@@ -606,11 +606,11 @@ namespace ReBuzz.Core
 
             DCWriteLine(BuildString);
 
-            MidiInOutEngine = new MidiEngine(this, this.registryEx);
+            MidiInOutEngine = new MidiEngine(this, registryEx);
             MidiInOutEngine.OpenMidiInDevices();
             MidiInOutEngine.OpenMidiOutDevices();
 
-            MidiControllerAssignments = new MidiControllerAssignments(this, this.registryEx, registryRoot);
+            MidiControllerAssignments = new MidiControllerAssignments(this, registryEx, registryRoot);
             MIDIControllers = MidiControllerAssignments.GetMidiControllerNames().ToReadOnlyCollection();
 
             themes = Utils.GetThemes(buzzPath);
@@ -651,7 +651,7 @@ namespace ReBuzz.Core
             */
 
             Process.GetCurrentProcess().PriorityClass = ProcessAndThreadProfile.ProcessPriorityClassMainProcess;
-            Utils.SetProcessorAffinityMask(this.registryEx, true);
+            Utils.SetProcessorAffinityMask(registryEx, true);
 
             dtEngineThread = new DispatcherTimer();
             dtEngineThread.Interval = TimeSpan.FromSeconds(1 / 30.0);
@@ -1002,11 +1002,11 @@ namespace ReBuzz.Core
             }
             catch { }
 
-            registryEx.CreateCurrentUserSubKey(registryRoot + "\\" + "Recent File List");
+            var regKey = registryEx.CreateCurrentUserSubKey(registryRoot + "\\" + "Recent File List");
             int maxFiles = Math.Min(files.Count, 10);
             for (int i = 0; i < maxFiles; i++)
             {
-                registryEx.SetCurrentUserSubKeyValue(registryRoot + "\\" + "Recent File List", "File" + (i + 1), files[i]);
+                regKey.SetValue("File" + (i + 1), files[i]);
             }
         }
 

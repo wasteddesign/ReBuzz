@@ -11,11 +11,10 @@ public interface IRegistryEx
     T Read<T>(string key, T def, string path = "BuzzGUI");
     IEnumerable<T> ReadNumberedList<T>(string key, string path = "BuzzGUI");
     void DeleteCurrentUserSubkey(string key);
-    void CreateCurrentUserSubKey(string subkey);
-    void SetCurrentUserSubKeyValue(string subKey, string name, string value);
+    IRegistryKey CreateCurrentUserSubKey(string subkey);
 }
 
-public class RegistryExInstance : IRegistryEx
+public class WindowsRegistry : IRegistryEx
 {
     public void Write<T>(string key, T x, string path = "BuzzGUI")
     {
@@ -39,13 +38,8 @@ public class RegistryExInstance : IRegistryEx
         Registry.CurrentUser.DeleteSubKey(key);
     }
 
-    public void CreateCurrentUserSubKey(string subkey)
+    public IRegistryKey CreateCurrentUserSubKey(string subkey)
     {
-        Registry.CurrentUser.CreateSubKey(subkey);
-    }
-
-    public void SetCurrentUserSubKeyValue(string subKey, string name, string value)
-    {
-        (Registry.CurrentUser.OpenSubKey(subKey) ?? Registry.CurrentUser.CreateSubKey(subKey)).SetValue(name, value);
+        return new WindowsRegistryKey(Registry.CurrentUser.CreateSubKey(subkey));
     }
 }

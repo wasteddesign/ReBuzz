@@ -69,10 +69,10 @@ namespace ReBuzz.Common
                 buzz = null;
             };
 
-            int numWaveDirs = this.registryEx.Read("numWaveDirs", 0, "Settings");
+            int numWaveDirs = registryEx.Read("numWaveDirs", 0, "Settings");
             for (int i = 0; i < numWaveDirs; i++)
             {
-                string dir = this.registryEx.Read("WaveDir" + i, "", "Settings");
+                string dir = registryEx.Read("WaveDir" + i, "", "Settings");
                 if (dir != "")
                 {
                     lbWaveDirectories.Items.Add(dir);
@@ -107,7 +107,7 @@ namespace ReBuzz.Common
                 WritePathsToRegistry();
             };
 
-            long processorAffinityMask = this.registryEx.Read("ProcessorAffinity", 0xFFFFFFFF, "Settings");
+            long processorAffinityMask = registryEx.Read("ProcessorAffinity", 0xFFFFFFFF, "Settings");
             int processorCount = Environment.ProcessorCount;// >= 32 ? 31 : Environment.ProcessorCount;
 
             for (int i = 0; i < processorCount; i++)
@@ -137,7 +137,7 @@ namespace ReBuzz.Common
             cbAudioThreadType.SelectedIndex = threadType;
             */
 
-            int numThreads = this.registryEx.Read("AudioThreads", 2, "Settings");
+            int numThreads = registryEx.Read("AudioThreads", 2, "Settings");
             for (int i = 1; i <= 8; i++)
             {
                 ComboBoxItem cbi = new ComboBoxItem();
@@ -148,7 +148,7 @@ namespace ReBuzz.Common
 
             cbAudioThreads.SelectedIndex = numThreads - 1;
 
-            int algorithm = this.registryEx.Read("WorkAlgorithm", 1, "Settings");
+            int algorithm = registryEx.Read("WorkAlgorithm", 1, "Settings");
             {
                 ComboBoxItem cbi = new ComboBoxItem();
                 cbi.Content = "Recursive Task Groups";

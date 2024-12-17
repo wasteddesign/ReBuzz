@@ -15,7 +15,7 @@ public class InitialStateTests
     }
 
     [Test]
-    public void ReinitializesStateAfterNewFileCommand()
+    public void ReInitializesStateAfterNewFileCommand()
     {
         using var driver = new Driver();
         driver.Start();

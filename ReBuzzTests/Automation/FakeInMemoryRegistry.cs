@@ -99,13 +99,9 @@ internal class FakeInMemoryRegistry : IRegistryEx
         Assert.Fail("Not used in any of the current tests");
     }
 
-    public void CreateCurrentUserSubKey(string subkey)
+    public IRegistryKey CreateCurrentUserSubKey(string subkey)
     {
         Assert.Fail("Not used in any of the current tests");
-    }
-
-    public void SetCurrentUserSubKeyValue(string subKey, string name, string value)
-    {
-        Assert.Fail("Not used in any of the current tests");
+        return null!;
     }
 }
