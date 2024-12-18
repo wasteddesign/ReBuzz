@@ -58,11 +58,11 @@ Requires:
         ```xml
         <IntermediateOutputPath>$(SolutionDir)build\$(Configuration)\$(Platform)\Rebuzz\obj</IntermediateOutputPath>
         ```
-      - (output to bin directory also set here using): <br>
+      - Output directory set to ``root\ReBuzz\bin``, also set in the csproj files using the following: <br>
         ```xml
         <OutputPath>$(SolutionDir)bin\$(Configuration)</OutputPath>
         ```
-     - *Manaully* generating project.assets.json, because for some reason, MSBuild is incapable of detecting that it is missing and does not peform a restore by itself:<br>
+     - *Adding instructions into the csproj files to manaully* generate ``project.assets.json``, because for some reason, MSBuild is incapable of detecting that this file is missing and does not peform a restore by itself:<br>
      ```xml
      <Target Name="ForcePerformRestore" AfterTargets="BeforeBuild">
          <Exec Command="IF NOT EXIST  &quot;$(IntermediateOutputPath)..\project.assets.json&quot;  echo restore to $(IntermediateOutputPath)..\project.assets.json &amp;&amp;  dotnet restore &quot;$(ProjectName).csproj&quot;  --no-dependencies &amp;&amp; move &quot;build\$(ProjectName)\obj\*&quot; &quot;$(IntermediateOutputPath)..&quot; &amp;&amp; rmdir /Q /S build	 " />
