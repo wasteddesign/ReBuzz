@@ -19,36 +19,59 @@ Requires:
 2. [Latest Microsoft Visual C++ Redistributable](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170)
 
 ## How to build?
-1. Get all the solution parts:
-2. 
- a. ReBuzz (this repo)
- b. ReBuzzGUI
- c. ReBuzzEngine
- d. ModernPatternEditor
- e. ReBuzzRunTime (https://github.com/themarcnet/ReBuzzRunTime)
- f. ReBuzz3rdParty (https://github.com/themarcnet/ReBuzz3rdParty) - **IMPORTANT: Get with --recurse-submodules**
+1. Get all the solution components<br>
+   a) ReBuzz (this repo)<br>
+   b) ReBuzzGUI<br>
+   c) ReBuzzEngine<br>
+   d) ModernPatternEditor<br>
+   e) ReBuzzRunTime [https://github.com/themarcnet/ReBuzzRunTime]<br>
+   f) ReBuzz3rdParty [https://github.com/themarcnet/ReBuzz3rdParty] - **IMPORTANT: Get with --recurse-submodules** <br>
 
-3. Your directory layout should be:
- - root\
-  - root\ModernPatternEditor
-  - root\ReBuzz
-  - root\ReBuzz3rdParty
-  - root\ReBuzzEngine
-  - root\ReBuzzGUI
-  - root\ReBuzzRunTime
+2. Your directory layout should be:
+    - root\ <br>
+    - root\ModernPatternEditor\ <br>
+    - root\ReBuzz\ <br>
+    - root\ReBuzz3rdParty\ <br>
+    - root\ReBuzzEngine\ <br>
+    - root\ReBuzzGUI\ <br>
+    - root\ReBuzzRunTime\ <br>
 
-4. Load the ReBuzz.sln (located at root\ReBuzz\ReBuzz.sln)
+3. Load the ReBuzz.sln (located at root\ReBuzz\ReBuzz.sln) **In Visual Studio 2022** (Community version will suffice) 
 
-5. Ensure ReBuzz is the Startup project. It should be highlighted bold in the Solution Explorer.
- a. If it is not, then right click the ReBuzz project in Solution Explorer, and select "Set as Startup Project"
+4. Ensure ReBuzz is the Startup project. It should be highlighted bold in the Solution Explorer.<br><br>
+    If it is not, then right click the ReBuzz project in Solution Explorer, and select "Set as Startup Project"
 
-6. Build.
+5. Build all.
 
-7. The result should be output to (depending on if Debug or Release is selected):
- - root\ReBuzz\bin\Debug\net9.0-windows\
- - root\ReBuzz\bin\Release\net9.0-windows\
+6. The result should be output to (depending on if Debug or Release is selected):<br>
+    - root\ReBuzz\bin\Debug\net9.0-windows\ <br>
+    - root\ReBuzz\bin\Release\net9.0-windows\ <br>
 
-8. You should be able to run ReBuzz directly from here.
+7. You should be able to run ReBuzz directly from there.
+
+8. In order to prevent pollution of the source tree(s), **all** intermediate files are located in: <br>
+    - root\ReBuzz\build
+
+    This has been achieved by (*this is information only. This is only useful when adding new projects to ReBuzz*): <br>
+      - Placing ``Directory.build.props`` in each project (same level as each .csproj file) <br>
+      - *Manually* setting the following in the .csproj: <br>
+        ```xml
+        <IntermediateOutputPath>$(SolutionDir)build\$(Configuration)\$(Platform)\Rebuzz\obj</IntermediateOutputPath>
+        ```
+      - (output to bin directory also set here using): <br>
+        ```xml
+        <OutputPath>$(SolutionDir)bin\$(Configuration)</OutputPath>
+        ```
+     - *Manaully* generating project.assets.json, because for some reason, MSBuild is incapable of detecting that it is missing and does not peform a restore by itself:<br>
+     ```xml
+     <Target Name="ForcePerformRestore" AfterTargets="BeforeBuild">
+         <Exec Command="IF NOT EXIST  &quot;$(IntermediateOutputPath)..\project.assets.json&quot;  echo restore to $(IntermediateOutputPath)..\project.assets.json &amp;&amp;  dotnet restore &quot;$(ProjectName).csproj&quot;  --no-dependencies &amp;&amp; move &quot;build\$(ProjectName)\obj\*&quot; &quot;$(IntermediateOutputPath)..&quot; &amp;&amp; rmdir /Q /S build	 " />
+    </Target>
+
+   <Target Name="RemoveEmptyObj" AfterTargets="AfterBuild">
+         <Exec Command="IF EXIST obj rmdir obj" />
+   </Target>
+     ```
 
 ## How can I help?
 All the basic functionality is implemented but there many areas to improve. In general, contributions are needed in every part of the software, but here are few items to look into:
