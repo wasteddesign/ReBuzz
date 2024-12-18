@@ -52,7 +52,7 @@ Requires:
 8. In order to prevent pollution of the source tree(s), **all** intermediate files are located in: <br>
     - root\ReBuzz\build
 
-    This has been achieved by (*this is information only. This is only useful when adding new projects to ReBuzz*): <br>
+    This has been achieved by (*This is information only. This is only useful when adding new projects to ReBuzz*): <br>
       - Placing ``Directory.build.props`` in each project (same level as each .csproj file) <br>
       - *Manually* setting the following in the .csproj: <br>
         ```xml
