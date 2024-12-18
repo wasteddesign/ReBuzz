@@ -28,15 +28,15 @@ Requires:
    f) ReBuzz3rdParty [https://github.com/themarcnet/ReBuzz3rdParty] - **IMPORTANT: Get with --recurse-submodules** <br>
 
 2. Your directory layout should be:
-    - root\ <br>
-    - root\ModernPatternEditor\ <br>
-    - root\ReBuzz\ <br>
-    - root\ReBuzz3rdParty\ <br>
-    - root\ReBuzzEngine\ <br>
-    - root\ReBuzzGUI\ <br>
-    - root\ReBuzzRunTime\ <br>
+    - \ <br> 
+    - \ModernPatternEditor\ <br>
+    - \ReBuzz\ <br>
+    - \ReBuzz3rdParty\ <br>
+    - \ReBuzzEngine\ <br>
+    - \ReBuzzGUI\ <br>
+    - \ReBuzzRunTime\ <br>
 
-3. Load the ReBuzz.sln (located at root\ReBuzz\ReBuzz.sln) **In Visual Studio 2022** (Community version will suffice) 
+3. Load the ReBuzz.sln (located at \ReBuzz\ReBuzz.sln) **In Visual Studio 2022** (Community version will suffice) 
 
 4. Ensure ReBuzz is the Startup project. It should be highlighted bold in the Solution Explorer.<br><br>
     If it is not, then right click the ReBuzz project in Solution Explorer, and select "Set as Startup Project"
