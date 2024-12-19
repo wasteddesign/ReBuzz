@@ -30,22 +30,22 @@
 
 <Gear>
 
-  <Machine Name="Jeskola Pattern XP" LoadAtStartup="True"/>
-  <Machine Name="Jeskola Pianoroll" LoadAtStartup="True"/>
-  <Machine Name="Polac VST 1.1" LoadAtStartup="True" MinimumMIVersion="37"/>
-  <Machine Name="Polac VSTi 1.1" LoadAtStartup="True" MinimumMIVersion="37"/>
-  <Machine Name="Jeskola XS-1">
-    <Attribute Key="Enable MIDI" Value="1"/>    <!-- default machine attribute values can be changed like this -->
-  </Machine>
+	<Machine Name="Jeskola Pattern XP" LoadAtStartup="True" />
+	<Machine Name="Jeskola Pianoroll" LoadAtStartup="True" />
+	<Machine Name="Polac VST 1.1" LoadAtStartup="True" MinimumMIVersion="37" />
+	<Machine Name="Polac VSTi 1.1" LoadAtStartup="True" MinimumMIVersion="37" />
+	<Machine Name="Jeskola XS-1">
+		<Attribute Key="Enable MIDI" Value="1" />    <!-- default machine attribute values can be changed like this -->
+	</Machine>
 
-  <Machine Name="CyanPhase Buzz OverLoader" Blacklist="True"/>
-  <Machine Name="CyanPhase DX Instrument Adapter" Blacklist="True"/>
-  <Machine Name="CyanPhase DX Effect Adapter" Blacklist="True"/>
-  <Machine Name="CyanPhase DMO Effect Adapter" Blacklist="True"/>
-  <Machine Name="11-MidiCCout" Blacklist="True"/>
+	<Machine Name="CyanPhase Buzz OverLoader" Blacklist="True" />
+	<Machine Name="CyanPhase DX Instrument Adapter" Blacklist="True" />
+	<Machine Name="CyanPhase DX Effect Adapter" Blacklist="True" />
+	<Machine Name="CyanPhase DMO Effect Adapter" Blacklist="True" />
+	<Machine Name="11-MidiCCout" Blacklist="True" />
 
-  <Machine Name="Rymix*" Multithreading="False"/>
-  <Machine Name="FireSledge ParamEQ" Multithreading="False"/>
-  <Machine Name="BTDSys Pulsar" Multithreading="False"/>
+	<Machine Name="Rymix*" Multithreading="False" />
+	<Machine Name="FireSledge ParamEQ" Multithreading="False" />
+	<Machine Name="BTDSys Pulsar" Multithreading="False" />
 
 </Gear>

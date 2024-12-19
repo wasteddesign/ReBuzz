@@ -13,16 +13,19 @@ namespace ReBuzzTests.Automation
 {
     public class InitialStateAfterAppStartAssertions : IAdditionalInitialStateAssertions
     {
-        public void AssertInitialStateOfSongCore(SongCore songCore, AbsoluteDirectoryPath gearDir, ReBuzzCore reBuzzCore)
+        public void AssertInitialStateOfSongCore(
+            SongCore songCore, AbsoluteDirectoryPath gearDir, ReBuzzCore reBuzzCore)
         {
             songCore.MachinesList.Should().HaveCount(2);
             AssertMachineCore(reBuzzCore, gearDir, songCore.MachinesList[1],
                 reBuzzCore.MachineManager.ManagedMachines.First().Value);
         }
 
-        public void AssertInitialStateOfPatternEditor(ReBuzzCore reBuzzCore, AbsoluteDirectoryPath gearDir, IMachine machine)
+        public void AssertInitialStateOfPatternEditor(
+            ReBuzzCore reBuzzCore, AbsoluteDirectoryPath gearDir, IMachine machine)
         {
-            InitialStateAssertions.AssertFakeModernPatternEditor(reBuzzCore, gearDir, (MachineDLL)machine.PatternEditorDLL);
+            InitialStateAssertions.AssertFakeModernPatternEditor(reBuzzCore, gearDir,
+                (MachineDLL)machine.PatternEditorDLL);
         }
 
         public void AssertInitialStateOfMachineManager(
@@ -30,8 +33,8 @@ namespace ReBuzzTests.Automation
         {
             machineManager.ManagedMachines.Should().HaveCount(1);
 
-            var machineCore = machineManager.ManagedMachines.Keys.Single();
-            var managedMachineHost = machineManager.ManagedMachines[machineCore];
+            MachineCore? machineCore = machineManager.ManagedMachines.Keys.Single();
+            ManagedMachineHost? managedMachineHost = machineManager.ManagedMachines[machineCore];
             AssertMachineCore(reBuzzCore, gearDir, machineCore, managedMachineHost);
 
             InitialStateAssertions.AssertFakeModernPatternEditorHostInitialState(reBuzzCore, managedMachineHost);
@@ -46,11 +49,16 @@ namespace ReBuzzTests.Automation
             machineCore.workLock.IsHeldByCurrentThread.Should().BeFalse();
             machineCore.Graph.Should().Be(reBuzzCore.SongCore);
             machineCore.parametersChanged.Should().HaveCount(5);
-            var ampParam = machineCore.parametersChanged.ToList().Single(p => p.Key.Name == "Amp");
-            var panParam = machineCore.parametersChanged.ToList().Single(p => p.Key.Name == "Pan");
-            var gainParam = machineCore.parametersChanged.ToList().Single(p => p.Key.Name == "Gain");
-            var bypassParam = machineCore.parametersChanged.ToList().Single(p => p.Key.Name == "Bypass");
-            var aTrackParam = machineCore.parametersChanged.ToList().Single(p => p.Key.Name == "ATrackParam");
+            KeyValuePair<ParameterCore, int> ampParam =
+                machineCore.parametersChanged.ToList().Single(p => p.Key.Name == "Amp");
+            KeyValuePair<ParameterCore, int> panParam =
+                machineCore.parametersChanged.ToList().Single(p => p.Key.Name == "Pan");
+            KeyValuePair<ParameterCore, int> gainParam =
+                machineCore.parametersChanged.ToList().Single(p => p.Key.Name == "Gain");
+            KeyValuePair<ParameterCore, int> bypassParam =
+                machineCore.parametersChanged.ToList().Single(p => p.Key.Name == "Bypass");
+            KeyValuePair<ParameterCore, int> aTrackParam =
+                machineCore.parametersChanged.ToList().Single(p => p.Key.Name == "ATrackParam");
 
             InitialStateAssertions.AssertMasterParameters(
                 ((IMachine)machineCore).ParameterGroups[0],
@@ -59,14 +67,15 @@ namespace ReBuzzTests.Automation
             ampParam.Value.Should().Be(0);
             panParam.Value.Should().Be(0);
 
-            InitialStateAssertions.AssertGlobalParameters(gainParam.Key, bypassParam.Key, ((IMachine)machineCore).ParameterGroups[1]);
+            InitialStateAssertions.AssertGlobalParameters(gainParam.Key, bypassParam.Key,
+                ((IMachine)machineCore).ParameterGroups[1]);
             gainParam.Value.Should().Be(0);
             bypassParam.Value.Should().Be(0);
             InitialStateAssertions.AssertParameter(
-                parameter: aTrackParam.Key, 
-                expectedParameter: ExpectedMachineParameter.ATrackParam(),
-                expectedParentGroup: ((IMachine)machineCore).ParameterGroups[2], 
-                expectedIndexInGroup: 0);
+                aTrackParam.Key,
+                ExpectedMachineParameter.ATrackParam(),
+                ((IMachine)machineCore).ParameterGroups[2],
+                0);
             aTrackParam.Value.Should().Be(0);
 
             machineCore.Inputs.Should().BeEmpty();
@@ -120,7 +129,7 @@ namespace ReBuzzTests.Automation
             InitialStateAssertions.AssertInitialPerformanceData(machineCore.PerformanceData);
 
             InitialStateAssertions.AssertFakeModernPatternEditor(
-                machineCore.ManagedMachine, 
+                machineCore.ManagedMachine,
                 managedMachineHost);
 
             machineCore.TrackCount.Should().Be(1);

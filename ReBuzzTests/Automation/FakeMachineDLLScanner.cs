@@ -3,34 +3,35 @@ using ReBuzz.Core;
 using ReBuzz.FileOps;
 using System.Collections.Generic;
 
-namespace ReBuzzTests.Automation;
-
-internal class FakeMachineDLLScanner(AbsoluteDirectoryPath gearPath) : IMachineDLLScanner
+namespace ReBuzzTests.Automation
 {
-    private readonly Dictionary<string, MachineDLL> machineDllsByName = new();
-
-    public void AddFakeModernPatternEditor(ReBuzzCore buzz)
+    internal class FakeMachineDLLScanner(AbsoluteDirectoryPath gearPath) : IMachineDLLScanner
     {
-        var assemblyLocation = gearPath.AddFileName(FakeModernPatternEditorInfo.DllName);
-        DynamicCompiler.CompileAndSave(FakeModernPatternEditor.GetSourceCode(), assemblyLocation);
+        private readonly Dictionary<string, MachineDLL> machineDllsByName = new();
 
-        var modernPatternEditorDll = FakeModernPatternEditorInfo.GetMachineDll(buzz, assemblyLocation);
-        machineDllsByName[modernPatternEditorDll.Name] = modernPatternEditorDll;
-    }
+        public void AddFakeModernPatternEditor(ReBuzzCore buzz)
+        {
+            AbsoluteFilePath? assemblyLocation = gearPath.AddFileName(FakeModernPatternEditorInfo.DllName);
+            DynamicCompiler.CompileAndSave(FakeModernPatternEditor.GetSourceCode(), assemblyLocation);
 
-    public Dictionary<string, MachineDLL> GetMachineDLLs(ReBuzzCore buzz, string buzzPath)
-    {
-        return machineDllsByName;
-    }
+            MachineDLL? modernPatternEditorDll = FakeModernPatternEditorInfo.GetMachineDll(buzz, assemblyLocation);
+            machineDllsByName[modernPatternEditorDll.Name] = modernPatternEditorDll;
+        }
 
-    public void AddMachineDllsToDictionary(XMLMachineDLL[] xMLMachineDLLs, Dictionary<string, MachineDLL> md)
-    {
-        Assert.Fail("Not called anywhere yet in the current tests");
-    }
+        public Dictionary<string, MachineDLL> GetMachineDLLs(ReBuzzCore buzz, string buzzPath)
+        {
+            return machineDllsByName;
+        }
 
-    public XMLMachineDLL ValidateDll(ReBuzzCore buzz, string libName, string path, string buzzPath)
-    {
-        Assert.Fail("Not called anywhere yet in the current tests");
-        return null!;
+        public void AddMachineDllsToDictionary(XMLMachineDLL[] xMLMachineDLLs, Dictionary<string, MachineDLL> md)
+        {
+            Assert.Fail("Not called anywhere yet in the current tests");
+        }
+
+        public XMLMachineDLL ValidateDll(ReBuzzCore buzz, string libName, string path, string buzzPath)
+        {
+            Assert.Fail("Not called anywhere yet in the current tests");
+            return null!;
+        }
     }
 }

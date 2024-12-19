@@ -1,27 +1,28 @@
 using ReBuzzTests.Automation;
 
-namespace ReBuzzTests;
-
-public class InitialStateTests
+namespace ReBuzzTests
 {
-    [Test]
-    public void InitializesStateAfterStart()
+    public class InitialStateTests
     {
-        using var driver = new Driver();
+        [Test]
+        public void InitializesStateAfterStart()
+        {
+            using var driver = new Driver();
 
-        driver.Start();
+            driver.Start();
 
-        driver.AssertInitialStateAfterAppStart();
-    }
+            driver.AssertInitialStateAfterAppStart();
+        }
 
-    [Test]
-    public void ReInitializesStateAfterNewFileCommand()
-    {
-        using var driver = new Driver();
-        driver.Start();
+        [Test]
+        public void ReInitializesStateAfterNewFileCommand()
+        {
+            using var driver = new Driver();
+            driver.Start();
 
-        driver.NewFile();
+            driver.NewFile();
 
-        driver.AssertInitialStateAfterNewFile();
+            driver.AssertInitialStateAfterNewFile();
+        }
     }
 }

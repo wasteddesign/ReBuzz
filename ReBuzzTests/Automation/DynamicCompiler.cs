@@ -3,65 +3,71 @@ using Buzz.MachineInterface;
 using BuzzGUI.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Emit;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
 
-namespace ReBuzzTests.Automation;
-
-public class DynamicCompiler
+namespace ReBuzzTests.Automation
 {
-    public static void CompileAndSave(string code, AbsoluteFilePath assemblyLocation)
+    public class DynamicCompiler
     {
-        // Referencing these types only to ensure the dlls containing them are loaded
-        _ = new[]
+        public static void CompileAndSave(string code, AbsoluteFilePath assemblyLocation)
         {
-            typeof(object),
-            typeof(INotifyPropertyChanged),
-            typeof(PropertyChangedEventHandler),
-            typeof(int),
-            typeof(double),
-            typeof(Path),
-            typeof(IBuzzMachine),
-            typeof(AbsoluteFilePath),
-            typeof(MenuItemVM),
-            typeof(Attribute),
-            typeof(Attribute),
-            typeof(Enumerable),
-            typeof(System.Runtime.GCSettings)
-        };
+            // Referencing these types only to ensure the dlls containing them are loaded
+            _ = new[]
+            {
+                typeof(object),
+                typeof(INotifyPropertyChanged),
+                typeof(PropertyChangedEventHandler),
+                typeof(int),
+                typeof(double),
+                typeof(Path),
+                typeof(IBuzzMachine),
+                typeof(AbsoluteFilePath),
+                typeof(MenuItemVM),
+                typeof(Attribute),
+                typeof(Attribute),
+                typeof(Enumerable),
+                typeof(System.Runtime.GCSettings)
+            };
 
-        var syntaxTree = CSharpSyntaxTree.ParseText(code);
+            SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(code);
 
-        var references = AppDomain.CurrentDomain
-            .GetAssemblies()
-            .Distinct()
-            .Where(a => !a.IsDynamic)
-            .Select(a => MetadataReference.CreateFromFile(a.Location))
-            .ToArray();
+            PortableExecutableReference[] references = AppDomain.CurrentDomain
+                .GetAssemblies()
+                .Distinct()
+                .Where(a => !a.IsDynamic)
+                .Select(a => MetadataReference.CreateFromFile(a.Location))
+                .ToArray();
 
-        var compilation = CSharpCompilation.Create(
-            "DynamicAssembly",
-            [syntaxTree],
-            references,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            var compilation = CSharpCompilation.Create(
+                assemblyLocation.FileName().ToString(),
+                [syntaxTree],
+                references,
+                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
-        using var ms = new MemoryStream();
-        var result = compilation.Emit(ms);
+            using var ms = new MemoryStream();
+            EmitResult result = compilation.Emit(ms);
 
-        if (!result.Success)
-        {
-            var failures = result.Diagnostics.Where(diagnostic =>
-                diagnostic.IsWarningAsError ||
-                diagnostic.Severity == DiagnosticSeverity.Error);
+            if (!result.Success)
+            {
+                throw new InvalidOperationException(
+                    $"Compilation failed {Environment.NewLine}{string.Join(Environment.NewLine, ErrorsFrom(result))}");
+            }
 
-            throw new InvalidOperationException(
-                $"Compilation failed {Environment.NewLine}{string.Join(Environment.NewLine, failures)}");
+            ms.Seek(0, SeekOrigin.Begin);
+
+            File.WriteAllBytes(assemblyLocation.ToString(), ms.ToArray());
         }
 
-        ms.Seek(0, SeekOrigin.Begin);
-
-        File.WriteAllBytes(assemblyLocation.ToString(), ms.ToArray());
+        private static IEnumerable<Diagnostic> ErrorsFrom(EmitResult result)
+        {
+            return result.Diagnostics.Where(diagnostic =>
+                diagnostic.IsWarningAsError ||
+                diagnostic.Severity == DiagnosticSeverity.Error);
+        }
     }
 }

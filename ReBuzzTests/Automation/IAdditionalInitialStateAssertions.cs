@@ -11,6 +11,7 @@ namespace ReBuzzTests.Automation
 
         void AssertInitialStateOfPatternEditor(ReBuzzCore reBuzzCore, AbsoluteDirectoryPath gearDir, IMachine machine);
 
-        void AssertInitialStateOfMachineManager(ReBuzzCore reBuzzCore, AbsoluteDirectoryPath gearDir, MachineManager machineManager);
+        void AssertInitialStateOfMachineManager(
+            ReBuzzCore reBuzzCore, AbsoluteDirectoryPath gearDir, MachineManager machineManager);
     }
 }
