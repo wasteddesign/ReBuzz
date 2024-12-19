@@ -5,6 +5,11 @@ VisualStudioVersion = 17.9.34701.34
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReBuzz", "ReBuzz\ReBuzz.csproj", "{B30010DA-2DAE-4AB7-B261-A2F64209BA6E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{2CF6E4C7-E0B4-448A-A3C7-8FA04785E73B}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReBuzzTests", "ReBuzzTests\ReBuzzTests.csproj", "{E5B85632-7E1C-4770-B9CD-196D3698CCAA}"
 EndProject
 Global
