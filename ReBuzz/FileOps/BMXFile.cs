@@ -896,7 +896,7 @@ namespace ReBuzz.FileOps
 
                     if (import && masterEditor != null)
                     {
-                        new DisconnectMachinesAction(buzz, masterEditor.AllOutputs[0], new WindowsGuiDispatcher()).Do();
+                        new DisconnectMachinesAction(buzz, masterEditor.AllOutputs[0], dispatcher).Do();
                         buzz.RemoveMachine(masterEditor);
                     }
                 }

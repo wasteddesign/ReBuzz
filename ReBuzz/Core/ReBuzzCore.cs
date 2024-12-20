@@ -1107,7 +1107,7 @@ namespace ReBuzz.Core
                 IReBuzzFile rebuzzFile = GetReBuzzFile(openFileDialog.FileName);
                 var filename = openFileDialog.FileName;
 
-                var impotAction = new ImportSongAction(this, rebuzzFile, filename, x, y);
+                var impotAction = new ImportSongAction(this, rebuzzFile, filename, x, y, this.dispatcher);
                 songCore.ActionStack.Do(impotAction);
             }
         }
@@ -1652,7 +1652,7 @@ namespace ReBuzz.Core
                     // Remove connections
                     foreach (var input in machine.AllInputs.ToArray())
                     {
-                        new DisconnectMachinesAction(this, input, new WindowsGuiDispatcher()).Do();
+                        new DisconnectMachinesAction(this, input, dispatcher).Do();
                     }
                 }
 
@@ -1809,7 +1809,7 @@ namespace ReBuzz.Core
                         // Remove connections
                         foreach (var output in currentEditorMachine.AllOutputs.ToArray())
                         {
-                            new DisconnectMachinesAction(this, output, new WindowsGuiDispatcher()).Do();
+                            new DisconnectMachinesAction(this, output, dispatcher).Do();
                         }
                         RemoveMachine(currentEditorMachine);
                     }

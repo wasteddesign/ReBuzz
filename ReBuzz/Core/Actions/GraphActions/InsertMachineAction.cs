@@ -58,7 +58,7 @@ namespace ReBuzz.Core.Actions.GraphActions
             {
                 this.name = machine.Name;
                 var mc = source.Outputs.FirstOrDefault(o => o.Destination == destination);
-                new DisconnectMachinesAction(buzz, mc, new WindowsGuiDispatcher()).Do();
+                new DisconnectMachinesAction(buzz, mc, dispatcher).Do();
 
                 MachineConnectionCore c = new MachineConnectionCore(machine, 0, destination, 0, 0x4000, 0x4000, dispatcher);
                 new ConnectMachinesAction(buzz, c, dispatcher).Do();
@@ -76,10 +76,10 @@ namespace ReBuzz.Core.Actions.GraphActions
             var destination = buzz.SongCore.MachinesList.FirstOrDefault(m => m.Name == oc.Destination);
 
             var mc = source.Outputs.FirstOrDefault(x => x.Destination == machine);
-            new DisconnectMachinesAction(buzz, mc, new WindowsGuiDispatcher()).Do();
+            new DisconnectMachinesAction(buzz, mc, dispatcher).Do();
 
             mc = machine.Outputs.FirstOrDefault(x => x.Destination == destination);
-            new DisconnectMachinesAction(buzz, mc, new WindowsGuiDispatcher()).Do();
+            new DisconnectMachinesAction(buzz, mc, dispatcher).Do();
 
             if (machine != null)
             {

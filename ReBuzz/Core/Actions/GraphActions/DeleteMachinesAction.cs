@@ -124,7 +124,7 @@ namespace ReBuzz.Core.Actions.GraphActions
             if (mc != null)
             {
                 // Call action without adding it to action stack
-                new DisconnectMachinesAction(buzz, mc, new WindowsGuiDispatcher()).Do();
+                new DisconnectMachinesAction(buzz, mc, dispatcher).Do();
             }
 
             mc = machine.AllInputs.FirstOrDefault(input => input.Source.Name == c.Source &&
@@ -132,7 +132,7 @@ namespace ReBuzz.Core.Actions.GraphActions
             if (mc != null)
             {
                 // Call action without adding it to action stack
-                new DisconnectMachinesAction(buzz, mc, new WindowsGuiDispatcher()).Do();
+                new DisconnectMachinesAction(buzz, mc, dispatcher).Do();
             }
         }
 

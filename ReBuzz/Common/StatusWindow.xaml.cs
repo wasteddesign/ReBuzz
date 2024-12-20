@@ -11,12 +11,12 @@ namespace ReBuzz.Common
     /// </summary>
     public partial class StatusWindow : Window
     {
-        public StatusWindow(string wndName)
+        public StatusWindow(string wndName, string buzzPath)
         {
             InitializeComponent();
 
             this.Title = BuzzGUI.Common.Win32.CompactPath(wndName, 40);
-            var md = Utils.GetUserControlXAML<Window>("ParameterWindowShell.xaml", Global.BuzzPath);
+            var md = Utils.GetUserControlXAML<Window>("ParameterWindowShell.xaml", buzzPath);
             if (md != null)
             {
                 this.Resources.MergedDictionaries.Add(md.Resources);
@@ -36,7 +36,7 @@ namespace ReBuzz.Common
             }));
         }
 
-        public static StatusWindow CreateAsync(string wndName, Window parentWnd)
+        public static StatusWindow CreateAsync(string wndName, Window parentWnd, string buzzPath)
         {
             StatusWindow window = null;
 
@@ -47,7 +47,7 @@ namespace ReBuzz.Common
             // Launch window in its own thread with a specific size and position
             var windowThread = new Thread(() =>
             {
-                window = new StatusWindow(wndName);
+                window = new StatusWindow(wndName, buzzPath);
 
                 window.Left = pos.X + pWidth / 2 - window.Width / 2;
                 window.Top = pos.Y + pHeight / 2 - window.Height / 2;

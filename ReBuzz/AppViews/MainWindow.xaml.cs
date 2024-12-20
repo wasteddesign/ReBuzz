@@ -42,7 +42,7 @@ namespace ReBuzz
 
         PreferencesWindow preferencesWindow;
 
-        readonly DebugWindow debugWindow = new DebugWindow();
+        readonly DebugWindow debugWindow;
 
         StatusWindow statusWindow;
         HDRecorderWindow hDRecorderWindow;
@@ -108,13 +108,14 @@ namespace ReBuzz
 
         public MainWindow()
         {
+            var generalSettings = Global.GeneralSettings;
+            var engineSettings = Global.EngineSettings;
+            var registryRoot = Global.RegistryRoot;
+            debugWindow = new DebugWindow(buzzPath);
             DataContext = this;
 
             InitializeComponent();
 
-            var generalSettings = Global.GeneralSettings;
-            var engineSettings = Global.EngineSettings;
-            var registryRoot = Global.RegistryRoot;
             Buzz = new ReBuzzCore(generalSettings,
               engineSettings,
               buzzPath,
@@ -126,7 +127,7 @@ namespace ReBuzz
 
             BuzzGUIStartup.PreInit();
 
-            splashScreenWindow = SplashScreenWindow.CreateAsync("Loading..", this);
+            splashScreenWindow = SplashScreenWindow.CreateAsync("Loading..", this, buzzPath);
 
             generalSettings.PropertyChanged += GeneralSettings_PropertyChanged;
             if (generalSettings.WPFIdealFontMetrics)
@@ -217,7 +218,7 @@ namespace ReBuzz
 
             reBuzzCoreInitialization.StartReBuzzEngineStep5(onOpenFile: fileName =>
             {
-                statusWindow = StatusWindow.CreateAsync(fileName, this);
+                statusWindow = StatusWindow.CreateAsync(fileName, this, buzzPath);
                 Buzz.FileEvent += Buzz_FileEvent;
             });
 

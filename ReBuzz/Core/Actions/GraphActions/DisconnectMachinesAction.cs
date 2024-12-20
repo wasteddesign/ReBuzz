@@ -29,7 +29,7 @@ namespace ReBuzz.Core.Actions.GraphActions
             this.buzz = buzz;
         }
 
-        public DisconnectMachinesAction(ReBuzzCore buzz, IMachine src, IMachine dst, int sourceChannel, int destinationChannel, int amp, int pan)
+        public DisconnectMachinesAction(ReBuzzCore buzz, IMachine src, IMachine dst, int sourceChannel, int destinationChannel, int amp, int pan, IUiDispatcher dispatcher)
         {
             this.buzz = buzz;
             this.sourceName = src.Name;
@@ -38,7 +38,7 @@ namespace ReBuzz.Core.Actions.GraphActions
             this.destinationChannel = destinationChannel;
             this.amp = amp;
             this.pan = pan;
-            dispatcher = new WindowsGuiDispatcher();
+            this.dispatcher = dispatcher;
         }
 
         protected override void DoAction()

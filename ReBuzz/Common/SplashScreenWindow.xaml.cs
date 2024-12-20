@@ -14,13 +14,13 @@ namespace ReBuzz.Common
     public partial class SplashScreenWindow : Window, INotifyPropertyChanged
     {
         public bool FadeOut { get; set; }
-        public SplashScreenWindow(string wndName)
+        public SplashScreenWindow(string wndName, string buzzPath)
         {
             InitializeComponent();
             DataContext = this;
 
             //this.Title = BuzzGUI.Common.Win32.CompactPath(wndName, 40);
-            var md = Utils.GetUserControlXAML<Window>("ParameterWindowShell.xaml", Global.BuzzPath);
+            var md = Utils.GetUserControlXAML<Window>("ParameterWindowShell.xaml", buzzPath);
             if (md != null)
             {
                 //this.Resources.MergedDictionaries.Add(md.Resources);
@@ -63,7 +63,7 @@ namespace ReBuzz.Common
             }
         }
 
-        public static SplashScreenWindow CreateAsync(string wndName, Window parentWnd)
+        public static SplashScreenWindow CreateAsync(string wndName, Window parentWnd, string buzzPath)
         {
             SplashScreenWindow window = null;
 
@@ -74,7 +74,7 @@ namespace ReBuzz.Common
             // Launch window in its own thread with a specific size and position
             var windowThread = new Thread(() =>
             {
-                window = new SplashScreenWindow(wndName);
+                window = new SplashScreenWindow(wndName, buzzPath);
 
                 //window.Left = pos.X + pWidth / 2 - window.Width / 2;
                 //window.Top = pos.Y + pHeight / 2 - window.Height / 2;

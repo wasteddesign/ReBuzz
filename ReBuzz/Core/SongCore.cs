@@ -333,7 +333,7 @@ namespace ReBuzz.Core
 
         public void DisconnectMachines(IMachineConnection mc)
         {
-            Do(new DisconnectMachinesAction(reBuzzCore, mc, new WindowsGuiDispatcher()));
+            Do(new DisconnectMachinesAction(reBuzzCore, mc, dispatcher));
         }
 
         public void Do(IAction a)

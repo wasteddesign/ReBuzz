@@ -2,29 +2,30 @@
 using System.Windows;
 using System.Windows.Threading;
 
-namespace ReBuzz.Core;
-
-public interface IUiDispatcher
+namespace ReBuzz.Core
 {
-    void Invoke(Action action);
-    void BeginInvoke(Action action);
-    void BeginInvoke(Action action, DispatcherPriority priority);
-}
-
-public class WindowsGuiDispatcher : IUiDispatcher
-{
-    public void Invoke(Action action)
+    public interface IUiDispatcher
     {
-        Application.Current.Dispatcher.Invoke(action);
+        void Invoke(Action action);
+        void BeginInvoke(Action action);
+        void BeginInvoke(Action action, DispatcherPriority priority);
     }
 
-    public void BeginInvoke(Action action)
+    public class WindowsGuiDispatcher : IUiDispatcher
     {
-        Application.Current.Dispatcher.BeginInvoke(action);
-    }
+        public void Invoke(Action action)
+        {
+            Application.Current.Dispatcher.Invoke(action);
+        }
 
-    public void BeginInvoke(Action action, DispatcherPriority priority)
-    {
-        Application.Current.Dispatcher.BeginInvoke(action, priority);
+        public void BeginInvoke(Action action)
+        {
+            Application.Current.Dispatcher.BeginInvoke(action);
+        }
+
+        public void BeginInvoke(Action action, DispatcherPriority priority)
+        {
+            Application.Current.Dispatcher.BeginInvoke(action, priority);
+        }
     }
 }

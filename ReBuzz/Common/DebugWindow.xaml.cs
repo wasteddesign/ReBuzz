@@ -34,7 +34,7 @@ namespace ReBuzz.Common
             "themecolors",
         };
 
-        public DebugWindow()
+        public DebugWindow(string buzzPath)
         {
             DataContext = this;
             InitializeComponent();
@@ -141,7 +141,7 @@ namespace ReBuzz.Common
 
             Loaded += (sender, e) =>
             {
-                var rd = Utils.GetUserControlXAML<Window>("ParameterWindowShell.xaml", Global.BuzzPath);
+                var rd = Utils.GetUserControlXAML<Window>("ParameterWindowShell.xaml", buzzPath);
                 Resources.MergedDictionaries.Add(rd.Resources);
 
                 PreviewMouseWheel += (sender, e) =>
