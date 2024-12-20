@@ -8,6 +8,7 @@ using ReBuzz.NativeMachine;
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using BuzzGUI.Common.Settings;
 
 namespace ReBuzz.MachineManagement
 {
@@ -23,7 +24,7 @@ namespace ReBuzz.MachineManagement
 
         public bool TickSent { get; private set; }
 
-        public MachineWorkInstance(MachineCore machine, ReBuzzCore reBuzz)
+        public MachineWorkInstance(MachineCore machine, ReBuzzCore reBuzz, EngineSettings settings)
         {
             this.Machine = machine;
             this.buzz = reBuzz;
@@ -35,6 +36,7 @@ namespace ReBuzz.MachineManagement
                 manageMachineHost = ManagedMachines[Machine];
             if (NativeMachines.ContainsKey(Machine))
                 nativeMachineHost = NativeMachines[Machine];
+            engineSettings = settings;
         }
 
         internal bool WorkMachine(int nSamples)
@@ -54,7 +56,7 @@ namespace ReBuzz.MachineManagement
             {
                 // Don't call Work() if bypassed
                 if (Machine.IsBypassed || Machine.IsSeqThru || Machine.MachineDLL.IsMissing ||
-                    (Machine.IsMuted && !Global.EngineSettings.ProcessMutedMachines))
+                    (Machine.IsMuted && !engineSettings.ProcessMutedMachines))
                 {
                     Sample[] samples = Machine.GetStereoSamples(nSamples);
                     Machine.UpdateOutputs(samples, false);
@@ -86,6 +88,7 @@ namespace ReBuzz.MachineManagement
         }
 
         readonly List<Sample[]> multiSamplesOut = new List<Sample[]>();
+        private readonly EngineSettings engineSettings;
 
         private bool WorkMachineNative(int nSamples)
         {
@@ -109,7 +112,7 @@ namespace ReBuzz.MachineManagement
                 }
             }
 
-            if (!Global.EngineSettings.ProcessMutedMachines && Machine.IsMuted)
+            if (!engineSettings.ProcessMutedMachines && Machine.IsMuted)
             {
                 return false;
             }
@@ -322,7 +325,7 @@ namespace ReBuzz.MachineManagement
         {
             if (Machine.Ready &&
                 (forceTick || ReBuzzCore.masterInfo.PosInTick == 0 ||
-                    (Global.EngineSettings.SubTickTiming && ReBuzzCore.subTickInfo.PosInSubTick == 0 && Machine.DLL.Info.Version >= MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_42)))
+                    (engineSettings.SubTickTiming && ReBuzzCore.subTickInfo.PosInSubTick == 0 && Machine.DLL.Info.Version >= MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_42)))
             {
                 if (Machine.Ready && manageMachineHost != null)
                 {
@@ -352,7 +355,7 @@ namespace ReBuzz.MachineManagement
                         }
                     }
                     */
-                    par.InvokeEvents(track);
+                    par.InvokeEvents(buzz, track);
                 }
 
                 Machine.parametersChanged.Clear();

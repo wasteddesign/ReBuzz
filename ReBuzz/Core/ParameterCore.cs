@@ -161,19 +161,20 @@ namespace ReBuzz.Core
         private readonly ConcurrentDictionary<int, EventManager> valueDescrtiptionChangedEvent = new ConcurrentDictionary<int, EventManager>();
 
         //internal Dictionary<int, int> Values { get => values; set => values = value; }
-        public ParameterCore()
+        public ParameterCore(IUiDispatcher dispatcher)
         {
             dtDescribeEvent = new DispatcherTimer();
             dtDescribeEvent.Interval = TimeSpan.FromMilliseconds(1000 / 30.0);
+            this.dispatcher = dispatcher;
         }
-        internal class EventManager
+        internal class EventManager(IUiDispatcher dispatcher)
         {
             public event Action<IParameter, int> Event;
-            public void CallEvent(IParameter parameter, int track)
+            public void CallEvent(IBuzz buzz, IParameter parameter, int track)
             {
                 if (Event != null)
                 {
-                    Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                    dispatcher.BeginInvoke(() =>
                     {
                         try
                         {
@@ -182,9 +183,9 @@ namespace ReBuzz.Core
                         }
                         catch (Exception e)
                         {
-                            Global.Buzz.DCWriteLine(e.Message);
+                            buzz.DCWriteLine(e.Message);
                         }
-                    }), DispatcherPriority.Normal);
+                    }, DispatcherPriority.Normal);
                 }
             }
 
@@ -192,7 +193,7 @@ namespace ReBuzz.Core
             {
                 if (Event != null)
                 {
-                    //Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                    //dispatcher.BeginInvoke(new Action(() =>
                     //{
                     try
                     {
@@ -220,11 +221,13 @@ namespace ReBuzz.Core
 
         static bool describeValueEventPending = false;
         readonly DispatcherTimer dtDescribeEvent;
-        internal void InvokeEvents(int track)
+        private readonly IUiDispatcher dispatcher;
+
+        internal void InvokeEvents(IBuzz buzz, int track)
         {
             if (valueChangedEvent.TryGetValue(track, out EventManager em))
             {
-                em.CallEvent(this, track);
+                em.CallEvent(buzz, this, track);
             }
 
             // Aviod invoking valueDescrtiptionChangedEvent to minimize calls to native machines
@@ -324,7 +327,7 @@ namespace ReBuzz.Core
             if (valueChanged != null)
             {
                 if (!valueChangedEvent.ContainsKey(track))
-                    valueChangedEvent.TryAdd(track, new EventManager());
+                    valueChangedEvent.TryAdd(track, new EventManager(dispatcher));
 
                 var em = valueChangedEvent[track];
                 em.Event += valueChanged;
@@ -332,7 +335,7 @@ namespace ReBuzz.Core
             if (valueDescriptionChanged != null)
             {
                 if (!valueDescrtiptionChangedEvent.ContainsKey(track))
-                    valueDescrtiptionChangedEvent.TryAdd(track, new EventManager());
+                    valueDescrtiptionChangedEvent.TryAdd(track, new EventManager(dispatcher));
 
                 var em = valueDescrtiptionChangedEvent[track];
                 em.Event += valueChanged;
@@ -376,18 +379,20 @@ namespace ReBuzz.Core
 
         internal ParameterCore Clone()
         {
-            ParameterCore p = new ParameterCore();
-            p.Type = Type;
-            p.Name = Name;
-            p.MinValue = MinValue;
-            p.MaxValue = MaxValue;
-            p.DefValue = DefValue;
-            p.NoValue = NoValue;
-            p.Flags = Flags;
-            p.Description = Description;
-            p.Group = Group;
-            p.IndexInGroup = IndexInGroup;
-            p.values = values;
+            ParameterCore p = new ParameterCore(dispatcher)
+            {
+                Type = Type,
+                Name = Name,
+                MinValue = MinValue,
+                MaxValue = MaxValue,
+                DefValue = DefValue,
+                NoValue = NoValue,
+                Flags = Flags,
+                Description = Description,
+                Group = Group,
+                IndexInGroup = IndexInGroup,
+                values = values
+            };
 
             return p;
         }
@@ -407,9 +412,9 @@ namespace ReBuzz.Core
             valueDescrtiptionChangedEvent.Clear();
         }
 
-        internal static ParameterCore GetMidiParameter(MachineCore machine)
+        internal static ParameterCore GetMidiParameter(MachineCore machine, IUiDispatcher dispatcher)
         {
-            ParameterCore parameter = new ParameterCore();
+            ParameterCore parameter = new ParameterCore(dispatcher);
             parameter.Name = "MIDI Note";
             parameter.Description = "MIDI Note";
             parameter.MinValue = BuzzNote.Min;

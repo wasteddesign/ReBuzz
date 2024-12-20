@@ -79,7 +79,7 @@ namespace ReBuzz.Core
         {
             MachineCore = mc;
             CSequence = new IntPtr(sequenceHandleCounter++);
-            EventsList = new OrderedDictionary<int, SequenceEvent>(); ;
+            EventsList = new OrderedDictionary<int, SequenceEvent>();
         }
 
         public event Action<int> EventChanged;

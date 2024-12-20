@@ -13,8 +13,9 @@ namespace ReBuzz.Core.Actions.GraphActions
         private readonly int amp;
         private readonly int pan;
         private readonly ReBuzzCore buzz;
+        private IUiDispatcher dispatcher;
 
-        public ConnectMachinesAction(ReBuzzCore buzz, IMachine src, IMachine dst, int srcchn, int dstchn, int amp, int pan)
+        public ConnectMachinesAction(ReBuzzCore buzz, IMachine src, IMachine dst, int srcchn, int dstchn, int amp, int pan, IUiDispatcher dispatcher)
         {
             this.src = src.Name;
             this.dst = dst.Name;
@@ -22,10 +23,11 @@ namespace ReBuzz.Core.Actions.GraphActions
             this.dstchn = dstchn;
             this.amp = amp;
             this.pan = pan;
+            this.dispatcher = dispatcher;
             this.buzz = buzz;
         }
 
-        public ConnectMachinesAction(ReBuzzCore buzz, MachineConnectionCore mc)
+        public ConnectMachinesAction(ReBuzzCore buzz, MachineConnectionCore mc, IUiDispatcher dispatcher)
         {
             this.src = mc.Source.Name;
             this.dst = mc.Destination.Name;
@@ -34,6 +36,7 @@ namespace ReBuzz.Core.Actions.GraphActions
             this.amp = mc.Amp;
             this.pan = mc.Pan;
             this.buzz = buzz;
+            this.dispatcher = dispatcher;
         }
 
         protected override void DoAction()
@@ -42,7 +45,7 @@ namespace ReBuzz.Core.Actions.GraphActions
             {
                 var mcsrc = buzz.SongCore.MachinesList.FirstOrDefault(m => m.Name == src);
                 var mcdst = buzz.SongCore.MachinesList.FirstOrDefault(m => m.Name == dst);
-                MachineConnectionCore mcc = new MachineConnectionCore() { Source = mcsrc, Destination = mcdst, SourceChannel = srcchn, DestinationChannel = dstchn, Amp = amp, Pan = pan, HasPan = mcdst.HasStereoInput };
+                MachineConnectionCore mcc = new MachineConnectionCore(dispatcher) { Source = mcsrc, Destination = mcdst, SourceChannel = srcchn, DestinationChannel = dstchn, Amp = amp, Pan = pan, HasPan = mcdst.HasStereoInput };
 
                 mcsrc.AddOutput(mcc);
                 mcdst.AddInput(mcc);

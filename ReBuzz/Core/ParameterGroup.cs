@@ -70,11 +70,11 @@ namespace ReBuzz.Core
             parameters.Add(parameter);
         }
 
-        public static ParameterGroup CreateInputGroup(MachineCore machine)
+        public static ParameterGroup CreateInputGroup(MachineCore machine, IUiDispatcher dispatcher)
         {
             var pg = new ParameterGroup(machine, ParameterGroupType.Input);
-            var pAmp = new ParameterCore() { IndexInGroup = 0, Name = "Amp", Group = pg, MinValue = 0, MaxValue = 0xfffe, Description = "Amp (0=0%, 4000=100%, FFFE=~400%)", Flags = ParameterFlags.State, Type = ParameterType.Word, DefValue = 0x4000 };
-            var pPan = new ParameterCore() { IndexInGroup = 1, Name = "Pan", Group = pg, MinValue = 0, MaxValue = 0x8000, Description = "Pan (0=Left, 4000=Center, 8000=Right)", Flags = ParameterFlags.State, Type = ParameterType.Word, DefValue = 0x4000 };
+            var pAmp = new ParameterCore(dispatcher) { IndexInGroup = 0, Name = "Amp", Group = pg, MinValue = 0, MaxValue = 0xfffe, Description = "Amp (0=0%, 4000=100%, FFFE=~400%)", Flags = ParameterFlags.State, Type = ParameterType.Word, DefValue = 0x4000 };
+            var pPan = new ParameterCore(dispatcher) { IndexInGroup = 1, Name = "Pan", Group = pg, MinValue = 0, MaxValue = 0x8000, Description = "Pan (0=Left, 4000=Center, 8000=Right)", Flags = ParameterFlags.State, Type = ParameterType.Word, DefValue = 0x4000 };
             pg.AddParameter(pAmp);
             pg.AddParameter(pPan);
             pAmp.SetValue(0, 0x4000);

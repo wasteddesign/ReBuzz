@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Threading;
+using BuzzGUI.Interfaces;
 
 namespace ReBuzz.NativeMachine
 {
@@ -19,6 +20,8 @@ namespace ReBuzz.NativeMachine
         private ChannelListener channelListenerMIDI;
         private ChannelListener channelListenerUI;
         private ChannelListener channelListenerHost;
+        private readonly string buzzPath;
+        private readonly IUiDispatcher dispatcher;
 
         public bool Host64 { get; private set; }
         public HostMessage HostMessage { get; private set; }
@@ -30,9 +33,11 @@ namespace ReBuzz.NativeMachine
 
         public bool IsConnected { get; set; }
 
-        public NativeMachineHost(string sharedId)
+        public NativeMachineHost(string sharedId, string buzzPath, IUiDispatcher dispatcher)
         {
             this.sharedId = sharedId + DateTime.Now.Ticks;
+            this.buzzPath = buzzPath;
+            this.dispatcher = dispatcher;
         }
 
         public void InitHost(ReBuzzCore buzz, bool host64)
@@ -41,7 +46,7 @@ namespace ReBuzz.NativeMachine
                 return;
 
             Host64 = host64;
-            string path = host64 ? Global.BuzzPath + "\\bin64\\ReBuzzEngine64.exe" : Global.BuzzPath + "\\bin32\\ReBuzzEngine32.exe";
+            string path = host64 ? buzzPath + "\\bin64\\ReBuzzEngine64.exe" : buzzPath + "\\bin32\\ReBuzzEngine32.exe";
 
             int mapSize = IPC.GetSharedPageSize();
             mappedFile = MemoryMappedFile.CreateNew(sharedId, mapSize);
@@ -49,7 +54,7 @@ namespace ReBuzz.NativeMachine
 
             HostMessage = new HostMessage(ChannelType.HostChannel, accessor, this);
             HostMessage.MessageEvent += HostMessage_MessageEvent;
-            UIMessage = new UIMessage(ChannelType.UIChannel, accessor, this);
+            UIMessage = new UIMessage(ChannelType.UIChannel, accessor, this, dispatcher);
             AudioMessage = new AudioMessage(ChannelType.AudioChannel, accessor, this);
             MidiMessage = new MidiMessage(ChannelType.MidiChannel, accessor, this);
 

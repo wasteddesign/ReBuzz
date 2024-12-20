@@ -20,7 +20,7 @@ namespace ReBuzz.Common
     /// Interaction logic for DebugWindow.xaml
     /// </summary>
     public partial class DebugWindow : Window
-    {  
+    {
         readonly MemoryStream debugStream;
 
         string[] commands =
@@ -34,8 +34,8 @@ namespace ReBuzz.Common
             "themecolors",
         };
 
-        public DebugWindow()
-        {   
+        public DebugWindow(string buzzPath)
+        {
             DataContext = this;
             InitializeComponent();
 
@@ -51,7 +51,7 @@ namespace ReBuzz.Common
             debugStream = new MemoryStream();
 
             tbDebug.TextChanged += (sender, e) =>
-            {   
+            {
                 tbDebug.ScrollToEnd();
             };
 
@@ -60,7 +60,8 @@ namespace ReBuzz.Common
                 if (this.Visibility == Visibility.Visible)
                 {
                     Dispatcher.BeginInvoke(DispatcherPriority.Input,
-                        new Action(delegate () {
+                        new Action(delegate ()
+                        {
                             tbDebugInput.Focus();
                             Keyboard.Focus(tbDebugInput);
                         }));
@@ -73,7 +74,7 @@ namespace ReBuzz.Common
                 {
                     var rb = Global.Buzz as ReBuzzCore;
                     var inputs = tbDebugInput.Text.Split(null);
-                    
+
                     if (inputs.Length > 0)
                     {
                         switch (inputs[0])
@@ -140,7 +141,7 @@ namespace ReBuzz.Common
 
             Loaded += (sender, e) =>
             {
-                var rd = Utils.GetUserControlXAML<Window>("ParameterWindowShell.xaml");
+                var rd = Utils.GetUserControlXAML<Window>("ParameterWindowShell.xaml", buzzPath);
                 Resources.MergedDictionaries.Add(rd.Resources);
 
                 PreviewMouseWheel += (sender, e) =>
@@ -148,8 +149,8 @@ namespace ReBuzz.Common
                     if (Keyboard.Modifiers == ModifierKeys.Control)
                     {
                         double newSize = tbDebug.FontSize + e.Delta / 120.0;
-                        tbDebug.FontSize = Math.Max( Math.Min(newSize, 30), 7);
-                        
+                        tbDebug.FontSize = Math.Max(Math.Min(newSize, 30), 7);
+
                         e.Handled = true;
                     }
                 };
