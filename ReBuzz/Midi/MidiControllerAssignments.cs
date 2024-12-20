@@ -204,7 +204,7 @@ namespace ReBuzz.Midi
                 string key = regKeyBase + id;
                 try
                 {
-                    registryEx.DeleteCurrentUserSubkey(key);
+                    registryEx.DeleteCurrentUserSubKey(key);
                 }
                 catch { }
 

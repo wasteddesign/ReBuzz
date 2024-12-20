@@ -94,12 +94,12 @@ namespace ReBuzzTests.Automation
             }
         }
 
-        public void DeleteCurrentUserSubkey(string key)
+        public void DeleteCurrentUserSubKey(string key)
         {
             Assert.Fail("Not used in any of the current tests");
         }
 
-        public IRegistryKey CreateCurrentUserSubKey(string subkey)
+        public IRegistryKey CreateCurrentUserSubKey(string subKey)
         {
             Assert.Fail("Not used in any of the current tests");
             return null!;

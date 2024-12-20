@@ -998,7 +998,7 @@ namespace ReBuzz.Core
 
             try
             {
-                registryEx.DeleteCurrentUserSubkey(registryRoot + "\\" + "Recent File List");
+                registryEx.DeleteCurrentUserSubKey(registryRoot + "\\" + "Recent File List");
             }
             catch { }
 

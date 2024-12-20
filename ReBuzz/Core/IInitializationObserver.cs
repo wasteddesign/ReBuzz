@@ -1,8 +1,9 @@
 ﻿using ReBuzz.MachineManagement;
 
-namespace ReBuzz.Core;
-
-internal interface IInitializationObserver
+namespace ReBuzz.Core
 {
-    void NotifyMachineManagerCreated(MachineManager machineManager);
+    internal interface IInitializationObserver
+    {
+        void NotifyMachineManagerCreated(MachineManager machineManager);
+    }
 }

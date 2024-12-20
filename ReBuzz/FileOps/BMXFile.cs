@@ -482,17 +482,17 @@ namespace ReBuzz.FileOps
             //{
             #region Init Machine Section
             // This region can be moved to the loop end of this method if init needs to be called after every machine has been created.
-            //if (!machine.DLL.IsManaged)
-            //{
-            //var idata = dictInitData[machine];
-            //FileOpsEvent(FileEventType.StatusUpdate, "Init Machine: " + machine.Name + "...");
-            // Call Init
-            //buzz.MachineManager.CallInit(machine, idata.data, idata.tracks);
-            //}
+            //    if (!machine.DLL.IsManaged)
+            //    {
+            //        var idata = dictInitData[machine];
+            //        FileOpsEvent(FileEventType.StatusUpdate, "Init Machine: " + machine.Name + "...");
+            //        // Call Init
+            //        buzz.MachineManager.CallInit(machine, idata.data, idata.tracks);
+            //    }
             #endregion
 
-            // Call remap machine names
-            //buzz.MachineManager.RemapMachineNames(machine, importDictionary);
+            //    // Call remap machine names
+            //    buzz.MachineManager.RemapMachineNames(machine, importDictionary);
             //}
         }
 
