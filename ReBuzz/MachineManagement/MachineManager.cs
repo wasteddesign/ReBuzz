@@ -181,8 +181,8 @@ namespace ReBuzz.MachineManagement
 
         NativeMachineHost nativeMachineHostSingleProcess32;
         NativeMachineHost nativeMachineHostSingleProcess64;
-        private EngineSettings engineSettings;
-        private string buzzPath;
+        private readonly EngineSettings engineSettings;
+        private readonly string buzzPath;
         private readonly IUiDispatcher dispatcher;
 
         void CreateNativeMachine(MachineCore machine, string instrument, int trackCount, byte[] data, bool callInit = true)
