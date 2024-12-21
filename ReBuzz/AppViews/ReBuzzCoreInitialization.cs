@@ -12,6 +12,18 @@ using ReBuzz.MachineManagement;
 
 namespace ReBuzz.AppViews
 {
+    /// <summary>
+    /// This class is responsible for initializing ReBuzzCore.
+    /// It serves as a container for the parts of initialization that are independent of the UI.
+    ///
+    /// This separation is not by any means perfect and should be treated as work in progress,
+    /// however, large chunks of initialization could already be moved here, which allows
+    /// the tests to also cover this code.
+    /// </summary>
+    /// <param name="buzz"></param>
+    /// <param name="buzzPath"></param>
+    /// <param name="dispatcher"></param>
+    /// <param name="registryEx"></param>
     public class ReBuzzCoreInitialization(
         ReBuzzCore buzz,
         string buzzPath,
