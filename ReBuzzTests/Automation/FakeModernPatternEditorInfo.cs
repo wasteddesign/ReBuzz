@@ -5,11 +5,17 @@ using ReBuzz.Core;
 
 namespace ReBuzzTests.Automation
 {
+    /// <summary>
+    /// Contains additional information about the fake Modern Pattern Editor machine.
+    ///
+    /// This information is awkward to put in the <see cref="FakeModernPatternEditor"/>
+    /// class because it would require a reference to the types defined in this project.
+    /// </summary>
     public static class FakeModernPatternEditorInfo
     {
         internal static MachineDLL GetMachineDll(ReBuzzCore buzz, AbsoluteFilePath location)
         {
-            MachineDecl? decl = FakeModernPatternEditor.GetMachineDecl();
+            var decl = FakeModernPatternEditor.GetMachineDecl();
             return new MachineDLL
             {
                 Name = decl.Name,

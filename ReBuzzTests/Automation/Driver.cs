@@ -1,36 +1,57 @@
 using System;
-using System.Collections.Immutable;
 using System.IO;
-using System.Linq;
 using AtmaFileSystem;
 using AtmaFileSystem.IO;
 using BuzzGUI.Common;
 using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
 using FluentAssertions;
-using libsndfile;
-using Microsoft.Win32;
-using ReBuzz;
 using ReBuzz.AppViews;
 using ReBuzz.Core;
 using ReBuzz.FileOps;
 using ReBuzz.MachineManagement;
+using ReBuzzTests.Automation.Assertions;
 
 namespace ReBuzzTests.Automation
 {
     public class Driver : IDisposable, IInitializationObserver
     {
+        /// <summary>
+        /// This is a temp dir where each test has its own ReBuzz root directory
+        /// </summary>
         private static readonly AbsoluteDirectoryPath TestDataRootPath =
             AbsoluteDirectoryPath.Value(Path.GetTempPath()).AddDirectoryName("ReBuzzTestData");
 
-        private readonly AbsoluteDirectoryPath gearDir;
-        private readonly AbsoluteDirectoryPath themesDir;
-        private ReBuzzCore reBuzzCore;
-        private readonly AbsoluteDirectoryPath gearEffectsDir;
-        private readonly AbsoluteDirectoryPath gearGeneratorsDir;
-
+        /// <summary>
+        /// ReBuzz root directory for the current test. Each test gets its own root directory.
+        /// This follows the Persistent Fresh Fixture pattern
+        /// (see http://xunitpatterns.com/Fresh%20Fixture.html#Persistent%20Fresh%20Fixture)
+        /// and allows making the tests more independent of each other.
+        /// </summary>
         private readonly AbsoluteDirectoryPath reBuzzRootDir =
             TestDataRootPath.AddDirectoryName($"{Guid.NewGuid()}__{DateTime.UtcNow.Ticks}");
+
+        /// <summary>
+        /// ReBuzz gear directory for the current test
+        /// </summary>
+        private AbsoluteDirectoryPath GearDir => reBuzzRootDir.AddDirectoryName("Gear");
+
+        /// <summary>
+        /// ReBuzz themes directory for the current test
+        /// </summary>
+        private AbsoluteDirectoryPath ThemesDir => reBuzzRootDir.AddDirectoryName("Themes");
+
+        /// <summary>
+        /// ReBuzz gear/effects directory for the current test
+        /// </summary>
+        private AbsoluteDirectoryPath GearEffectsDir => GearDir.AddDirectoryName("Effects");
+
+        /// <summary>
+        /// ReBuzz gear/generators directory for the current test
+        /// </summary>
+        private AbsoluteDirectoryPath GearGeneratorsDir => GearDir.AddDirectoryName("Generators");
+
+        private ReBuzzCore reBuzzCore;
 
         static Driver()
         {
@@ -39,14 +60,6 @@ namespace ReBuzzTests.Automation
             // Cleaning up on start because the machine dlls created in previous test run
             // were probably held locked by the previous test process which prevented deleting them.
             AttemptToCleanupTestRootDirs();
-        }
-
-        public Driver()
-        {
-            gearDir = reBuzzRootDir.AddDirectoryName("Gear");
-            gearEffectsDir = gearDir.AddDirectoryName("Effects");
-            gearGeneratorsDir = gearDir.AddDirectoryName("Generators");
-            themesDir = reBuzzRootDir.AddDirectoryName("Themes");
         }
 
         public void Start()
@@ -60,7 +73,7 @@ namespace ReBuzzTests.Automation
 
             var dispatcher = new FakeDispatcher();
             var registryExInstance = new FakeInMemoryRegistry();
-            var fakeMachineDllScanner = new FakeMachineDLLScanner(gearDir);
+            var fakeMachineDllScanner = new FakeMachineDLLScanner(GearDir);
             reBuzzCore = new ReBuzzCore(generalSettings, engineSettings, buzzPath, registryRoot, fakeMachineDllScanner,
                 dispatcher, registryExInstance);
             fakeMachineDllScanner.AddFakeModernPatternEditor(reBuzzCore);
@@ -102,17 +115,25 @@ namespace ReBuzzTests.Automation
             reBuzzCore.ExecuteCommand(BuzzCommand.NewFile);
         }
 
+        /// <summary>
+        /// Sets up the directory structure for the current test
+        /// </summary>
         private void SetupDirectoryStructure()
         {
             reBuzzRootDir.Create();
-            gearDir.Create();
-            gearEffectsDir.Create();
-            gearGeneratorsDir.Create();
-            themesDir.Create();
+            GearDir.Create();
+            GearEffectsDir.Create();
+            GearGeneratorsDir.Create();
+            ThemesDir.Create();
+            CopyGearFilesFromSourceCodeToReBuzzTestDir();
+        }
+
+        private void CopyGearFilesFromSourceCodeToReBuzzTestDir()
+        {
             foreach (AbsoluteFilePath gearFile in AbsoluteDirectoryPath.OfThisFile().AddDirectoryName("Gear")
                          .EnumerateFiles())
             {
-                gearFile.Copy(gearDir + gearFile.FileName(), true);
+                gearFile.Copy(GearDir + gearFile.FileName(), true);
             }
         }
 
@@ -129,14 +150,20 @@ namespace ReBuzzTests.Automation
 
         public void AssertInitialStateAfterNewFile()
         {
-            InitialStateAssertions.AssertInitialState(gearDir, reBuzzCore, new InitialStateAfterNewFileAssertions());
+            InitialStateAssertions.AssertInitialState(GearDir, reBuzzCore, new InitialStateAfterNewFileAssertions());
         }
 
         public void AssertInitialStateAfterAppStart()
         {
-            InitialStateAssertions.AssertInitialState(gearDir, reBuzzCore, new InitialStateAfterAppStartAssertions());
+            InitialStateAssertions.AssertInitialState(GearDir, reBuzzCore, new InitialStateAfterAppStartAssertions());
         }
 
+        /// <summary>
+        /// Attempts to clean up all the test root directories.
+        /// This typically will not be able to delete the machine dlls
+        /// created in this test run as they are loaded inside the currently running process
+        /// and there is no way to unload them.
+        /// </summary>
         private static void AttemptToCleanupTestRootDirs()
         {
             if (TestDataRootPath.Exists())

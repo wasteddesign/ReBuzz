@@ -12,6 +12,11 @@ using System.Linq;
 
 namespace ReBuzzTests.Automation
 {
+    /// <summary>
+    /// Used to compile and save C# code to a dll.
+    /// Meant as a more dynamic way to create machines specific for future tests
+    /// without having to create a new project for each machine.
+    /// </summary>
     public class DynamicCompiler
     {
         public static void CompileAndSave(string code, AbsoluteFilePath assemblyLocation)

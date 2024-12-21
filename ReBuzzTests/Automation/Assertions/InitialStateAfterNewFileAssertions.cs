@@ -5,8 +5,11 @@ using ReBuzz.Core;
 using ReBuzz.MachineManagement;
 using System.Linq;
 
-namespace ReBuzzTests.Automation
+namespace ReBuzzTests.Automation.Assertions
 {
+    /// <summary>
+    /// Assertions for the initial state of ReBuzz specific to the state after issuing a new file command.
+    /// </summary>
     public class InitialStateAfterNewFileAssertions : IAdditionalInitialStateAssertions
     {
         public void AssertInitialStateOfSongCore(

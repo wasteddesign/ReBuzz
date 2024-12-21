@@ -4,16 +4,19 @@ using BuzzGUI.Interfaces;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using ReBuzz.Core;
+using ReBuzz.FileOps;
 using ReBuzz.MachineManagement;
 using ReBuzz.ManagedMachine;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Media;
-using ReBuzz.FileOps;
-using System.Collections.ObjectModel;
 
-namespace ReBuzzTests.Automation
+namespace ReBuzzTests.Automation.Assertions
 {
+    /// <summary>
+    /// Assertions for the initial state of ReBuzz.
+    /// </summary>
     public static class InitialStateAssertions
     {
         private static readonly Dictionary<string, Color> ColorDictionary = new()

@@ -9,8 +9,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ReBuzzTests.Automation
+namespace ReBuzzTests.Automation.Assertions
 {
+    /// <summary>
+    /// Assertions for the initial state of ReBuzz specific to the state after starting the app.
+    /// </summary>
     public class InitialStateAfterAppStartAssertions : IAdditionalInitialStateAssertions
     {
         public void AssertInitialStateOfSongCore(

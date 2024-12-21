@@ -3,8 +3,13 @@ using BuzzGUI.Interfaces;
 using ReBuzz.Core;
 using ReBuzz.MachineManagement;
 
-namespace ReBuzzTests.Automation
+namespace ReBuzzTests.Automation.Assertions
 {
+    /// <summary>
+    /// Strangely, the state after starting ReBuzz and after issuing a new file command is slightly different.
+    /// This interface allows customizing the generic "initial state" assertion
+    /// for each of these cases.
+    /// </summary>
     public interface IAdditionalInitialStateAssertions
     {
         void AssertInitialStateOfSongCore(SongCore songCore, AbsoluteDirectoryPath gearDir, ReBuzzCore reBuzzCore);

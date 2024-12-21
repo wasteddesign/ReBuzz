@@ -9,12 +9,26 @@ using System.Linq;
 
 namespace ReBuzzTests.Automation
 {
+    /// <summary>
+    /// Without a Modern Pattern Editor machine, ReBuzz will not start.
+    /// This file contains a fake machine. Most of the code is copied from some hello world
+    /// example without giving it too much thought. The structure of this fake dll may be improved
+    /// in the future as needed. For now, this rough fake serves its purpose.
+    ///
+    /// This file is also compiled into a dll and placed in the ReBuzz gear folder.
+    /// This is why it has a method for getting its source code. Also, the fact that this file
+    /// is compilable is why it cannot depend on any other files in this project. This is why
+    /// the <see cref="FakeModernPatternEditorInfo"/> class exists.
+    /// </summary>
     [MachineDecl(Name = "Modern Pattern Editor", ShortName = "MPE", Author = "WDE", MaxTracks = 1, InputCount = 0,
         OutputCount = 0)]
     public class FakeModernPatternEditor : IBuzzMachine, INotifyPropertyChanged
     {
         private IBuzzMachineHost host;
 
+        /// <summary>
+        /// Gets the source code of this file for compilation into a dll.
+        /// </summary>
         public static string GetSourceCode()
         {
             return AbsoluteFilePath.OfThisFile().ReadAllText();

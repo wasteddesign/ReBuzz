@@ -4,6 +4,11 @@ using System.Threading;
 
 namespace ReBuzzTests.Automation
 {
+    /// <summary>
+    /// Fake in-memory registry.
+    /// While I would've preferred to use a special test-only location in the real registry,
+    /// The RegistryKey class depends on global constants (like registry root) which cannot be changed in tests.
+    /// </summary>
     internal class FakeInMemoryRegistry : IRegistryEx
     {
         private readonly Lock lockObject = new();
@@ -102,7 +107,7 @@ namespace ReBuzzTests.Automation
         public IRegistryKey CreateCurrentUserSubKey(string subKey)
         {
             Assert.Fail("Not used in any of the current tests");
-            return null!;
+            return default!;
         }
     }
 }

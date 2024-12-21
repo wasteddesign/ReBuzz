@@ -2,8 +2,12 @@ using BuzzGUI.Interfaces;
 using FluentAssertions;
 using FluentAssertions.Execution;
 
-namespace ReBuzzTests.Automation
+namespace ReBuzzTests.Automation.Assertions
 {
+    /// <summary>
+    /// Represents an expected machine parameter.
+    /// Includes factory methods for some well-known parameters.
+    /// </summary>
     public record ExpectedMachineParameter(
         string ExpectedName,
         string ExpectedDescription,
