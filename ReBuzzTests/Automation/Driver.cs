@@ -8,12 +8,20 @@ using BuzzGUI.Interfaces;
 using FluentAssertions;
 using ReBuzz.AppViews;
 using ReBuzz.Core;
-using ReBuzz.FileOps;
 using ReBuzz.MachineManagement;
 using ReBuzzTests.Automation.Assertions;
 
 namespace ReBuzzTests.Automation
 {
+    /// <summary>
+    /// The driver class for the ReBuzz automation tests.
+    /// It is an "intention layer" between the production code and the tests.
+    /// Is it an implementation of the Driver pattern.
+    /// See https://github.com/grzesiek-galezowski/driver-pattern-demo/tree/main/DriverInFunctionalHttpApiTests
+    /// for a more generic description.
+    /// See https://docs.specflow.org/projects/specflow/en/latest/Guides/DriverPattern.html for description specific
+    /// to the community around the SpecFlow tool where this pattern is more popular.
+    /// </summary>
     public class Driver : IDisposable, IInitializationObserver
     {
         /// <summary>

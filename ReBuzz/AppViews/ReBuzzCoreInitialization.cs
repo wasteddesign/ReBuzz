@@ -20,10 +20,6 @@ namespace ReBuzz.AppViews
     /// however, large chunks of initialization could already be moved here, which allows
     /// the tests to also cover this code.
     /// </summary>
-    /// <param name="buzz"></param>
-    /// <param name="buzzPath"></param>
-    /// <param name="dispatcher"></param>
-    /// <param name="registryEx"></param>
     public class ReBuzzCoreInitialization(
         ReBuzzCore buzz,
         string buzzPath,
