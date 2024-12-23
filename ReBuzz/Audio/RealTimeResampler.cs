@@ -102,7 +102,7 @@ namespace ReBuzz.Audio
 
             int dataPosR = destDataWritePos + 1;
             for (int i = 0; i < outputLengthGeneratedR; i++)
-            {   
+            {
                 destData[dataPosR] = (float)outputDataDoubleR[i];
                 dataPosR += 2;
                 if (dataPosR >= destData.Length)
@@ -140,7 +140,7 @@ namespace ReBuzz.Audio
                 {
                     outbuffer[i].L = 0;
                     outbuffer[i].R = 0;
-                } 
+                }
             }
 
             if (inputReady && num <= destDataWritePos / 2)
@@ -158,7 +158,7 @@ namespace ReBuzz.Audio
         public void GetSamples(float[] outbuffer, int offset, int num)
         {
             int bufferCount = num * 2;
-            
+
             // Ensure there is data available
             if (destDataFilleLevel >= bufferCount)
             {

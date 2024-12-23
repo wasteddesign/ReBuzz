@@ -224,7 +224,7 @@ namespace ReBuzz.NativeMachine
 
             lock (AudioMessageLock)
             {
-                Reset(); 
+                Reset();
                 SetMessageData((int)AudioMessages.AudioBeginBlock);
 
                 for (int wi = 0; wi < WAVE_MAX; wi++)

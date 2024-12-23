@@ -172,7 +172,7 @@ namespace ReBuzz.Core
                 string oldName = name;
                 name = value;
                 /*
-                Application.Current.Dispatcher.BeginInvoke((Action)(() =>
+                dispatcher.BeginInvoke((Action)(() =>
                 {
                     PropertyChanged?.Raise(this, "Name");
                 }));
@@ -236,7 +236,7 @@ namespace ReBuzz.Core
                 if (isActive != value)
                 {
                     isActive = value;
-                    Application.Current.Dispatcher.BeginInvoke(() =>
+                    dispatcher.BeginInvoke(() =>
                     {
                         PropertyChanged.Raise(this, "IsActive");
                     });
@@ -309,7 +309,7 @@ namespace ReBuzz.Core
                 if (MachineView.StaticSettings.ShowEngineThreads)
                 {
                     if (newValue != oldValue)
-                        //Application.Current.Dispatcher.BeginInvoke((Action)(() =>
+                        //dispatcher.BeginInvoke((Action)(() =>
                         //{
 
                         PropertyChanged?.Raise(this, "LastEngineThread");
@@ -427,7 +427,7 @@ namespace ReBuzz.Core
 
             // Notify native machines
             bc.MachineManager.SetNumTracks(this, trackCount);
-            Application.Current.Dispatcher.BeginInvoke(() =>
+            dispatcher.BeginInvoke(() =>
             {
                 PropertyChanged?.Raise(this, "TrackCount");
                 bc.SetModifiedFlag();
@@ -452,12 +452,13 @@ namespace ReBuzz.Core
         public bool Hidden { get; internal set; }
         public MachineCore EditorMachine { get; internal set; }
 
-        public MachineCore(SongCore machineGraph, bool is64Bit = false)
+        public MachineCore(SongCore machineGraph, string buzzPath, IUiDispatcher dispatcher, bool is64Bit = false)
         {
+            this.buzzPath = buzzPath;
             graph = machineGraph;
 
             parameterGroups = new List<ParameterGroup>();
-            parameterGroups.Add(ParameterGroup.CreateInputGroup(this)); // Inputs
+            parameterGroups.Add(ParameterGroup.CreateInputGroup(this, dispatcher)); // Inputs
 
             MachineDLL = new MachineDLL();
             MachineDLL.Is64Bit = is64Bit;
@@ -475,6 +476,7 @@ namespace ReBuzz.Core
                     (Graph.Buzz as ReBuzzCore).MachineManager.Command(this, (int)x);
                 }
             };
+            this.dispatcher = dispatcher;
         }
 
         public void ClonePattern(string name, IPattern p)
@@ -483,7 +485,7 @@ namespace ReBuzz.Core
             {
                 lock (ReBuzzCore.AudioLock)
                 {
-                    PatternCore newp = new PatternCore(this, name, p.Length);
+                    PatternCore newp = new PatternCore(this, name, p.Length, dispatcher);
                     this.patterns.Add(newp);
                     var buzz = graph.Buzz as ReBuzzCore;
                     buzz.MachineManager.CreatePatternCopy(EditorMachine, newp, p);
@@ -508,7 +510,7 @@ namespace ReBuzz.Core
             // Don't call these from "Work()"
             lock (ReBuzzCore.AudioLock)
             {
-                PatternCore pc = new PatternCore(this, name, length);
+                PatternCore pc = new PatternCore(this, name, length, dispatcher);
                 this.patterns.Add(pc);
                 PatternAdded?.Invoke(pc);
                 PropertyChanged.Raise(this, "Patterns");
@@ -621,7 +623,7 @@ namespace ReBuzz.Core
                 ParameterWindowVM pWindowVM = new ParameterWindowVM();
                 pWindowVM.Machine = this;
 
-                parameterWindow = Utils.GetUserControlXAML<Window>("ParameterWindow.xaml");
+                parameterWindow = Utils.GetUserControlXAML<Window>("ParameterWindow.xaml", buzzPath);
                 Window window = (Window)HwndSource.FromHwnd(graph.Buzz.MachineViewHWND).RootVisual;
                 parameterWindow.Owner = window;
 
@@ -692,7 +694,7 @@ namespace ReBuzz.Core
                         {
                             if (DLL.GUIFactoryDecl.UseThemeStyles)
                             {
-                                var r = Utils.GetBuzzThemeResources("ParameterWindow.xaml");
+                                var r = Utils.GetBuzzThemeResources("ParameterWindow.xaml", buzzPath);
                                 machineGUIWindow.Resources.MergedDictionaries.Add(r);
                             }
                         };
@@ -765,7 +767,7 @@ namespace ReBuzz.Core
                         {
                             if (DLL.GUIFactoryDecl.UseThemeStyles)
                             {
-                                var r = Utils.GetUserControlXAML<Window>("ParameterWindow.xaml");
+                                var r = Utils.GetUserControlXAML<Window>("ParameterWindow.xaml", buzzPath);
                                 machineGUIWindow.Resources.MergedDictionaries.Add(r.Resources);
                             }
                         };
@@ -900,7 +902,7 @@ namespace ReBuzz.Core
                 case MachineDialog.Rename:
 
                     var renameWindow = new RenameMachineWindow(name);
-                    var rd = Utils.GetUserControlXAML<ResourceDictionary>("MachineView\\MVResources.xaml");
+                    var rd = Utils.GetUserControlXAML<ResourceDictionary>("MachineView\\MVResources.xaml", buzzPath);
                     renameWindow.Resources.MergedDictionaries.Add(rd);
                     if (renameWindow.ShowDialog() == true)
                     {
@@ -1294,6 +1296,8 @@ namespace ReBuzz.Core
         internal long performanceLastCount;
         internal long performanceBranchCount;
         internal Dictionary<int, int> remappedLoadedMachineParameterIndexes;
+        private readonly string buzzPath;
+        private readonly IUiDispatcher dispatcher;
 
         internal void SetMachineTrackCount(int trackCount)
         {

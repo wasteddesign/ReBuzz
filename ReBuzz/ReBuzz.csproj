@@ -23,6 +23,7 @@
     <Platforms>AnyCPU;x64</Platforms>
     <UseWindowsThreadPool>true</UseWindowsThreadPool>
 	<CETCompat>false</CETCompat>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>

@@ -54,8 +54,10 @@ namespace ReBuzz.FileOps
         List<MachineCore> machines;
         private ImportSongAction importAction;
         private int masterInputCount;
-        private Dictionary<int,int> remappedWaveReferences;
+        private Dictionary<int, int> remappedWaveReferences;
         private readonly List<SequenceCore> bmxSequences;
+        private readonly string buzzPath;
+        private readonly IUiDispatcher dispatcher;
 
         enum SectionType
         {
@@ -82,13 +84,15 @@ namespace ReBuzz.FileOps
             XQES = 0x58514553  // Sequence properties
         }
 
-        public BMXFile(ReBuzzCore buzz)
+        public BMXFile(ReBuzzCore buzz, string buzzPath, IUiDispatcher dispatcher)
         {
             this.buzz = buzz;
             machines = new List<MachineCore>();
             connections = new List<MachineConnectionCore>();
             bmxSequences = new List<SequenceCore>();
             remappedWaveReferences = new Dictionary<int, int>();
+            this.buzzPath = buzzPath;
+            this.dispatcher = dispatcher;
         }
 
         public void Load(string path, float x = 0, float y = 0, ImportSongAction importAction = null)
@@ -256,7 +260,7 @@ namespace ReBuzz.FileOps
 
                     for (int j = 0; j < numGlobals + numTrackParams; j++)
                     {
-                        ParameterCore parameter = new ParameterCore();
+                        ParameterCore parameter = new ParameterCore(dispatcher);
                         parameter.Type = (ParameterType)ReadByte(fs);
                         parameter.Name = ReadString(fs);
                         parameter.MinValue = ReadInt(fs);
@@ -476,19 +480,19 @@ namespace ReBuzz.FileOps
             // Some machines can remap machine names.
             //foreach (var machine in machines.Where(m => !m.DLL.IsMissing))
             //{
-                #region Init Machine Section
-                // This region can be moved to the loop end of this method if init needs to be called after every machine has been created.
-                //if (!machine.DLL.IsManaged)
-                //{
-                    //var idata = dictInitData[machine];
-                    //FileOpsEvent(FileEventType.StatusUpdate, "Init Machine: " + machine.Name + "...");
-                    // Call Init
-                    //buzz.MachineManager.CallInit(machine, idata.data, idata.tracks);
-                //}
-                #endregion
+            #region Init Machine Section
+            // This region can be moved to the loop end of this method if init needs to be called after every machine has been created.
+            //    if (!machine.DLL.IsManaged)
+            //    {
+            //        var idata = dictInitData[machine];
+            //        FileOpsEvent(FileEventType.StatusUpdate, "Init Machine: " + machine.Name + "...");
+            //        // Call Init
+            //        buzz.MachineManager.CallInit(machine, idata.data, idata.tracks);
+            //    }
+            #endregion
 
-                // Call remap machine names
-                //buzz.MachineManager.RemapMachineNames(machine, importDictionary);
+            //    // Call remap machine names
+            //    buzz.MachineManager.RemapMachineNames(machine, importDictionary);
             //}
         }
 
@@ -498,7 +502,7 @@ namespace ReBuzz.FileOps
 
             var machineParameters = machine.AllParameters().ToArray();
             var savedParameters = savedMachine.AllParameters().ToArray();
-            
+
             for (int i = 0; i < savedParameters.Length; i++)
             {
                 bool found = false;
@@ -642,7 +646,7 @@ namespace ReBuzz.FileOps
                         masterInputCount++;
                     }
 
-                    MachineConnectionCore connection = new MachineConnectionCore();
+                    MachineConnectionCore connection = new MachineConnectionCore(dispatcher);
                     connection.Amp = amp;
                     connection.Pan = pan;
                     connection.Source = machineFrom;
@@ -663,7 +667,7 @@ namespace ReBuzz.FileOps
                         {
                             machineTo.InputChannelCount = 1;
                         }
-                        new ConnectMachinesAction(buzz, connection).Do();
+                        new ConnectMachinesAction(buzz, connection, dispatcher).Do();
                     }
                 }
             }
@@ -848,7 +852,7 @@ namespace ReBuzz.FileOps
             {
                 FileOpsEvent(FileEventType.StatusUpdate, "Load Pattern Editor Connections...");
                 fs.Position = section.Offset;
-                
+
                 byte version = ReadByte(fs);
                 MachineCore masterEditor = null;
 
@@ -892,7 +896,7 @@ namespace ReBuzz.FileOps
 
                     if (import && masterEditor != null)
                     {
-                        new DisconnectMachinesAction(buzz, masterEditor.AllOutputs[0]).Do();
+                        new DisconnectMachinesAction(buzz, masterEditor.AllOutputs[0], dispatcher).Do();
                         buzz.RemoveMachine(masterEditor);
                     }
                 }
@@ -945,7 +949,7 @@ namespace ReBuzz.FileOps
                                 if (!targetMachine.DLL.IsMissing)
                                 {
                                     // Negative group is Buzz midi column invisible to editors. Used by Note Matrix.
-                                    targetParameter = (group != -1 && indexInGroup != -1) ? targetMachine.ParameterGroups[group].Parameters[indexInGroup] : ParameterCore.GetMidiParameter(targetMachine);
+                                    targetParameter = (group != -1 && indexInGroup != -1) ? targetMachine.ParameterGroups[group].Parameters[indexInGroup] : ParameterCore.GetMidiParameter(targetMachine, dispatcher);
                                 }
                             }
 
@@ -1355,7 +1359,7 @@ namespace ReBuzz.FileOps
 
                         byte[] buffer;
                         WaveFormat waveFormat = WaveFormat.Int16;
-                        if(unpacker == null)
+                        if (unpacker == null)
                         {
                             //uncompressed
                             buffer = ReadBytes(fs, buffersize);
@@ -2099,10 +2103,10 @@ namespace ReBuzz.FileOps
                 for (int j = 0; j < numlevels; j++)
                 {
                     WaveLayerCore waveLayer = wave.LayersList[j];
-                    byte[] buffer = waveLayer.GetRawByteData(); 
+                    byte[] buffer = waveLayer.GetRawByteData();
 
                     if (waveflags.HasFlag(WaveFlags.Not16Bit) && waveLayer.LoopStart16Bit == 4)
-                    {   
+                    {
                         buffer[0] = (byte)waveLayer.Format; // Extended wave --> Format byte
                     }
 
@@ -2207,7 +2211,7 @@ namespace ReBuzz.FileOps
             MachineCore machine = machines.FirstOrDefault(m => m.Name == name);
             if (machine == null)
             {
-                machine = new MachineCore(buzz.SongCore);
+                machine = new MachineCore(buzz.SongCore, buzzPath, dispatcher);
                 machine.Name = name;
                 machines.Add(machine);
             }

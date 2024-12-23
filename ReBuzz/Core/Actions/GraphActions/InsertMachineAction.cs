@@ -14,9 +14,11 @@ namespace ReBuzz.Core.Actions.GraphActions
         private string name;
         private readonly string machineLib;
         private readonly string instrument;
+        private readonly IUiDispatcher dispatcher;
 
-        public InsertMachineAction(ReBuzzCore buzzCore, IMachineConnection m, string machineLib, string instrument, float x, float y)
+        public InsertMachineAction(ReBuzzCore buzzCore, IMachineConnection m, string machineLib, string instrument, float x, float y, IUiDispatcher dispatcher)
         {
+            this.dispatcher = dispatcher;
             id = -1;
             oc = new ConnectionInfoRef(m);
             this.buzz = buzzCore;
@@ -26,8 +28,9 @@ namespace ReBuzz.Core.Actions.GraphActions
             this.y = y;
         }
 
-        internal InsertMachineAction(ReBuzzCore buzz, IMachineConnection m, int id, float x, float y)
+        internal InsertMachineAction(ReBuzzCore buzz, IMachineConnection m, int id, float x, float y, IUiDispatcher dispatcher)
         {
+            this.dispatcher = dispatcher;
             oc = new ConnectionInfoRef(m);
             this.x = x;
             this.y = y;
@@ -55,13 +58,13 @@ namespace ReBuzz.Core.Actions.GraphActions
             {
                 this.name = machine.Name;
                 var mc = source.Outputs.FirstOrDefault(o => o.Destination == destination);
-                new DisconnectMachinesAction(buzz, mc).Do();
+                new DisconnectMachinesAction(buzz, mc, dispatcher).Do();
 
-                MachineConnectionCore c = new MachineConnectionCore(machine, 0, destination, 0, 0x4000, 0x4000);
-                new ConnectMachinesAction(buzz, c).Do();
+                MachineConnectionCore c = new MachineConnectionCore(machine, 0, destination, 0, 0x4000, 0x4000, dispatcher);
+                new ConnectMachinesAction(buzz, c, dispatcher).Do();
 
-                c = new MachineConnectionCore(source, 0, machine, 0, oc.Amp, oc.Pan);
-                new ConnectMachinesAction(buzz, c).Do();
+                c = new MachineConnectionCore(source, 0, machine, 0, oc.Amp, oc.Pan, dispatcher);
+                new ConnectMachinesAction(buzz, c, dispatcher).Do();
             }
         }
 
@@ -73,10 +76,10 @@ namespace ReBuzz.Core.Actions.GraphActions
             var destination = buzz.SongCore.MachinesList.FirstOrDefault(m => m.Name == oc.Destination);
 
             var mc = source.Outputs.FirstOrDefault(x => x.Destination == machine);
-            new DisconnectMachinesAction(buzz, mc).Do();
+            new DisconnectMachinesAction(buzz, mc, dispatcher).Do();
 
             mc = machine.Outputs.FirstOrDefault(x => x.Destination == destination);
-            new DisconnectMachinesAction(buzz, mc).Do();
+            new DisconnectMachinesAction(buzz, mc, dispatcher).Do();
 
             if (machine != null)
             {
@@ -84,8 +87,8 @@ namespace ReBuzz.Core.Actions.GraphActions
             }
 
             // Restore original connection
-            MachineConnectionCore mcc = new MachineConnectionCore(source, oc.SourceChannel, destination, oc.DestinationChannel, oc.Amp, oc.Pan);
-            new ConnectMachinesAction(buzz, mcc).Do();
+            MachineConnectionCore mcc = new MachineConnectionCore(source, oc.SourceChannel, destination, oc.DestinationChannel, oc.Amp, oc.Pan, dispatcher);
+            new ConnectMachinesAction(buzz, mcc, dispatcher).Do();
         }
     }
 }

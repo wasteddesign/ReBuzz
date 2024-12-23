@@ -5,19 +5,20 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using BuzzGUI.Interfaces;
 
 namespace ReBuzz.Midi
 {
     internal class MidiInDevice
     {
         private MidiIn midiIn;
-        private readonly ReBuzzCore buzz;
+        private readonly IBuzz buzz;
         ConcurrentQueue<object> midiMessages;
         private Task midiMessagesTask;
         private bool stopped;
         readonly ManualResetEvent midiMessageReceivedEvent = new ManualResetEvent(false);
 
-        public MidiInDevice(ReBuzzCore buzz)
+        public MidiInDevice(IBuzz buzz)
         {
             this.buzz = buzz;
         }

@@ -3,6 +3,7 @@ using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
+using ReBuzz.Core;
 
 namespace BuzzDotNet.Audio
 {
@@ -11,15 +12,17 @@ namespace BuzzDotNet.Audio
     /// </summary>
     public partial class AsioConfigWindow : Window
     {
+        private readonly IRegistryEx registryEx;
         public event Action OpenAsioControlPanel;
-        public AsioConfigWindow(string device)
+        public AsioConfigWindow(string device, IRegistryEx registryEx)
         {
+            this.registryEx = registryEx;
             DataContext = this;
             InitializeComponent();
 
             tbDevice.Text = device;
 
-            int asioDeviceSamplerate = RegistryEx.Read("SampleRate", 44100, "ASIO");
+            int asioDeviceSamplerate = registryEx.Read("SampleRate", 44100, "ASIO");
 
             ComboBoxItem cbiSampleRate = new ComboBoxItem() { Content = "44100", Tag = 44100 };
             cbSampleRate.Items.Add(cbiSampleRate);
@@ -46,7 +49,7 @@ namespace BuzzDotNet.Audio
             cbSampleRate.SelectedItem = srItem;
 
             // Latency
-            int currentBufferSize = RegistryEx.Read("BufferSize", 0, "ASIO");
+            int currentBufferSize = registryEx.Read("BufferSize", 0, "ASIO");
             int bufferSize = 16;
             int increment = 8;
             int selectedIndex = 10;
@@ -98,7 +101,7 @@ namespace BuzzDotNet.Audio
 
         public void SaveSelection()
         {
-            RegistryEx.Write("SampleRate", (int)(cbSampleRate.SelectedItem as ComboBoxItem).Tag, "ASIO");
+            registryEx.Write("SampleRate", (int)(cbSampleRate.SelectedItem as ComboBoxItem).Tag, "ASIO");
 
             int buffer = 1024;
             ComboBoxItem latencyItem = (ComboBoxItem)cbLatency.SelectedItem;
@@ -106,7 +109,7 @@ namespace BuzzDotNet.Audio
             {
                 buffer = (int)latencyItem.Tag;
             }
-            RegistryEx.Write("BufferSize", buffer, "ASIO");
+            registryEx.Write("BufferSize", buffer, "ASIO");
         }
     }
 }

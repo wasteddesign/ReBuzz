@@ -16,6 +16,8 @@ namespace ReBuzz.Common
     /// </summary>
     public partial class PreferencesWindow : Window, INotifyPropertyChanged
     {
+        private readonly IRegistryEx registryEx;
+
         public class ControllerVM : INotifyPropertyChanged
         {
             public string Name { get; set; }
@@ -36,8 +38,9 @@ namespace ReBuzz.Common
         public IList<ControllerCheckboxVM> MidiInControllerCheckboxes { get; set; } = new List<ControllerCheckboxVM>();
         public IList<ControllerCheckboxVM> MidiOutControllerCheckboxes { get; set; } = new List<ControllerCheckboxVM>();
 
-        public PreferencesWindow(ReBuzzCore buzz)
+        public PreferencesWindow(ReBuzzCore buzz, IRegistryEx registryEx)
         {
+            this.registryEx = registryEx;
             DataContext = this;
             InitializeComponent();
 
@@ -66,10 +69,10 @@ namespace ReBuzz.Common
                 buzz = null;
             };
 
-            int numWaveDirs = RegistryEx.Read("numWaveDirs", 0, "Settings");
+            int numWaveDirs = registryEx.Read("numWaveDirs", 0, "Settings");
             for (int i = 0; i < numWaveDirs; i++)
             {
-                string dir = RegistryEx.Read("WaveDir" + i, "", "Settings");
+                string dir = registryEx.Read("WaveDir" + i, "", "Settings");
                 if (dir != "")
                 {
                     lbWaveDirectories.Items.Add(dir);
@@ -104,7 +107,7 @@ namespace ReBuzz.Common
                 WritePathsToRegistry();
             };
 
-            long processorAffinityMask = RegistryEx.Read("ProcessorAffinity", 0xFFFFFFFF, "Settings");
+            long processorAffinityMask = registryEx.Read("ProcessorAffinity", 0xFFFFFFFF, "Settings");
             int processorCount = Environment.ProcessorCount;// >= 32 ? 31 : Environment.ProcessorCount;
 
             for (int i = 0; i < processorCount; i++)
@@ -115,7 +118,7 @@ namespace ReBuzz.Common
             }
 
             /*
-            int threadType = RegistryEx.Read("AudioThreadType", 0, "Settings");
+            int threadType = registryEx.Read("AudioThreadType", 0, "Settings");
             {
                 ComboBoxItem cbi = new ComboBoxItem();
                 cbi.Content = "Dedicated Scheduler";
@@ -134,7 +137,7 @@ namespace ReBuzz.Common
             cbAudioThreadType.SelectedIndex = threadType;
             */
 
-            int numThreads = RegistryEx.Read("AudioThreads", 2, "Settings");
+            int numThreads = registryEx.Read("AudioThreads", 2, "Settings");
             for (int i = 1; i <= 8; i++)
             {
                 ComboBoxItem cbi = new ComboBoxItem();
@@ -145,7 +148,7 @@ namespace ReBuzz.Common
 
             cbAudioThreads.SelectedIndex = numThreads - 1;
 
-            int algorithm = RegistryEx.Read("WorkAlgorithm", 1, "Settings");
+            int algorithm = registryEx.Read("WorkAlgorithm", 1, "Settings");
             {
                 ComboBoxItem cbi = new ComboBoxItem();
                 cbi.Content = "Recursive Task Groups";
@@ -259,10 +262,10 @@ namespace ReBuzz.Common
         void WritePathsToRegistry()
         {
             int numWaveDirs = lbWaveDirectories.Items.Count;
-            RegistryEx.Write("numWaveDirs", numWaveDirs, "Settings");
+            registryEx.Write("numWaveDirs", numWaveDirs, "Settings");
             for (int i = 0; i < numWaveDirs; i++)
             {
-                RegistryEx.Write("WaveDir" + i, lbWaveDirectories.Items[i], "Settings");
+                registryEx.Write("WaveDir" + i, lbWaveDirectories.Items[i], "Settings");
             }
         }
     }
