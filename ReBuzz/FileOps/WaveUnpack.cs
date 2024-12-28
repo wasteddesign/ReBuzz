@@ -20,7 +20,7 @@ namespace ReBuzz.FileOps
 
             //Count zero bits
             int zeroCount = CountZeroBits();
-            if(zeroCount != 0)
+            if (zeroCount != 0)
                 throw new Exception("Unknown compressed wave data format");
 
             //Get size shifter
@@ -57,7 +57,7 @@ namespace ReBuzz.FileOps
                         ushort wVal = data[x + 1];
                         wVal = (ushort)((wVal << 8) | data[x]);
                         wVal = (ushort)(wVal << resultShift);
-                        
+
                         //Write shifted value back
                         retData.WriteByte((byte)(wVal & 0xFF));
                         retData.WriteByte((byte)((wVal >> 8) & 0xFF));
@@ -78,7 +78,7 @@ namespace ReBuzz.FileOps
                 bool channelSumFlag = UnPackBits(1) == 1;
 
                 //zero internal compression values and alloc some temporary space
-                CompressStateData cv1 =  new CompressStateData();
+                CompressStateData cv1 = new CompressStateData();
                 CompressStateData cv2 = new CompressStateData();
 
                 //If there's a remainder... then handle number of blocks + 1
@@ -90,9 +90,9 @@ namespace ReBuzz.FileOps
                     byte[] data2 = DecompressSwitch(cv2, blockSize);
                     if (data1.Length != data2.Length)
                         throw new Exception("Wave compression area - stereo blocks are not same length");
-                    
-                    for(int x=0; x < data1.Length; x += 2)
-                    {   
+
+                    for (int x = 0; x < data1.Length; x += 2)
+                    {
                         //Channel 1
                         ushort wVal1 = data1[x + 1];
                         wVal1 = (ushort)((wVal1 << 8) | data1[x]);
@@ -106,12 +106,12 @@ namespace ReBuzz.FileOps
                         //Channel 2
                         ushort wVal2 = data2[x + 1];
                         wVal2 = (ushort)((wVal2 << 8) | data2[x]);
-                        
+
                         //if btSumChannels flag is set then the second channel is
                         //the sum of both channels
-                        if(channelSumFlag)
+                        if (channelSumFlag)
                             wVal2 += origVal1;
-                        
+
                         //apply result shift to channel 2
                         wVal2 = (ushort)(wVal2 << resultShift);
 
@@ -135,7 +135,7 @@ namespace ReBuzz.FileOps
             return retData.ToArray();
         }
 
-        
+
         //After decompressing all the levels for a wave, call this to reposition/rewind
         //the file pointer back, based on the number of bytes that have not been consumed.
         //(Since this class may over-read into its bit-cache for speedy bit-reading)
@@ -153,7 +153,7 @@ namespace ReBuzz.FileOps
         {
             int count = 0;
             UInt32 bit = UnPackBits(1);
-            while(bit == 0)
+            while (bit == 0)
             {
                 ++count;
                 bit = UnPackBits(1);
@@ -175,7 +175,7 @@ namespace ReBuzz.FileOps
             int valSizeBits = (int)UnPackBits(4);
 
             int size = blockSize;
-            while(size > 0)
+            while (size > 0)
             {
                 //Read compressed value
                 ushort cmpValue = (ushort)UnPackBits(valSizeBits);
@@ -187,7 +187,7 @@ namespace ReBuzz.FileOps
                 UInt32 val = ((UInt32)zeroCount << valSizeBits) | cmpValue;
 
                 //is value supposed to be positive or negative?
-                if((val & 1) == 0)
+                if ((val & 1) == 0)
                 {
                     //Value is positive
                     val = val >> 1;
@@ -205,8 +205,8 @@ namespace ReBuzz.FileOps
                 switch (compressMethod)
                 {
                     case 0:
-                        compressStateData.wCompressSum2 = (ushort)((val - compressStateData.wCompressResult) - compressStateData.wCompressSum1);                        
-                        compressStateData.wCompressSum1 = (ushort)( val - compressStateData.wCompressResult);
+                        compressStateData.wCompressSum2 = (ushort)((val - compressStateData.wCompressResult) - compressStateData.wCompressSum1);
+                        compressStateData.wCompressSum1 = (ushort)(val - compressStateData.wCompressResult);
                         compressStateData.wCompressResult = (ushort)val;
                         break;
                     case 1:
@@ -296,7 +296,7 @@ namespace ReBuzz.FileOps
             return ret;
         }
 
-      
+
 
         const int c_maxbit = 8;
 
@@ -316,6 +316,10 @@ namespace ReBuzz.FileOps
             public ushort wCompressSum2 = 0;
         }
     }
+
+
+
+
 
 
 
@@ -753,5 +757,5 @@ BOOL DecompressWave(WAVEUNPACK * unpackinfo,LPWORD lpwOutputBuffer,
 }
 
          */
-    
+
 }

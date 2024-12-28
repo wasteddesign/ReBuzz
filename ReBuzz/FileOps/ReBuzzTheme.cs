@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
+using BuzzGUI.Interfaces;
 
 namespace ReBuzz.FileOps
 {
@@ -31,10 +32,10 @@ namespace ReBuzz.FileOps
         [XmlElement(ElementName = "InfoView")]
         public ThemeInfoView InfoView { get; set; }
 
-        public static ReBuzzTheme LoadCurrentTheme(ReBuzzCore buzz)
+        public static ReBuzzTheme LoadCurrentTheme(IBuzz buzz, string buzzPath)
         {
             string selectedTheme = buzz.SelectedTheme == "<default>" ? "Default" : buzz.SelectedTheme;
-            string skinPath = Global.BuzzPath + "\\Themes\\" + selectedTheme + "\\theme.xml";
+            string skinPath = buzzPath + "\\Themes\\" + selectedTheme + "\\theme.xml";
             return LoadThemeFile(skinPath);
         }
         public static ReBuzzTheme LoadThemeFile(string path)

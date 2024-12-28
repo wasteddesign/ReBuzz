@@ -6,7 +6,7 @@ namespace ReBuzz.NativeMachine
 {
     internal class ChannelListener
     {
-        internal ReBuzzCore buzz;
+        internal readonly ReBuzzCore buzz;
 
         public ChannelType Channel { get; }
         private readonly NativeMessage msg;

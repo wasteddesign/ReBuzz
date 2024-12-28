@@ -37,7 +37,7 @@ namespace ReBuzz.Core
                     playPosition = value;
                     ReBuzzCore.GlobalState.SongPosition = playPosition;
 
-                    Application.Current.Dispatcher.BeginInvoke(() =>
+                    dispatcher.BeginInvoke(() =>
                     {
                         PropertyChanged.Raise(this, "PlayPosition");
                     });
@@ -165,8 +165,9 @@ namespace ReBuzz.Core
         public event Action<int> SequenceRemoved;
         public event Action<int> SequenceChanged;
 
-        public SongCore()
+        public SongCore(IUiDispatcher dispatcher)
         {
+            this.dispatcher = dispatcher;
         }
 
         public void AddSequence(IMachine m, int index)
@@ -239,6 +240,8 @@ namespace ReBuzz.Core
         public bool CanRedo { get => ActionStack.CanRedo; }
         ManagedActionStack actionStack = new ManagedActionStack();
         private IDictionary<string, string> importDictionary;
+
+        private readonly IUiDispatcher dispatcher;
         //internal Dictionary<MachineCore, MachineInitData> DictInitData = new Dictionary<MachineCore, MachineInitData>();
         //private bool initImportDone;
 
@@ -298,12 +301,12 @@ namespace ReBuzz.Core
                 // Call native machine init before connecting
                 //InitImport();
             }
-            Do(new ConnectMachinesAction(reBuzzCore, src, dst, srcchn, dstchn, amp, pan));
+            Do(new ConnectMachinesAction(reBuzzCore, src, dst, srcchn, dstchn, amp, pan, dispatcher));
         }
 
         internal void ConnectMachines(MachineConnectionCore mcc)
         {
-            Do(new ConnectMachinesAction(reBuzzCore, mcc.Source, mcc.Destination, mcc.SourceChannel, mcc.DestinationChannel, mcc.Amp, mcc.Pan));
+            Do(new ConnectMachinesAction(reBuzzCore, mcc.Source, mcc.Destination, mcc.SourceChannel, mcc.DestinationChannel, mcc.Amp, mcc.Pan, dispatcher));
         }
 
         public void CreateMachine(int id, float x, float y)
@@ -324,13 +327,13 @@ namespace ReBuzz.Core
             var dm = m.Where(machine => machine.DLL.Info.Type != MachineType.Master);
             if (dm.Count() > 0)
             {
-                Do(new DeleteMachinesAction(reBuzzCore, dm));
+                Do(new DeleteMachinesAction(reBuzzCore, dm, dispatcher));
             }
         }
 
         public void DisconnectMachines(IMachineConnection mc)
         {
-            Do(new DisconnectMachinesAction(reBuzzCore, mc));
+            Do(new DisconnectMachinesAction(reBuzzCore, mc, dispatcher));
         }
 
         public void Do(IAction a)
@@ -402,12 +405,12 @@ namespace ReBuzz.Core
 
         public void InsertMachine(IMachineConnection m, int id, float x, float y)
         {
-            Do(new InsertMachineAction(BuzzCore, m, id, x, y));
+            Do(new InsertMachineAction(BuzzCore, m, id, x, y, dispatcher));
         }
 
         public void InsertMachine(IMachineConnection m, string machineName, string instrument, float x, float y)
         {
-            Do(new InsertMachineAction(BuzzCore, m, machineName, instrument, x, y));
+            Do(new InsertMachineAction(BuzzCore, m, machineName, instrument, x, y, dispatcher));
         }
 
         public void MoveMachines(IEnumerable<Tuple<IMachine, Tuple<float, float>>> mm)
@@ -428,12 +431,12 @@ namespace ReBuzz.Core
 
         public void ReplaceMachine(IMachine m, int id, float x, float y)
         {
-            Do(new ReplaceMachineAction(reBuzzCore, m, id, x, y));
+            Do(new ReplaceMachineAction(reBuzzCore, m, id, x, y, dispatcher));
         }
 
         public void ReplaceMachine(IMachine m, string machine, string instrument, float x, float y)
         {
-            Do(new ReplaceMachineAction(reBuzzCore, m, machine, instrument, x, y));
+            Do(new ReplaceMachineAction(reBuzzCore, m, machine, instrument, x, y, dispatcher));
         }
 
         public void SetConnectionChannel(IMachineConnection mc, bool destination, int channel)

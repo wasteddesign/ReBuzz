@@ -9,17 +9,21 @@ namespace ReBuzz.Midi
 {
     internal class MidiControllerAssignments
     {
-        private readonly ReBuzzCore buzz;
+        private readonly IBuzz buzz;
         private readonly List<MidiController> midiControllers = new List<MidiController>();
         private readonly List<MidiController> midiReBuzzControllers = new List<MidiController>();
+        private readonly string registryRoot;
 
         public IList<MidiController> ReBuzzMIDIControllers { get { return midiReBuzzControllers; } }
         public IList<MidiController> MIDIControllers { get { return midiControllers; } }
-        internal MidiControllerAssignments(ReBuzzCore reBuzzCore)
+
+        internal MidiControllerAssignments(IBuzz reBuzzCore, IRegistryEx registryEx, string registryRoot)
         {
+            this.registryEx = registryEx;
             buzz = reBuzzCore;
             LoadAssignments();
             buzz.MIDIInput += SendMidi;
+            this.registryRoot = registryRoot;
         }
 
         SongCore song;
@@ -85,7 +89,7 @@ namespace ReBuzz.Midi
 
         internal void ClearAll()
         {
-            RegClearAllMidiControllers(midiControllers.Count);
+            RegClearAllMidiControllers(registryEx, midiControllers.Count, registryRoot);
 
             midiReBuzzControllers.Clear();
             midiControllers.Clear();
@@ -94,36 +98,36 @@ namespace ReBuzz.Midi
 
         internal void LoadAssignments()
         {
-            var controller = RegGetController("MidiControllerPlay");
+            var controller = RegGetController(registryEx, "MidiControllerPlay");
             if (controller != null)
             {
                 midiReBuzzControllers.Add(controller);
             }
-            controller = RegGetController("MidiControllerStop");
+            controller = RegGetController(registryEx, "MidiControllerStop");
             if (controller != null)
             {
                 midiReBuzzControllers.Add(controller);
             }
-            controller = RegGetController("MidiControllerRecord");
+            controller = RegGetController(registryEx, "MidiControllerRecord");
             if (controller != null)
             {
                 midiReBuzzControllers.Add(controller);
             }
-            controller = RegGetController("MidiControllerForward");
+            controller = RegGetController(registryEx, "MidiControllerForward");
             if (controller != null)
             {
                 midiReBuzzControllers.Add(controller);
             }
-            controller = RegGetController("MidiControllerBackward");
+            controller = RegGetController(registryEx, "MidiControllerBackward");
             if (controller != null)
             {
                 midiReBuzzControllers.Add(controller);
             }
 
-            int numControllers = RegGetNumberOfMidiControllers();
+            int numControllers = RegGetNumberOfMidiControllers(registryEx);
             for (int i = 0; i < numControllers; i++)
             {
-                MidiController mc = RegGetControllerById(i);
+                MidiController mc = RegGetControllerById(registryEx, i);
                 if (mc != null)
                 {
                     midiControllers.Add(mc);
@@ -132,11 +136,11 @@ namespace ReBuzz.Midi
         }
 
         // Return true if controller assignment found
-        public static MidiController RegGetController(string regKey)
+        public static MidiController RegGetController(IRegistryEx registryEx, string regKey)
         {
             MidiController mc = new MidiController();
 
-            string val = RegistryEx.Read(regKey, "", "Settings");
+            string val = registryEx.Read(regKey, "", "Settings");
 
             if (val == "")
             {
@@ -159,37 +163,40 @@ namespace ReBuzz.Midi
             }
         }
 
-        public static MidiController RegGetControllerById(int id)
+        public static MidiController RegGetControllerById(IRegistryEx registryEx, int id)
         {
             string regKey = "MidiController" + id;
-            return RegGetController(regKey);
+            return RegGetController(registryEx, regKey);
         }
 
-        public static void RegSetController(string regKey, string name, int channel, int controller)
+        public static void RegSetController(
+          IRegistryEx registryEx, string regKey, string name, int channel, int controller)
         {
             var values = name + "," + channel + "," + controller;
-            RegistryEx.Write(regKey, values, "Settings");
+            registryEx.Write(regKey, values, "Settings");
         }
 
-        public static void RegSetControllerById(int id, string name, int channel, int controller)
+        public static void RegSetControllerById(
+          IRegistryEx registryEx, int id, string name, int channel, int controller)
         {
             string regKey = "MidiController" + id;
-            RegSetController(regKey, name, channel, controller);
+            RegSetController(registryEx, regKey, name, channel, controller);
         }
 
-        public static int RegGetNumberOfMidiControllers()
+        public static int RegGetNumberOfMidiControllers(IRegistryEx registryEx)
         {
-            return RegistryEx.Read("numMidiControllers", 0, "Settings");
+            return registryEx.Read("numMidiControllers", 0, "Settings");
         }
 
-        public static void RegSetNumberOfMidiControllers(int num)
+        public static void RegSetNumberOfMidiControllers(IRegistryEx registryEx, int num)
         {
-            RegistryEx.Write("numMidiControllers", num, "Settings");
+            registryEx.Write("numMidiControllers", num, "Settings");
         }
 
-        public static void RegClearAllMidiControllers(int numControllers)
+        public static void RegClearAllMidiControllers(
+          IRegistryEx registryEx, int numControllers, string registryRoot)
         {
-            string regKeyBase = Global.RegistryRoot + "Settings\\MidiController";
+            string regKeyBase = registryRoot + "Settings\\MidiController";
             int id = 0;
 
             for (int i = 0; i < numControllers; i++)
@@ -197,14 +204,14 @@ namespace ReBuzz.Midi
                 string key = regKeyBase + id;
                 try
                 {
-                    Registry.CurrentUser.DeleteSubKey(key);
+                    registryEx.DeleteCurrentUserSubKey(key);
                 }
                 catch { }
 
                 id++;
             }
 
-            RegSetNumberOfMidiControllers(0);
+            RegSetNumberOfMidiControllers(registryEx, 0);
         }
 
         internal IList<string> GetMidiControllerNames()
@@ -224,8 +231,8 @@ namespace ReBuzz.Midi
             midiController.Value = value;
 
             midiControllers.Add(midiController);
-            RegSetControllerById(index, name, channel, controller);
-            RegSetNumberOfMidiControllers(midiControllers.Count);
+            RegSetControllerById(registryEx, index, name, channel, controller);
+            RegSetNumberOfMidiControllers(registryEx, midiControllers.Count);
         }
 
         internal int GetAssignmentIndex(int ctrl, int channel, int value)
@@ -243,6 +250,8 @@ namespace ReBuzz.Midi
         }
 
         readonly List<ContollerBinding> contollerBindings = new List<ContollerBinding>();
+        private readonly IRegistryEx registryEx;
+
         internal void BindParameter(ParameterCore parameterCore, int track, int mcindex)
         {
             ContollerBinding contollerBind = new ContollerBinding(parameterCore, track, mcindex);

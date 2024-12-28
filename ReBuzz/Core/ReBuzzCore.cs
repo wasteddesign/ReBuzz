@@ -1,17 +1,4 @@
-﻿using Buzz.MachineInterface;
-using BuzzGUI.Common;
-using BuzzGUI.Interfaces;
-using Microsoft.Win32;
-using NAudio.Midi;
-using ReBuzz.Audio;
-using ReBuzz.Common;
-using ReBuzz.Core.Actions.GraphActions;
-using ReBuzz.FileOps;
-using ReBuzz.MachineManagement;
-using ReBuzz.Midi;
-using ReBuzz.Properties;
-using Serilog;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -27,6 +14,20 @@ using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
+using Buzz.MachineInterface;
+using BuzzGUI.Common;
+using BuzzGUI.Common.Settings;
+using BuzzGUI.Interfaces;
+using Microsoft.Win32;
+using NAudio.Midi;
+using ReBuzz.Audio;
+using ReBuzz.Common;
+using ReBuzz.Core.Actions.GraphActions;
+using ReBuzz.FileOps;
+using ReBuzz.MachineManagement;
+using ReBuzz.Midi;
+using ReBuzz.Properties;
+using Serilog;
 using Timer = System.Timers.Timer;
 
 namespace ReBuzz.Core
@@ -44,7 +45,7 @@ namespace ReBuzz.Core
         public int StateFlags;
         public byte MIDIFiltering;
         public byte SongClosing;
-    };
+    }
 
     public class ReBuzzCore : IBuzz, INotifyPropertyChanged
     {
@@ -108,7 +109,7 @@ namespace ReBuzz.Core
                         master.ParameterGroups[1].Parameters[1].SetValue(0, value);
                     }
                     // Actual BPM is changed in WorkManager
-                    Application.Current.Dispatcher.BeginInvoke(() =>
+                    dispatcher.BeginInvoke(() =>
                     {
                         try
                         {
@@ -139,7 +140,7 @@ namespace ReBuzz.Core
                         master.ParameterGroups[1].Parameters[2].SetValue(0, value);
                     }
                     // Actual TPB is changed in WorkManager
-                    Application.Current.Dispatcher.BeginInvoke(() =>
+                    dispatcher.BeginInvoke(() =>
                     {
                         try
                         {
@@ -164,7 +165,7 @@ namespace ReBuzz.Core
                 preparePlaying = false;
                 playing = true;
                 GlobalState.StateFlags |= SF_PLAYING;
-                Application.Current.Dispatcher.BeginInvoke(() =>
+                dispatcher.BeginInvoke(() =>
                 {
                     PropertyChanged.Raise(this, "Playing");
                 });
@@ -173,7 +174,7 @@ namespace ReBuzz.Core
             return false;
         }
 
-        bool preparePlaying = false;
+        bool preparePlaying;
 
         public bool Playing
         {
@@ -216,9 +217,9 @@ namespace ReBuzz.Core
                 recording = value;
 
                 if (recording)
-                    ReBuzzCore.GlobalState.StateFlags |= SF_RECORDING;
+                    GlobalState.StateFlags |= SF_RECORDING;
                 else
-                    ReBuzzCore.GlobalState.StateFlags &= ~SF_RECORDING;
+                    GlobalState.StateFlags &= ~SF_RECORDING;
 
                 if (recording && !playing)
                 {
@@ -255,7 +256,7 @@ namespace ReBuzz.Core
 
         public IMenuItem MachineIndex { get; set; }
 
-        
+
 
         // MIDI
         IMachine midiFocusMachine;
@@ -286,7 +287,7 @@ namespace ReBuzz.Core
             }
         }
 
-        private bool midiFocusLocked = false;
+        private bool midiFocusLocked;
         public bool MIDIFocusLocked { get => midiFocusLocked; set { midiFocusLocked = value; PropertyChanged.Raise(this, "MIDIFocusLocked"); } }
 
         private bool midiActivity;
@@ -319,7 +320,7 @@ namespace ReBuzz.Core
 
         // Misc
         //KeyboardWindow keyboardWindow = null;
-        bool isPianoKeyboardVisible = false;
+        bool isPianoKeyboardVisible;
         public bool IsPianoKeyboardVisible
         {
             get => isPianoKeyboardVisible;
@@ -340,9 +341,6 @@ namespace ReBuzz.Core
                 if (isSettingsWindowVisible)
                 {
                     ShowSettings.Invoke("");
-                }
-                else
-                {
                 }
             }
         }
@@ -411,7 +409,7 @@ namespace ReBuzz.Core
                         if (AudioEngine.SelectedOutDevice != null)
                         {
                             selectedAudioDriver = AudioEngine.SelectedOutDevice.Name;
-                            RegistryEx.Write("AudioDriver", selectedAudioDriver, "Settings");
+                            registryEx.Write("AudioDriver", selectedAudioDriver, "Settings");
                             AudioEngine.Play();
                             PropertyChanged.Raise(this, "SelectedAudioDriver");
                         }
@@ -429,7 +427,7 @@ namespace ReBuzz.Core
             get => masterInfo.SamplesPerSec;
             set
             {
-                lock (ReBuzzCore.AudioLock)
+                lock (AudioLock)
                 {
                     masterInfo.SamplesPerSec = value;
                     UpdateMasterInfo();
@@ -463,7 +461,7 @@ namespace ReBuzz.Core
             }
         }
 
-        bool overrideAudioDriver = false;
+        bool overrideAudioDriver;
 
         public bool OverrideAudioDriver
         {
@@ -476,7 +474,7 @@ namespace ReBuzz.Core
 
         public IEditContext EditContext { get; set; }
 
-        long performanceCountTime = 0;
+        long performanceCountTime;
         internal BuzzPerformanceData PerformanceCurrent { get; set; }
         public BuzzPerformanceData PerformanceData { get; set; }
 
@@ -488,10 +486,10 @@ namespace ReBuzz.Core
 
         public string SelectedTheme
         {
-            get => RegistryEx.Read<string>("Theme", "<default>", "Settings");
+            get => registryEx.Read("Theme", "<default>", "Settings");
             set
             {
-                RegistryEx.Write<string>("Theme", value, "Settings");
+                registryEx.Write("Theme", value, "Settings");
                 if (ThemeChanged != null)
                 {
                     ThemeChanged.Invoke(value);
@@ -501,8 +499,8 @@ namespace ReBuzz.Core
         public IntPtr MainWindowHandle { get; internal set; }
         public MachineManager MachineManager { get; internal set; }
 
-        MachineDatabase machineDB;
-        internal MachineDatabase MachineDB
+        IMachineDatabase machineDB;
+        internal IMachineDatabase MachineDB
         {
             get => machineDB;
             set
@@ -523,8 +521,8 @@ namespace ReBuzz.Core
                     return;
 
                 modified = value;
-                Application.Current.Dispatcher.BeginInvoke(() =>
-                PropertyChanged.Raise(this, "Modified"));
+                dispatcher.BeginInvoke(() =>
+                  PropertyChanged.Raise(this, "Modified"));
             }
         }
         public IPattern PatternEditorPattern { get; private set; }
@@ -547,24 +545,41 @@ namespace ReBuzz.Core
         DispatcherTimer dtVUMeter;
 
         readonly Timer timerAutomaticBackups;
-        public ReBuzzCore()
+
+        internal ReBuzzCore(
+          GeneralSettings generalSettings,
+          EngineSettings engineSettings,
+          string buzzPath,
+          string registryRoot,
+          IMachineDLLScanner machineDllScanner,
+          IUiDispatcher dispatcher,
+          IRegistryEx registryEx)
         {
+            this.registryEx = registryEx;
+            this.generalSettings = generalSettings;
+            this.engineSettings = engineSettings;
+            this.buzzPath = buzzPath;
+            this.registryRoot = registryRoot;
+            this.machineDllScanner = machineDllScanner;
+            this.dispatcher = dispatcher;
+
             // Init process and thread priorities
             ProcessAndThreadProfile.Profile2();
 
             DefaultPatternEditor = "Modern Pattern Editor";
 
-            Global.GeneralSettings.PropertyChanged += GeneralSettings_PropertyChanged;
-            Global.EngineSettings.PropertyChanged += EngineSettings_PropertyChanged;
 
-            masterInfo = new MasterInfoExtended()
+            generalSettings.PropertyChanged += GeneralSettings_PropertyChanged;
+            engineSettings.PropertyChanged += EngineSettings_PropertyChanged;
+
+            masterInfo = new MasterInfoExtended
             {
                 SamplesPerSec = 44100,
                 SamplesPerTick = (int)((60 * 44100) / (126 * 4.0)),
                 TicksPerSec = (float)(126 * 4 / 60.0)
             };
 
-            subTickInfo = new SubTickInfoExtended()
+            subTickInfo = new SubTickInfoExtended
             {
                 CurrentSubTick = 0,
                 PosInSubTick = 0
@@ -583,25 +598,25 @@ namespace ReBuzz.Core
             maxSampleLeft = -1;
             maxSampleRight = -1;
 
-            this.Gear = Gear.LoadGearFile(Global.BuzzPath + "\\Gear\\gear_defaults.xml");
-            var moreGear = Gear.LoadGearFile(Global.BuzzPath + "\\Gear\\gear.xml");
+            Gear = Gear.LoadGearFile(buzzPath + "\\Gear\\gear_defaults.xml");
+            var moreGear = Gear.LoadGearFile(buzzPath + "\\Gear\\gear.xml");
             Gear.Merge(moreGear);
 
-            this.Theme = ReBuzzTheme.LoadCurrentTheme(this);
+            Theme = ReBuzzTheme.LoadCurrentTheme(this, buzzPath);
 
             DCWriteLine(BuildString);
 
-            MidiInOutEngine = new MidiEngine(this);
+            MidiInOutEngine = new MidiEngine(this, registryEx);
             MidiInOutEngine.OpenMidiInDevices();
             MidiInOutEngine.OpenMidiOutDevices();
 
-            MidiControllerAssignments = new MidiControllerAssignments(this);
+            MidiControllerAssignments = new MidiControllerAssignments(this, registryEx, registryRoot);
             MIDIControllers = MidiControllerAssignments.GetMidiControllerNames().ToReadOnlyCollection();
 
-            themes = Utils.GetThemes();
+            themes = Utils.GetThemes(buzzPath);
 
             AppDomain currentDomain = AppDomain.CurrentDomain;
-            currentDomain.AssemblyResolve += new ResolveEventHandler(MyResolveEventHandler);
+            currentDomain.AssemblyResolve += MyResolveEventHandler;
 
             timerAutomaticBackups = new Timer();
             timerAutomaticBackups.Interval = 10000;
@@ -619,14 +634,14 @@ namespace ReBuzz.Core
                 }
             };
 
-            if (Global.GeneralSettings.WPFSoftwareRendering)
+            if (generalSettings.WPFSoftwareRendering)
             {
                 RenderOptions.ProcessRenderMode = RenderMode.SoftwareOnly;
             }
 
             // These are not good for real time audio. Just use defaults.
             /*
-            if (Global.EngineSettings.LowLatencyGC)
+            if (engineSettings.LowLatencyGC)
             {
                 // GCLatencyMode.LowLatency is bad for performance
                 // Seems that this has little positive effects on real time audio
@@ -636,7 +651,7 @@ namespace ReBuzz.Core
             */
 
             Process.GetCurrentProcess().PriorityClass = ProcessAndThreadProfile.ProcessPriorityClassMainProcess;
-            Utils.SetProcessorAffinityMask(true);
+            Utils.SetProcessorAffinityMask(registryEx, true);
 
             dtEngineThread = new DispatcherTimer();
             dtEngineThread.Interval = TimeSpan.FromSeconds(1 / 30.0);
@@ -652,7 +667,7 @@ namespace ReBuzz.Core
 
         public void StartEvents()
         {
-            if (Global.GeneralSettings.AutomaticBackups)
+            if (generalSettings.AutomaticBackups)
             {
                 timerAutomaticBackups.Start();
             }
@@ -664,7 +679,7 @@ namespace ReBuzz.Core
             /*
             if (e.PropertyName == "LowLatencyGC")
             {
-                if (Global.EngineSettings.LowLatencyGC)
+                if (engineSettings.LowLatencyGC)
                 {
                     GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
                 }
@@ -696,7 +711,7 @@ namespace ReBuzz.Core
         {
             if (e.PropertyName == "AutomaticBackups")
             {
-                if (Global.GeneralSettings.AutomaticBackups)
+                if (generalSettings.AutomaticBackups)
                 {
                     timerAutomaticBackups.Start();
                 }
@@ -707,7 +722,7 @@ namespace ReBuzz.Core
             }
             else if (e.PropertyName == "WPFSoftwareRendering")
             {
-                if (Global.GeneralSettings.WPFSoftwareRendering)
+                if (generalSettings.WPFSoftwareRendering)
                 {
                     RenderOptions.ProcessRenderMode = RenderMode.SoftwareOnly;
                 }
@@ -731,7 +746,7 @@ namespace ReBuzz.Core
 
             strTempAssmbPath = args.Name.Substring(0, args.Name.IndexOf(","));
 
-            string folderPath = Global.BuzzPath;
+            string folderPath = buzzPath;
             string rawAssemblyFile = new AssemblyName(args.Name).Name;
             string rawAssemblyPath = Path.Combine(folderPath, rawAssemblyFile);
 
@@ -748,10 +763,10 @@ namespace ReBuzz.Core
 
         public void ScanDlls()
         {
-            MachineDLLsList = MachineDLLScanner.GetMachineDLLs(this);
+            MachineDLLsList = machineDllScanner.GetMachineDLLs(this, buzzPath);
         }
 
-        internal void UpdateInstrumentList(MachineDatabase mdb)
+        internal void UpdateInstrumentList(IMachineDatabase mdb)
         {
             InstrumentManager instrumentManager = new InstrumentManager();
             InstrumentList = instrumentManager.CreateInstrumentsList(this, mdb);
@@ -817,20 +832,20 @@ namespace ReBuzz.Core
             {
                 string libName = Path.GetFileName(path);
                 string libPath = Path.GetDirectoryName(path);
-                var mDll = MachineDLLScanner.ValidateDll(this, libName, libPath);
+                var mDll = machineDllScanner.ValidateDll(this, libName, libPath, buzzPath);
                 if (mDll != null)
                 {
                     if (!machineDLLsList.ContainsKey(mDll.Name))
                     {
                         XMLMachineDLL[] mdxmlArray = [mDll];
-                        MachineDLLScanner.AddMachineDllsToDictionary(mdxmlArray, machineDLLsList);
+                        machineDllScanner.AddMachineDllsToDictionary(mdxmlArray, machineDLLsList);
                         PropertyChanged.Raise(this, "MachineDLLs");
                     }
                 }
             }
             catch { }
 
-            MachineDB = new MachineDatabase(this);
+            MachineDB = new MachineDatabase(this, buzzPath, dispatcher);
             UpdateInstrumentList(MachineDB);
         }
 
@@ -936,8 +951,8 @@ namespace ReBuzz.Core
 
         internal void Release()
         {
-            Global.EngineSettings.PropertyChanged -= EngineSettings_PropertyChanged;
-            Global.GeneralSettings.PropertyChanged -= GeneralSettings_PropertyChanged;
+            engineSettings.PropertyChanged -= EngineSettings_PropertyChanged;
+            generalSettings.PropertyChanged -= GeneralSettings_PropertyChanged;
 
             MidiControllerAssignments.Song = null;
 
@@ -957,7 +972,8 @@ namespace ReBuzz.Core
                     SaveSongFile(SongCore.SongName);
                     return true;
                 }
-                else if (result == MessageBoxResult.Cancel)
+
+                if (result == MessageBoxResult.Cancel)
                 {
                     return false;
                 }
@@ -968,7 +984,7 @@ namespace ReBuzz.Core
 
         private void UpdateRecentFilesList(string fileName)
         {
-            var files = RegistryEx.ReadNumberedList<string>("File", "Recent File List").ToList();
+            var files = registryEx.ReadNumberedList<string>("File", "Recent File List").ToList();
             foreach (var file in files.ToArray())
             {
                 if (file == fileName)
@@ -982,15 +998,15 @@ namespace ReBuzz.Core
 
             try
             {
-                Registry.CurrentUser.DeleteSubKeyTree(Global.RegistryRoot + "\\" + "Recent File List");
+                registryEx.DeleteCurrentUserSubKey(registryRoot + "\\" + "Recent File List");
             }
             catch { }
 
-            RegistryKey regkey = Registry.CurrentUser.CreateSubKey(Global.RegistryRoot + "\\" + "Recent File List");
+            var regKey = registryEx.CreateCurrentUserSubKey(registryRoot + "\\" + "Recent File List");
             int maxFiles = Math.Min(files.Count, 10);
             for (int i = 0; i < maxFiles; i++)
             {
-                regkey.SetValue("File" + (i + 1).ToString(), files[i]);
+                regKey.SetValue("File" + (i + 1), files[i]);
             }
         }
 
@@ -1037,28 +1053,25 @@ namespace ReBuzz.Core
                     OpenFile.Invoke(filename);
                     bmxFile.Load(filename);
                 }
-                else
-                {
-                    try
-                    {
-                        bmxFile.FileEvent += (type, eventText, o) =>
-                        {
-                            FileEvent?.Invoke(type, eventText, o);
-                        };
 
-                        OpenFile.Invoke(filename);
-                        bmxFile.Load(filename);
-                    }
-                    catch (Exception e)
+                try
+                {
+                    bmxFile.FileEvent += (type, eventText, o) =>
                     {
+                        FileEvent?.Invoke(type, eventText, o);
+                    };
+
+                    OpenFile.Invoke(filename);
+                    bmxFile.Load(filename);
+                }
+                catch (Exception e)
+                {
 
                         MessageBox.Show(e.InnerException.Message, "Error loading " + filename);
                         bmxFile.EndFileOperation(false);
                         NewSong();
                         SkipAudio = false;
                         return;
-                    }
-                    
                 }
 
                 SongCore.SongName = filename;
@@ -1082,6 +1095,7 @@ namespace ReBuzz.Core
                 AudioEngine.Play();
                 //Playing = playing;
             }
+            
         }
 
         internal void ImportSong(float x, float y)
@@ -1093,7 +1107,7 @@ namespace ReBuzz.Core
                 IReBuzzFile rebuzzFile = GetReBuzzFile(openFileDialog.FileName);
                 var filename = openFileDialog.FileName;
 
-                var impotAction = new ImportSongAction(this, rebuzzFile, filename, x, y);
+                var impotAction = new ImportSongAction(this, rebuzzFile, filename, x, y, this.dispatcher);
                 songCore.ActionStack.Do(impotAction);
             }
         }
@@ -1103,11 +1117,11 @@ namespace ReBuzz.Core
             IReBuzzFile file;
             if (filterIndex == 1 || filterIndex == 2)
             {
-                file = new BMXFile(this);
+                file = new BMXFile(this, buzzPath, dispatcher);
             }
             else
             {
-                file = new BMXMLFile(this);
+                file = new BMXMLFile(this, buzzPath, dispatcher);
             }
             return file;
         }
@@ -1118,11 +1132,11 @@ namespace ReBuzz.Core
             string extension = Path.GetExtension(path);
             if (extension == ".bmx" || extension == ".bmw")
             {
-                file = new BMXFile(this);
+                file = new BMXFile(this, buzzPath, dispatcher);
             }
             else
             {
-                file = new BMXMLFile(this);
+                file = new BMXMLFile(this, buzzPath, dispatcher);
             }
             return file;
         }
@@ -1165,7 +1179,7 @@ namespace ReBuzz.Core
                 }
                 catch (Exception ex)
                 {
-                    Utils.MessageBox("Error saving file " + filename + "\n\n" + ex.ToString(), "Error saving file.");
+                    Utils.MessageBox("Error saving file " + filename + "\n\n" + ex, "Error saving file.");
                 }
             }
 
@@ -1207,7 +1221,7 @@ namespace ReBuzz.Core
             //MIDIInput?.Invoke(data);
 
             // Some UI components require MIDIInput.Invoke to be called from UI thread (Midi Keyboard)
-            Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+            dispatcher.BeginInvoke(new Action(() =>
                 MIDIInput?.Invoke(data)
             ));
         }
@@ -1328,8 +1342,8 @@ namespace ReBuzz.Core
         }
 
         const double VUMeterRange = 80.0;
-        float maxSampleLeft = 0;
-        float maxSampleRight = 0;
+        float maxSampleLeft;
+        float maxSampleRight;
 
         internal Gear Gear { get; }
         internal void MasterTapSamples(float[] resSamples, int offset, int count)
@@ -1351,14 +1365,13 @@ namespace ReBuzz.Core
                 samples[i] = resSamples[offset + i];
             }
 
-            Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+            dispatcher.BeginInvoke(() =>
             {
                 if (MasterTap != null)
                 {
                     MasterTap.Invoke(samples, true, s);
                 }
-            }
-            ));
+            });
         }
 
         internal MachineCore CloneMachine(MachineCore machineToClone, float x, float y)
@@ -1410,7 +1423,7 @@ namespace ReBuzz.Core
             if (trackcount <= 0)
                 trackcount = 1;
 
-            MachineCore machineCore = MachineManager.CreateMachine(machine, path, instrument, data, trackcount, x, y, false, name, true);
+            MachineCore machineCore = MachineManager.CreateMachine(machine, path, instrument, data, trackcount, x, y, false, name);
 
             //if (songCore.Importing)
             //{
@@ -1459,7 +1472,7 @@ namespace ReBuzz.Core
 
             // Connect editor to master
             var master = SongCore.Machines.FirstOrDefault(m => m.DLL.Info.Type == MachineType.Master);
-            new ConnectMachinesAction(this, peMachine, master, 0, 0, 0x4000, 0x4000).Do();
+            new ConnectMachinesAction(this, peMachine, master, 0, 0, 0x4000, 0x4000, dispatcher).Do();
 
             // Link machine to editor. Maybe specific call?
             MachineManager.SetPatternEditorPattern(machineToUseEditor, machineToUseEditor.Patterns.FirstOrDefault());
@@ -1572,7 +1585,7 @@ namespace ReBuzz.Core
                 if (machine.EditorMachine != null)
                 {
                     foreach (var mc in machine.EditorMachine.AllOutputs.ToArray())
-                    {   
+                    {
                         (mc.Destination as MachineCore).AllInputs.Remove(mc);
                     }
                     machine.EditorMachine.AllOutputs.Clear();
@@ -1639,7 +1652,7 @@ namespace ReBuzz.Core
                     // Remove connections
                     foreach (var input in machine.AllInputs.ToArray())
                     {
-                        new DisconnectMachinesAction(this, input).Do();
+                        new DisconnectMachinesAction(this, input, dispatcher).Do();
                     }
                 }
 
@@ -1717,6 +1730,13 @@ namespace ReBuzz.Core
 
         string infoText;
         private bool masterLoading;
+        private readonly string registryRoot;
+        private readonly GeneralSettings generalSettings;
+        private readonly EngineSettings engineSettings;
+        private readonly string buzzPath;
+        private readonly IMachineDLLScanner machineDllScanner;
+        private readonly IUiDispatcher dispatcher;
+        private readonly IRegistryEx registryEx;
 
         public string InfoText { get => infoText; internal set { infoText = value; PropertyChanged.Raise(this, "InfoText"); } }
 
@@ -1775,7 +1795,7 @@ namespace ReBuzz.Core
                 if (Gear.HasSameDataFormat(machine.EditorMachine.DLL.Name, editorMachine.Name))
                     data = machine.EditorMachine.Data;
 
-                lock (ReBuzzCore.AudioLock)
+                lock (AudioLock)
                 {
                     try
                     {
@@ -1789,7 +1809,7 @@ namespace ReBuzz.Core
                         // Remove connections
                         foreach (var output in currentEditorMachine.AllOutputs.ToArray())
                         {
-                            new DisconnectMachinesAction(this, output).Do();
+                            new DisconnectMachinesAction(this, output, dispatcher).Do();
                         }
                         RemoveMachine(currentEditorMachine);
                     }
