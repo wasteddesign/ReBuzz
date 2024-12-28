@@ -1,0 +1,13 @@
+﻿<UserControl x:Class="BuzzGUI.ParameterWindow.RibbonSlider"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Name="root"
+             >
+  <Canvas x:Name="Canvas"
+          SizeChanged="Canvas_SizeChanged" 
+          MouseMove="Canvas_MouseMove" MouseLeftButtonDown="Canvas_MouseLeftButtonDown"
+          Background="Transparent">
+    <Rectangle x:Name="BarRect" Style="{Binding ElementName=root, Path=BarStyle}"/>
+    <Rectangle x:Name="ThumbRect" Style="{Binding ElementName=root, Path=ThumbStyle}"/>
+  </Canvas>
+</UserControl>

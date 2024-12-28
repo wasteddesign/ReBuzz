@@ -1,0 +1,258 @@
+﻿<UserControl xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:fb="clr-namespace:BuzzGUI.FileBrowser;assembly=BuzzGUI.FileBrowser"
+             xmlns:ec="clr-namespace:BuzzGUI.EnvelopeControl;assembly=BuzzGUI.EnvelopeControl"
+             xmlns:wc="clr-namespace:BuzzGUI.WaveformControl;assembly=BuzzGUI.WaveformControl"
+             xmlns:l="clr-namespace:BuzzGUI.WavetableView;assembly=BuzzGUI.WavetableView"
+             xmlns:bgc="clr-namespace:BuzzGUI.Common;assembly=BuzzGUI.Common"
+
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+						 FocusManager.FocusedElement="{Binding ElementName=waves}"
+             UseLayoutRounding="True" TextOptions.TextFormattingMode="Display">
+  
+  <UserControl.Resources>
+    <Style x:Key="CellEditStyle" TargetType="{x:Type TextBox}">
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Padding" Value="0"/>
+      <Style.Triggers>
+        <Trigger Property="Validation.HasError" Value="True">
+          <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=(Validation.Errors)[0].ErrorContent}"/>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+
+    <Style x:Key="WaveItemStyle" TargetType="{x:Type ListViewItem}">
+      <Setter Property="bgc:CommandBehavior.Event" Value="MouseDoubleClick" />
+      <Setter Property="bgc:CommandBehavior.Command" Value="{Binding PlayCommand}" />
+      <Setter Property="bgc:CommandBehavior.CommandParameter" Value="{Binding}" />
+      <Setter Property="bgc:DragTargetBehavior.Command" Value="{Binding DropCommand}"/>
+      <Setter Property="Height" Value="19"/>
+    </Style>
+
+    <Style x:Key="NumberCellStyle" TargetType="DataGridCell">
+        <Style.Setters>
+            <Setter Property="TextBlock.TextAlignment" Value="Right" />
+        </Style.Setters>
+    </Style>
+
+    <bgc:DebugConverter x:Key="debugConverter"/>
+      <!-- file editor -->
+      <!-- split button -->
+	  <Style TargetType="{x:Type fb:PathControl}">
+		  <Style.Setters>
+			  <Setter Property="StackPanel.Background" Value="#333" />
+			  <Setter Property="Button.Background" Value="#333" />
+		  </Style.Setters>
+	  </Style>
+
+  </UserControl.Resources>
+  
+  <UserControl.Background>
+<!--
+    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+      <GradientStop Color="BlanchedAlmond"  Offset="0.0"/>
+      <GradientStop Color="White" Offset="1.0"/>
+    </LinearGradientBrush>
+-->
+
+    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+      <GradientStop Color="#E5E5D7" Offset="0.0" />
+      <GradientStop Color="#F7F7F3" Offset="1.0" />
+    </LinearGradientBrush>
+
+  </UserControl.Background>
+ 
+  <Grid Margin="4">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="2*"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="1*"/>
+    </Grid.RowDefinitions>
+    
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="300"/>
+      <ColumnDefinition Width="100"/>
+      <ColumnDefinition Width="3*"/>
+    </Grid.ColumnDefinitions>
+    
+    <GridSplitter Grid.Row="1" Grid.ColumnSpan="3" ResizeBehavior="PreviousAndNext" ShowsPreview="False" Height="4" VerticalAlignment="Center" HorizontalAlignment="Stretch" Background="Transparent"/>
+
+    <ListView Grid.Column="0" Name="waves" ItemsSource="{Binding Waves}" AllowDrop="True" SelectionMode="Single" SelectedItem="{Binding SelectedItem}" SelectedIndex="{Binding SelectedWaveIndex}" ItemContainerStyle="{StaticResource WaveItemStyle}">
+      <ListView.View>
+        <GridView>
+          <GridView.Columns>
+            <GridViewColumn Header="#" Width="30" DisplayMemberBinding="{Binding NumberString}"/>
+            <GridViewColumn Header="Name" Width="240" DisplayMemberBinding="{Binding Name}"/>
+          </GridView.Columns>
+        </GridView>
+      </ListView.View>
+    </ListView>
+
+    <Grid Grid.Column="1" Margin="4,0,4,0" DataContext="{Binding ElementName=waves, Path=SelectedItem}">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="2"/>
+        <ColumnDefinition Width="*"/>
+      </Grid.ColumnDefinitions>
+      
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
+      </Grid.RowDefinitions>
+
+      <Button Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="1" Margin="0,2,0,0" Command="{Binding LoadCommand}" CommandParameter="{Binding ElementName=fileBrowser, Path=ListView.SelectedItems}" IsEnabled="{Binding ElementName=fileBrowser, Path=ListView.SelectedItem.IsFile}">&lt;&lt;</Button>
+      <Button Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="1" Margin="0,2,0,0" Command="{Binding SaveCommand}">&gt;&gt;</Button>
+      <Button Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="1" Margin="0,2,0,0" Command="{Binding PlayCommand}">Play</Button>
+      <Button Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="1" Margin="0,2,0,0" Command="{Binding StopCommand}">Stop</Button>
+      <Button Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="1" Margin="0,2,0,0" Command="{Binding CopyCommand}">Copy</Button>
+      <Button Grid.Row="3" Grid.Column="2" Grid.ColumnSpan="1" Margin="0,2,0,0" Command="{Binding PasteCommand}">Paste</Button>
+      <Button Grid.Row="4" Grid.ColumnSpan="3" Margin="0,2,0,0" Command="{Binding ClearCommand}">Clear</Button>
+
+      <Slider Grid.Row="6" Grid.ColumnSpan="3" ToolTip="Preview Volume" Minimum="-42" Maximum="0" Value="{Binding Path=Wavetable.Wavetable.Volume, Mode=TwoWay}"/>
+      <CheckBox Content="Sticky Focus" Grid.ColumnSpan="3" Grid.Row="5" HorizontalAlignment="Left" Margin="4,4,0,0" VerticalAlignment="Top" IsChecked="{Binding Path=Wavetable.StickyFocus}" />
+    </Grid>
+
+    <fb:FileBrowser Grid.Column="2" Name="fileBrowser" ExtensionFilter="{Binding ExtensionFilter}" 
+                    ItemDoubleClickCommand="{Binding PlayFileCommand}" ItemKeyDownCommand="{Binding FileKeyDownCommand}"/>
+
+    <!--
+    <ListView Grid.Row="2" Grid.ColumnSpan="2" Margin="0,0,4,0" ItemsSource="{Binding ElementName=waves, Path=SelectedItem.Layers}" SelectionMode="Single">
+      <ListView.View>
+        <GridView>
+          <GridView.Columns>
+            <GridViewColumn Header="Root" Width="36" DisplayMemberBinding="{Binding RootNote}"/>
+            <GridViewColumn Header="Length" Width="60" DisplayMemberBinding="{Binding SampleCount}"/>
+            <GridViewColumn Header="Rate" Width="50" DisplayMemberBinding="{Binding SampleRate}"/>
+            <GridViewColumn Header="Loop Start" Width="60" DisplayMemberBinding="{Binding LoopStart}"/>
+            <GridViewColumn Header="Loop End" Width="60" DisplayMemberBinding="{Binding LoopEnd}"/>
+          </GridView.Columns>
+        </GridView>
+
+      </ListView.View>
+
+    </ListView>
+    -->
+	
+
+    <DataGrid Grid.Row="2" Name="layerGrid"  Margin="0,0,0,0" 
+              ItemsSource="{Binding Path=SelectedItem.Layers}" SelectedItem="{Binding Path=SelectedItem.SelectedLayer}"
+              AutoGenerateColumns="False" CanUserResizeRows="False" CanUserDeleteRows="False" ToolTip="{Binding ElementName=waves, Path=SelectedItem.SelectedLayer.ToolTipString}" 
+              AlternationCount="2" AlternatingRowBackground="GhostWhite" 
+              GridLinesVisibility="None" SelectionMode="Single" IsEnabled="{Binding ElementName=waves, Path=SelectedItem.HasWave}"
+              AllowDrop="True" bgc:DragTargetBehavior.Command="{Binding ElementName=waves, Path=SelectedItem.DropCommand}" bgc:DragTargetBehavior.Parameter="Add"
+              >
+
+      <DataGrid.Columns>
+        <DataGridComboBoxColumn Header="Root" Width="52" TextBinding="{Binding RootNote}" />
+        <DataGridTextColumn Header="Length" Binding="{Binding SampleCount}" IsReadOnly="True" CellStyle="{StaticResource NumberCellStyle}"/>
+        <DataGridTextColumn Header="Rate" Binding="{Binding Path=SampleRate, ValidatesOnExceptions=True, NotifyOnValidationError=True, UpdateSourceTrigger=PropertyChanged}" EditingElementStyle="{StaticResource CellEditStyle}" CellStyle="{StaticResource NumberCellStyle}"/>
+        <DataGridTextColumn Header="Loop Start" Binding="{Binding LoopStart, ValidatesOnExceptions=True, NotifyOnValidationError=True, UpdateSourceTrigger=PropertyChanged}" CellStyle="{StaticResource NumberCellStyle}"/>
+        <DataGridTextColumn Header="Loop End" Binding="{Binding LoopEnd, ValidatesOnExceptions=True, NotifyOnValidationError=True, UpdateSourceTrigger=PropertyChanged}" CellStyle="{StaticResource NumberCellStyle}"/>
+      </DataGrid.Columns>
+    </DataGrid>
+
+        <Grid Grid.Row="2" Grid.Column="1" Margin="4,0,4,0" DataContext="{Binding ElementName=waves, Path=SelectedItem.SelectedLayer}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="2"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+        
+            <Button Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="1" Margin="0,2,0,0" Command="{Binding LoadLayerCommand}" CommandParameter="{Binding ElementName=fileBrowser, Path=ListView.SelectedItems}" IsEnabled="{Binding ElementName=fileBrowser, Path=ListView.SelectedItem.IsFile}">&lt;&lt;</Button>
+            <Button Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="1" Margin="0,2,0,0" Command="{Binding SaveLayerCommand}">&gt;&gt;</Button>
+            <Button Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="1" Margin="0,2,0,0" Command="{Binding PlayLayerCommand}">Play</Button>
+            <Button Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="1" Margin="0,2,0,0" Command="{Binding StopLayerCommand}">Stop</Button>
+            <Button Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="1" Margin="0,2,0,0" Command="{Binding CopyLayerCommand}">Copy</Button>
+            <Button Grid.Row="3" Grid.Column="2" Grid.ColumnSpan="1" Margin="0,2,0,0" Command="{Binding PasteLayerCommand}">Paste</Button>
+            <Button Grid.Row="4" Grid.ColumnSpan="3" Margin="0,2,0,0" Command="{Binding AddLayerCommand}">Add Layer</Button>
+            <Button Grid.Row="5" Grid.ColumnSpan="3" Margin="0,2,0,0" Command="{Binding ClearLayerCommand}">Clear Layer</Button>
+        </Grid>
+
+    <TabControl Grid.Row="2" Grid.Column="2" IsEnabled="{Binding ElementName=waves, Path=SelectedItem.HasWave}">
+      <TabItem Header="Editor">
+        <wc:WaveformControl Margin="2" DataContext="{Binding Path=WaveformVm}"/>
+      </TabItem>
+      <TabItem Header="Parameters">
+        <Grid DataContext="{Binding ElementName=waves, Path=SelectedItem}">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+          </Grid.RowDefinitions>
+          
+          <WrapPanel Margin="8" Orientation="Horizontal" HorizontalAlignment="Left">
+            <Slider Grid.Row="0" Width="140" Value="{Binding VolumedB}" Minimum="-48" Maximum="24"/>
+            <TextBlock Width="40" Text="{Binding VolumeText}" VerticalAlignment="Center" Margin="8,0,0,0"/>
+
+            <ComboBox Width="120" Margin="8,0,0,0" SelectedIndex="{Binding LoopMode}">
+              <ComboBoxItem>No Loop</ComboBoxItem>
+              <ComboBoxItem>Loop</ComboBoxItem>
+              <ComboBoxItem>Bidir. Loop</ComboBoxItem>
+            </ComboBox>
+
+            <ComboBox Width="120" Margin="8,0,0,0" Name="machineBox" ItemsSource="{Binding Wavetable.WavePlayerMachines}" SelectedItem="{Binding SelectedWavePlayerMachine}"/>
+            
+            <ComboBox Width="120" Margin="8,0,0,0" Name="envelopeBox" ItemsSource="{Binding Envelopes}" SelectedItem="{Binding SelectedEnvelope}">
+              <ComboBox.Style>
+                <Style TargetType="{x:Type ComboBox}">
+                  <Style.Triggers>
+                    <DataTrigger Binding="{Binding ElementName=machineBox, Path=SelectedIndex}" Value="0">
+                      <Setter Property="IsEnabled" Value="False"/>
+                    </DataTrigger>
+                  </Style.Triggers>
+                </Style>
+              </ComboBox.Style>
+            </ComboBox>
+
+            <CheckBox Margin="8,0,0,0" VerticalAlignment="Center" Width="60" Content="Enabled" IsChecked="{Binding ElementName=envelopeBox, Path=SelectedItem.Envelope.IsEnabled}">
+              <CheckBox.Style>
+                <Style TargetType="{x:Type CheckBox}">
+                  <Style.Triggers>
+                    <DataTrigger Binding="{Binding SelectedEnvelope.Envelope}" Value="{x:Null}">
+                      <Setter Property="IsEnabled" Value="False"/>
+                    </DataTrigger>
+                  </Style.Triggers>
+                </Style>
+              </CheckBox.Style>
+            </CheckBox>
+
+            <Button Width="60" Margin="8,0,0,0" Content="ADSR">
+              <Button.Style>
+                <Style TargetType="{x:Type Button}">
+                  <Style.Triggers>
+                    <DataTrigger Binding="{Binding SelectedEnvelope.Envelope}" Value="{x:Null}">
+                      <Setter Property="IsEnabled" Value="False"/>
+                    </DataTrigger>
+                  </Style.Triggers>
+                </Style>
+              </Button.Style>
+            </Button>
+
+
+          </WrapPanel>
+
+
+          <ec:EnvelopeControl Grid.Row="1" Margin="2" Envelope="{Binding ElementName=envelopeBox, Path=SelectedItem.Envelope}"/>
+          
+        </Grid>
+      </TabItem>
+    </TabControl>
+    
+  </Grid>
+</UserControl>

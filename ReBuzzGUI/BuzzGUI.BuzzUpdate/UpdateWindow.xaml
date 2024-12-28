@@ -1,0 +1,22 @@
+﻿<Window x:Class="BuzzGUI.BuzzUpdate.UpdateWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Buzz Update" Height="600" Width="800" Icon="rebuzzupdate.ico"
+				UseLayoutRounding="True" TextOptions.TextFormattingMode="Ideal"
+				>
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="30"/>
+      <RowDefinition Height="*"/>
+    </Grid.RowDefinitions>
+    
+    <StackPanel Orientation="Horizontal" Background="Wheat">
+      <TextBlock Margin="8,0,0,0" VerticalAlignment="Center" Name="verText"/>
+      <Button Name="button" Width="100" Margin="8,4,0,4" Click="Button_Click">Download...</Button>
+      <ProgressBar Name="progressBar" Visibility="Collapsed"  Minimum="0" Maximum="100" Width="200" Margin="8,4,0,4"/>
+    </StackPanel>
+    
+    <TextBox Grid.Row="1" Name="changelogBox" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Visible" IsReadOnly="True" FontFamily="Consolas, Courier New" FontSize="13"/>
+
+  </Grid>
+</Window>

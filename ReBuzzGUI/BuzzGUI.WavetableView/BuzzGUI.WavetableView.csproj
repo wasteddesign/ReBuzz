@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <BaseOutputPath>..\rel</BaseOutputPath>
+    <Platforms>AnyCPU;x64</Platforms>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="app.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BuzzGUI.Common\BuzzGUI.Common.csproj" />
+    <ProjectReference Include="..\BuzzGUI.EnvelopeControl\BuzzGUI.EnvelopeControl.csproj" />
+    <ProjectReference Include="..\BuzzGUI.FileBrowser\BuzzGUI.FileBrowser.csproj" />
+    <ProjectReference Include="..\BuzzGUI.Interfaces\BuzzGUI.Interfaces.csproj" />
+    <ProjectReference Include="..\BuzzGUI.WaveformControl\BuzzGUI.WaveformControl.csproj" />
+  </ItemGroup>
+</Project>

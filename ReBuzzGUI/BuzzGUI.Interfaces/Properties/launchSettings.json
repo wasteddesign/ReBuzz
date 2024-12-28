@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "BuzzGUI.Interfaces": {
+      "commandName": "Project"
+    },
+    "Profile 1": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Program Files\\ReBuzz\\ReBuzz.exe"
+    }
+  }
+}

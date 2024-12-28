@@ -1,0 +1,51 @@
+﻿<Window x:Class="BuzzGUI.MachineView.HDRecorder.HDRecorderWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+       Title="Hard Disk Recorder" Height="300" Width="500" WindowStyle="ToolWindow" ResizeMode="NoResize" ShowInTaskbar="False" SizeToContent="Height"
+				UseLayoutRounding="True" TextOptions.TextFormattingMode="{Binding TextFormattingMode}" Background="{DynamicResource MVChildWindowBackgroundBrush}"
+				Style="{DynamicResource ThemeWindowStyle}">
+	<Grid Margin="8">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+		</Grid.RowDefinitions>
+
+		<Grid Grid.Row="0" IsEnabled="{Binding IsNotRecording}">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="Auto"/>
+				<ColumnDefinition Width="*"/>
+				<ColumnDefinition Width="Auto"/>
+			</Grid.ColumnDefinitions>
+		
+			<Button Grid.Column="0" Width="60" Height="22" Command="{Binding SaveAsCommand}" IsEnabled="{Binding SettingsGUIEnabled}">Save As...</Button>
+            <TextBlock Grid.Column="1" Margin="4,0,0,0" VerticalAlignment="Center" Text="{Binding OutputPath}">
+                <TextBlock.ContextMenu>
+                    <ContextMenu>
+						<MenuItem Header="Open File Loaction..." Command="{Binding OpenFileLocationCommand}"></MenuItem>
+                        <!--
+						<MenuItem Header="Open File In App..." Command="{Binding OpenInEditorCommand}"></MenuItem>
+                        -->
+                    </ContextMenu>
+                </TextBlock.ContextMenu>
+            </TextBlock>
+            <ComboBox Grid.Column="2" HorizontalAlignment="Right" Width="70" SelectedIndex="{Binding BitDepthIndex}" ToolTip="Bit Depth">
+				<ComboBoxItem Content="int16"/>
+				<ComboBoxItem Content="int24"/>
+				<ComboBoxItem Content="int32"/>
+				<ComboBoxItem Content="float32"/>
+			</ComboBox>
+		</Grid>
+		
+		<StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,8,0,0">
+			<Button Width="100" Height="22" Content="Record"  Command="{Binding RecordCommand}" IsEnabled="{Binding IsNotRecording}"/>
+			<Button Width="100" Height="22" Margin="4,0,0,0" Content="Record Loop" Command="{Binding RecordLoopCommand}" IsEnabled="{Binding IsNotRecording}"/>
+			<Button Width="100" Height="22" Margin="4,0,0,0" Content="Render Loop" Command="{Binding RenderLoopCommand}" IsEnabled="{Binding IsNotRecording}"/>
+			<Button Width="100" Height="22" Margin="4,0,0,0" Content="Render Loop 2" Command="{Binding RenderLoop2Command}" IsEnabled="{Binding IsNotRecording}" ToolTip="Play the loop twice and record the second time."/>
+			<Button Width="61.99" Height="22" Margin="4,0,0,0" Content="Stop" Command="{Binding StopCommand}" IsEnabled="{Binding IsRecording}"/>
+		</StackPanel>
+	
+		<ProgressBar Name="progress" Grid.Row="2" Height="22" Margin="0,8,0,0" IsEnabled="False"/>
+
+	</Grid>
+</Window>

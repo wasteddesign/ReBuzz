@@ -1,0 +1,176 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <BaseOutputPath>..\rel</BaseOutputPath>
+    <Platforms>AnyCPU;x64</Platforms>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Sanford.Multimedia.Midi\Clocks\**" />
+    <Compile Remove="Sanford.Multimedia.Midi\Device Classes\**" />
+    <Compile Remove="Sanford.Multimedia.Midi\Messages\Message Builders\**" />
+    <Compile Remove="Sanford.Multimedia.Midi\Processing\**" />
+    <Compile Remove="Sanford.Multimedia.Midi\UI\**" />
+    <EmbeddedResource Remove="Sanford.Multimedia.Midi\Clocks\**" />
+    <EmbeddedResource Remove="Sanford.Multimedia.Midi\Device Classes\**" />
+    <EmbeddedResource Remove="Sanford.Multimedia.Midi\Messages\Message Builders\**" />
+    <EmbeddedResource Remove="Sanford.Multimedia.Midi\Processing\**" />
+    <EmbeddedResource Remove="Sanford.Multimedia.Midi\UI\**" />
+    <None Remove="Sanford.Multimedia.Midi\Clocks\**" />
+    <None Remove="Sanford.Multimedia.Midi\Device Classes\**" />
+    <None Remove="Sanford.Multimedia.Midi\Messages\Message Builders\**" />
+    <None Remove="Sanford.Multimedia.Midi\Processing\**" />
+    <None Remove="Sanford.Multimedia.Midi\UI\**" />
+    <Page Remove="Sanford.Multimedia.Midi\Clocks\**" />
+    <Page Remove="Sanford.Multimedia.Midi\Device Classes\**" />
+    <Page Remove="Sanford.Multimedia.Midi\Messages\Message Builders\**" />
+    <Page Remove="Sanford.Multimedia.Midi\Processing\**" />
+    <Page Remove="Sanford.Multimedia.Midi\UI\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="PowerCollections\AssemblyInfo.cs" />
+    <Compile Remove="Sanford.Multimedia.Midi\AssemblyInfo.cs" />
+    <Compile Remove="Sanford.Multimedia.Midi\GeneralMidi.cs" />
+    <Compile Remove="Sanford.Multimedia.Midi\MidiNoteConverter.cs" />
+    <Compile Remove="Sanford.Multimedia.Midi\Sequencing\Sequencer.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="Themes\Images\clear.png" />
+    <None Remove="Themes\Images\search.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Sanford.Multimedia.Midi\Clocks\IClock.cs" />
+    <Compile Include="Sanford.Multimedia.Midi\Clocks\PpqnClock.cs" />
+    <Compile Include="Sanford.Multimedia.Midi\Messages\Message Builders\ChannelMessageBuilder.cs" />
+    <Compile Include="Sanford.Multimedia.Midi\Messages\Message Builders\IMessageBuilder.cs" />
+    <Compile Include="Sanford.Multimedia.Midi\Messages\Message Builders\MetaTextBuilder.cs" />
+    <Compile Include="Sanford.Multimedia.Midi\Messages\Message Builders\SongPositionPointerBuilder.cs" />
+    <Compile Include="Sanford.Multimedia.Midi\Messages\Message Builders\SysCommonMessageBuilder.cs" />
+    <Compile Include="Sanford.Multimedia.Midi\Messages\Message Builders\TempoChangeBuilder.cs" />
+    <Compile Include="Sanford.Multimedia.Midi\Messages\Message Builders\TimeSignatureBuilder.cs" />
+    <Compile Include="Sanford.Multimedia.Midi\Processing\ChannelChaser.cs" />
+    <Compile Include="Sanford.Multimedia.Midi\Processing\ChannelStopper.cs" />
+    <Compile Include="Sanford.Multimedia.Midi\Processing\ChasedEventArgs.cs" />
+    <Compile Include="Sanford.Multimedia.Midi\Processing\StoppedEventArgs.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="SharpZipLib" Version="1.4.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BuzzGUI.Interfaces\BuzzGUI.Interfaces.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Themes\Images\clear.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Themes\Images\search.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="SimpleStyles\Button.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+    </Page>
+    <Page Update="SimpleStyles\ButtonDark.xaml">
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Page>
+    <Page Update="SimpleStyles\CheckBoxDark.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+    </Page>
+    <Page Update="SimpleStyles\ComboBox.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+    </Page>
+    <Page Update="SimpleStyles\ComboBoxDark.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+    </Page>
+    <Page Update="SimpleStyles\GroupBoxDark.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+    </Page>
+    <Page Update="SimpleStyles\ListBox.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+    </Page>
+    <Page Update="SimpleStyles\ListBoxDark.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+    </Page>
+    <Page Update="SimpleStyles\ListViewDark.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+    </Page>
+    <Page Update="SimpleStyles\NumericUpDownDark.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+    </Page>
+    <Page Update="SimpleStyles\ProgressBarDark.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+    </Page>
+    <Page Update="SimpleStyles\RadioButtonDark.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+    </Page>
+    <Page Update="SimpleStyles\ScrollBar.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+    </Page>
+    <Page Update="SimpleStyles\ScrollBarDark.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+    </Page>
+    <Page Update="SimpleStyles\ScrollViewer.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+    </Page>
+    <Page Update="SimpleStyles\ScrollViewerDark.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+    </Page>
+    <Page Update="SimpleStyles\SliderDark.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+    </Page>
+    <Page Update="SimpleStyles\StatusBarDark.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+    </Page>
+    <Page Update="SimpleStyles\TabControlDark.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+    </Page>
+    <Page Update="SimpleStyles\TextBoxDark.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+    </Page>
+    <Page Update="SimpleStyles\ToggleButton.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+    </Page>
+    <Page Update="SimpleStyles\ToggleButtonDark.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+    </Page>
+    <Page Update="SimpleStyles\ToolBarDark.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+    </Page>
+    <Page Update="Themes\Generic.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+    </Page>
+    <Page Update="Themes\SearchTextBox.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+</Project>

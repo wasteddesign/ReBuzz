@@ -1,0 +1,59 @@
+<ResourceDictionary
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:c="clr-namespace:System.Windows.Controls;assembly=System.Windows.Controls"
+  xmlns:p="clr-namespace:System.Windows.Controls.Primitives;assembly=System.Windows.Controls"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <Style x:Key="SimpleToggleButton" TargetType="ToggleButton">
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="Padding" Value="12,4"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="ToggleButton">
+          <Grid x:Name="Root">
+            <VisualStateManager.VisualStateGroups>
+              <VisualStateGroup x:Name="CommonStates">
+                <VisualStateGroup.Transitions>
+                  <VisualTransition GeneratedDuration="0:0:0.02"/>
+                </VisualStateGroup.Transitions>
+                <VisualState x:Name="Normal"/>
+                <VisualState x:Name="MouseOver">
+                  <Storyboard>
+                    <DoubleAnimation Storyboard.TargetName="MouseOverElement" Storyboard.TargetProperty="(FrameworkElement.Opacity)" To="1"/>
+                  </Storyboard>
+                </VisualState>
+                <VisualState x:Name="Pressed">
+                  <Storyboard>
+                    <DoubleAnimation Storyboard.TargetName="PressedElement" Storyboard.TargetProperty="(FrameworkElement.Opacity)" To="1"/>
+                  </Storyboard>
+                </VisualState>
+                <VisualState x:Name="Disabled"/>
+              </VisualStateGroup>
+              <VisualStateGroup x:Name="CheckStates">
+                <VisualStateGroup.Transitions>
+                  <VisualTransition/>
+                </VisualStateGroup.Transitions>
+                <VisualState x:Name="Unchecked"/>
+                <VisualState x:Name="Checked">
+                  <Storyboard>
+                    <DoubleAnimation Duration="0:0:0" Storyboard.TargetName="CheckedElement" Storyboard.TargetProperty="(FrameworkElement.Opacity)" To="1"/>
+                  </Storyboard>
+                </VisualState>
+              </VisualStateGroup>
+              <VisualStateGroup x:Name="FocusStates">
+                <VisualState x:Name="Focused"/>
+                <VisualState x:Name="Unfocused"/>
+              </VisualStateGroup>
+            </VisualStateManager.VisualStateGroups>
+            <Border x:Name="BackgroundElement" Background="#D0D0D0" BorderBrush="#404040" BorderThickness="1"/>
+            <Border x:Name="MouseOverElement" Background="#C5E1EB" BorderBrush="Transparent" BorderThickness="1" Opacity="0"/>
+            <Border x:Name="PressedElement" Background="#A0A0A0" BorderBrush="Transparent" BorderThickness="1" Opacity="0"/>
+            <Border x:Name="CheckedElement" Background="#A0A0A0" BorderBrush="Transparent" BorderThickness="1" Opacity="0"/>
+            <ContentPresenter  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+          </Grid>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+</ResourceDictionary>

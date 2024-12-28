@@ -1,0 +1,24 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/BuzzGUI.BuzzUpdate/obj
+/BuzzGUI.Common/obj
+/BuzzGUI.EnvelopeControl/obj
+/BuzzGUI.FileBrowser/obj
+/BuzzGUI.Interfaces/obj
+/BuzzGUI.MachineView/obj
+/BuzzGUI.ParameterWindow/obj
+/BuzzGUI.PianoKeyboard/obj
+/BuzzGUI.SequenceEditorExtended Rebuzz/obj
+/BuzzGUI.ToolBar/obj
+/BuzzGUI.WaveformControl/obj
+/BuzzGUI.WavetableView/obj
+/ModernSequenceEditor/obj
+/ModernSequenceEditor.Interfaces/.vs/WDE.Interfaces/v17
+/ModernSequenceEditor.Interfaces/bin
+/ModernSequenceEditor.Interfaces/obj
+/ModernSequenceEditorHorizontal/obj
+/rel/x64
+*.user

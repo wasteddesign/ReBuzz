@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <RootNamespace>BuzzGUI.SequenceEditor</RootNamespace>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <BaseOutputPath>..\rel</BaseOutputPath>
+    <Platforms>AnyCPU;x64</Platforms>
+    <AssemblyName>BuzzGUI.SequenceEditor</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Actions\AddTrackAction.cs" />
+    <Compile Remove="Actions\ClearAction.cs" />
+    <Compile Remove="Actions\CreatePatternAction.cs" />
+    <Compile Remove="Actions\CutOrCopyAction.cs" />
+    <Compile Remove="Actions\DeleteTrackAction.cs" />
+    <Compile Remove="Actions\InsertOrDeleteAction.cs" />
+    <Compile Remove="Actions\PasteAction.cs" />
+    <Compile Remove="Actions\SetEventAction.cs" />
+    <Compile Remove="Actions\SetMarkerAction.cs" />
+    <Compile Remove="Actions\SwapTracksAction.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BuzzGUI.Common\BuzzGUI.Common.csproj">
+      <Aliases>
+      </Aliases>
+    </ProjectReference>
+    <ProjectReference Include="..\BuzzGUI.Interfaces\BuzzGUI.Interfaces.csproj" />
+  </ItemGroup>
+</Project>
