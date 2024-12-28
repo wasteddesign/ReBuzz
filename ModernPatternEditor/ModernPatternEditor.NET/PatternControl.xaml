@@ -1,0 +1,140 @@
+﻿<UserControl x:Class="WDE.ModernPatternEditor.PatternControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+						 xmlns:l="clr-namespace:WDE.ModernPatternEditor"
+						 xmlns:cr="clr-namespace:WDE.ModernPatternEditor.ColumnRenderer"
+						 xmlns:bgc="clr-namespace:BuzzGUI.Common;assembly=BuzzGUI.Common"
+             mc:Ignorable="d" Focusable="True"
+             d:DesignHeight="300" d:DesignWidth="300">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+
+            <Style x:Key="SelectionRectangleStyle" TargetType="{x:Type Rectangle}">
+                <Setter Property="Stroke">
+                    <Setter.Value>
+                        <SolidColorBrush Color="White" Opacity="0.5"/>
+                    </Setter.Value>
+                </Setter>
+                <Setter Property="Fill">
+                    <Setter.Value>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Offset="0" Color="#20400000"/>
+                            <GradientStop Offset="1" Color="#20400000"/>
+                        </LinearGradientBrush>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="ParameterKnobStyle" TargetType="{x:Type bgc:Knob}">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type bgc:Knob}">
+                            <Viewbox>
+                                <Grid Name="KnobGrid">
+                                    <Grid Name="RotatingLayer1">
+                                        <!--
+										<Ellipse Name="bg" Width="32" Height="32" Stroke="Transparent" StrokeThickness="1.5" Fill="LightGray"/>
+										-->
+                                        <Ellipse Name="bg" Width="32" Height="32" Stroke="Transparent" StrokeThickness="1.5" Fill="#808080"/>
+                                    </Grid>
+
+                                    <Grid Name="RotatingLayer2">
+                                        <Ellipse Width="32" Height="32" Stroke="Black" StrokeThickness="1.5"/>
+                                        <Line X1="16" Y1="16" X2="16" Y2="0" Stroke="Black" StrokeThickness="1.5"/>
+                                    </Grid>
+
+                                </Grid>
+                            </Viewbox>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="bg" Property="Fill" Value="#CCCCCC"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+        </ResourceDictionary>
+    </UserControl.Resources>
+	
+	<Grid Name="mainGrid">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="*"/>
+		</Grid.RowDefinitions>
+
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="Auto"/>
+			<ColumnDefinition Width="*"/>
+		</Grid.ColumnDefinitions>
+
+		<!--
+		<Border Grid.RowSpan="2" Grid.ColumnSpan="2" BorderThickness="2" Margin="1" BorderBrush="#40F0"/>
+-->
+
+		<Border Style="{DynamicResource PatEdElementBorderStyle}" Grid.Row="1" Grid.Column="0" Margin="4,4,0,4">
+			<ScrollViewer Name="rowNumberSV" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Visible">
+				<Grid Name="rowNumberSVGrid"> 
+					<Grid Name="rowNumberGrid"/>
+					<Rectangle Name="rowNumberCursorRowRectangle" Fill="{DynamicResource CursorLineBrush}" Height="1" HorizontalAlignment="Stretch" VerticalAlignment="Top" IsHitTestVisible="False" Visibility="Collapsed"/>
+					<Rectangle Name="rowNumberPlayPosRectangle" Fill="#40000000" Height="1" HorizontalAlignment="Stretch" VerticalAlignment="Top" IsHitTestVisible="False" Visibility="Collapsed"/>
+				</Grid>
+			</ScrollViewer>
+		</Border>
+
+		<Border Style="{DynamicResource PatEdElementBorderStyle}"  Grid.Row="0" Grid.Column="1" Margin="4,4,4,0">
+			<ScrollViewer Name="headerSV" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Hidden"/>
+		</Border>
+
+
+		<Border  Style="{DynamicResource PatEdElementBorderStyle}" Grid.Row="1" Grid.Column="1" Margin="4,4,4,4">
+			<ScrollViewer Name="patternSV" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible" Focusable="False" Background="Transparent">
+				<Grid Name="patternSVGrid">
+					<Grid Name="patternGrid" Background="Transparent"/>
+					<Rectangle Name="cursorRowRectangle" Fill="{DynamicResource CursorLineBrush}" Height="1" HorizontalAlignment="Stretch" VerticalAlignment="Top" IsHitTestVisible="False" Visibility="Collapsed"/>
+					<l:SelectionLayer x:Name="selectionLayer" IsHitTestVisible="False"/>
+					<Canvas Name="cursorCanvas" HorizontalAlignment="Left" IsHitTestVisible="False">
+						<l:CursorElement x:Name="cursorElement"/>
+					</Canvas>
+					<Rectangle Name="playPosRectangle" Fill="#40000000" Height="1" HorizontalAlignment="Stretch" VerticalAlignment="Top" IsHitTestVisible="False" Visibility="Collapsed"/>
+				</Grid>
+			</ScrollViewer>
+
+			<Border.ContextMenu>
+				<ContextMenu Name="contextMenu">
+					<MenuItem Header="Edit">
+						<MenuItem Header="Decrease" InputGestureText="- (numpad)" Command="{Binding DecreaseCommand}"/>
+						<MenuItem Header="Increase" InputGestureText="+ (numpad)" Command="{Binding IncreaseCommand}"/>
+                        <MenuItem Header="Interpolate (linear)" InputGestureText="Ctrl+I" Command="{Binding InterpolateLinearCommand}" CommandParameter="False"/>
+                        <MenuItem Header="Interpolate (exponential)" InputGestureText="Ctrl+Shift+I" Command="{Binding InterpolateExpCommand}" CommandParameter="True"/>
+						<MenuItem Header="Randomize" InputGestureText="Ctrl+R" Command="{Binding RandomizeCommand}"/>
+						<MenuItem Header="Rotate Forward" InputGestureText="Ctrl+W" Command="{Binding RotateCommandUp}"/>
+                        <MenuItem Header="Rotate Backward" InputGestureText="Ctrl+Shift+W" Command="{Binding RotateCommandDown}"/>
+						<MenuItem Header="Write State" InputGestureText="Ctrl+T" Command="{Binding WriteStateCommand}"/>
+						<Separator/>
+						<MenuItem Header="_Undo" InputGestureText="Ctrl+Z" Command="{Binding UndoCommand}"/>
+						<MenuItem Header="_Redo" InputGestureText="Ctrl+Y" Command="{Binding RedoCommand}"/>
+						<Separator/>
+						<MenuItem Header="Cu_t" InputGestureText="Ctrl+X" Command="{Binding CutCommand}"/>
+						<MenuItem Header="_Copy" InputGestureText="Ctrl+C" Command="{Binding CopyCommand}"/>
+						<MenuItem Header="_Paste" InputGestureText="Ctrl+V" Command="{Binding PasteCommand}"/>
+					</MenuItem>
+					<Separator/>
+					<MenuItem Header="Select All" InputGestureText="Ctrl+A" Command="{Binding SelectAllCommand}"/>
+					<MenuItem Header="Unselect" InputGestureText="Ctrl+U" Command="{Binding UnselectCommand}"/>
+					<Separator/>
+                    <MenuItem Header="Pattern Properties..." Command="{Binding PropertiesCommand}"/>
+					<MenuItem Header="Settings..." Command="{Binding SettingsCommand}"/>
+                    <MenuItem Header="About..." Command="{Binding AboutCommand}"/>
+				</ContextMenu>
+			</Border.ContextMenu>
+
+		</Border>
+
+	</Grid>
+
+</UserControl>

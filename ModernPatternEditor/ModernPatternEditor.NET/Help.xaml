@@ -1,0 +1,330 @@
+﻿<UserControl x:Class="WDE.ModernPatternEditor.Help"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		UseLayoutRounding="True" Width="500">
+
+	<FlowDocumentScrollViewer BorderBrush="{DynamicResource PatEdBorderBrush}" BorderThickness="1" Margin="0,4,4,4" VerticalScrollBarVisibility="Auto">  
+		<FlowDocument FontSize="12" FontFamily="Segoe UI" Background="White" Foreground="Black" PagePadding="4">
+
+			<Table>
+				<Table.Columns>
+					<TableColumn Width="*"/>
+					<TableColumn Width="2*"/>
+				</Table.Columns>
+        
+				<TableRowGroup>
+					<TableRow Background="LightSteelBlue">
+						<TableCell ColumnSpan="2">
+							<Paragraph FontWeight="Bold">Keyboard Commands</Paragraph>
+						</TableCell>
+					</TableRow>
+
+					<TableRow Background="LightGoldenrodYellow">
+						<TableCell>
+							<Paragraph FontWeight="Bold">Key</Paragraph>
+						</TableCell>
+						<TableCell>
+							<Paragraph FontWeight="Bold">Description</Paragraph>
+						</TableCell>
+					</TableRow>
+
+					<TableRow>
+						<TableCell>
+							<Paragraph>F1</Paragraph>
+						</TableCell>
+						<TableCell>
+							<Paragraph>Show/hide help</Paragraph>
+						</TableCell>
+					</TableRow>
+
+					<TableRow>
+						<TableCell>
+							<Paragraph>Ctrl+Z/Y</Paragraph>
+						</TableCell>
+						<TableCell>
+							<Paragraph>Undo/Redo</Paragraph>
+						</TableCell>
+					</TableRow>
+
+					<TableRow>
+						<TableCell>
+							<Paragraph>Ctrl+X/C/V</Paragraph>
+						</TableCell>
+						<TableCell>
+							<Paragraph>Cut/Copy/Paste</Paragraph>
+						</TableCell>
+					</TableRow>
+
+					<TableRow>
+						<TableCell>
+							<Paragraph>Ctrl+Down/Up, Alt+M</Paragraph>
+						</TableCell>
+						<TableCell>
+							<Paragraph>Select machine</Paragraph>
+						</TableCell>
+					</TableRow>
+
+					<TableRow>
+						<TableCell>
+							<Paragraph>+/- (numpad), Alt+P</Paragraph>
+						</TableCell>
+						<TableCell>
+							<Paragraph>Select pattern</Paragraph>
+						</TableCell>
+					</TableRow>
+
+					<TableRow>
+						<TableCell>
+							<Paragraph>/ and * (numpad), Alt+B</Paragraph>
+						</TableCell>
+						<TableCell>
+							<Paragraph>Select keyboard base octave</Paragraph>
+						</TableCell>
+					</TableRow>
+
+					<TableRow>
+						<TableCell>
+							<Paragraph>Alt+R</Paragraph>
+						</TableCell>
+						<TableCell>
+							<Paragraph>Select keyboard root note</Paragraph>
+						</TableCell>
+					</TableRow>
+
+					<TableRow>
+						<TableCell>
+							<Paragraph>Alt+Y</Paragraph>
+						</TableCell>
+						<TableCell>
+							<Paragraph>Select keyboard mapping</Paragraph>
+						</TableCell>
+					</TableRow>
+
+					<TableRow>
+						<TableCell>
+							<Paragraph>Alt+N</Paragraph>
+						</TableCell>
+						<TableCell>
+							<Paragraph>Toggle Play Notes</Paragraph>
+						</TableCell>
+					</TableRow>
+
+					<TableRow>
+						<TableCell>
+							<Paragraph>Return</Paragraph>
+						</TableCell>
+						<TableCell>
+							<Paragraph>Switch to sequence editor (and back)</Paragraph>
+						</TableCell>
+					</TableRow>
+
+					<TableRow>
+						<TableCell>
+							<Paragraph>Space</Paragraph>
+						</TableCell>
+						<TableCell>
+							<Paragraph>Play/stop pattern</Paragraph>
+						</TableCell>
+					</TableRow>
+
+					<TableRow>
+						<TableCell>
+							<Paragraph>Ctrl+Return</Paragraph>
+						</TableCell>
+						<TableCell>
+							<Paragraph>Create pattern</Paragraph>
+						</TableCell>
+					</TableRow>
+
+					<TableRow>
+						<TableCell>
+							<Paragraph>Ctrl+Shift+Return</Paragraph>
+						</TableCell>
+						<TableCell>
+							<Paragraph>Clone pattern</Paragraph>
+						</TableCell>
+					</TableRow>
+
+					<TableRow>
+						<TableCell>
+							<Paragraph>Ctrl+Del</Paragraph>
+						</TableCell>
+						<TableCell>
+							<Paragraph>Delete pattern</Paragraph>
+						</TableCell>
+					</TableRow>
+
+					<TableRow>
+						<TableCell>
+							<Paragraph>Arrows/PageUp/PageDown/Home/End/(Shift+)Tab</Paragraph>
+						</TableCell>
+						<TableCell>
+							<Paragraph>Move cursor (+shift selects)</Paragraph>
+						</TableCell>
+					</TableRow>
+
+					<TableRow>
+						<TableCell>
+							<Paragraph>. (period)</Paragraph>
+						</TableCell>
+						<TableCell>
+							<Paragraph>Clear field under cursor</Paragraph>
+						</TableCell>
+					</TableRow>
+
+					<TableRow>
+						<TableCell>
+							<Paragraph>Z,S,X,D,C,... (note column)</Paragraph>
+						</TableCell>
+						<TableCell>
+							<Paragraph>Enter notes at base octave</Paragraph>
+						</TableCell>
+					</TableRow>
+
+					<TableRow>
+						<TableCell>
+							<Paragraph>Q,2,W,3,E,... (note column)</Paragraph>
+						</TableCell>
+						<TableCell>
+							<Paragraph>Enter notes at base octave + 1</Paragraph>
+						</TableCell>
+					</TableRow>
+
+					<TableRow>
+						<TableCell>
+							<Paragraph>1 (note column)</Paragraph>
+						</TableCell>
+						<TableCell>
+							<Paragraph>Enter note off</Paragraph>
+						</TableCell>
+					</TableRow>
+
+					<TableRow>
+						<TableCell>
+							<Paragraph>4 (note column)</Paragraph>
+						</TableCell>
+						<TableCell>
+							<Paragraph>Play cursor row (current track)</Paragraph>
+						</TableCell>
+					</TableRow>
+
+					<TableRow>
+						<TableCell>
+							<Paragraph>8 (note column)</Paragraph>
+						</TableCell>
+						<TableCell>
+							<Paragraph>Play cursor row (all tracks)</Paragraph>
+						</TableCell>
+					</TableRow>
+                    <TableRow>
+                        <TableCell>
+                            <Paragraph>Insert/Delete</Paragraph>
+                        </TableCell>
+                        <TableCell>
+                            <Paragraph>Insert/Delete row</Paragraph>
+                        </TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell>
+                            <Paragraph>Ctrl+Shift+Insert/Delete</Paragraph>
+                        </TableCell>
+                        <TableCell>
+                            <Paragraph>Insert/Delete column</Paragraph>
+                        </TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell>
+                            <Paragraph>Ctrl+R</Paragraph>
+                        </TableCell>
+                        <TableCell>
+                            <Paragraph>Randomize</Paragraph>
+                        </TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell>
+                            <Paragraph>Ctrl+I</Paragraph>
+                        </TableCell>
+                        <TableCell>
+                            <Paragraph>Interpolate</Paragraph>
+                        </TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell>
+                            <Paragraph>Ctrl+Shift+I</Paragraph>
+                        </TableCell>
+                        <TableCell>
+                            <Paragraph>Interpolate logaritmic</Paragraph>
+                        </TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell>
+                            <Paragraph>Ctrl+W</Paragraph>
+                        </TableCell>
+                        <TableCell>
+                            <Paragraph>Rotate forward</Paragraph>
+                        </TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell>
+                            <Paragraph>Ctrl+Shift+W</Paragraph>
+                        </TableCell>
+                        <TableCell>
+                            <Paragraph>Rotate backwards</Paragraph>
+                        </TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell>
+                            <Paragraph>Ctrl+T</Paragraph>
+                        </TableCell>
+                        <TableCell>
+                            <Paragraph>Write machine state</Paragraph>
+                        </TableCell>
+                    </TableRow>                    
+                    <TableRow>
+                        <TableCell>
+                            <Paragraph>Shift+Add/Subtract</Paragraph>
+                        </TableCell>
+                        <TableCell>
+                            <Paragraph>Shift Values</Paragraph>
+                        </TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell>
+                            <Paragraph>Ctrl+1,2,3...</Paragraph>
+                        </TableCell>
+                        <TableCell>
+                            <Paragraph>Beat subdivision</Paragraph>
+                        </TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell>
+                            <Paragraph>Ctrl+Shift+1,2,3...</Paragraph>
+                        </TableCell>
+                        <TableCell>
+                            <Paragraph>Beat subdivision + 10</Paragraph>
+                        </TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell>
+                            <Paragraph>Keyboard Mapping</Paragraph>
+                        </TableCell>
+                        <TableCell>
+                            <Paragraph>Edit PEKeys.xml file in "\MyDocuments\ReBuzz\"</Paragraph>
+                        </TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell>
+                            <Paragraph>Chords</Paragraph>
+                        </TableCell>
+                        <TableCell>
+                            <Paragraph>Edit PEChords.xml file in "\MyDocuments\ReBuzz\"</Paragraph>
+                            <Paragraph>Ctrl + mouse click chord name inserts chord to cursor position or selection"</Paragraph>
+                        </TableCell>
+                    </TableRow>
+                </TableRowGroup>
+			</Table>
+
+		</FlowDocument>
+	</FlowDocumentScrollViewer>
+
+</UserControl>
