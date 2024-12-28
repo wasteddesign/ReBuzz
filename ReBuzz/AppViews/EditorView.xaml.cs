@@ -18,11 +18,11 @@ namespace ReBuzz
     /// </summary>
     public partial class EditorView : UserControl, INotifyPropertyChanged
     {
-        public class MachineVM: INotifyPropertyChanged
+        public class MachineVM : INotifyPropertyChanged
         {
             IMachine machine;
             IPattern selectedPattern;
-            private ReBuzzCore reBuzz;
+            private IBuzz reBuzz;
 
             public event PropertyChangedEventHandler PropertyChanged;
 
@@ -51,7 +51,7 @@ namespace ReBuzz
                 }
             }
 
-            public MachineVM(ReBuzzCore rb)
+            public MachineVM(IBuzz rb)
             {
                 this.reBuzz = rb;
             }
@@ -88,7 +88,7 @@ namespace ReBuzz
         public IMachineDLL EditorMachine
         {
             get => editorMachine; set
-            {   
+            {
                 var previous = editorMachine;
                 if (editorMachine != value)
                 {
@@ -122,6 +122,8 @@ namespace ReBuzz
             }
         }
         SequenceEditor sequenceEditor;
+        private readonly IRegistryEx registryEx;
+
         public SequenceEditor SequenceEditor
         {
             get => sequenceEditor;
@@ -139,8 +141,9 @@ namespace ReBuzz
 
         public ReBuzzCore ReBuzz { get; }
 
-        public EditorView(ReBuzzCore reBuzz)
+        public EditorView(ReBuzzCore reBuzz, IRegistryEx registryEx)
         {
+            this.registryEx = registryEx;
             ReBuzz = reBuzz;
             DataContext = this;
             InitializeComponent();
@@ -160,12 +163,12 @@ namespace ReBuzz
             btDefThis.Click += (sender, e) =>
             {
                 if (ReBuzz.PatternEditorMachine != null)
-                    RegistryEx.Write(ReBuzz.PatternEditorMachine.DLL.Name, editorMachine.Name, "Settings");
+                    registryEx.Write(ReBuzz.PatternEditorMachine.DLL.Name, editorMachine.Name, "Settings");
             };
 
             btDefAll.Click += (sender, e) =>
             {
-                RegistryEx.Write("DefaultPE", editorMachine.Name, "Settings");
+                registryEx.Write("DefaultPE", editorMachine.Name, "Settings");
             };
 
             ReBuzz.SetPatternEditorPatternChanged += (pattern) =>

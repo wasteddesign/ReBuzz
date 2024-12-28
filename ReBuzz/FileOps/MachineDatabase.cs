@@ -9,7 +9,16 @@ using System.Windows;
 
 namespace ReBuzz.FileOps
 {
-    internal class MachineDatabase
+    internal interface IMachineDatabase
+    {
+        event Action<string> DatabaseEvent;
+        Dictionary<int, MachineDatabase.InstrumentInfo> DictLibRef { get; set; }
+        void CreateDB();
+        string GetLibName(int id);
+        MenuItemCore IndexMenu { get; }
+    }
+
+    internal class MachineDatabase : IMachineDatabase
     {
         internal struct InstrumentInfo
         {
@@ -24,26 +33,33 @@ namespace ReBuzz.FileOps
         private readonly ReBuzzCore buzz;
         NativeMachine.NativeMachineHost nativeMachineHost;
         NativeMachine.NativeMachineHost nativeMachineHost64;
+        private string buzzPath;
+        private readonly IUiDispatcher dispatcher;
 
-        internal MenuItemCore IndexMenu { get; private set; }
+        private MenuItemCore IndexMenu { get; set; }
+
+        MenuItemCore IMachineDatabase.IndexMenu => IndexMenu;
+
         public Dictionary<int, InstrumentInfo> DictLibRef { get; set; }
 
-        public MachineDatabase(ReBuzzCore buzz)
+        public MachineDatabase(ReBuzzCore buzz, string buzzPath, IUiDispatcher dispatcher)
         {
             this.buzz = buzz;
             DictLibRef = new Dictionary<int, InstrumentInfo>();
             IndexMenu = new MenuItemCore();
+            this.buzzPath = buzzPath;
+            this.dispatcher = dispatcher;
         }
 
         public void CreateDB()
         {
-            string filepath = Path.Combine(Global.BuzzPath, @"gear\index.txt");
+            string filepath = Path.Combine(buzzPath, @"gear\index.txt");
             try
             {
-                nativeMachineHost = new NativeMachine.NativeMachineHost("Index");
+                nativeMachineHost = new NativeMachine.NativeMachineHost("Index", buzzPath, dispatcher);
                 nativeMachineHost.InitHost(buzz, false); // 32 bit
 
-                nativeMachineHost64 = new NativeMachine.NativeMachineHost("Index64");
+                nativeMachineHost64 = new NativeMachine.NativeMachineHost("Index64", buzzPath, dispatcher);
                 nativeMachineHost64.InitHost(buzz, true); // 64 bit
 
                 IndexMenu = ParseMenu(filepath);
@@ -56,7 +72,6 @@ namespace ReBuzz.FileOps
                 MessageBox.Show(ex.Message);
             }
         }
-
 
         public string GetLibName(int id)
         {
@@ -213,7 +228,7 @@ namespace ReBuzz.FileOps
                 {
                     bool is64Bit = (machineDll as MachineDLL).Is64Bit;
                     var uiMessage = is64Bit ? nativeMachineHost64.UIMessage : nativeMachineHost.UIMessage;
-                    var machine = new MachineCore(buzz.SongCore, is64Bit);
+                    var machine = new MachineCore(buzz.SongCore, buzzPath, dispatcher, is64Bit);
                     if (!uiMessage.UILoadLibrarySync(buzz, machine, loaderLib, machineDll.Path))
                     {
                         buzz.DCWriteErrorLine("Error loading machine: " + loaderLib);
@@ -231,7 +246,7 @@ namespace ReBuzz.FileOps
                     {
                         MenuItemCore menuIterator = rootMenu;
                         var splitted = instr.Split('/').Select(p => p.Trim()).ToList();
-                        
+
                         for (int i = 0; i < splitted.Count; i++)
                         {
                             string menuPath = splitted[i];

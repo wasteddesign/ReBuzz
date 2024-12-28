@@ -18,9 +18,11 @@ namespace ReBuzz.NativeMachine
     internal class UIMessage : NativeMessage
     {
         private readonly Lock UIMessageLock = new();
+        private readonly IUiDispatcher dispatcher;
 
-        public UIMessage(ChannelType channel, MemoryMappedViewAccessor accessor, NativeMachineHost nativeMachineHost) : base(channel, accessor, nativeMachineHost)
+        public UIMessage(ChannelType channel, MemoryMappedViewAccessor accessor, NativeMachineHost nativeMachineHost, IUiDispatcher dispatcher) : base(channel, accessor, nativeMachineHost)
         {
+            this.dispatcher = dispatcher;
         }
 
         public override event EventHandler<EventArgs> MessageEvent;
@@ -57,7 +59,7 @@ namespace ReBuzz.NativeMachine
             }
         }
 
-        internal bool UILoadLibrarySync(ReBuzzCore buzz, MachineCore machine, string libname, string path)
+        internal bool UILoadLibrarySync(IBuzz buzz, MachineCore machine, string libname, string path)
         {
             if (machine.DLL.IsCrashed)
             {
@@ -467,7 +469,7 @@ namespace ReBuzz.NativeMachine
                 for (int i = 0; i < data.Length; i++)
                 {
                     if (data[i] == 0 && instrument != "")
-                    {   
+                    {
                         instrumentList[instrument] = 0;
                         instrument = "";
                     }
@@ -558,7 +560,7 @@ namespace ReBuzz.NativeMachine
         {
             lock (UIMessageLock)
             {
-                ParameterCore parameter = new ParameterCore();
+                ParameterCore parameter = new ParameterCore(dispatcher);
                 parameter.Type = (ParameterType)GetMessageData<int>();
                 parameter.Name = GetMessageString();
                 parameter.Description = GetMessageString();

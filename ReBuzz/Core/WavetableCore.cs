@@ -87,7 +87,7 @@ namespace ReBuzz.Core
                     break;
             }
 
-            if (add) 
+            if (add)
             {
                 bool ok = w.Flags.HasFlag(WaveFlags.Stereo) && stereo || !stereo && !w.Flags.HasFlag(WaveFlags.Stereo);
                 ok &= !w.Flags.HasFlag(WaveFlags.Not16Bit) && format == WaveFormat.Int16;
@@ -101,7 +101,7 @@ namespace ReBuzz.Core
             }
             // Wave needs to be same format & type
             else
-            {   
+            {
                 w.Flags = 0;
                 if (stereo)
                     w.Flags |= WaveFlags.Stereo;

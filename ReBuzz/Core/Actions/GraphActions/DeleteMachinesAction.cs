@@ -11,10 +11,12 @@ namespace ReBuzz.Core.Actions.GraphActions
         readonly List<MachineInfoRef> deleteMachineDatas = new List<MachineInfoRef>();
 
         private readonly ReBuzzCore buzz;
+        private readonly IUiDispatcher dispatcher;
 
-        public DeleteMachinesAction(ReBuzzCore buzz, IEnumerable<IMachine> m)
+        public DeleteMachinesAction(ReBuzzCore buzz, IEnumerable<IMachine> m, IUiDispatcher dispatcher)
         {
             this.buzz = buzz;
+            this.dispatcher = dispatcher;
 
             foreach (var mac in m)
             {
@@ -23,6 +25,7 @@ namespace ReBuzz.Core.Actions.GraphActions
                 deleteMachineDatas.Add(machineData);
                 SaveConnections(machine, machineData);
             }
+
         }
 
         private void SaveConnections(MachineCore machine, MachineInfoRef machineData)
@@ -121,7 +124,7 @@ namespace ReBuzz.Core.Actions.GraphActions
             if (mc != null)
             {
                 // Call action without adding it to action stack
-                new DisconnectMachinesAction(buzz, mc).Do();
+                new DisconnectMachinesAction(buzz, mc, dispatcher).Do();
             }
 
             mc = machine.AllInputs.FirstOrDefault(input => input.Source.Name == c.Source &&
@@ -129,7 +132,7 @@ namespace ReBuzz.Core.Actions.GraphActions
             if (mc != null)
             {
                 // Call action without adding it to action stack
-                new DisconnectMachinesAction(buzz, mc).Do();
+                new DisconnectMachinesAction(buzz, mc, dispatcher).Do();
             }
         }
 
@@ -206,7 +209,7 @@ namespace ReBuzz.Core.Actions.GraphActions
             {
                 foreach (var c in machineData.connections)
                 {
-                    var mc = new MachineConnectionCore();
+                    var mc = new MachineConnectionCore(dispatcher);
                     mc.Source = buzz.SongCore.MachinesList.FirstOrDefault(m => m.Name == c.Source);
                     mc.Destination = buzz.SongCore.MachinesList.FirstOrDefault(m => m.Name == c.Destination);
                     mc.SourceChannel = c.SourceChannel;
@@ -218,7 +221,7 @@ namespace ReBuzz.Core.Actions.GraphActions
                     var sourceMachine = mc.Source as MachineCore;
                     if (!sourceMachine.Hidden)
                     {
-                        new ConnectMachinesAction(buzz, mc).Do();
+                        new ConnectMachinesAction(buzz, mc, dispatcher).Do();
                     }
                 }
             }

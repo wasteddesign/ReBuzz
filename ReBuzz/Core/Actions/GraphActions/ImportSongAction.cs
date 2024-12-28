@@ -20,14 +20,16 @@ namespace ReBuzz.Core.Actions.GraphActions
         private IReBuzzFile bmxFile;
         private List<MachineCore> machines = new List<MachineCore>();
         private List<int> waveIndexes = new List<int>();
+        private readonly IUiDispatcher dispatcher;
 
-        internal ImportSongAction(ReBuzzCore buzz, IReBuzzFile bmxFile, string file, float x, float y)
+        internal ImportSongAction(ReBuzzCore buzz, IReBuzzFile bmxFile, string file, float x, float y, IUiDispatcher dispatcher)
         {
             this.buzz = buzz;
             this.x = x;
             this.y = y;
             this.filename = file;
             this.bmxFile = bmxFile;
+            this.dispatcher = dispatcher;
         }
 
         protected override void DoAction()
@@ -72,7 +74,7 @@ namespace ReBuzz.Core.Actions.GraphActions
                 foreach (var output in machine.AllOutputs.ToArray())
                 {
                     if (output.Destination.DLL.Info.Type == MachineType.Master)
-                        new DisconnectMachinesAction(buzz, output).Do();
+                        new DisconnectMachinesAction(buzz, output, dispatcher).Do();
                 }
 
                 // Clear waves
