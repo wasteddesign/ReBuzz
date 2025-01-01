@@ -5,6 +5,7 @@ using AtmaFileSystem.IO;
 using BuzzGUI.Common;
 using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
+using Core.Maybe;
 using FluentAssertions;
 using ReBuzz.AppViews;
 using ReBuzz.Core;
@@ -60,6 +61,13 @@ namespace ReBuzzTests.Automation
         private AbsoluteDirectoryPath GearGeneratorsDir => GearDir.AddDirectoryName("Generators");
 
         private ReBuzzCore reBuzzCore;
+        private readonly FakeFileNameChoice fileNameToLoadChoice = new();
+        private readonly FakeUserMessages fakeUserMessages;
+
+        public Driver()
+        {
+            fakeUserMessages = new FakeUserMessages();
+        }
 
         static Driver()
         {
@@ -83,7 +91,7 @@ namespace ReBuzzTests.Automation
             var registryExInstance = new FakeInMemoryRegistry();
             var fakeMachineDllScanner = new FakeMachineDLLScanner(GearDir);
             reBuzzCore = new ReBuzzCore(generalSettings, engineSettings, buzzPath, registryRoot, fakeMachineDllScanner,
-                dispatcher, registryExInstance);
+                dispatcher, registryExInstance, fileNameToLoadChoice, fakeUserMessages);
             fakeMachineDllScanner.AddFakeModernPatternEditor(reBuzzCore);
 
             var initialization = new ReBuzzCoreInitialization(reBuzzCore, buzzPath, dispatcher, registryExInstance);
@@ -107,6 +115,11 @@ namespace ReBuzzTests.Automation
             initialization.StartReBuzzEngineStep5(s => { TestContext.Out.WriteLine("OpenFile: " + s); });
             initialization.StartReBuzzEngineStep6();
 
+            reBuzzCore.FileEvent += (type, s, arg3) => //bug
+            {
+                TestContext.Out.WriteLine($"FileEvent: {type}, {s}, {arg3}");
+            };
+
             reBuzzCore.BuzzCommandRaised += command =>
             {
                 TestContext.Out.WriteLine("Command: " + command);
@@ -121,6 +134,11 @@ namespace ReBuzzTests.Automation
         public void NewFile()
         {
             reBuzzCore.ExecuteCommand(BuzzCommand.NewFile);
+        }
+
+        public void LoadFile()
+        {
+            reBuzzCore.ExecuteCommand(BuzzCommand.OpenFile);
         }
 
         /// <summary>
@@ -189,6 +207,54 @@ namespace ReBuzzTests.Automation
                     }
                 }
             }
+        }
+
+        public void SetupLoadedFileChoiceToUserCancel()
+        {
+            fileNameToLoadChoice.SetToUserCancel();
+        }
+
+        public void SetupLoadedFileChoiceTo(string fileName)
+        {
+            fileNameToLoadChoice.SetTo(fileName);
+        }
+
+        public void AssertMessageReportedToUser(string expectedCaption, string expectedMessage) //bug what about caption?
+        {
+            fakeUserMessages.Caption.Should().Be(expectedCaption);
+            fakeUserMessages.Message.Should().Be(expectedMessage);
+        }
+    }
+
+    public class FakeUserMessages : IUserMessages //bug
+    {
+        public void Show(string message, string caption)
+        {
+            Caption = caption;
+            Message = message;
+        }
+
+        public string Message { get; set; } = string.Empty;
+        public string Caption { get; set; } = string.Empty;
+    }
+
+    public class FakeFileNameChoice : IFileNameChoice //bug move
+    {
+        private Maybe<string> fileName = Maybe<string>.Nothing;
+
+        public Maybe<string> SelectFileNameToLoad()
+        {
+            return fileName; //bug
+        }
+
+        public void SetToUserCancel()
+        {
+            fileName = Maybe<string>.Nothing;
+        }
+
+        public void SetTo(string fileName)
+        {
+            this.fileName = fileName.Just();
         }
     }
 }

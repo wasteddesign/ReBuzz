@@ -120,7 +120,7 @@ namespace ReBuzz
               engineSettings,
               buzzPath,
               registryRoot,
-              new MachineDLLScanner(windowsGuiDispatcher), windowsGuiDispatcher, registryEx);
+              new MachineDLLScanner(windowsGuiDispatcher), windowsGuiDispatcher, registryEx, new FileNameChoiceThroughGuiDialog(), new UserMessagesViaMessageBox());
 
             var reBuzzCoreInitialization = new ReBuzzCoreInitialization(Buzz, buzzPath, windowsGuiDispatcher, registryEx);
             reBuzzCoreInitialization.StartReBuzzEngineStep1(Buzz_PropertyChanged);

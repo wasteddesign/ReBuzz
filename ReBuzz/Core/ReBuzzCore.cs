@@ -18,6 +18,7 @@ using Buzz.MachineInterface;
 using BuzzGUI.Common;
 using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
+using Core.Maybe;
 using Microsoft.Win32;
 using NAudio.Midi;
 using ReBuzz.Audio;
@@ -553,8 +554,11 @@ namespace ReBuzz.Core
           string registryRoot,
           IMachineDLLScanner machineDllScanner,
           IUiDispatcher dispatcher,
-          IRegistryEx registryEx)
+          IRegistryEx registryEx, 
+          IFileNameChoice fileNameToLoadChoice, 
+          IUserMessages userMessages)
         {
+            this.fileNameToLoadChoice = fileNameToLoadChoice;
             this.registryEx = registryEx;
             this.generalSettings = generalSettings;
             this.engineSettings = engineSettings;
@@ -562,6 +566,7 @@ namespace ReBuzz.Core
             this.registryRoot = registryRoot;
             this.machineDllScanner = machineDllScanner;
             this.dispatcher = dispatcher;
+            this.userMessages = userMessages;
 
             // Init process and thread priorities
             ProcessAndThreadProfile.Profile2();
@@ -899,11 +904,11 @@ namespace ReBuzz.Core
             }
             else if (cmd == BuzzCommand.OpenFile)
             {
-                OpenFileDialog openFileDialog = new OpenFileDialog();
-                openFileDialog.Filter = "All songs (*.bmw, *.bmx, *bmxml)|*.bmw;*.bmx;*.bmxml|Songs with waves (*.bmx)|*.bmx|Songs without waves (*.bmw)|*.bmw|ReBuzz XML (*.bmxml)|*.bmxml";
-                if (openFileDialog.ShowDialog() == true)
+                Maybe<string> fileName = fileNameToLoadChoice.SelectFileNameToLoad();
+
+                if (fileName.HasValue)
                 {
-                    OpenSongFile(openFileDialog.FileName);
+                    OpenSongFile(fileName.Value());
                 }
             }
             else if (cmd == BuzzCommand.SaveFile)
@@ -1066,12 +1071,12 @@ namespace ReBuzz.Core
                 }
                 catch (Exception e)
                 {
-
-                        MessageBox.Show(e.InnerException.Message, "Error loading " + filename);
-                        bmxFile.EndFileOperation(false);
-                        NewSong();
-                        SkipAudio = false;
-                        return;
+                    var errorCaption = "Error loading " + filename;
+                    userMessages.Show(e.InnerException == null ? e.Message : e.InnerException.Message, errorCaption);
+                    bmxFile.EndFileOperation(false);
+                    NewSong();
+                    SkipAudio = false;
+                    return;
                 }
 
                 SongCore.SongName = filename;
@@ -1737,6 +1742,8 @@ namespace ReBuzz.Core
         private readonly IMachineDLLScanner machineDllScanner;
         private readonly IUiDispatcher dispatcher;
         private readonly IRegistryEx registryEx;
+        private readonly IFileNameChoice fileNameToLoadChoice;
+        private readonly IUserMessages userMessages;
 
         public string InfoText { get => infoText; internal set { infoText = value; PropertyChanged.Raise(this, "InfoText"); } }
 
