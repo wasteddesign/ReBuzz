@@ -2,6 +2,7 @@ using ReBuzz.Core;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Windows.Input;
 
 namespace ReBuzzTests.Automation
 {
@@ -14,7 +15,7 @@ namespace ReBuzzTests.Automation
     {
         private readonly Lock lockObject = new();
 
-        private readonly Dictionary<(string Path, string Key), object> registryDictionary = new()
+        private Dictionary<(string Path, string Key), object> registryDictionary = new()
         {
             [("ASIO", "SampleRate")] = 44100,
             [("ASIO", "BufferSize")] = 1024,
@@ -107,13 +108,33 @@ namespace ReBuzzTests.Automation
 
         public void DeleteCurrentUserSubKey(string key)
         {
-            Assert.Fail("Not used in any of the current tests");
+            lock (lockObject)
+            {
+                var path = key.Split('\\').Last();
+                registryDictionary = registryDictionary.Where(kvp => kvp.Key.Path != path).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            }
         }
 
         public IRegistryKey CreateCurrentUserSubKey(string subKey)
         {
-            Assert.Fail("Not used in any of the current tests");
-            return default!;
+            lock (lockObject)
+            {
+                var path = subKey.Split('\\').Last();
+                TestContext.Out.WriteLine($"Create subkey: {subKey} => extracted {path}");
+                return new FakeInMemoryRegistryKey(registryDictionary, path);
+            }
+        }
+    }
+
+    internal class FakeInMemoryRegistryKey(
+        Dictionary<(string Path, string Key), object> registryDictionary,
+        string path)
+        : IRegistryKey //bug move it out
+    {
+        public void SetValue(string name, object value)
+        {
+            registryDictionary[(path, name)] = value;
+            TestContext.Out.WriteLine($"Set subkey value: {path}=>{name}=>{value}");
         }
     }
 }

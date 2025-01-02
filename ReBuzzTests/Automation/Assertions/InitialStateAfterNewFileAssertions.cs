@@ -12,7 +12,7 @@ namespace ReBuzzTests.Automation.Assertions
     /// </summary>
     public class InitialStateAfterNewFileAssertions : IAdditionalInitialStateAssertions
     {
-        public void AssertInitialStateOfSongCore(
+        public void AssertStateOfSongCore(
             SongCore songCore, AbsoluteDirectoryPath gearDir, ReBuzzCore reBuzzCore)
         {
             songCore.MachinesList.Should().Equal(songCore.Machines.Cast<MachineCore>());

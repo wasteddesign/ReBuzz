@@ -16,7 +16,7 @@ namespace ReBuzzTests.Automation.Assertions
     /// </summary>
     public class InitialStateAfterAppStartAssertions : IAdditionalInitialStateAssertions
     {
-        public void AssertInitialStateOfSongCore(
+        public void AssertStateOfSongCore(
             SongCore songCore, AbsoluteDirectoryPath gearDir, ReBuzzCore reBuzzCore)
         {
             songCore.MachinesList.Should().HaveCount(2);

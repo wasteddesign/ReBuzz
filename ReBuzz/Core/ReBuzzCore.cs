@@ -1072,7 +1072,7 @@ namespace ReBuzz.Core
                 catch (Exception e)
                 {
                     var errorCaption = "Error loading " + filename;
-                    userMessages.Show(e.InnerException == null ? e.Message : e.InnerException.Message, errorCaption);
+                    userMessages.Error(e.InnerException == null ? e.Message : e.InnerException.Message, errorCaption);
                     bmxFile.EndFileOperation(false);
                     NewSong();
                     SkipAudio = false;

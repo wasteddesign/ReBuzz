@@ -7,6 +7,7 @@ using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
 using Core.Maybe;
 using FluentAssertions;
+using FluentAssertions.Execution;
 using ReBuzz.AppViews;
 using ReBuzz.Core;
 using ReBuzz.MachineManagement;
@@ -176,12 +177,26 @@ namespace ReBuzzTests.Automation
 
         public void AssertInitialStateAfterNewFile()
         {
-            InitialStateAssertions.AssertInitialState(GearDir, reBuzzCore, new InitialStateAfterNewFileAssertions());
+            InitialStateAssertions.AssertInitialState(GearDir,
+                reBuzzCore,
+                new InitialStateAfterNewFileAssertions(),
+                new InitialSongStateAssertions());
         }
 
         public void AssertInitialStateAfterAppStart()
         {
-            InitialStateAssertions.AssertInitialState(GearDir, reBuzzCore, new InitialStateAfterAppStartAssertions());
+            InitialStateAssertions.AssertInitialState(GearDir,
+                reBuzzCore,
+                new InitialStateAfterAppStartAssertions(),
+                new InitialSongStateAssertions());
+        }
+
+        public void AssertStateAfterLoadingAnEmptySong(AbsoluteFilePath emptySongPath)
+        {
+            InitialStateAssertions.AssertInitialState(GearDir,
+                reBuzzCore,
+                new InitialStateAfterNewFileAssertions(),
+                new SongStateAssertions2(emptySongPath));
         }
 
         /// <summary>
@@ -221,14 +236,26 @@ namespace ReBuzzTests.Automation
 
         public void AssertMessageReportedToUser(string expectedCaption, string expectedMessage) //bug what about caption?
         {
-            fakeUserMessages.Caption.Should().Be(expectedCaption);
-            fakeUserMessages.Message.Should().Be(expectedMessage);
+            using (new AssertionScope())
+            {
+                fakeUserMessages.Caption.Should().Be(expectedCaption);
+                fakeUserMessages.Message.Should().Be(expectedMessage);
+            }
+        }
+
+        public void AssertNoErrorsReportedToUser()
+        {
+            using (new AssertionScope())
+            {
+                fakeUserMessages.Caption.Should().BeEmpty();
+                fakeUserMessages.Message.Should().BeEmpty();
+            }
         }
     }
 
     public class FakeUserMessages : IUserMessages //bug
     {
-        public void Show(string message, string caption)
+        public void Error(string message, string caption)
         {
             Caption = caption;
             Message = message;

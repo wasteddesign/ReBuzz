@@ -60,18 +60,20 @@ namespace ReBuzzTests
         [Test]
         public void Does___________________WhenLoadingEmptyProjectFile() //bug
         {
-            var emptyProjectFilePath = AbsoluteDirectoryPath.OfThisFile().AddFileName("EmptySongBmx.bmx");
+            var emptySongPath = AbsoluteDirectoryPath.OfThisFile().AddFileName("EmptySongBmx.bmx");
             using var driver = new Driver();
             driver.Start();
 
-            driver.SetupLoadedFileChoiceTo(emptyProjectFilePath.ToString());
+            driver.SetupLoadedFileChoiceTo(emptySongPath.ToString());
 
             driver.LoadFile();
 
-            driver.AssertInitialStateAfterNewFile();
+            //bug assert recent file list
+            driver.AssertNoErrorsReportedToUser();
+            driver.AssertStateAfterLoadingAnEmptySong(emptySongPath);
             driver.AssertMessageReportedToUser(
-                $"Error loading {emptyProjectFilePath}",
-                $"Could not find file '{AbsoluteDirectoryPath.OfCurrentWorkingDirectory().AddFileName(emptyProjectFilePath.ToString())}'.");
+                $"Error loading {emptySongPath}",
+                $"Could not find file '{AbsoluteDirectoryPath.OfCurrentWorkingDirectory().AddFileName(emptySongPath.ToString())}'.");
         }
 
     }
