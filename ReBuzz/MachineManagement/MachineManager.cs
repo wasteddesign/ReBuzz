@@ -218,6 +218,10 @@ namespace ReBuzz.MachineManagement
             machine.InstrumentName = instrument;
             var uiMessage = nativeMachineHost.UIMessage;
             var audioMessage = nativeMachineHost.AudioMessage;
+
+            // Send wavetable info before new?
+            //audioMessage.AudioBeginBlock(machine, buzz.Song.Wavetable as WavetableCore);
+
             uiMessage.SendMessageBuzzInitSync(Buzz.MainWindowHandle, machine.MachineDLL.Is64Bit);
             uiMessage.UIDSPInitSync(ReBuzzCore.masterInfo.SamplesPerSec);
 
@@ -540,7 +544,7 @@ namespace ReBuzz.MachineManagement
         {
             if (nativeMachines.ContainsKey(machine))
             {
-                nativeMachines[machine].AudioMessage.AudioBeginBlock(machine, null);
+                nativeMachines[machine].AudioMessage.AudioBeginBlock(machine, buzz.Song.Wavetable as WavetableCore);
             }
         }
 
@@ -1068,7 +1072,7 @@ namespace ReBuzz.MachineManagement
             lock (ReBuzzCore.AudioLock)
             {
                 // Check also if machine has MIF_DOES_INPUT_MIXING?
-                if (nativeMachines.ContainsKey(machine) && machine.DLL.Info.Version >= BUZZ_MACHINE_INTERFACE_VERSION_15 /* && machine.DLL.Info.Flags.HasFlag(MachineInfoFlags.DOES_INPUT_MIXING) */)
+                if (nativeMachines.ContainsKey(machine) && machine.DLL.Info.Version >= BUZZ_MACHINE_INTERFACE_VERSION_15 && machine.DLL.Info.Flags.HasFlag(MachineInfoFlags.DOES_INPUT_MIXING))
                 {
                     var host = nativeMachines[machine];
                     host.UIMessage.UIAddInput(machine, source.Name, stereo);
@@ -1077,7 +1081,7 @@ namespace ReBuzz.MachineManagement
         }
         internal void DeleteInput(MachineCore machine, IMachine source)
         {
-            if (nativeMachines.ContainsKey(machine) && machine.DLL.Info.Version >= BUZZ_MACHINE_INTERFACE_VERSION_15 /* && machine.DLL.Info.Flags.HasFlag(MachineInfoFlags.DOES_INPUT_MIXING) */)
+            if (nativeMachines.ContainsKey(machine) && machine.DLL.Info.Version >= BUZZ_MACHINE_INTERFACE_VERSION_15 && machine.DLL.Info.Flags.HasFlag(MachineInfoFlags.DOES_INPUT_MIXING))
             {
                 var host = nativeMachines[machine];
                 host.UIMessage.UIDeleteInput(machine, source.Name);
@@ -1086,7 +1090,7 @@ namespace ReBuzz.MachineManagement
 
         internal void RenameInput(MachineCore machine, string oldName, string newName)
         {
-            if (nativeMachines.ContainsKey(machine) && machine.DLL.Info.Version >= BUZZ_MACHINE_INTERFACE_VERSION_15 /* && machine.DLL.Info.Flags.HasFlag(MachineInfoFlags.DOES_INPUT_MIXING) */)
+            if (nativeMachines.ContainsKey(machine) && machine.DLL.Info.Version >= BUZZ_MACHINE_INTERFACE_VERSION_15 && machine.DLL.Info.Flags.HasFlag(MachineInfoFlags.DOES_INPUT_MIXING))
             {
                 var host = nativeMachines[machine];
                 host.UIMessage.UIRenameInput(machine, oldName, newName);
