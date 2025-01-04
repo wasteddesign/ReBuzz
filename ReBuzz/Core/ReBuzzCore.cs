@@ -548,17 +548,19 @@ namespace ReBuzz.Core
         readonly Timer timerAutomaticBackups;
 
         internal ReBuzzCore(
-          GeneralSettings generalSettings,
-          EngineSettings engineSettings,
-          string buzzPath,
-          string registryRoot,
-          IMachineDLLScanner machineDllScanner,
-          IUiDispatcher dispatcher,
-          IRegistryEx registryEx, 
-          IFileNameChoice fileNameToLoadChoice, 
-          IUserMessages userMessages)
+            GeneralSettings generalSettings,
+            EngineSettings engineSettings,
+            string buzzPath,
+            string registryRoot,
+            IMachineDLLScanner machineDllScanner,
+            IUiDispatcher dispatcher,
+            IRegistryEx registryEx,
+            IFileNameChoice fileNameToLoadChoice,
+            IFileNameChoice fileNameToSaveChoice,
+            IUserMessages userMessages)
         {
             this.fileNameToLoadChoice = fileNameToLoadChoice;
+            this.fileNameToSaveChoice = fileNameToSaveChoice;
             this.registryEx = registryEx;
             this.generalSettings = generalSettings;
             this.engineSettings = engineSettings;
@@ -904,7 +906,7 @@ namespace ReBuzz.Core
             }
             else if (cmd == BuzzCommand.OpenFile)
             {
-                Maybe<string> fileName = fileNameToLoadChoice.SelectFileNameToLoad();
+                Maybe<string> fileName = fileNameToLoadChoice.SelectFileName();
 
                 if (fileName.HasValue)
                 {
@@ -1072,7 +1074,7 @@ namespace ReBuzz.Core
                 catch (Exception e)
                 {
                     var errorCaption = "Error loading " + filename;
-                    userMessages.Error(e.InnerException == null ? e.Message : e.InnerException.Message, errorCaption);
+                    userMessages.Error(e.InnerException == null ? e.Message : e.InnerException.Message, errorCaption, e);
                     bmxFile.EndFileOperation(false);
                     NewSong();
                     SkipAudio = false;
@@ -1153,11 +1155,11 @@ namespace ReBuzz.Core
             // Check filename
             if (filename == null)
             {
-                SaveFileDialog saveFileDialog = new SaveFileDialog();
-                saveFileDialog.Filter = "Songs with waves (*.bmx)|*.bmx|Songs without waves (*.bmw)|*.bmw|ReBuzz XML (*.bmxml)|*.bmxml";
-                if (saveFileDialog.ShowDialog() == true)
+                Maybe<string> saveFileName = fileNameToSaveChoice.SelectFileName();
+
+                if (saveFileName.HasValue)
                 {
-                    filename = saveFileDialog.FileName;
+                    filename = saveFileName.Value();
                     songCore.SongName = filename;
                     UpdateRecentFilesList(filename);
                 }
@@ -1743,6 +1745,7 @@ namespace ReBuzz.Core
         private readonly IUiDispatcher dispatcher;
         private readonly IRegistryEx registryEx;
         private readonly IFileNameChoice fileNameToLoadChoice;
+        private readonly IFileNameChoice fileNameToSaveChoice;
         private readonly IUserMessages userMessages;
 
         public string InfoText { get => infoText; internal set { infoText = value; PropertyChanged.Raise(this, "InfoText"); } }

@@ -5,13 +5,13 @@ using AtmaFileSystem.IO;
 using BuzzGUI.Common;
 using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
-using Core.Maybe;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using ReBuzz.AppViews;
 using ReBuzz.Core;
 using ReBuzz.MachineManagement;
 using ReBuzzTests.Automation.Assertions;
+using System.Linq;
 
 namespace ReBuzzTests.Automation
 {
@@ -61,9 +61,17 @@ namespace ReBuzzTests.Automation
         /// </summary>
         private AbsoluteDirectoryPath GearGeneratorsDir => GearDir.AddDirectoryName("Generators");
 
+        /// <summary>
+        /// ReBuzz songs directory for the current test
+        /// </summary>
+        private AbsoluteDirectoryPath SongsDir => reBuzzRootDir.AddDirectoryName("Songs");
+
+
         private ReBuzzCore reBuzzCore;
         private readonly FakeFileNameChoice fileNameToLoadChoice = new();
         private readonly FakeUserMessages fakeUserMessages;
+        private FakeFileNameChoice fileNameToSaveChoice = new();
+        private readonly FakeInMemoryRegistry fakeRegistry = new FakeInMemoryRegistry();
 
         public Driver()
         {
@@ -89,13 +97,21 @@ namespace ReBuzzTests.Automation
             var registryRoot = Global.RegistryRoot; //Should not matter as the registry is in memory
 
             var dispatcher = new FakeDispatcher();
-            var registryExInstance = new FakeInMemoryRegistry();
             var fakeMachineDllScanner = new FakeMachineDLLScanner(GearDir);
-            reBuzzCore = new ReBuzzCore(generalSettings, engineSettings, buzzPath, registryRoot, fakeMachineDllScanner,
-                dispatcher, registryExInstance, fileNameToLoadChoice, fakeUserMessages);
+            reBuzzCore = new ReBuzzCore(
+                generalSettings,
+                engineSettings,
+                buzzPath,
+                registryRoot,
+                fakeMachineDllScanner,
+                dispatcher,
+                fakeRegistry,
+                fileNameToLoadChoice,
+                fileNameToSaveChoice,
+                fakeUserMessages);
             fakeMachineDllScanner.AddFakeModernPatternEditor(reBuzzCore);
 
-            var initialization = new ReBuzzCoreInitialization(reBuzzCore, buzzPath, dispatcher, registryExInstance);
+            var initialization = new ReBuzzCoreInitialization(reBuzzCore, buzzPath, dispatcher, fakeRegistry);
             initialization.StartReBuzzEngineStep1((sender, args) =>
             {
                 TestContext.Out.WriteLine($"PropertyChanged: {args.PropertyName}");
@@ -114,12 +130,14 @@ namespace ReBuzzTests.Automation
             );
 
             initialization.StartReBuzzEngineStep5(s => { TestContext.Out.WriteLine("OpenFile: " + s); });
+            reBuzzCore.SaveSong += s => { TestContext.Out.WriteLine($"SaveSong: {s}"); }; //bug prod code doesn't do this!!
             initialization.StartReBuzzEngineStep6();
 
             reBuzzCore.FileEvent += (type, s, arg3) => //bug
             {
                 TestContext.Out.WriteLine($"FileEvent: {type}, {s}, {arg3}");
             };
+
 
             reBuzzCore.BuzzCommandRaised += command =>
             {
@@ -132,14 +150,22 @@ namespace ReBuzzTests.Automation
             };
         }
 
+        public AbsoluteFilePath RandomSongPath() => 
+            SongsDir.AddFileName($"{Guid.NewGuid():N}.bmx");
+
         public void NewFile()
         {
             reBuzzCore.ExecuteCommand(BuzzCommand.NewFile);
         }
 
-        public void LoadFile()
+        public void LoadSong()
         {
             reBuzzCore.ExecuteCommand(BuzzCommand.OpenFile);
+        }
+
+        public void SaveCurrentSong()
+        {
+            reBuzzCore.ExecuteCommand(BuzzCommand.SaveFile);
         }
 
         /// <summary>
@@ -152,6 +178,7 @@ namespace ReBuzzTests.Automation
             GearEffectsDir.Create();
             GearGeneratorsDir.Create();
             ThemesDir.Create();
+            SongsDir.Create();
             CopyGearFilesFromSourceCodeToReBuzzTestDir();
         }
 
@@ -193,11 +220,23 @@ namespace ReBuzzTests.Automation
 
         public void AssertStateAfterLoadingAnEmptySong(AbsoluteFilePath emptySongPath)
         {
-            InitialStateAssertions.AssertInitialState(GearDir,
+            InitialStateAssertions.AssertInitialState(
+                GearDir,
                 reBuzzCore,
-                new InitialStateAfterNewFileAssertions(),
-                new SongStateAssertions2(emptySongPath));
+                new InitialStateAfterLoadingEmptySongAssertions(),
+                new EmptySongStateWhenSongIsNamedAssertions(emptySongPath));
         }
+
+        public void AssertInitialStateAfterSavingEmptySong(AbsoluteFilePath emptySongPath)
+        {
+            InitialStateAssertions.AssertInitialState(
+                GearDir,
+                reBuzzCore,
+                new InitialStateAfterAppStartAssertions(),
+                new EmptySongStateWhenSongIsNamedAssertions(emptySongPath));
+
+        }
+
 
         /// <summary>
         /// Attempts to clean up all the test root directories.
@@ -234,6 +273,11 @@ namespace ReBuzzTests.Automation
             fileNameToLoadChoice.SetTo(fileName);
         }
 
+        public void SetupSavedFileChoiceTo(string fileName) //bug also user cancel scenario
+        {
+            fileNameToSaveChoice.SetTo(fileName);
+        }
+
         public void AssertMessageReportedToUser(string expectedCaption, string expectedMessage) //bug what about caption?
         {
             using (new AssertionScope())
@@ -249,39 +293,14 @@ namespace ReBuzzTests.Automation
             {
                 fakeUserMessages.Caption.Should().BeEmpty();
                 fakeUserMessages.Message.Should().BeEmpty();
+                fakeUserMessages.StackStrace.Should().BeEmpty();
             }
         }
-    }
 
-    public class FakeUserMessages : IUserMessages //bug
-    {
-        public void Error(string message, string caption)
+        public void AssertRecentFileListHasEntry(int index, AbsoluteFilePath songPath)
         {
-            Caption = caption;
-            Message = message;
-        }
-
-        public string Message { get; set; } = string.Empty;
-        public string Caption { get; set; } = string.Empty;
-    }
-
-    public class FakeFileNameChoice : IFileNameChoice //bug move
-    {
-        private Maybe<string> fileName = Maybe<string>.Nothing;
-
-        public Maybe<string> SelectFileNameToLoad()
-        {
-            return fileName; //bug
-        }
-
-        public void SetToUserCancel()
-        {
-            fileName = Maybe<string>.Nothing;
-        }
-
-        public void SetTo(string fileName)
-        {
-            this.fileName = fileName.Just();
+            fakeRegistry.ReadNumberedList<string>("File", "Recent File List").ElementAt(index)
+                .Should().Be(songPath.ToString());
         }
     }
 }

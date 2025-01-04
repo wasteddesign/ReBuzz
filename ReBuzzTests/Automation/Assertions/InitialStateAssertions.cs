@@ -187,7 +187,7 @@ namespace ReBuzzTests.Automation.Assertions
         private static void AssertFakeModernPatternEditor(
             Dictionary<string, MachineDLL> machineDlLsList, ReBuzzCore reBuzzCore, AbsoluteDirectoryPath gearDir)
         {
-            MachineDLL? modernPatternEditor = machineDlLsList["Modern Pattern Editor"];
+            MachineDLL modernPatternEditor = machineDlLsList["Modern Pattern Editor"];
             AssertFakeModernPatternEditor(reBuzzCore, gearDir, modernPatternEditor);
         }
 
@@ -454,19 +454,31 @@ namespace ReBuzzTests.Automation.Assertions
             managedMachineHost.Machine.Should()
                 .Be(reBuzzCore.MachineManager.ManagedMachines.Keys.Single(machine =>
                     machine.Name == managedMachineHost.Machine.Name));
-            managedMachineHost.MachineState.Should().NotBeEmpty();
+            managedMachineHost.MachineState.Should().NotBeNullOrEmpty();
             managedMachineHost.PatternEditorControl.Should().BeNull();
         }
 
         public static void AssertInitialStateOfGear(Gear gear)
         {
-            gear.Machine.Select(m => m.Name).Should().Equal(new[]
-            {
-                "Jeskola Pianoroll", "Modern Pattern Editor", "Jeskola Pattern XP", "Jeskola Pattern XP mod",
-                "Modern Pianoroll", "Polac VST 1.1", "Polac VSTi 1.1", "Jeskola XS-1", "CyanPhase Buzz OverLoader",
-                "CyanPhase DX Instrument Adapter", "CyanPhase DX Effect Adapter", "CyanPhase DMO Effect Adapter",
-                "11-MidiCCout", "Rymix*", "FireSledge ParamEQ", "BTDSys Pulsar"
-            });
+            gear.Machine.Select(m => m.Name)
+                .Should()
+                .Equal(
+                    "Jeskola Pianoroll",
+                    "Modern Pattern Editor",
+                    "Jeskola Pattern XP",
+                    "Jeskola Pattern XP mod",
+                    "Modern Pianoroll",
+                    "Polac VST 1.1",
+                    "Polac VSTi 1.1",
+                    "Jeskola XS-1",
+                    "CyanPhase Buzz OverLoader",
+                    "CyanPhase DX Instrument Adapter",
+                    "CyanPhase DX Effect Adapter",
+                    "CyanPhase DMO Effect Adapter",
+                    "11-MidiCCout",
+                    "Rymix*",
+                    "FireSledge ParamEQ",
+                    "BTDSys Pulsar");
         }
     }
 }
