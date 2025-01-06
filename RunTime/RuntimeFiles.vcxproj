@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <ProjectGuid>{7311D651-7877-4421-A50F-681DF2489746}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <NMakeOutput>
+    </NMakeOutput>
+    <NMakePreprocessorDefinitions>_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\net9.0-windows</OutDir>
+    <NMakeBuildCommandLine>IF NOT EXIST "$(OutDir)\bin32" mkdir "$(OutDir)\bin32"
+xcopy /d /y "$(ProjectDir)bin32\*.*" "$(OutDir)\bin32\"
+
+IF NOT EXIST "$(OutDir)\bin64" mkdir "$(OutDir)\bin64"
+xcopy /d /y "$(ProjectDir)bin64\*.*" "$(OutDir)\bin64\"
+
+xcopy /d /y "$(ProjectDir)..\3rdParty\libsndfile-1.dll" "$(OutDir)\" 
+
+IF NOT EXIST "$(OutDir)\Help" mkdir "$(OutDir)\Help"
+xcopy /d /y /e "$(ProjectDir)Help" "$(OutDir)\Help" 
+
+IF NOT EXIST "$(OutDir)\ParameterEditors" mkdir "$(OutDir)\ParameterEditors"
+xcopy /d /y /e "$(ProjectDir)ParameterEditors" "$(OutDir)\ParameterEditors" 
+
+IF NOT EXIST "$(OutDir)\Themes" mkdir "$(OutDir)\Themes"
+xcopy /d /y /e "$(ProjectDir)Themes" "$(OutDir)\Themes"
+
+IF NOT EXIST "$(OutDir)\Gear" mkdir "$(OutDir)\Gear"
+xcopy /d /y /e "$(ProjectDir)Gear" "$(OutDir)\Gear" 
+
+xcopy /d /y "$(ProjectDir)\*.xml" "$(OutDir)\"</NMakeBuildCommandLine>
+    <IntDir>$(SolutionDir)build\$(Configuration)\$(Platform)\$(ProjectName)\obj</IntDir>
+    <NMakeCleanCommandLine>del "$(OutDir)\bin32\*.dll"
+del "$(OutDir)\bin64\*.dll"
+del "$(OutDir)\bin64\*.txt"
+del "$(OutDir)\bin64\scan.x64.*"
+del "$(OutDir)\bin64\vst.x64.*"
+
+del /f /s /q "$(OutDir)\Gear"
+rmdir /s  /q "$(OutDir)\Gear"
+
+del /f /s /q "$(OutDir)\Help"
+rmdir /s /q "$(OutDir)\Help"
+
+del /f /s /q  "$(OutDir)\ParameterEditors"
+rmdir /s  /q "$(OutDir)\ParameterEditors"
+
+del /f /s /q "$(OutDir)\Themes"
+rmdir /s /q "$(OutDir)\Themes"</NMakeCleanCommandLine>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <NMakeOutput>
+    </NMakeOutput>
+    <NMakePreprocessorDefinitions>WIN32;_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\net9.0-windows</OutDir>
+    <NMakeBuildCommandLine>IF NOT EXIST "$(OutDir)\bin32" mkdir "$(OutDir)\bin32"
+xcopy /d /y "$(ProjectDir)bin32\*.*" "$(OutDir)\bin32\"
+
+IF NOT EXIST "$(OutDir)\bin64" mkdir "$(OutDir)\bin64"
+xcopy /d /y "$(ProjectDir)bin64\*.*" "$(OutDir)\bin64\"
+
+xcopy /d /y "$(ProjectDir)..\3rdParty\libsndfile-1.dll" "$(OutDir)\" 
+
+IF NOT EXIST "$(OutDir)\Help" mkdir "$(OutDir)\Help"
+xcopy /d /y /e "$(ProjectDir)Help" "$(OutDir)\Help" 
+
+IF NOT EXIST "$(OutDir)\ParameterEditors" mkdir "$(OutDir)\ParameterEditors"
+xcopy /d /y /e "$(ProjectDir)ParameterEditors" "$(OutDir)\ParameterEditors" 
+
+IF NOT EXIST "$(OutDir)\Themes" mkdir "$(OutDir)\Themes"
+xcopy /d /y /e "$(ProjectDir)Themes" "$(OutDir)\Themes"
+
+IF NOT EXIST "$(OutDir)\Gear" mkdir "$(OutDir)\Gear"
+xcopy /d /y /e "$(ProjectDir)Gear" "$(OutDir)\Gear" 
+
+xcopy /d /y "$(ProjectDir)\*.xml" "$(OutDir)\"</NMakeBuildCommandLine>
+    <IntDir>$(SolutionDir)build\$(Configuration)\$(Platform)\$(ProjectName)\obj</IntDir>
+    <NMakeCleanCommandLine>del "$(OutDir)\bin32\*.dll"
+del "$(OutDir)\bin64\*.dll"
+del "$(OutDir)\bin64\*.txt"
+del "$(OutDir)\bin64\scan.x64.*"
+del "$(OutDir)\bin64\vst.x64.*"
+
+del /f /s /q "$(OutDir)\Gear"
+rmdir /s  /q "$(OutDir)\Gear"
+
+del /f /s /q "$(OutDir)\Help"
+rmdir /s /q "$(OutDir)\Help"
+
+del /f /s /q  "$(OutDir)\ParameterEditors"
+rmdir /s  /q "$(OutDir)\ParameterEditors"
+
+del /f /s /q "$(OutDir)\Themes"
+rmdir /s /q "$(OutDir)\Themes"</NMakeCleanCommandLine>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <NMakeOutput>
+    </NMakeOutput>
+    <NMakePreprocessorDefinitions>WIN32;NDEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\net9.0-windows</OutDir>
+    <NMakeBuildCommandLine>IF NOT EXIST "$(OutDir)\bin32" mkdir "$(OutDir)\bin32"
+xcopy /d /y "$(ProjectDir)bin32\*.*" "$(OutDir)\bin32\"
+
+IF NOT EXIST "$(OutDir)\bin64" mkdir "$(OutDir)\bin64"
+xcopy /d /y "$(ProjectDir)bin64\*.*" "$(OutDir)\bin64\"
+
+xcopy /d /y "$(ProjectDir)..\3rdParty\libsndfile-1.dll" "$(OutDir)\" 
+
+IF NOT EXIST "$(OutDir)\Help" mkdir "$(OutDir)\Help"
+xcopy /d /y /e "$(ProjectDir)Help" "$(OutDir)\Help" 
+
+IF NOT EXIST "$(OutDir)\ParameterEditors" mkdir "$(OutDir)\ParameterEditors"
+xcopy /d /y /e "$(ProjectDir)ParameterEditors" "$(OutDir)\ParameterEditors" 
+
+IF NOT EXIST "$(OutDir)\Themes" mkdir "$(OutDir)\Themes"
+xcopy /d /y /e "$(ProjectDir)Themes" "$(OutDir)\Themes"
+
+IF NOT EXIST "$(OutDir)\Gear" mkdir "$(OutDir)\Gear"
+xcopy /d /y /e "$(ProjectDir)Gear" "$(OutDir)\Gear" 
+
+xcopy /d /y "$(ProjectDir)\*.xml" "$(OutDir)\"</NMakeBuildCommandLine>
+    <IntDir>$(SolutionDir)build\$(Configuration)\$(Platform)\$(ProjectName)\obj</IntDir>
+    <NMakeCleanCommandLine>del "$(OutDir)\bin32\*.dll"
+del "$(OutDir)\bin64\*.dll"
+del "$(OutDir)\bin64\*.txt"
+del "$(OutDir)\bin64\scan.x64.*"
+del "$(OutDir)\bin64\vst.x64.*"
+
+del /f /s /q "$(OutDir)\Gear"
+rmdir /s  /q "$(OutDir)\Gear"
+
+del /f /s /q "$(OutDir)\Help"
+rmdir /s /q "$(OutDir)\Help"
+
+del /f /s /q  "$(OutDir)\ParameterEditors"
+rmdir /s  /q "$(OutDir)\ParameterEditors"
+
+del /f /s /q "$(OutDir)\Themes"
+rmdir /s /q "$(OutDir)\Themes"</NMakeCleanCommandLine>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <NMakeOutput>
+    </NMakeOutput>
+    <NMakePreprocessorDefinitions>NDEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\net9.0-windows</OutDir>
+    <NMakeBuildCommandLine>IF NOT EXIST "$(OutDir)\bin32" mkdir "$(OutDir)\bin32"
+xcopy /d /y "$(ProjectDir)bin32\*.*" "$(OutDir)\bin32\"
+
+IF NOT EXIST "$(OutDir)\bin64" mkdir "$(OutDir)\bin64"
+xcopy /d /y "$(ProjectDir)bin64\*.*" "$(OutDir)\bin64\"
+
+xcopy /d /y "$(ProjectDir)..\3rdParty\libsndfile-1.dll" "$(OutDir)\" 
+
+IF NOT EXIST "$(OutDir)\Help" mkdir "$(OutDir)\Help"
+xcopy /d /y /e "$(ProjectDir)Help" "$(OutDir)\Help" 
+
+IF NOT EXIST "$(OutDir)\ParameterEditors" mkdir "$(OutDir)\ParameterEditors"
+xcopy /d /y /e "$(ProjectDir)ParameterEditors" "$(OutDir)\ParameterEditors" 
+
+IF NOT EXIST "$(OutDir)\Themes" mkdir "$(OutDir)\Themes"
+xcopy /d /y /e "$(ProjectDir)Themes" "$(OutDir)\Themes"
+
+IF NOT EXIST "$(OutDir)\Gear" mkdir "$(OutDir)\Gear"
+xcopy /d /y /e "$(ProjectDir)Gear" "$(OutDir)\Gear" 
+
+xcopy /d /y "$(ProjectDir)\*.xml" "$(OutDir)\"</NMakeBuildCommandLine>
+    <IntDir>$(SolutionDir)build\$(Configuration)\$(Platform)\$(ProjectName)\obj</IntDir>
+    <NMakeCleanCommandLine>del "$(OutDir)\bin32\*.dll"
+del "$(OutDir)\bin64\*.dll"
+del "$(OutDir)\bin64\*.txt"
+del "$(OutDir)\bin64\scan.x64.*"
+del "$(OutDir)\bin64\vst.x64.*"
+
+del /f /s /q "$(OutDir)\Gear"
+rmdir /s  /q "$(OutDir)\Gear"
+
+del /f /s /q "$(OutDir)\Help"
+rmdir /s /q "$(OutDir)\Help"
+
+del /f /s /q  "$(OutDir)\ParameterEditors"
+rmdir /s  /q "$(OutDir)\ParameterEditors"
+
+del /f /s /q "$(OutDir)\Themes"
+rmdir /s /q "$(OutDir)\Themes"</NMakeCleanCommandLine>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

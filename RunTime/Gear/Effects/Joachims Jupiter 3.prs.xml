@@ -1,0 +1,317 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<PresetDictionary>
+  <Item Key="Acoustic guitar">
+    <Preset Machine="Joachims Jupiter 3">
+      <Parameters>
+        <Parameter Name="Input" Group="1" Index="0" Track="0" Value="89" />
+        <Parameter Name="LowSplit" Group="1" Index="1" Track="0" Value="45" />
+        <Parameter Name="HighSplit" Group="1" Index="2" Track="0" Value="75" />
+        <Parameter Name="Steepness" Group="1" Index="3" Track="0" Value="60" />
+        <Parameter Name="Stereo wid.low" Group="1" Index="4" Track="0" Value="64" />
+        <Parameter Name="Listen to" Group="1" Index="5" Track="0" Value="1" />
+        <Parameter Name="Ratio, all bands" Group="1" Index="6" Track="0" Value="128" />
+        <Parameter Name="LOW: Threshold" Group="1" Index="7" Track="0" Value="74" />
+        <Parameter Name="          Attack" Group="1" Index="8" Track="0" Value="70" />
+        <Parameter Name="          Release" Group="1" Index="9" Track="0" Value="74" />
+        <Parameter Name="          Output" Group="1" Index="10" Track="0" Value="89" />
+        <Parameter Name="          Beefyness" Group="1" Index="11" Track="0" Value="64" />
+        <Parameter Name="MID: Threshold" Group="1" Index="12" Track="0" Value="68" />
+        <Parameter Name="          Attack" Group="1" Index="13" Track="0" Value="60" />
+        <Parameter Name="          Release" Group="1" Index="14" Track="0" Value="63" />
+        <Parameter Name="          Output" Group="1" Index="15" Track="0" Value="89" />
+        <Parameter Name="          Beefyness" Group="1" Index="16" Track="0" Value="64" />
+        <Parameter Name="HIGH: Threshold" Group="1" Index="17" Track="0" Value="51" />
+        <Parameter Name="          Attack" Group="1" Index="18" Track="0" Value="33" />
+        <Parameter Name="          Release" Group="1" Index="19" Track="0" Value="37" />
+        <Parameter Name="          Output" Group="1" Index="20" Track="0" Value="89" />
+        <Parameter Name="          Beefyness" Group="1" Index="21" Track="0" Value="64" />
+        <Parameter Name="Limit: Mode" Group="1" Index="22" Track="0" Value="1" />
+        <Parameter Name="Limit: Adjust" Group="1" Index="23" Track="0" Value="71" />
+        <Parameter Name="FFT size" Group="1" Index="24" Track="0" Value="9" />
+      </Parameters>
+      <Attributes>
+        <Attribute Name="Stereo link" Value="0" />
+        <Attribute Name="DC Remover" Value="1" />
+      </Attributes>
+    </Preset>
+  </Item>
+  <Item Key="Acoustic guitar (beefy)">
+    <Preset Machine="Joachims Jupiter 3">
+      <Parameters>
+        <Parameter Name="Input" Group="1" Index="0" Track="0" Value="89" />
+        <Parameter Name="LowSplit" Group="1" Index="1" Track="0" Value="45" />
+        <Parameter Name="HighSplit" Group="1" Index="2" Track="0" Value="75" />
+        <Parameter Name="Steepness" Group="1" Index="3" Track="0" Value="60" />
+        <Parameter Name="Stereo wid.low" Group="1" Index="4" Track="0" Value="64" />
+        <Parameter Name="Listen to" Group="1" Index="5" Track="0" Value="1" />
+        <Parameter Name="Ratio, all bands" Group="1" Index="6" Track="0" Value="128" />
+        <Parameter Name="LOW: Threshold" Group="1" Index="7" Track="0" Value="74" />
+        <Parameter Name="          Attack" Group="1" Index="8" Track="0" Value="70" />
+        <Parameter Name="          Release" Group="1" Index="9" Track="0" Value="74" />
+        <Parameter Name="          Output" Group="1" Index="10" Track="0" Value="89" />
+        <Parameter Name="          Beefyness" Group="1" Index="11" Track="0" Value="77" />
+        <Parameter Name="MID: Threshold" Group="1" Index="12" Track="0" Value="68" />
+        <Parameter Name="          Attack" Group="1" Index="13" Track="0" Value="60" />
+        <Parameter Name="          Release" Group="1" Index="14" Track="0" Value="63" />
+        <Parameter Name="          Output" Group="1" Index="15" Track="0" Value="89" />
+        <Parameter Name="          Beefyness" Group="1" Index="16" Track="0" Value="84" />
+        <Parameter Name="HIGH: Threshold" Group="1" Index="17" Track="0" Value="51" />
+        <Parameter Name="          Attack" Group="1" Index="18" Track="0" Value="33" />
+        <Parameter Name="          Release" Group="1" Index="19" Track="0" Value="37" />
+        <Parameter Name="          Output" Group="1" Index="20" Track="0" Value="89" />
+        <Parameter Name="          Beefyness" Group="1" Index="21" Track="0" Value="84" />
+        <Parameter Name="Limit: Mode" Group="1" Index="22" Track="0" Value="1" />
+        <Parameter Name="Limit: Adjust" Group="1" Index="23" Track="0" Value="71" />
+        <Parameter Name="FFT size" Group="1" Index="24" Track="0" Value="9" />
+      </Parameters>
+      <Attributes>
+        <Attribute Name="Stereo link" Value="0" />
+        <Attribute Name="DC Remover" Value="1" />
+      </Attributes>
+    </Preset>
+  </Item>
+  <Item Key="Congo rescue">
+    <Preset Machine="Joachims Jupiter 3">
+      <Parameters>
+        <Parameter Name="Input" Group="1" Index="0" Track="0" Value="71" />
+        <Parameter Name="LowSplit" Group="1" Index="1" Track="0" Value="40" />
+        <Parameter Name="HighSplit" Group="1" Index="2" Track="0" Value="85" />
+        <Parameter Name="Steepness" Group="1" Index="3" Track="0" Value="60" />
+        <Parameter Name="Stereo wid.low" Group="1" Index="4" Track="0" Value="64" />
+        <Parameter Name="Listen to" Group="1" Index="5" Track="0" Value="1" />
+        <Parameter Name="Ratio, all bands" Group="1" Index="6" Track="0" Value="128" />
+        <Parameter Name="LOW: Threshold" Group="1" Index="7" Track="0" Value="82" />
+        <Parameter Name="          Attack" Group="1" Index="8" Track="0" Value="53" />
+        <Parameter Name="          Release" Group="1" Index="9" Track="0" Value="74" />
+        <Parameter Name="          Output" Group="1" Index="10" Track="0" Value="80" />
+        <Parameter Name="          Beefyness" Group="1" Index="11" Track="0" Value="93" />
+        <Parameter Name="MID: Threshold" Group="1" Index="12" Track="0" Value="74" />
+        <Parameter Name="          Attack" Group="1" Index="13" Track="0" Value="43" />
+        <Parameter Name="          Release" Group="1" Index="14" Track="0" Value="64" />
+        <Parameter Name="          Output" Group="1" Index="15" Track="0" Value="89" />
+        <Parameter Name="          Beefyness" Group="1" Index="16" Track="0" Value="64" />
+        <Parameter Name="HIGH: Threshold" Group="1" Index="17" Track="0" Value="56" />
+        <Parameter Name="          Attack" Group="1" Index="18" Track="0" Value="33" />
+        <Parameter Name="          Release" Group="1" Index="19" Track="0" Value="39" />
+        <Parameter Name="          Output" Group="1" Index="20" Track="0" Value="74" />
+        <Parameter Name="          Beefyness" Group="1" Index="21" Track="0" Value="92" />
+        <Parameter Name="Limit: Mode" Group="1" Index="22" Track="0" Value="1" />
+        <Parameter Name="Limit: Adjust" Group="1" Index="23" Track="0" Value="71" />
+        <Parameter Name="FFT size" Group="1" Index="24" Track="0" Value="9" />
+      </Parameters>
+      <Attributes>
+        <Attribute Name="Stereo link" Value="0" />
+        <Attribute Name="DC Remover" Value="1" />
+      </Attributes>
+    </Preset>
+  </Item>
+  <Item Key="Corridors">
+    <Preset Machine="Joachims Jupiter 3">
+      <Parameters>
+        <Parameter Name="Input" Group="1" Index="0" Track="0" Value="71" />
+        <Parameter Name="LowSplit" Group="1" Index="1" Track="0" Value="37" />
+        <Parameter Name="HighSplit" Group="1" Index="2" Track="0" Value="75" />
+        <Parameter Name="Steepness" Group="1" Index="3" Track="0" Value="60" />
+        <Parameter Name="Stereo wid.low" Group="1" Index="4" Track="0" Value="52" />
+        <Parameter Name="Listen to" Group="1" Index="5" Track="0" Value="1" />
+        <Parameter Name="Ratio, all bands" Group="1" Index="6" Track="0" Value="128" />
+        <Parameter Name="LOW: Threshold" Group="1" Index="7" Track="0" Value="63" />
+        <Parameter Name="          Attack" Group="1" Index="8" Track="0" Value="53" />
+        <Parameter Name="          Release" Group="1" Index="9" Track="0" Value="60" />
+        <Parameter Name="          Output" Group="1" Index="10" Track="0" Value="126" />
+        <Parameter Name="          Beefyness" Group="1" Index="11" Track="0" Value="64" />
+        <Parameter Name="MID: Threshold" Group="1" Index="12" Track="0" Value="128" />
+        <Parameter Name="          Attack" Group="1" Index="13" Track="0" Value="43" />
+        <Parameter Name="          Release" Group="1" Index="14" Track="0" Value="50" />
+        <Parameter Name="          Output" Group="1" Index="15" Track="0" Value="71" />
+        <Parameter Name="          Beefyness" Group="1" Index="16" Track="0" Value="64" />
+        <Parameter Name="HIGH: Threshold" Group="1" Index="17" Track="0" Value="43" />
+        <Parameter Name="          Attack" Group="1" Index="18" Track="0" Value="33" />
+        <Parameter Name="          Release" Group="1" Index="19" Track="0" Value="40" />
+        <Parameter Name="          Output" Group="1" Index="20" Track="0" Value="89" />
+        <Parameter Name="          Beefyness" Group="1" Index="21" Track="0" Value="86" />
+        <Parameter Name="Limit: Mode" Group="1" Index="22" Track="0" Value="1" />
+        <Parameter Name="Limit: Adjust" Group="1" Index="23" Track="0" Value="81" />
+        <Parameter Name="FFT size" Group="1" Index="24" Track="0" Value="9" />
+      </Parameters>
+      <Attributes>
+        <Attribute Name="Stereo link" Value="0" />
+        <Attribute Name="DC Remover" Value="1" />
+      </Attributes>
+    </Preset>
+  </Item>
+  <Item Key="Crunchy african">
+    <Preset Machine="Joachims Jupiter 3">
+      <Parameters>
+        <Parameter Name="Input" Group="1" Index="0" Track="0" Value="71" />
+        <Parameter Name="LowSplit" Group="1" Index="1" Track="0" Value="39" />
+        <Parameter Name="HighSplit" Group="1" Index="2" Track="0" Value="75" />
+        <Parameter Name="Steepness" Group="1" Index="3" Track="0" Value="40" />
+        <Parameter Name="Stereo wid.low" Group="1" Index="4" Track="0" Value="64" />
+        <Parameter Name="Listen to" Group="1" Index="5" Track="0" Value="1" />
+        <Parameter Name="Ratio, all bands" Group="1" Index="6" Track="0" Value="128" />
+        <Parameter Name="LOW: Threshold" Group="1" Index="7" Track="0" Value="80" />
+        <Parameter Name="          Attack" Group="1" Index="8" Track="0" Value="53" />
+        <Parameter Name="          Release" Group="1" Index="9" Track="0" Value="74" />
+        <Parameter Name="          Output" Group="1" Index="10" Track="0" Value="96" />
+        <Parameter Name="          Beefyness" Group="1" Index="11" Track="0" Value="103" />
+        <Parameter Name="MID: Threshold" Group="1" Index="12" Track="0" Value="128" />
+        <Parameter Name="          Attack" Group="1" Index="13" Track="0" Value="43" />
+        <Parameter Name="          Release" Group="1" Index="14" Track="0" Value="64" />
+        <Parameter Name="          Output" Group="1" Index="15" Track="0" Value="68" />
+        <Parameter Name="          Beefyness" Group="1" Index="16" Track="0" Value="80" />
+        <Parameter Name="HIGH: Threshold" Group="1" Index="17" Track="0" Value="63" />
+        <Parameter Name="          Attack" Group="1" Index="18" Track="0" Value="33" />
+        <Parameter Name="          Release" Group="1" Index="19" Track="0" Value="54" />
+        <Parameter Name="          Output" Group="1" Index="20" Track="0" Value="83" />
+        <Parameter Name="          Beefyness" Group="1" Index="21" Track="0" Value="89" />
+        <Parameter Name="Limit: Mode" Group="1" Index="22" Track="0" Value="1" />
+        <Parameter Name="Limit: Adjust" Group="1" Index="23" Track="0" Value="71" />
+        <Parameter Name="FFT size" Group="1" Index="24" Track="0" Value="9" />
+      </Parameters>
+      <Attributes>
+        <Attribute Name="Stereo link" Value="0" />
+      </Attributes>
+    </Preset>
+  </Item>
+  <Item Key="Juicy punch">
+    <Preset Machine="Joachims Jupiter 3">
+      <Parameters>
+        <Parameter Name="Input" Group="1" Index="0" Track="0" Value="71" />
+        <Parameter Name="LowSplit" Group="1" Index="1" Track="0" Value="30" />
+        <Parameter Name="HighSplit" Group="1" Index="2" Track="0" Value="75" />
+        <Parameter Name="Steepness" Group="1" Index="3" Track="0" Value="50" />
+        <Parameter Name="Stereo wid.low" Group="1" Index="4" Track="0" Value="64" />
+        <Parameter Name="Listen to" Group="1" Index="5" Track="0" Value="1" />
+        <Parameter Name="Ratio, all bands" Group="1" Index="6" Track="0" Value="128" />
+        <Parameter Name="LOW: Threshold" Group="1" Index="7" Track="0" Value="68" />
+        <Parameter Name="          Attack" Group="1" Index="8" Track="0" Value="63" />
+        <Parameter Name="          Release" Group="1" Index="9" Track="0" Value="74" />
+        <Parameter Name="          Output" Group="1" Index="10" Track="0" Value="89" />
+        <Parameter Name="          Beefyness" Group="1" Index="11" Track="0" Value="119" />
+        <Parameter Name="MID: Threshold" Group="1" Index="12" Track="0" Value="70" />
+        <Parameter Name="          Attack" Group="1" Index="13" Track="0" Value="43" />
+        <Parameter Name="          Release" Group="1" Index="14" Track="0" Value="64" />
+        <Parameter Name="          Output" Group="1" Index="15" Track="0" Value="93" />
+        <Parameter Name="          Beefyness" Group="1" Index="16" Track="0" Value="77" />
+        <Parameter Name="HIGH: Threshold" Group="1" Index="17" Track="0" Value="48" />
+        <Parameter Name="          Attack" Group="1" Index="18" Track="0" Value="33" />
+        <Parameter Name="          Release" Group="1" Index="19" Track="0" Value="54" />
+        <Parameter Name="          Output" Group="1" Index="20" Track="0" Value="102" />
+        <Parameter Name="          Beefyness" Group="1" Index="21" Track="0" Value="91" />
+        <Parameter Name="Limit: Mode" Group="1" Index="22" Track="0" Value="1" />
+        <Parameter Name="Limit: Adjust" Group="1" Index="23" Track="0" Value="71" />
+        <Parameter Name="FFT size" Group="1" Index="24" Track="0" Value="9" />
+      </Parameters>
+      <Attributes>
+        <Attribute Name="Stereo link" Value="0" />
+        <Attribute Name="DC Remover" Value="1" />
+      </Attributes>
+    </Preset>
+  </Item>
+  <Item Key="Schlaftüte">
+    <Preset Machine="Joachims Jupiter 3">
+      <Parameters>
+        <Parameter Name="Input" Group="1" Index="0" Track="0" Value="71" />
+        <Parameter Name="LowSplit" Group="1" Index="1" Track="0" Value="40" />
+        <Parameter Name="HighSplit" Group="1" Index="2" Track="0" Value="75" />
+        <Parameter Name="Steepness" Group="1" Index="3" Track="0" Value="60" />
+        <Parameter Name="Stereo wid.low" Group="1" Index="4" Track="0" Value="20" />
+        <Parameter Name="Listen to" Group="1" Index="5" Track="0" Value="1" />
+        <Parameter Name="Ratio, all bands" Group="1" Index="6" Track="0" Value="128" />
+        <Parameter Name="LOW: Threshold" Group="1" Index="7" Track="0" Value="68" />
+        <Parameter Name="          Attack" Group="1" Index="8" Track="0" Value="68" />
+        <Parameter Name="          Release" Group="1" Index="9" Track="0" Value="74" />
+        <Parameter Name="          Output" Group="1" Index="10" Track="0" Value="100" />
+        <Parameter Name="          Beefyness" Group="1" Index="11" Track="0" Value="32" />
+        <Parameter Name="MID: Threshold" Group="1" Index="12" Track="0" Value="128" />
+        <Parameter Name="          Attack" Group="1" Index="13" Track="0" Value="43" />
+        <Parameter Name="          Release" Group="1" Index="14" Track="0" Value="64" />
+        <Parameter Name="          Output" Group="1" Index="15" Track="0" Value="71" />
+        <Parameter Name="          Beefyness" Group="1" Index="16" Track="0" Value="64" />
+        <Parameter Name="HIGH: Threshold" Group="1" Index="17" Track="0" Value="57" />
+        <Parameter Name="          Attack" Group="1" Index="18" Track="0" Value="33" />
+        <Parameter Name="          Release" Group="1" Index="19" Track="0" Value="37" />
+        <Parameter Name="          Output" Group="1" Index="20" Track="0" Value="89" />
+        <Parameter Name="          Beefyness" Group="1" Index="21" Track="0" Value="32" />
+        <Parameter Name="Limit: Mode" Group="1" Index="22" Track="0" Value="1" />
+        <Parameter Name="Limit: Adjust" Group="1" Index="23" Track="0" Value="71" />
+        <Parameter Name="FFT size" Group="1" Index="24" Track="0" Value="9" />
+      </Parameters>
+      <Attributes>
+        <Attribute Name="Stereo link" Value="0" />
+        <Attribute Name="DC Remover" Value="1" />
+      </Attributes>
+    </Preset>
+  </Item>
+  <Item Key="Slow beats">
+    <Preset Machine="Joachims Jupiter 3">
+      <Parameters>
+        <Parameter Name="Input" Group="1" Index="0" Track="0" Value="71" />
+        <Parameter Name="LowSplit" Group="1" Index="1" Track="0" Value="35" />
+        <Parameter Name="HighSplit" Group="1" Index="2" Track="0" Value="75" />
+        <Parameter Name="Steepness" Group="1" Index="3" Track="0" Value="60" />
+        <Parameter Name="Stereo wid.low" Group="1" Index="4" Track="0" Value="64" />
+        <Parameter Name="Listen to" Group="1" Index="5" Track="0" Value="1" />
+        <Parameter Name="Ratio, all bands" Group="1" Index="6" Track="0" Value="128" />
+        <Parameter Name="LOW: Threshold" Group="1" Index="7" Track="0" Value="74" />
+        <Parameter Name="          Attack" Group="1" Index="8" Track="0" Value="53" />
+        <Parameter Name="          Release" Group="1" Index="9" Track="0" Value="74" />
+        <Parameter Name="          Output" Group="1" Index="10" Track="0" Value="93" />
+        <Parameter Name="          Beefyness" Group="1" Index="11" Track="0" Value="64" />
+        <Parameter Name="MID: Threshold" Group="1" Index="12" Track="0" Value="55" />
+        <Parameter Name="          Attack" Group="1" Index="13" Track="0" Value="53" />
+        <Parameter Name="          Release" Group="1" Index="14" Track="0" Value="57" />
+        <Parameter Name="          Output" Group="1" Index="15" Track="0" Value="93" />
+        <Parameter Name="          Beefyness" Group="1" Index="16" Track="0" Value="64" />
+        <Parameter Name="HIGH: Threshold" Group="1" Index="17" Track="0" Value="45" />
+        <Parameter Name="          Attack" Group="1" Index="18" Track="0" Value="33" />
+        <Parameter Name="          Release" Group="1" Index="19" Track="0" Value="38" />
+        <Parameter Name="          Output" Group="1" Index="20" Track="0" Value="93" />
+        <Parameter Name="          Beefyness" Group="1" Index="21" Track="0" Value="64" />
+        <Parameter Name="Limit: Mode" Group="1" Index="22" Track="0" Value="1" />
+        <Parameter Name="Limit: Adjust" Group="1" Index="23" Track="0" Value="71" />
+        <Parameter Name="FFT size" Group="1" Index="24" Track="0" Value="9" />
+      </Parameters>
+      <Attributes>
+        <Attribute Name="Stereo link" Value="0" />
+        <Attribute Name="DC Remover" Value="1" />
+      </Attributes>
+    </Preset>
+  </Item>
+  <Item Key="Slow beats (beefy)">
+    <Preset Machine="Joachims Jupiter 3">
+      <Parameters>
+        <Parameter Name="Input" Group="1" Index="0" Track="0" Value="71" />
+        <Parameter Name="LowSplit" Group="1" Index="1" Track="0" Value="35" />
+        <Parameter Name="HighSplit" Group="1" Index="2" Track="0" Value="75" />
+        <Parameter Name="Steepness" Group="1" Index="3" Track="0" Value="60" />
+        <Parameter Name="Stereo wid.low" Group="1" Index="4" Track="0" Value="64" />
+        <Parameter Name="Listen to" Group="1" Index="5" Track="0" Value="1" />
+        <Parameter Name="Ratio, all bands" Group="1" Index="6" Track="0" Value="128" />
+        <Parameter Name="LOW: Threshold" Group="1" Index="7" Track="0" Value="74" />
+        <Parameter Name="          Attack" Group="1" Index="8" Track="0" Value="53" />
+        <Parameter Name="          Release" Group="1" Index="9" Track="0" Value="74" />
+        <Parameter Name="          Output" Group="1" Index="10" Track="0" Value="93" />
+        <Parameter Name="          Beefyness" Group="1" Index="11" Track="0" Value="96" />
+        <Parameter Name="MID: Threshold" Group="1" Index="12" Track="0" Value="55" />
+        <Parameter Name="          Attack" Group="1" Index="13" Track="0" Value="53" />
+        <Parameter Name="          Release" Group="1" Index="14" Track="0" Value="57" />
+        <Parameter Name="          Output" Group="1" Index="15" Track="0" Value="93" />
+        <Parameter Name="          Beefyness" Group="1" Index="16" Track="0" Value="87" />
+        <Parameter Name="HIGH: Threshold" Group="1" Index="17" Track="0" Value="45" />
+        <Parameter Name="          Attack" Group="1" Index="18" Track="0" Value="33" />
+        <Parameter Name="          Release" Group="1" Index="19" Track="0" Value="38" />
+        <Parameter Name="          Output" Group="1" Index="20" Track="0" Value="93" />
+        <Parameter Name="          Beefyness" Group="1" Index="21" Track="0" Value="87" />
+        <Parameter Name="Limit: Mode" Group="1" Index="22" Track="0" Value="1" />
+        <Parameter Name="Limit: Adjust" Group="1" Index="23" Track="0" Value="68" />
+        <Parameter Name="FFT size" Group="1" Index="24" Track="0" Value="9" />
+      </Parameters>
+      <Attributes>
+        <Attribute Name="Stereo link" Value="0" />
+        <Attribute Name="DC Remover" Value="1" />
+      </Attributes>
+    </Preset>
+  </Item>
+</PresetDictionary>

@@ -1,0 +1,54 @@
+# machine skin by iLKke
+# ---------------------
+# you can use it with any color theme ;)
+# Machines
+
+MV Amp BG		222222
+MV Amp Handle		777777
+MV Arrow		afaf9b
+MV Background		242D29
+MV Effect		3E4B3F
+MV Effect LED Off	999999
+MV Effect LED On	00FF00
+MV Effect LED Border	000000
+MV Effect Mute		000000
+MV Effect Pan BG	222222
+MV Generator		484540
+MV Generator LED Off	999999
+MV Generator LED On	00FF00
+MV Generator LED Border	000000
+MV Generator Mute	000000
+MV Generator Pan BG	222222
+MV Machine Text		d6d6bf
+MV Master		3E4B47
+MV Master LED Off	999999
+MV Master LED On	00FF00
+MV Master LED Border	000000
+MV Pan Handle		777777
+MV Line			000000
+MV Machine Border	FDFDFD
+
+IV BG			333333
+IV Text			d6d6bf
+
+# <Original>
+
+PE BG               			333333
+PE BG Dark                      2b2b2b
+PE BG Very Dark                 434343
+PE Sel BG                       375D69
+PE Text                         f0f0f0
+
+SE BG                           b0b0b0
+SE BG Dark                      a1a1a1
+SE BG Very Dark                 cacaca
+SE Sel BG                       ececec
+SE Text                         222222
+SE Pattern Box                  959595
+SE Break Box                    E0B06D
+SE Line                         222222
+SE Mute Box                     DD816C
+SE Song Position                ffffff
+
+
+# <End of File>

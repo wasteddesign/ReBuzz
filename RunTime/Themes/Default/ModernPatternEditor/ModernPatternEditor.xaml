@@ -1,0 +1,86 @@
+﻿<ResourceDictionary
+			xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+			xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"  
+			xmlns:l="clr-namespace:WDE.ModernPatternEditor"
+			xmlns:bgc="clr-namespace:BuzzGUI.Common;assembly=BuzzGUI.Common"
+			xmlns:shell="clr-namespace:Microsoft.Windows.Shell;assembly=BuzzGUI.Common">
+
+<ImageBrush x:Key="PatEdElementBackgroundBrush" ImageSource="./gfx/bg2.png" po:Freeze="True"
+									Viewport="0,0,1440,900" ViewportUnits="Absolute" TileMode="FlipXY" Stretch="None"/>
+  <!-- Remember to use po:Freeze="True" for all brushes -->
+  
+
+	<Style TargetType="{x:Type Label}">
+		<Style.Setters>
+			<Setter Property="Foreground" Value="#F0F0F0"/>
+		</Style.Setters>
+	</Style>
+	
+	<SolidColorBrush x:Key="PatEdBackgroundBrush" Color="#333333" po:Freeze="True"/>
+	<SolidColorBrush x:Key="PatEdBorderBrush" Color="#8000" po:Freeze="True"/>
+	
+	<SolidColorBrush x:Key="PatEdElementBackgroundSolidColorBrush" Color="#444444" po:Freeze="True"/>
+
+	<Style x:Key="PatEdElementBorderStyle" TargetType="{x:Type Border}">
+		<Setter Property="Background" Value="{DynamicResource PatEdElementBackgroundBrush}"/>
+		<Setter Property="BorderBrush" Value="{DynamicResource PatEdBorderBrush}"/>
+		<Setter Property="BorderThickness" Value="1"/>
+		<Style.Triggers>
+			<DataTrigger Binding="{Binding Path=BindableSettings.BackgroundImage}" Value="False">
+				<Setter Property="Background" Value="{DynamicResource PatEdElementBackgroundSolidColorBrush}"/>
+			</DataTrigger>
+		</Style.Triggers>
+	</Style>	
+	
+	<SolidColorBrush x:Key="ThemeColorOverride_PE_BG_Dark" Color="#50000000" po:Freeze="True"/>
+	<SolidColorBrush x:Key="ThemeColorOverride_PE_BG" Color="#30000000" po:Freeze="True"/>
+	
+	<SolidColorBrush x:Key="ThemeColorOverride_PE_Text" Color="#DDD" po:Freeze="True"/>
+
+	<SolidColorBrush x:Key="TextDropShadowBrush" Color="Black" po:Freeze="True"/>
+
+	<SolidColorBrush x:Key="NoValueBrush" Color="#6CCC" po:Freeze="True"/>
+	<SolidColorBrush x:Key="NoValueDropShadowBrush" Color="Transparent" po:Freeze="True"/>
+
+	<SolidColorBrush x:Key="RowNumberBrush" Color="#AAA" po:Freeze="True"/>
+	<SolidColorBrush x:Key="RowNumberDropShadowBrush" Color="Black" po:Freeze="True"/>
+
+	<SolidColorBrush x:Key="CursorBrush" Color="#2FFF" po:Freeze="True"/>
+	<SolidColorBrush x:Key="CursorBorderBrush" Color="#8FFF" po:Freeze="True"/>
+	<SolidColorBrush x:Key="CursorInactiveBrush" Color="#2005" po:Freeze="True"/>
+	<SolidColorBrush x:Key="CursorLineBrush" Color="#20F0" po:Freeze="True"/>
+
+	<SolidColorBrush x:Key="ColumnSetLabelBrush" Color="#CCC" po:Freeze="True"/>
+	<SolidColorBrush x:Key="ColumnLabelBrush" Color="#CCC" po:Freeze="True"/>
+	
+	<SolidColorBrush x:Key="ToolbarBackgroundBrush" Color="#595959"/>
+
+	<ResourceDictionary.MergedDictionaries>
+		<ResourceDictionary Source="pack://application:,,,/BuzzGUI.Common;component/SimpleStyles/ButtonDark.xaml"/>
+		<ResourceDictionary Source="pack://application:,,,/BuzzGUI.Common;component/SimpleStyles/ToggleButtonDark.xaml"/>
+		<ResourceDictionary Source="pack://application:,,,/BuzzGUI.Common;component/SimpleStyles/ScrollBarDark.xaml"/>
+		<ResourceDictionary Source="pack://application:,,,/BuzzGUI.Common;component/SimpleStyles/ScrollViewerDark.xaml"/>
+		<ResourceDictionary Source="pack://application:,,,/BuzzGUI.Common;component/SimpleStyles/ComboBoxDark.xaml"/>
+		<ResourceDictionary Source="pack://application:,,,/BuzzGUI.Common;component/SimpleStyles/NumericUpDownDark.xaml"/>
+		<ResourceDictionary Source="pack://application:,,,/BuzzGUI.Common;component/SimpleStyles/ListBoxDark.xaml"/>
+		<ResourceDictionary Source="pack://application:,,,/BuzzGUI.Common;component/SimpleStyles/TabControlDark.xaml"/>
+		<ResourceDictionary Source="pack://application:,,,/BuzzGUI.Common;component/SimpleStyles/SliderDark.xaml"/>
+		<ResourceDictionary Source="pack://application:,,,/BuzzGUI.Common;component/SimpleStyles/TextBoxDark.xaml"/>
+		<ResourceDictionary Source="pack://application:,,,/BuzzGUI.Common;component/SimpleStyles/RadioButtonDark.xaml"/>
+		<ResourceDictionary Source="pack://application:,,,/BuzzGUI.Common;component/SimpleStyles/CheckBoxDark.xaml"/>
+
+		<ResourceDictionary Source="pack://application:,,,/BuzzGUI.Common;component/SimpleStyles/GroupBoxDark.xaml"/>
+		<ResourceDictionary Source="pack://application:,,,/BuzzGUI.Common;component/SimpleStyles/ProgressBarDark.xaml"/>
+
+				<ResourceDictionary Source="../MachineView/MVResources.xaml"/>
+
+	</ResourceDictionary.MergedDictionaries>
+	
+
+<!--
+<Style x:Key="{x:Type ComboBox}" TargetType="{x:Type ComboBox}" BasedOn="{StaticResource ComboBoxDark}"/>
+-->
+
+
+</ResourceDictionary>

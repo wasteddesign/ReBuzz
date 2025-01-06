@@ -1,0 +1,558 @@
+﻿<UserControl 
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:bgc="clr-namespace:BuzzGUI.Common;assembly=BuzzGUI.Common"
+    UseLayoutRounding="True" TextOptions.TextFormattingMode="{Binding TextFormattingMode}"
+>
+
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+		<ResourceDictionary Source="Controls.xaml"/>
+		<ResourceDictionary Source="Menus/SimpleMenu.xaml"/>
+		<ResourceDictionary Source="pack://application:,,,/BuzzGUI.Common;component/SimpleStyles/ToolBarDark.xaml"/>
+				
+		<!-- Local Resources -->
+        <ResourceDictionary>
+        
+		<Style TargetType="{x:Type Image}" x:Key="ButtonImageStyle">
+            <Style.Triggers>
+              <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type Button}, AncestorLevel=1}, Path=IsEnabled}" Value="False">
+                <Setter Property="Opacity" Value="0.25"></Setter>
+              </DataTrigger>
+
+			  </Style.Triggers>
+			  <Setter Property="Height" Value="18"></Setter>
+			  <Setter Property="Width" Value="18"></Setter>
+		</Style>
+			
+			<Style x:Key="TransparentStyle" TargetType="{x:Type Button}">
+				<Setter Property="Template">
+					<Setter.Value>
+						<ControlTemplate TargetType="Button">
+							<Border>
+								<Border.Style>
+									<Style TargetType="{x:Type Border}">
+										<Style.Triggers>
+											<Trigger Property="IsMouseOver" Value="True">
+												<Setter Property="Background" Value="#4a4a4a"/>
+											</Trigger>
+										</Style.Triggers>
+									</Style>
+								</Border.Style>
+								<Grid Background="Transparent">
+									<ContentPresenter></ContentPresenter>
+								</Grid>
+							</Border>
+						</ControlTemplate>
+					</Setter.Value>
+				</Setter>
+			</Style>
+
+
+			<Style x:Key="StopButtonStyle1" TargetType="{x:Type Button}">
+				<Setter Property="Template">
+					<Setter.Value>
+						<ControlTemplate TargetType="Button">
+							<Image Name="image" Source="gfx/button_stop.png"/>
+							<ControlTemplate.Triggers>
+								<Trigger Property="IsPressed" Value="True">
+								  <Setter TargetName="image" Property="Source" Value="gfx/button_stop_on.png"/>
+								</Trigger>
+							  </ControlTemplate.Triggers>
+						</ControlTemplate>
+					</Setter.Value>
+				</Setter>
+			</Style>
+			
+			<Style x:Key="BpmButton" TargetType="{x:Type Button}">
+				<Setter Property="Template">
+					<Setter.Value>
+						<ControlTemplate TargetType="Button">
+							<Image Name="image" Source="gfx/bpm.png"/>
+							<ControlTemplate.Triggers>
+								<Trigger Property="IsPressed" Value="True">
+								  <Setter TargetName="image" Property="Source" Value="gfx/bpm_pressed.png"/>
+								</Trigger>
+							  </ControlTemplate.Triggers>
+						</ControlTemplate>
+					</Setter.Value>
+				</Setter>
+			</Style>
+
+
+          <SolidColorBrush x:Key="VUMeterBorderBrush" Color="#ffffff"/>
+          <Color x:Key="VUMeterBackgroundColor">#2E2E2E</Color>
+
+          <LinearGradientBrush x:Key="VUMeterBrush" StartPoint="0,0" EndPoint="1,0">
+            <GradientStop Color="#3d6503" Offset="0.0"/>
+            <GradientStop Color="#72a70e" Offset="0.7"/>
+            <GradientStop Color="#dbbe45" Offset="0.8"/>
+            <GradientStop Color="#dbbe45" Offset="0.9"/>
+            <GradientStop Color="#ff6900" Offset="0.91"/>
+            <GradientStop Color="#ff6900" Offset="1.0"/>
+		  </LinearGradientBrush>
+
+          <Style x:Key="LockButtonStyle" TargetType="{x:Type ToggleButton}">
+            <Setter Property="Template">
+              <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ToggleButton}">
+                  <Image Name="image" Source="gfx/button_param_unlocked.png"/>
+                  <ControlTemplate.Triggers>
+                    <Trigger Property="IsChecked" Value="True">
+                      <Setter TargetName="image" Property="Source" Value="gfx/button_param_locked.png"/>
+                    </Trigger>
+                  </ControlTemplate.Triggers>
+                </ControlTemplate>
+              </Setter.Value>
+            </Setter>
+          </Style>
+
+          <Style x:Key="LEDButtonStyle" TargetType="{x:Type ToggleButton}">
+            <Setter Property="Template">
+              <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ToggleButton}">
+                  <Image Name="image" Source="gfx/led_off.png"/>
+                  <ControlTemplate.Triggers>
+                    <Trigger Property="IsChecked" Value="True">
+                      <Setter TargetName="image" Property="Source" Value="gfx/led_active.png"/>
+                    </Trigger>
+                  </ControlTemplate.Triggers>
+                </ControlTemplate>
+              </Setter.Value>
+            </Setter>
+          </Style>
+
+		  <Style x:Key="KeyboardButtonStyle" TargetType="{x:Type ToggleButton}">
+            <Setter Property="Template">
+              <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ToggleButton}">
+				    <Image Name="image" Source="gfx/keyboard_off.png" />
+				   <ControlTemplate.Triggers>
+                    <Trigger Property="IsChecked" Value="True">
+                      <Setter TargetName="image" Property="Source" Value="gfx/keyboard_on.png"/>
+                    </Trigger>
+					
+                  </ControlTemplate.Triggers>
+                </ControlTemplate>
+              </Setter.Value>
+            </Setter>
+          </Style>
+		  
+		  <Style x:Key="FullscrButtonStyle" TargetType="{x:Type ToggleButton}">
+            <Setter Property="Template">
+              <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ToggleButton}">
+				    <Image Name="image" Source="gfx/button_fullscreen.png" />
+				   <ControlTemplate.Triggers>
+                    <Trigger Property="IsChecked" Value="True">
+                      <Setter TargetName="image" Property="Source" Value="gfx/button_fullscreen_on.png"/>
+                    </Trigger>
+                  </ControlTemplate.Triggers>
+                </ControlTemplate>
+              </Setter.Value>
+            </Setter>
+          </Style>		
+
+		  <Style x:Key="PatternButtonStyle" TargetType="{x:Type ToggleButton}">
+            <Setter Property="Template">
+              <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ToggleButton}">
+				    <Image Name="image" Source="gfx/button_pe.png" />
+				   <ControlTemplate.Triggers>
+                    <Trigger Property="IsChecked" Value="True">
+                      <Setter TargetName="image" Property="Source" Value="gfx/button_pe_on.png"/>
+                    </Trigger>
+                  </ControlTemplate.Triggers>
+                </ControlTemplate>
+              </Setter.Value>
+            </Setter>
+          </Style>
+		  
+		  <Style x:Key="MachineButtonStyle" TargetType="{x:Type ToggleButton}">
+            <Setter Property="Template">
+              <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ToggleButton}">
+				    <Image Name="image" Source="gfx/button_mv.png" />
+				   <ControlTemplate.Triggers>
+                    <Trigger Property="IsChecked" Value="True">
+                      <Setter TargetName="image" Property="Source" Value="gfx/button_mv_on.png"/>
+                    </Trigger>
+                  </ControlTemplate.Triggers>
+                </ControlTemplate>
+              </Setter.Value>
+            </Setter>
+          </Style>
+		  
+		  <Style x:Key="SequenceButtonStyle" TargetType="{x:Type ToggleButton}">
+            <Setter Property="Template">
+              <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ToggleButton}">
+				    <Image Name="image" Source="gfx/button_se.png" />
+				   <ControlTemplate.Triggers>
+                    <Trigger Property="IsChecked" Value="True">
+                      <Setter TargetName="image" Property="Source" Value="gfx/button_se_on.png"/>
+                    </Trigger>
+                  </ControlTemplate.Triggers>
+                </ControlTemplate>
+              </Setter.Value>
+            </Setter>
+          </Style>
+		  
+		  <Style x:Key="WaveButtonStyle" TargetType="{x:Type ToggleButton}">
+            <Setter Property="Template">
+              <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ToggleButton}">
+				    <Image Name="image" Source="gfx/button_wt.png" />
+				   <ControlTemplate.Triggers>
+                    <Trigger Property="IsChecked" Value="True">
+                      <Setter TargetName="image" Property="Source" Value="gfx/button_wt_on.png"/>
+                    </Trigger>
+                  </ControlTemplate.Triggers>
+                </ControlTemplate>
+              </Setter.Value>
+            </Setter>
+          </Style>
+		  
+		  <Style x:Key="InfoButtonStyle" TargetType="{x:Type ToggleButton}">
+            <Setter Property="Template">
+              <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ToggleButton}">
+				    <Image Name="image" Source="gfx/button_blah.png" />
+				   <ControlTemplate.Triggers>
+                    <Trigger Property="IsChecked" Value="True">
+                      <Setter TargetName="image" Property="Source" Value="gfx/button_blah_on.png"/>
+                    </Trigger>
+                  </ControlTemplate.Triggers>
+                </ControlTemplate>
+              </Setter.Value>
+            </Setter>
+          </Style>
+		  
+		  <Style x:Key="DisableButtonStyle" TargetType="{x:Type ToggleButton}">
+            <Setter Property="Template">
+              <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ToggleButton}">
+				    <Image Name="image" Source="gfx/button_mute.png" />
+				   <ControlTemplate.Triggers>
+                    <Trigger Property="IsChecked" Value="True">
+                      <Setter TargetName="image" Property="Source" Value="gfx/button_mute_on.png"/>
+                    </Trigger>
+                  </ControlTemplate.Triggers>
+                </ControlTemplate>
+              </Setter.Value>
+            </Setter>
+          </Style>
+		  
+		  <Style x:Key="PlayButtonStyle" TargetType="{x:Type ToggleButton}">
+            <Setter Property="Template">
+              <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ToggleButton}">
+				    <Image Name="image" Source="gfx/button_play.png" />
+				   <ControlTemplate.Triggers>
+                    <Trigger Property="IsChecked" Value="True">
+                      <Setter TargetName="image" Property="Source" Value="gfx/button_play_on.png"/>
+                    </Trigger>
+                  </ControlTemplate.Triggers>
+                </ControlTemplate>
+              </Setter.Value>
+            </Setter>
+          </Style>
+		  
+		  <Style x:Key="RecordButtonStyle" TargetType="{x:Type ToggleButton}">
+            <Setter Property="Template">
+              <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ToggleButton}">
+				    <Image Name="image" Source="gfx/button_rec.png" />
+				   <ControlTemplate.Triggers>
+                    <Trigger Property="IsChecked" Value="True">
+                      <Setter TargetName="image" Property="Source" Value="gfx/button_rec_on.png"/>
+                    </Trigger>
+                  </ControlTemplate.Triggers>
+                </ControlTemplate>
+              </Setter.Value>
+            </Setter>
+          </Style>		  
+		  
+		  <Style x:Key="StopButtonStyle" TargetType="{x:Type ToggleButton}">
+            <Setter Property="Template">
+              <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ToggleButton}">
+				    <Image Name="image" Source="gfx/button_stop.png" />
+				   <ControlTemplate.Triggers>
+                    <Trigger Property="IsChecked" Value="True">
+                      <Setter TargetName="image" Property="Source" Value="gfx/button_stop_on.png"/>
+                    </Trigger>
+                  </ControlTemplate.Triggers>
+                </ControlTemplate>
+              </Setter.Value>
+            </Setter>
+          </Style>		  
+		  
+		  <Style x:Key="LoopButtonStyle" TargetType="{x:Type ToggleButton}">
+            <Setter Property="Template">
+              <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ToggleButton}">
+				    <Image Name="image" Source="gfx/button_loop.png" />
+				   <ControlTemplate.Triggers>
+                    <Trigger Property="IsChecked" Value="True">
+                      <Setter TargetName="image" Property="Source" Value="gfx/button_loop_on.png"/>
+                    </Trigger>
+                  </ControlTemplate.Triggers>
+                </ControlTemplate>
+              </Setter.Value>
+            </Setter>
+          </Style>
+		  
+		  <Style x:Key="ConfigButtonStyle" TargetType="{x:Type Button}">
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="{x:Type Button}">
+						<Image Name="image" Source="gfx/button_config.png" Width="16" Height="16"/>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		  </Style>
+		  
+	  
+
+
+		</ResourceDictionary>
+        
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </UserControl.Resources>
+
+  <Grid>
+    <Grid.RowDefinitions>
+		<RowDefinition Height="Auto" />
+		<RowDefinition Height="Auto" />
+		<RowDefinition Height="5"/>
+	</Grid.RowDefinitions>
+
+	<WrapPanel Grid.Row="0" Height="20" Background="#3a3a3a"  Margin="0,0,0,0" >
+			<WrapPanel.Resources>
+				<Style TargetType="{x:Type Button}" BasedOn="{StaticResource ToolBarButtonBaseStyle}"/>
+				<Style TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource ToolBarButtonBaseStyle}"/>
+				<Style TargetType="{x:Type bgc:RadioButtonEx}" BasedOn="{StaticResource ToolBarButtonBaseStyle}"/>
+		    </WrapPanel.Resources>
+		<Image Source="gfx/header_background.png"/>	
+		
+	</WrapPanel>
+			
+	<WrapPanel Grid.Row="1" Background="#595959"  >
+			<WrapPanel.Resources>
+				<Style TargetType="{x:Type Button}" BasedOn="{StaticResource ToolBarButtonBaseStyle}"/>
+				<Style TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource ToolBarButtonBaseStyle}"/>
+				<Style TargetType="{x:Type bgc:RadioButtonEx}" BasedOn="{StaticResource ToolBarButtonBaseStyle}"/>
+		    </WrapPanel.Resources>
+
+			<WrapPanel Margin="10,10,10,0" Width="193">
+				
+				<ToggleButton  Width="40" Height="40" Margin="0" ClickMode="Press" IsChecked="{Binding Path=ShowPatternView, Mode=TwoWay}" Style="{StaticResource PatternButtonStyle}" ToolTip="Pattern View - F2"/>
+				<ToggleButton  Width="38" Height="40" Margin="0" ClickMode="Press" IsChecked="{Binding Path=ShowMachineView, Mode=TwoWay}" Style="{StaticResource MachineButtonStyle}" ToolTip="Machine View - F3"/>
+				<ToggleButton  Width="38" Height="40" Margin="0" ClickMode="Press" IsChecked="{Binding Path=ShowSequenceView, Mode=TwoWay}" Style="{StaticResource SequenceButtonStyle}" ToolTip="Sequence View - F4"/>
+				<ToggleButton  Width="38" Height="40" Margin="0" ClickMode="Press" IsChecked="{Binding Path=ShowWaveTableView, Mode=TwoWay}" Style="{StaticResource WaveButtonStyle}" ToolTip="Wavetable View - F9"/>
+				<ToggleButton  Width="39" Height="40" Margin="0" ClickMode="Press" IsChecked="{Binding Path=ShowSongInfoView, Mode=TwoWay}" Style="{StaticResource InfoButtonStyle}" ToolTip="Info View - F10"/>
+
+			</WrapPanel>
+
+			
+		<WrapPanel Margin="10,10,5,0" Width="179" >
+			<Menu FontSize="11" Height="20" ItemsSource="{Binding MainMenu}" ItemContainerStyle="{StaticResource ContextMenuItemStyle}" Margin="0,0,0,2" />
+			
+				<Button Style="{StaticResource TransparentStyle}" Margin="0,0,2,0" VerticalAlignment="Top" HorizontalAlignment="Right"  Width="20" Height="20" Command="{Binding NewFileCommand}">
+					<Button.Content >
+						<Image Source="gfx/button_new.png" Style="{StaticResource ButtonImageStyle}"/>
+					</Button.Content>
+					<Button.ToolTip>New</Button.ToolTip>
+				</Button>
+
+				<Button Style="{StaticResource TransparentStyle}" Margin="0,0,2,0" VerticalAlignment="Top" HorizontalAlignment="Right"  Width="20" Height="20" Command="{Binding OpenFileCommand}">
+					<Button.Content >
+						<Image Source="gfx/button_open.png" Style="{StaticResource ButtonImageStyle}"/>
+					</Button.Content>
+					<Button.ToolTip>Open</Button.ToolTip>
+				</Button>
+
+				<Button Style="{StaticResource TransparentStyle}" Margin="0,0,2,0" VerticalAlignment="Top" HorizontalAlignment="Right"  Width="20" Height="20" Command="{Binding SaveFileCommand}">
+					<Button.Content >
+						<Image Source="gfx/button_save.png" Style="{StaticResource ButtonImageStyle}"/>
+					</Button.Content>
+					<Button.ToolTip>Save</Button.ToolTip>
+				</Button>
+
+				<Button Style="{StaticResource TransparentStyle}" Margin="0,0,2,0" VerticalAlignment="Top" HorizontalAlignment="Right"  Width="20" Height="20" Command="{Binding CutCommand}">
+					<Button.Content >
+						<Image Source="gfx/button_cut.png" Style="{StaticResource ButtonImageStyle}"/>
+					</Button.Content>
+					<Button.ToolTip>Cut</Button.ToolTip>
+				</Button>
+
+				<Button Style="{StaticResource TransparentStyle}" Margin="0,0,2,0" VerticalAlignment="Top" HorizontalAlignment="Right"  Width="20" Height="20" Command="{Binding CopyCommand}">
+					<Button.Content >
+						<Image Source="gfx/button_copy.png" Style="{StaticResource ButtonImageStyle}"/>
+					</Button.Content>
+					<Button.ToolTip>Copy</Button.ToolTip>
+				</Button>
+
+				<Button Style="{StaticResource TransparentStyle}" Margin="0,0,2,0" VerticalAlignment="Top" HorizontalAlignment="Right"  Width="20" Height="20" Command="{Binding PasteCommand}">
+					<Button.Content >
+						<Image Source="gfx/button_paste.png" Style="{StaticResource ButtonImageStyle}"/>
+					</Button.Content>
+					<Button.ToolTip>Paste</Button.ToolTip>
+				</Button>
+
+				<Button Style="{StaticResource TransparentStyle}" Margin="0,0,2,0" VerticalAlignment="Top" HorizontalAlignment="Right"  Width="20" Height="20" Command="{Binding UndoCommand}">
+					<Button.Content >
+						<Image Source="gfx/button_undo.png" Style="{StaticResource ButtonImageStyle}"/>
+					</Button.Content>
+					<Button.ToolTip>Undo</Button.ToolTip>
+				</Button>
+
+				<Button Style="{StaticResource TransparentStyle}" Margin="0,0,2,0" VerticalAlignment="Top" HorizontalAlignment="Right"  Width="20" Height="20" Command="{Binding RedoCommand}">
+					<Button.Content >
+						<Image Source="gfx/button_redo.png" Style="{StaticResource ButtonImageStyle}"/>
+					</Button.Content>
+					<Button.ToolTip>Redo</Button.ToolTip>
+				</Button>
+		
+		</WrapPanel>
+			
+			
+
+			
+			
+			
+			<StackPanel Margin="8,4,10,0" Height="40"  Style="{StaticResource DarkToolBarStyle}" >
+			
+			<ToggleButton  Width="40" Height="40" Margin="0" ClickMode="Press" IsChecked="{Binding Path=AudioDeviceDisabled, Mode=TwoWay}" Style="{StaticResource DisableButtonStyle}" ToolTip="Disable Audio Device - F12"/>
+				<Grid Background="#282828" Margin="0,0,0,0" Width="160" Height="40" >
+					<Border Height="4" BorderBrush="{StaticResource VUMeterBorderBrush}" BorderThickness="0" VerticalAlignment="Top" CornerRadius="0" Margin="10,7,10,0">
+						<Grid Name="grid">
+							<Rectangle Fill="{StaticResource VUMeterBrush}"/>
+							<Rectangle>
+								<Rectangle.Fill>
+									<LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+										<GradientStop Color="Transparent" Offset="0"/>
+										<GradientStop Color="Transparent" Offset="{Binding Path=VUMeterLevel.Item1}"/>
+										<GradientStop Color="{StaticResource VUMeterBackgroundColor}" Offset="{Binding Path=VUMeterLevel.Item1}"/>
+									</LinearGradientBrush>
+								</Rectangle.Fill>
+							</Rectangle>
+						</Grid>
+					</Border>
+					<Border Height="4" BorderBrush="{StaticResource VUMeterBorderBrush}" BorderThickness="0" VerticalAlignment="top" CornerRadius="0" Margin="10,15,10,0">
+						<Grid>
+							<Rectangle Fill="{StaticResource VUMeterBrush}"/>
+							<Rectangle>
+								<Rectangle.Fill>
+									<LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+										<GradientStop Color="Transparent" Offset="0"/>
+										<GradientStop Color="Transparent" Offset="{Binding Path=VUMeterLevel.Item2}"/>
+										<GradientStop Color="{StaticResource VUMeterBackgroundColor}" Offset="{Binding Path=VUMeterLevel.Item2}"/>
+									</LinearGradientBrush>
+								</Rectangle.Fill>
+							</Rectangle>
+						</Grid>
+					</Border>
+
+					<Viewbox Height="25" Width="140" Margin="10,18,10,0">
+						<Slider Value="{Binding Path=MasterVolume, Mode=TwoWay}" Minimum="0" Maximum="1" Margin="0,5,0,0" SmallChange="0.025" LargeChange="0.1" Width="260" FocusVisualStyle="{x:Null}"/>
+					</Viewbox>
+					
+				</Grid>
+				
+				
+					<ToggleButton  Width="40" Height="40" Margin="0" ClickMode="Press" IsChecked="{Binding Path=Playing, Mode=TwoWay}" Style="{StaticResource PlayButtonStyle}" ToolTip="Play - F5"/>
+					<ToggleButton  Width="38" Height="40" Margin="0" ClickMode="Press" IsChecked="{Binding Path=Recording, Mode=TwoWay}" Style="{StaticResource RecordButtonStyle}" ToolTip="Record - F7"/>
+					<Button Style="{StaticResource StopButtonStyle1}" Margin="0" Width="38" Height="40" Command="{Binding StopCommand}">
+						<Button.ToolTip>Stop (F8)</Button.ToolTip>
+					</Button>
+				
+				<ToggleButton  Width="39" Height="40" Margin="0" ClickMode="Press" IsChecked="{Binding Path=Looping, Mode=TwoWay}" Style="{StaticResource LoopButtonStyle}" ToolTip="Loop"/>
+			</StackPanel>
+
+
+			<StackPanel Margin="10,0,14,0" Height="40"  Style="{StaticResource DarkToolBarStyle}" >
+				<TextBlock FontSize="18"  VerticalAlignment="Center" Margin="0,5,0,0" Text="{Binding Path=ElapsedTime}" Foreground="#f0f0f0" />
+				
+				<TextBlock HorizontalAlignment="Left" Margin="20,6,0,0" FontSize="11" >
+					Current: <TextBlock VerticalAlignment="Center" Margin="0,0,0,0" Foreground="#f0f0f0" Text="{Binding Path=CurrentTime}"/><LineBreak/>
+					Loop: <TextBlock VerticalAlignment="Center" Margin="0,0,0,0" Foreground="#72d2ff" Text="{Binding Path=LoopTime}"/>
+					
+				</TextBlock>
+
+			</StackPanel>
+			
+			
+			<WrapPanel Width="165" Margin="0,0,10,0">
+			<WrapPanel Margin="10,10,0,0" Width="50">
+				<Button Style="{StaticResource BpmButton}" Width="50" Height="22" Cursor="Hand" Command="{Binding TapTempoCommand}" Margin="0" ToolTip="Tap me!" />
+				<bgc:NumericUpDown Value="{Binding Path=BPM, Mode=TwoWay}"  Minimum="16" Maximum="500" Width="50" Height="18" Margin="0" BorderThickness="1" BorderBrush="#333333" Background="#333333" FontSize="11" Foreground="#f0f0f0" />
+			</WrapPanel>	
+			
+			<WrapPanel Margin="0,10,0,0" Width="50">
+				<Image Source="gfx/tpb.png" Margin="0"/>
+				<bgc:NumericUpDown Value="{Binding Path=TPB, Mode=TwoWay}"  Minimum="1" Maximum="32" Width="50" Height="18" Margin="0" BorderThickness="1" BorderBrush="#333333" Background="#333333" FontSize="11" Foreground="#f0f0f0" />
+			</WrapPanel>
+			
+			<WrapPanel Margin="0,10,0,0" Width="50">
+				<Image Source="gfx/speed.png" Margin="0,0,0,0"/>
+				<ComboBox Text="{Binding Path=Speed, Mode=TwoWay}" IsEditable="False" IsReadOnly="True" Width="50" Height="18" Style="{StaticResource {x:Type ComboBox}}" >
+
+						<ComboBoxItem>0</ComboBoxItem>
+						<ComboBoxItem>-1</ComboBoxItem>
+						<ComboBoxItem>-2</ComboBoxItem>
+						<ComboBoxItem>-3</ComboBoxItem>
+						<ComboBoxItem>-4</ComboBoxItem>
+						<ComboBoxItem>-5</ComboBoxItem>
+						<ComboBoxItem>-6</ComboBoxItem>
+						<ComboBoxItem>-7</ComboBoxItem>
+						<ComboBoxItem>-8</ComboBoxItem>
+						<ComboBoxItem>-9</ComboBoxItem>
+						<ComboBoxItem>-10</ComboBoxItem>
+						<ComboBoxItem>-11</ComboBoxItem>
+						<ComboBoxItem>-12</ComboBoxItem>
+					</ComboBox>
+					
+
+  
+ 
+
+			</WrapPanel>
+			</WrapPanel>
+
+
+
+			<StackPanel Style="{StaticResource DarkToolBarStyle}" Margin="10,10,10,5" Height="40">
+				<TextBlock LineHeight="20" FontSize="11" Margin="0,2,0,0" ToolTip="MIDI Focus Machine (Master Keyboard Mode)">
+					Midi
+					<ToggleButton Margin="1,0,0,0" IsEnabled="False" IsChecked="{Binding MIDIActivity, Mode=OneWay}" Width="7" Height="7" Style="{StaticResource LEDButtonStyle}"/>
+					
+					<LineBreak/>Audio
+				</TextBlock>
+				
+				<StackPanel Margin="10,0,0,0">
+					<ComboBox IsEditable="False" IsReadOnly="True" Width="170" ItemsSource="{Binding Path=MachineList}" SelectedItem="{Binding Path=MIDIFocusMachine}" DisplayMemberPath="Name" />
+				    <ComboBox Margin="0,2,0,0" IsEditable="False" IsReadOnly="True" Width="170" ItemsSource="{Binding Path=AudioDrivers}" SelectedItem="{Binding Path=SelectedAudioDriver}" ToolTip="Audio Driver" />
+				</StackPanel>
+				
+				<StackPanel Orientation="Vertical" Margin="5,2,0,0">
+					<ToggleButton Cursor="Hand" ClickMode="Press" IsChecked="{Binding MIDIFocusLocked}" Style="{StaticResource LockButtonStyle}" ToolTip="Lock MIDI Focus"/>				
+					<Button Cursor="Hand" Margin="0,5,0,0" Style="{StaticResource ConfigButtonStyle}" ToolTip="Configure" Command="{Binding ConfigureAudioDriverCommand}"/>
+				</StackPanel>			
+				
+			</StackPanel>
+			
+			<WrapPanel Margin="10,10,0,5" Width="65">
+				<ToggleButton Cursor="Hand" Width="63" Height="19" Margin="0,0,0,2" ClickMode="Press" IsChecked="{Binding IsPianoKeyboardVisible}" Style="{StaticResource KeyboardButtonStyle}" ToolTip="Show Keyboard"/>
+				<ToggleButton Cursor="Hand" Width="63" Height="19" ClickMode="Press" IsChecked="{Binding Path=IsFullScreen, Mode=TwoWay}" Style="{StaticResource FullscrButtonStyle}" ToolTip="Full Screen Shift+Alt+Enter"/>
+			
+			</WrapPanel>
+	</WrapPanel>
+	
+	<WrapPanel Grid.Row="2" Background="#595959" />
+	
+  </Grid>
+</UserControl>

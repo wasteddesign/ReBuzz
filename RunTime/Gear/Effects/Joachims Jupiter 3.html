@@ -1,0 +1,244 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+ <title>Jupiter 3.1</title>
+ <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+ <meta name="description" content="Joachim's Jupiter-3, three-band compressor">
+ <style type="text/css">
+body			{ max-width: 768px; color: #00B0FF; font-family: verdana; font-size: 13px; line-height: 16px; background: #000000; margin: 65px 57px 20px 57px; background-repeat: repeat-x; }
+h1				{ font-family: impact, verdana; color: #B0FF00; font-size: 45px; line-height: 38px; padding: 8px 2px 9px 120px; text-indent: -118px; margin: 17px 0px 9px 0px; text-shadow: 0px 0px 8px #B0FF00; border: #58C890 dashed; border-width: 0px 0px 1px 0px; }
+h2				{ font-family: verdana; font-size: 26px; line-height: 16px; margin: 20px 0px 16px 0px; font-style: italic; text-shadow: 0px 0px 6px #000080; padding: 0px; }
+h3				{ font-family: verdana; font-size: 13px; line-height: 16px; margin: 0px 0px 0px 0px; column-span: none; color: #A0E030; padding: 0px; }
+table			{ padding: 0px; padding: 0px; border-spacing: 0px; }
+th				{ vertical-align: top; padding: 0px; padding: 0px; text-align: left; white-space: nowrap; }
+td				{ vertical-align: top; padding: 0px; padding: 0px; text-align: left; }
+.info			{ border-spacing: 1px; border: 0px; margin: 0px; width: 100%; }
+.info th		{ background: #182338; padding: 8px 20px 8px 20px; font-weight: normal; vertical-align: middle; }
+.info td		{ padding: 8px 20px 8px 20px; font-size: 11px; border-style: solid; border-width: 0px 0px 1px 0px; border-color: #182338; }
+a:link			{ color: #58C890; }
+a:visited		{ color: #58C890; }
+a:hover			{ color: #B0FF00; }
+img				{ border-width: 0px; max-width: 764px; overflow: auto; }
+hr				{ color: #80A0A6; background: #80A0A6; }
+a.menu			{ font-family: verdana; font-size: 12px; font-weight: bold; text-decoration: none; margin-right: 5px; padding: 5px 15px 5px 15px; background: #202020; border: 1px solid #000000; }
+a.mens			{ font-family: verdana; font-size: 12px; font-weight: bold; text-decoration: none; margin-right: 5px; padding: 5px 15px 5px 15px; background: #202020; border: 1px solid #000000; }
+a.menu:link		{  }
+a.menu:visited	{  }
+a.menu:active	{  }
+a.menu:hover	{ background: #303030; }
+a.mens:link		{  }
+a.mens:visited	{  }
+a.mens:active	{  }
+a.mens:hover	{ background: #D0DADC;  }
+.error			{ border: 1px solid #B0FF00; background: #103000; color: #B0FF00; font-weight: bold; padding: 20px; }
+.Xcontent { text-align: justify; column-width: 290px; column-gap: 25px; column-fill: balance; padding: 0px; margin: 0px; -moz-column-width: 290px; -Webkit-column-width: 290px; -moz-column-gap: 25px; -Webkit-column-gap: 25px; }
+ </style>
+</head>
+<body>
+<h1>Joachim's Jupiter 3-band Compressor</h1>
+<div class="content">
+
+<h2>Introduction:</h2>
+
+The Jupiter Filter is a 3-band compressor and a maximizer (limiter) that uses the same algorithms as the BattleComp Vintage VST plug-in.
+<br><br>
+Multiband compression is a technique mostly used in professional mastering studios, and most
+software available today, that claims to do proper multiband compression, doesn't a very
+good job. Even some of the hardware units available are far from flawless, so I feel it's worth having a shot at this.
+<br><br>
+Multiband compression usually consists of a band separation filter, several compressors,
+and finally a limiter in the end. Adjusting three or four compressors at once is a rather
+complex task, especially considering how difficult it can be, adjusting just a normal old-fashioned
+compressor. So watch out. While fixing one problem, you may end up introducing another less audible one if you're not careful.
+<br><br>
+These are the main reasons why I wrote the "Jupiter" filter. It combines high quality filters
+and compressors with a fairly simple user interface, and there are even some presets for those
+not interested in too much knob-twitching.
+<br><br>
+<b>The major advantages</b> of the Jupiter filter, compared to todays multi band compressors are:<br>
+<ul>
+ <li> Phase-correct band separation (no flaging or phasing artifacts)
+ <li> Better compressor-algorithm (it's based on the BattleComp Vintage VST plug-in, which is again replaces the well-known "Joachim's Compressor")
+ <li> Simple userinterface (ratio, attack & release controls all 3 compressors at once.)
+ <li> It's absolutely free.
+ <li> It's a native Buzz plugin.
+</ul>
+But there are also some <b>disadvantages</b>, though:<br>
+<ul>
+ <li> The signal is being delayed 32768 samples (because of the band-separation method), but new Buzz versions can counter this.
+ <li> Not ASIO compatible! This kind of quality requires almost 1 Mb memory, and a lot of <a href="#cpu">CPU power</a> in short spikes, making it useless in low-latency situations.
+</ul>
+Because of the delay and the nature of this plugin in general, I recommend using this
+effect as the last master effect before the Buzz master output. <b>A little tip:</b>
+If you set the "solo mode" on "bypass", the entire Jupiter filter is bypassed. This makes it easier to use Buzz (editing patters etc.)
+<br><br>
+I hope you'll enjoy this plug-in - it sure was a bitch writing it! &nbsp; &nbsp; ;-)
+<br><br>
+
+<h2>So how does it work?</h2>
+<br><img src="Joachims%20Jupiter%203.png" alt="diagram"><br><br>
+
+The input signal is divided into bas, middle and treble. Then the three signals are
+fed into three separate compressors. The output of the lowest band can optionally be made less stereo, as this is often desirable.
+Each band can then optionally be modulated using the "Beefyness" - an asymmetric transfer function that'll somewhat emulate the soft distortion known from
+tube valve amps. Settings this to 0% completely bypasses it.
+The signal is then mixed together (you can
+control how much of the three signals you want, by using the "out lo", mid hi sliders.)
+Finally the signal is sent through a limiter, to avoid unwanted transients, that may
+occur because of the compressors attack time settings.
+<br><br>
+I recommend using the <a href="http://www.robotplanet.dk/knef/vumeter/">VUmeter.exe</a>
+for monitoring what you do with the Jupiter filter. Especially whatch page 4 (press 4 in the VUmeter).&nbsp;
+<i>Note: This tool requires that you can somehow route the signal back to the input of your soundcard,
+without causing feedback.</i>
+<br><a name="cpu"></a><br>
+
+<h2>The parameters</h2>
+<table class="info">
+ <tr>
+  <th>Low Split</th>
+  <td>Here you adjust the split frequency between the low and mid bands. Apologies for not writing Hz on this one, but currently changing both steepness and FFT size will affect this, so you need to use your ears for this.</td>
+ </tr>
+ <tr>
+  <th>High Split</th>
+  <td>Here you adjust the split frequency between the mid and high bands. Again, apologies for not writing Hz on this one.</td>
+ </tr>
+ <tr>
+  <th>Steepness</th>
+  <td>This adjusts how steep the frequency separation between each band is. Too steep will sound unnatural. Not steep enough will make bands bleed into each other and make you loose control over what is happening. If you adjust the FFT size, this will have to be adjusted again.</td>
+ </tr>
+ <tr>
+  <th>Stereo width low</th>
+  <td>In many cases it is not desirable to have too much stereo in the bass. For your convenience I have placed a stereo width control on the lowest band, so that you can easily collapse the bass to mono if needed.</td>
+ </tr>
+ <tr>
+  <th>Listen to</th>
+  <td>It is important to be able to compare what you have done with the original. While multi-band compression may seems like the solution to many problems, it makes it easy to introduce new problems. This parameter also makes it possible to listen solo to low / mid / high, which is a good idea when adjusting the compressors one by one. When bypassed, the signal is delayed the same amount as when enabled (for reasons of both convenience and easy comparison), but processing is disabled in order to save CPU. Because of this, the FFT buffers are not immediately up-to-date when you switch back to "Enabled".</td>
+ </tr>
+ <tr>
+  <th>Ratio, all bands</th>
+  <td>This adjusts the compression ratio of all three bands at once. I kept this as one button based on the experience that you rarely need different very different ratios on the three bands in real life situations, and keeping the number of parameters at a reasonable level is also a goal in itself.</td>
+ </tr>
+ <tr>
+  <th>Low threshold</th>
+  <td>This is the threshold of the compressor on the lowest frequency band. Refer to general instructions on how to use a compressor in order to understand how threshold, ratio, attack and release work.</td>
+ </tr>
+ <tr>
+  <th>Low attack</th>
+  <td>If this becomes too short (fast), it will kill the dynamics in the bass. You will loose the "wump" that hits your chest when listening at a high volume.</td>
+ </tr>
+ <tr>
+  <th>Low release</th>
+  <td>If this becomes too short (fast), you will get a constant rumbling in the bass area. Too long (slow) and you will not experience the extra "wump" that the attack time should have given you.</td>
+ </tr>
+ <tr>
+  <th>Low output</th>
+  <td>Once you've compressed the low band, volume will be lost. This can make up for that. This output stage is placed before the "beefyness" setting, so you may have to readjust the amount of beefyness of the level changes.</td>
+ </tr>
+ <tr>
+  <th>Low beefyness</th>
+  <td>This slider introduces some extra harmonics in the bass in a way that resembles tube valve equipment. You can use this to add more texture to the sound if the mix feels too "clean".</td>
+ </tr>
+ <tr>
+  <th>Mid threshold</th>
+  <td>This is the threshold of the compressor on the middle frequency band. Because the mid area often contains less energy than the low band, you'll typically have to set the threshold slightly lower.</td>
+ </tr>
+ <tr>
+  <th>Mid attack</th>
+  <td>If this becomes too short (fast), it will kill the dynamics in the mid area. You will loose the "click" that defines the onset of many percussive instruments.</td>
+ </tr>
+ <tr>
+  <th>Mid release</th>
+  <td>If this becomes too short (fast), you will get a relentless tiring mid area that never pauses. Too long (slow) and you will not experience the extra "click" that the attack time should have given you.</td>
+ </tr>
+ <tr>
+  <th>Mid output</th>
+  <td>Once you've compressed the middle band, volume will be lost. This can make up for that. This output stage is placed before the "beefyness" setting, so you may have to readjust the amount of beefyness of the level changes.</td>
+ </tr>
+ <tr>
+  <th>Mid beefyness</th>
+  <td>This slider introduces some extra harmonics in the mid area in a way that resembles tube valve equipment. You can use this to add more texture to the sound if the mix feels too "clean".</td>
+ </tr>
+ <tr>
+  <th>High threshold</th>
+  <td>This is the threshold of the compressor on the treble frequency band. Because the high area often contains less energy than the low and mid bands, you'll typically have to set the threshold even lower.</td>
+ </tr>
+ <tr>
+  <th>High attack</th>
+  <td>If this becomes too short (fast), it will kill the dynamics in the treble. You will loose the edge, crispness and attack that defines the onset of many percussive instruments, hihats and such.</td>
+ </tr>
+ <tr>
+  <th>High release</th>
+  <td>If this becomes too short (fast), you will get a fuzzy, noisy messy treble.</td>
+ </tr>
+ <tr>
+  <th>High output</th>
+  <td>Once you've compressed the high band, treble will be lost. This can make up for that. This output stage is placed before the "beefyness" setting, so you may have to readjust the amount of beefyness of the level changes.</td>
+ </tr>
+ <tr>
+  <th>High beefyness</th>
+  <td>This slider introduces some extra harmonics in the treble area in a way that resembles tube valve equipment. You can use this to add more texture to the treble if it feels too "clean".</td>
+ </tr>
+ <tr>
+  <th>Limiter mode</th>
+  <td>The Jupiter-3 offers different kinds of output limiters that, if enabled, prevents any sound above 98% amplitude (-0.18 dB). Here you can also bypass the limiter. The "Old limiter" is a simple peak limiter without look-ahead.</td>
+ </tr>
+ <tr>
+  <th>Limiter adjust</th>
+  <td>This works as a limiter pre-gain for all modes except for the "Old limiter" in which case it adjusts the release time.</td>
+ </tr>
+ <tr>
+  <th>FFT size</th>
+  <td>
+   Larger sizes gives you better precision in the bass but more latency, which Buzz version 1094 and later will compensate for. Once you've adjusted the the FFT size, the "Steepness" parameter must be re-adjusted. Recommended setting depends on the samplerate:
+   <table>
+    <tr><td>44100 Hz</td><td>FFT size 16384</td></tr>
+    <tr><td>48000 Hz</td><td>FFT size 16384</td></tr>
+    <tr><td>96000 Hz</td><td>FFT size 32768</td></tr>
+   </table>
+  </td>
+ </tr>
+</table><br>
+
+<h2>How beefyness works</h2>
+Here's a simple image that describes what the "Beefyness" stage does to a sime sine wave fading out.<br><br>
+<img src="Joachims%20Beefyness.png" alt="beefyness"><br><br>
+
+<h2>A note on CPU usage:</h2>
+As explained above, this effect uses a lot of CPU power, because of the complex computations it performs.
+The code <i>is well optimized</i>, and it probably can't be done any faster. This poses a lot of
+problems. Using the WaveOut driver you need appx. a 4-500 MHz computer, but 1 GHz or higher is recommended.
+You can forget about using ASIO with the current CPUs (as of the year 2011) because of the CPU usage.
+</font>
+</ul>
+<br><br>
+
+<table border=0 cellpadding=15 cellspacing=0 width="100%">
+ <tr>
+  <td nowrap valign="middle" bgcolor="#000000">
+   <font size=2 face="verdana, helvetica">
+   <b>Plug-in written by Joachim Michaelis</b> &nbsp; <font size=1>(09-oct-2011)</font><br></font>
+   <font size=1 face="verdana, helvetica">
+   <a href="http://www.robotplanet.dk/">Homepage</a> |
+   <a href="http://www.robotplanet.dk/knef/vumeter/">VUmeter.exe</a> |
+   <a href="mailto:Joachim Michaelis &lt;joachip@gmail.com&gt;?subject=Buzz plugin">E-mail</a> |
+   <a href="http://www.buzzmachines.com/">www.buzzmachines.com</a><br>
+   </font>
+  </td>
+ </tr>
+</table><br>
+<div align="right">
+<table border=0 cellpadding=0 cellspacing=0>
+ <tr>
+  <td width=320 align="right">
+   <font size=1 face="verdana, helvetica" color="#A0A0A0"><i>DISCLAIMER:</i><br>
+   This software may be distrbuted freely as long as you leave my name here. The author of this software cannot be held
+   responsible for any damage caused directly or indirectly by using this software.</font><br>
+  </td>
+ </tr>
+</table>
+</div>
+
+</div>
+</body>
+</html>

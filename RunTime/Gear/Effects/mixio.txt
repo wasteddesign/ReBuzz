@@ -1,0 +1,77 @@
+MIXIO 1.3 (by Antonio)
+=============================================
+
+Version History
+===============
+1.3: Bugfixes for Groove / X^3 Mode
+1.2: Added GUI
+1.1: Bugfixes
+
+What is it ?
+============================================
+It's a simple mixer that makes use of the new multi io in new buzz. 
+It does gain, pan and has (multiple) solos and mute. 
+All parameters have an individual inertia setting. 
+All the core parts of the mixing engine are written in SSE2. 
+Panning formulas courtesy of Joachim PowerPan.
+
+I don't see any multi io inputs / outputs !?
+=============================================
+You have to make a pattern for mixio and add tracks.
+Track 0 is always MASTER. Track 1 would be input1 / output1.
+All Output from Tracks 1-31 gets mixed into Output 0 (MASTER).
+You can add up to 32 tracks to use with multi io.
+You should probably disable curved wires, because buzz 
+currently shows all inputs outputs on top of each other if its on.
+As of Buzz Build 1421, mixIO always shows the Multi-IO plugs
+thanks to MIF_ALWAYS_SHOW_PLUGS, previous builds only show them
+after you added more tracks to the machine and disconnect / reconnect
+machines to mixIO.
+
+What about the THRU channels ?
+=============================================
+The THRU channels simply output the input, unaltered. 
+Parameters have no effect on these outputs.
+
+Are there keyboard shortcuts ?
+=============================================
+CTRL:		Hold CTRL while adjusting value to fine tune
+KEY-UP/DOWN:	Adjust Value + or - (works on all controls)
+KEY-LEFT/RIGHT:	Switch to the next Gain Slider (if one is selected).
+0:		Mute Master
+SHIFT+0:	Solo Master
+1,2,3,4,5...9	Mute Channel 1 to 9
+SHIFT+1,2...9	Solo Channel 1 to 9
+
+What about Groove / Modulating the BPM ?
+=============================================
+Due to the nature of how mixio precalculates fades, the fade time will
+not be exactly the tick value you set in the inertia if you use groove. 
+Imagine if you would modulate the master bpm (comparable to setting groove). 
+What happens is that each tick has a different length, instead of a fixed length. 
+What mixio does is pre-calculate the fade time on the tick it is started at, 
+with the length of that tick at that time.Say you modulate master bpm like this: 
+128,120,128,120,128,120 etc.
+If you now tell mixio to fade to 0db in 4 ticks on a tick where bpm is 128, 
+the fade time will be 4*128. But if you set it on a tick where bpm is 120,
+it will be 4*120. What i'm trying to say is essentially: 
+If you use groove, adjust the intertia value by ear and not by numbers.
+
+It doesn't work at all!
+=============================================
+Try depends.exe on the dll http://www.dependencywalker.com/ 
+to see if you lack some dependancys. Make sure your CPU has SSE2. 
+Also, it won't work in old buzz at all.
+
+THX
+=============================================
+Special thanks goes out to joachim, mtronic, zephod, mute, elekt, oskari 
+and the many other buzzers out there helping with and testing this machine.
+
+License
+=============================================
+MixIO is donationware, if you like it and want to help me out, 
+please listen (and/or buy) one of my tracks at http://www.outofobscure.com :)
+You are allowed to distribute the machine free of charge. 
+I am not responsible for anything (good or bad) that happens while using this machine.
+

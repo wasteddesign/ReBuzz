@@ -1,0 +1,175 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"  
+    xmlns:bgc="clr-namespace:BuzzGUI.Common;assembly=BuzzGUI.Common"             
+    xmlns:local="clr-namespace:BuzzGUI.SequenceEditor;assembly=BuzzGUI.SequenceEditor">
+
+  <!-- Remember to use po:Freeze="True" for all brushes -->
+  
+  <LinearGradientBrush x:Key="SeqEdBackgroundBrush" StartPoint="0,0" EndPoint="1,0" po:Freeze="True">
+    <GradientStop Color="#E5E5D7" Offset="0.0" />
+    <GradientStop Color="#F7F7F3" Offset="1.0" />
+  </LinearGradientBrush>
+
+  <SolidColorBrush x:Key="PatternBoxBgRectFillBrush" Color="#90e0e0ff" po:Freeze="True"/>
+  <SolidColorBrush x:Key="PatternBoxBgRectStrokeBrush" Color="#40333333" po:Freeze="True"/>  
+
+  <SolidColorBrush x:Key="SeqEdBorderBrush" Color="#8000" po:Freeze="True"/>
+  <SolidColorBrush x:Key="SeqEdTimelineLineBrush" Color="#8000" po:Freeze="True"/>
+  <SolidColorBrush x:Key="SeqEdTimelineTextBrush" Color="Black" po:Freeze="True"/>
+
+	<SolidColorBrush x:Key="SeqEdTrackHeaderTextBrush" Color="Black" po:Freeze="True"/>
+
+
+	<!-- SequenceEditorSettings.BackgroundImage True -->
+	<LinearGradientBrush x:Key="SeqEdTimelineBackgroundBrush" StartPoint="0,0" EndPoint="0.05,1" po:Freeze="True">
+    <GradientStop Color="#BA9" Offset="0.0"/>
+    <GradientStop Color="#BA9" Offset="1.0"/>
+  </LinearGradientBrush>
+
+  <LinearGradientBrush x:Key="SeqEdTrackViewBackgroundBrush" StartPoint="0,0" EndPoint="1,1" po:Freeze="True">
+    <GradientStop Color="#BA9" Offset="0.0"/>
+    <GradientStop Color="#765" Offset="1.0"/>
+  </LinearGradientBrush>
+
+  <LinearGradientBrush x:Key="SeqEdTrackHeaderViewBackgroundBrush" StartPoint="0,0" EndPoint="0.05,1" po:Freeze="True">
+    <GradientStop Color="#BA9" Offset="0.0"/>
+    <GradientStop Color="#BA9" Offset="1.0"/>
+  </LinearGradientBrush>
+
+	<!-- SequenceEditorSettings.BackgroundImage False -->	
+	<SolidColorBrush x:Key="SeqEdTimelineBackgroundSolidColorBrush" Color="#BA9" po:Freeze="True"/>
+	<SolidColorBrush x:Key="SeqEdTrackViewBackgroundSolidColorBrush" Color="#BA9" po:Freeze="True"/>
+	<SolidColorBrush x:Key="SeqEdTrackHeaderViewBackgroundSolidColorBrush" Color="#BA9" po:Freeze="True"/>
+
+	<SolidColorBrush x:Key="SeqEdTrackHeaderBackgroundBrush" Color="Transparent" po:Freeze="True"/>
+  <SolidColorBrush x:Key="SeqEdTrackHeaderSelectedBackgroundBrush" Color="#3000" po:Freeze="True"/>
+
+  <!-- These five are expected to be SolidColorBrushes for performance reasons -->
+  <SolidColorBrush x:Key="PatternBorderBrush" Color="#000000" po:Freeze="True"/>
+	<SolidColorBrush x:Key="PatternTextBrush" Color="{Binding Buzz.ThemeColors[SE Text]}" po:Freeze="True"/>
+  <SolidColorBrush x:Key="PatternBoxBrush" Color="{Binding Buzz.ThemeColors[SE Pattern Box]}" po:Freeze="True"/>
+  <SolidColorBrush x:Key="BreakBoxBrush" Color="{Binding Buzz.ThemeColors[SE Break Box]}" po:Freeze="True"/>
+  <SolidColorBrush x:Key="MuteBoxBrush" Color="{Binding Buzz.ThemeColors[SE Mute Box]}" po:Freeze="True"/>
+
+  <SolidColorBrush x:Key="CursorBrush" Color="#2000" po:Freeze="True"/>
+  <SolidColorBrush x:Key="CursorInactiveBrush" Color="#2005" po:Freeze="True"/>
+
+  <Style x:Key="SongEndMarkerRectangleStyle" TargetType="{x:Type Rectangle}">
+    <Setter Property="Width" Value="1"/>
+    <Setter Property="Fill" Value="Black"/>
+  </Style>
+
+  <Style x:Key="LoopStartMarkerRectangleStyle" TargetType="{x:Type Rectangle}">
+    <Setter Property="Width" Value="1"/>
+    <Setter Property="Fill" Value="Tomato"/>
+  </Style>
+
+  <Style x:Key="LoopEndMarkerRectangleStyle" TargetType="{x:Type Rectangle}">
+    <Setter Property="Width" Value="1"/>
+    <Setter Property="Fill" Value="Tomato"/>
+  </Style>
+
+  <Style x:Key="PlayPositionMarkerRectangleStyle" TargetType="{x:Type Rectangle}">
+    <Setter Property="Width" Value="1"/>
+    <Setter Property="Fill" Value="Yellow"/>
+  </Style>
+
+  <Style x:Key="TrackHeaderButtonStyle" TargetType="{x:Type ToggleButton}">
+    <Setter Property="ClickMode" Value="Press"/>
+    <Setter Property="Focusable" Value="False"/>
+    <Setter Property="FontSize" Value="10"/>
+
+  </Style>
+
+  <Style x:Key="MuteButtonStyle" TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource TrackHeaderButtonStyle}">
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="{x:Type ToggleButton}">
+          <Image Name="image" Source="gfx/mute_off_icon.png"/>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsChecked" Value="True">
+              <Setter TargetName="image" Property="Source" Value="gfx/mute_on_icon.png"/>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <Style x:Key="SoloButtonStyle" TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource TrackHeaderButtonStyle}">
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="{x:Type ToggleButton}">
+          <Image Name="image" Source="gfx/solo_off_icon.png"/>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsChecked" Value="True">
+              <Setter TargetName="image" Property="Source" Value="gfx/solo_on_icon.png"/>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+  
+	<Style x:Key="DisableColumnButtonStyle" TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource TrackHeaderButtonStyle}">
+			<Setter Property="Foreground" Value="#111"/>
+		<Setter Property="Padding" Value="0"/>
+		<!--
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="{x:Type ToggleButton}">
+          <Image Name="image" Source="gfx/solo_off_icon.png"/>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsChecked" Value="True">
+              <Setter TargetName="image" Property="Source" Value="gfx/solo_on_icon.png"/>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+	-->
+  </Style>
+
+  <Style TargetType="{x:Type MenuItem}">
+    <Setter Property="Margin" Value="2,0,0,0"/>
+  </Style>
+
+  <Style x:Key="SelectionRectangleStyle" TargetType="{x:Type Rectangle}">
+    <!--
+    <Setter Property="Stroke">
+      <Setter.Value>
+        <SolidColorBrush Color="White" Opacity="1.0"/>
+      </Setter.Value>
+    </Setter>
+    -->
+    <Setter Property="Fill">
+      <Setter.Value>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+          <GradientStop Offset="0" Color="#100000FF"/>
+          <GradientStop Offset="1" Color="#200000FF"/>
+        </LinearGradientBrush>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+	<x:Array Type="bgc:NamedColor" x:Key="PatternColors">
+		<bgc:NamedColor Name="Powder Blue" Color="#8EB9C2"/>
+		<bgc:NamedColor Name="Moss Green" Color="#C7DBAE"/>
+		<bgc:NamedColor Name="Wheat" Color="#F5DEB3"/>
+		<bgc:NamedColor Name="Light Blue" Color="#A8C5DD"/>
+		<bgc:NamedColor Name="Ochre" Color="#C47E29"/>
+		<bgc:NamedColor Name="Camouflage Green" Color="#677665"/>
+		<bgc:NamedColor Name="Asparagus" Color="#678443"/>
+		<bgc:NamedColor Name="Slate Blue" Color="#5A6BA1"/>
+		<bgc:NamedColor Name="Lilac" Color="#B97AA3"/>
+		<bgc:NamedColor Name="Red" Color="#D7001C"/>
+		<bgc:NamedColor Name="Orange" Color="#E15E13"/>
+		<bgc:NamedColor Name="Yellow" Color="#F7C12D"/>
+		<bgc:NamedColor Name="Light Olive" Color="#A6C64C"/>
+		<bgc:NamedColor Name="Kelly Green" Color="#379C35"/>
+		<bgc:NamedColor Name="Sky Blue" Color="#57B8E8"/>
+		<bgc:NamedColor Name="Steel Blue" Color="#446FB6"/>
+	</x:Array>
+
+</ResourceDictionary>

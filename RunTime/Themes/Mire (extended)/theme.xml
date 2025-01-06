@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Theme>
+  <MainWindow Source="MainWindow.xaml"/>
+  <MachineView Source="MachineView/MachineView.xaml"/>
+  <ToolBar Source="ToolBar.xaml"/>
+  <ParameterWindow Source="ParameterWindow.xaml"/>
+  <SequenceEditor Source="SequenceEditor/SequenceEditor.xaml"/>
+  <WavetableView Source="WavetableView/WavetableView.xaml"/>
+  <InfoView Source="InfoView/InfoView.xaml"/>
+</Theme>

@@ -1,0 +1,269 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"  
+    xmlns:bgc="clr-namespace:BuzzGUI.Common;assembly=BuzzGUI.Common"             
+    xmlns:vsm="clr-namespace:System.Windows;assembly=BuzzGUI.Common"             
+    xmlns:local="clr-namespace:BuzzGUI.MachineView;assembly=BuzzGUI.MachineView">
+
+
+	<ResourceDictionary.MergedDictionaries>
+		<ResourceDictionary Source="../Controls.xaml"/>
+		<ResourceDictionary Source="../Menus/SimpleMenu.xaml"/>
+	</ResourceDictionary.MergedDictionaries>
+
+	<SolidColorBrush x:Key="MVChildWindowBackgroundBrush" Color="#666666"/>
+
+	<SolidColorBrush x:Key="MVMainGridBackgroundBrush" Color="#444444"/>
+
+	<Style x:Key="MVToolBarSeparatorStyle" TargetType="{x:Type Control}">
+		<Style.Setters>
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="{x:Type Control}">
+						<StackPanel>
+							<Rectangle HorizontalAlignment="Stretch" Height="0" Fill="#333"/>
+						</StackPanel>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style.Setters>		
+	</Style>
+
+	<DataTemplate x:Key="MachineListItemTemplate">
+		<TextBlock Name="tb" Text="{Binding Path=DisplayName}" Foreground="{Binding Path=DisplayNameBrush}"/>
+
+		<DataTemplate.Triggers>
+			<DataTrigger Binding="{Binding Path=Instrument.Type}" Value="Control">
+				<Setter TargetName="tb" Property="Foreground" Value="#F0F0F0"/>
+			</DataTrigger>
+			<DataTrigger Binding="{Binding Path=Instrument.Type}" Value="Generator">
+				<Setter TargetName="tb" Property="Foreground" Value="SkyBlue"/>
+			</DataTrigger>
+			<DataTrigger Binding="{Binding Path=Instrument.Type}" Value="Effect">
+				<Setter TargetName="tb" Property="Foreground" Value="Gold"/>
+			</DataTrigger>
+			<MultiDataTrigger>
+				<MultiDataTrigger.Conditions>
+					<Condition Binding="{Binding Path=Instrument.Type}" Value="Generator"/>
+					<Condition Binding="{Binding Path=IsInstrument}" Value="True"/>
+				</MultiDataTrigger.Conditions>
+				<Setter TargetName="tb" Property="Foreground" Value="LightSteelBlue"/>
+			</MultiDataTrigger>
+			<MultiDataTrigger>
+				<MultiDataTrigger.Conditions>
+					<Condition Binding="{Binding Path=Instrument.Type}" Value="Effect"/>
+					<Condition Binding="{Binding Path=IsInstrument}" Value="True"/>
+				</MultiDataTrigger.Conditions>
+				<Setter TargetName="tb" Property="Foreground" Value="Orange"/>
+			</MultiDataTrigger>
+			
+			<DataTrigger Binding="{Binding RelativeSource={RelativeSource Mode=FindAncestor,AncestorType={x:Type ListBoxItem}}, Path=IsSelected}" Value="True">			
+				<Setter TargetName="tb" Property="Foreground" Value="#333333"/>
+			</DataTrigger>
+							 
+			
+		</DataTemplate.Triggers>
+		
+	</DataTemplate>
+
+  <Style x:Key="TopBorderStyle" TargetType="{x:Type Border}">
+    <Setter Property="Height" Value="15"/>
+    <Setter Property="BorderThickness" Value="0,0,0,5"/>
+    <Setter Property="BorderBrush" Value="#595959"/>
+	<Setter Property="Padding" Value="0,0,0,0"/>
+    <Setter Property="Background">
+      <Setter.Value>
+				<SolidColorBrush Color="#595959"/>
+      </Setter.Value>
+    </Setter>
+  </Style>
+	
+	<Style x:Key="{x:Type Hyperlink}" TargetType="{x:Type Hyperlink}">
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="Foreground" Value="#bababa"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="true">
+                <Setter Property="Foreground" Value="white" />
+            </Trigger>
+        </Style.Triggers>
+	</Style>
+
+	
+	<Style x:Key="ContainerCanvasStyle" TargetType="{x:Type Canvas}">
+    <Style.Triggers>
+      <DataTrigger Binding="{Binding Settings.Shadows}" Value="All">
+        <Setter Property="Effect">
+          <Setter.Value>
+            <DropShadowEffect Opacity="0.3" BlurRadius="3"/>
+          </Setter.Value>
+        </Setter>
+      </DataTrigger>
+    </Style.Triggers>
+  </Style>
+
+  <Style x:Key="SelectionRectangleStyle" TargetType="{x:Type Rectangle}">
+    <Setter Property="RadiusX" Value="2"/>
+    <Setter Property="RadiusY" Value="2"/>
+    <Setter Property="Stroke">
+      <Setter.Value>
+        <SolidColorBrush Color="Black" Opacity="0.5"/>
+      </Setter.Value>
+    </Setter>
+    <Setter Property="Fill">
+      <Setter.Value>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+          <GradientStop Offset="0" Color="#10000000"/>
+          <GradientStop Offset="1" Color="#20000000"/>
+        </LinearGradientBrush>
+      </Setter.Value>
+    </Setter>
+  </Style>
+  
+  <Style x:Key="BackgroundGridStyleBase" TargetType="{x:Type Grid}">
+    <Setter Property="Background">
+      <Setter.Value>
+        <SolidColorBrush Color="{Binding Path=Buzz.ThemeColors[MV Background]}"/>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- DataContext BuzzGUI.MachineView.Connection -->
+  <Style x:Key="MachineConnectionTriangleStyleBase" TargetType="{x:Type Control}">
+    <Setter Property="Focusable" Value="False"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="{x:Type Control}">
+          <Polygon Name="polygon" Points="0,-9 -9,9 9,9" StrokeThickness="1">
+            <Polygon.Stroke>
+              <SolidColorBrush Color="#a3a3a3"/>
+            </Polygon.Stroke>
+            <Polygon.Fill>
+              <SolidColorBrush Color="#212121"/>
+            </Polygon.Fill>
+          </Polygon>
+          <!--
+          <ControlTemplate.Triggers>
+            <DataTrigger Binding="{Binding IsConnecting}" Value="True">
+              <Setter TargetName="polygon" Property="Opacity" Value="0.5"/>
+            </DataTrigger>
+          </ControlTemplate.Triggers>
+          -->
+		  <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" SourceName="polygon" Value="True">
+                <Setter Property="Fill" TargetName="polygon" Value="#474747"/>
+            </Trigger>
+          </ControlTemplate.Triggers>
+					
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- DataContext BuzzGUI.MachineView.Connection -->
+  <Style x:Key="MachineConnectionPathStyleBase" TargetType="{x:Type Shape}">
+    <Setter Property="IsHitTestVisible" Value="False"/>
+    <Setter Property="StrokeThickness" Value="1"/>
+    <Setter Property="Stroke">
+      <Setter.Value>
+        <SolidColorBrush Color="{Binding Path=MachineGraph.Buzz.ThemeColors[MV Line]}"/>
+      </Setter.Value>
+    </Setter>
+    
+    <Style.Triggers>
+      <DataTrigger Binding="{Binding IsConnecting}" Value="True">
+        <Setter Property="Opacity" Value="0.5"/>
+      </DataTrigger>
+    </Style.Triggers>
+    
+  </Style>
+
+  <!-- DataContext BuzzGUI.MachineView.Connection.PlugInfo -->
+  <Style x:Key="PlugStyle" TargetType="{x:Type Control}">
+    <Setter Property="Width" Value="15"/>
+    <Setter Property="Height" Value="15"/>
+    <Setter Property="Focusable" Value="False"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="{x:Type Control}">
+          <Grid>
+            <Ellipse Name="ellipse" StrokeThickness="1">
+              <Ellipse.Stroke>
+                <SolidColorBrush Color="#212121"/>
+              </Ellipse.Stroke>
+              <Ellipse.Fill>
+                <SolidColorBrush Color="#afaf9b"/>
+              </Ellipse.Fill>
+            </Ellipse>
+            <TextBlock Visibility="Visible" FontSize="11" FontFamily="Arial" VerticalAlignment="Center" HorizontalAlignment="Center" Text="{Binding Path=Channel}"/>
+          </Grid>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+
+
+  <LinearGradientBrush x:Key="GlassBrush" StartPoint="0,0" EndPoint="1,1" Opacity="0" po:Freeze="True">
+    <GradientStop Color="WhiteSmoke" Offset="0.2" />
+    <GradientStop Color="Transparent" Offset="0.4" />
+    <GradientStop Color="WhiteSmoke" Offset="0.5" />
+    <GradientStop Color="Transparent" Offset="0.75" />
+    <GradientStop Color="WhiteSmoke" Offset="0.9" />
+    <GradientStop Color="Transparent" Offset="1" />
+  </LinearGradientBrush>
+
+<!-- Volume and pan on machine connection line -->
+  <Style TargetType="{x:Type bgc:Knob}">
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="{x:Type bgc:Knob}">
+          <Viewbox>
+            <Grid Name="KnobGrid">
+              <Grid Name="RotatingLayer1">
+                <Ellipse Name="bg" Width="26" Height="26" Stroke="Transparent" StrokeThickness="2">
+                  <Ellipse.Fill>
+                    <SolidColorBrush x:Name="anbr" Color="#808080" />
+                  </Ellipse.Fill>
+                </Ellipse>
+              </Grid>
+
+              <Ellipse Width="26" Height="26" Fill="{StaticResource GlassBrush}" Stroke="Transparent" StrokeThickness="2"/>
+
+              <Grid Name="RotatingLayer2">
+                <Ellipse Width="26" Height="26" Stroke="Black" StrokeThickness="0"/>
+                <Line X1="13" Y1="13" X2="13" Y2="0" Stroke="#212121" StrokeThickness="2"/>
+              </Grid>
+
+            </Grid>
+          </Viewbox>
+          <ControlTemplate.Triggers>
+            <EventTrigger RoutedEvent="Control.MouseEnter">
+              <EventTrigger.Actions>
+                <BeginStoryboard>
+                  <Storyboard>
+                    <ColorAnimation Storyboard.TargetName="anbr" Storyboard.TargetProperty="(SolidColorBrush.Color)"
+                                        To="#cccccc" Duration="0:0:0.1"/>
+                  </Storyboard>
+                </BeginStoryboard>
+              </EventTrigger.Actions>
+            </EventTrigger>
+
+            <EventTrigger RoutedEvent="Control.MouseLeave">
+              <EventTrigger.Actions>
+                <BeginStoryboard>
+                  <Storyboard>
+                    <ColorAnimation Storyboard.TargetName="anbr" Storyboard.TargetProperty="(SolidColorBrush.Color)"
+                                        To="#808080" Duration="0:0:0.1"/>
+                  </Storyboard>
+                </BeginStoryboard>
+              </EventTrigger.Actions>
+            </EventTrigger>
+
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+
+</ResourceDictionary>

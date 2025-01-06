@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Theme>
+  <MainWindow Source="MainWindow.xaml"/>
+  <MachineView Source="MachineView/MachineView.xaml">
+    <Machine Type="Master" ShadowBitmap="shadow.png"/>
+    <Machine Type="Generator" ShadowBitmap="shadow.png"/>
+    <Machine Type="Effect" ShadowBitmap="shadow.png"/>
+    <Machine Type="Control" ShadowBitmap="shadow.png"/>
+  </MachineView>
+  <ToolBar Source="ToolBar.xaml"/>
+  <ParameterWindow Source="ParameterWindow.xaml"/>
+  <WavetableView Source="WavetableView/WavetableView.xaml"/>
+  <SequenceEditor Source="SequenceEditor/SequenceEditor.xaml"/>
+  <InfoView Source="InfoView/InfoView.xaml"/>
+</Theme>

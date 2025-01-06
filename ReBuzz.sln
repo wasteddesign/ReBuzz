@@ -74,7 +74,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Pattern Editors", "Pattern 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModernPatternEditor.NET", "ModernPatternEditor\ModernPatternEditor.NET\ModernPatternEditor.NET.csproj", "{1DEDC32F-7C12-4DD5-B9BD-9192B3D4CE60}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RuntimeFiles", "ReBuzzRunTime\RuntimeFiles.vcxproj", "{7311D651-7877-4421-A50F-681DF2489746}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RuntimeFiles", "RunTime\RuntimeFiles.vcxproj", "{7311D651-7877-4421-A50F-681DF2489746}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
