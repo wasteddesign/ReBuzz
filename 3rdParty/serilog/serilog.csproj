@@ -1,0 +1,112 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>Simple .NET logging with fully-structured events</Description>
+    <VersionPrefix>4.0.2</VersionPrefix>
+    <AssemblyVersion>$(VersionPrefix.Substring(0,3)).0.0</AssemblyVersion>
+    <Authors>Serilog Contributors</Authors>
+    <ImplicitUsings>enable</ImplicitUsings>
+	
+	<!-- .NET Framework version targeting is frozen at these two TFMs. -->
+    <TargetFrameworks Condition=" '$(OS)' == 'Windows_NT'">net471;net462</TargetFrameworks>
+    <!-- Policy is to trim TFM-specific builds to `netstandard2.0`, `net6.0`,
+    all active LTS versions, and optionally the latest RTM version, when releasing new
+    major Serilog versions. -->
+    <TargetFrameworks>net9.0</TargetFrameworks>
+	
+	<LangVersion>12.0</LangVersion>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <PackageTags>serilog;logging;semantic;structured</PackageTags>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageProjectUrl>https://serilog.net/</PackageProjectUrl>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <TreatSpecificWarningsAsErrors />
+    <IsTrimmable>true</IsTrimmable>
+    <NoWarn>$(NoWarn);CS1437;CS1570</NoWarn>
+    <PolySharpIncludeRuntimeSupportedAttributes>true</PolySharpIncludeRuntimeSupportedAttributes>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+	
+	<BaseOutputPath>$(SolutionDir)build\$(Configuration)\$(Platform)\$(MSBuildProjectName)\bin</BaseOutputPath>
+	<IntermediateOutputPath>$(SolutionDir)build\$(Configuration)\$(Platform)\$(MSBuildProjectName)\obj</IntermediateOutputPath>
+	
+	<SignAssembly>False</SignAssembly>
+  </PropertyGroup>
+
+ 
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net9.0' ">
+    <DefineConstants>$(DefineConstants);FEATURE_DEFAULT_INTERFACE;FEATURE_SPAN;FEATURE_ITUPLE;FEATURE_DATE_AND_TIME_ONLY;FEATURE_ASYNCDISPOSABLE;FEATURE_WRITE_STRINGBUILDER;FEATURE_TOHEXSTRING;FEATURE_DICTIONARYTRYADD</DefineConstants>
+	
+  </PropertyGroup>
+
+  <ItemGroup>
+   <Compile Remove="serilog-sinks-richtextbox\**" />
+   <Compile Remove="serilog\assets\**" />
+   <Compile Remove="serilog\results\**" />
+   <Compile Remove="serilog\src\Serilog\*.csproj" />
+   <Compile Remove="serilog\src\Serilog\bin\**" />
+   <Compile Remove="serilog\src\Serilog\obj\**" />
+   <Compile Remove="serilog\src\Serilog\Properties\**" />
+   <Compile Remove="serilog\obj\**" />
+   <Compile Remove="serilog\test\**" />
+   <EmbeddedResource Remove="serilog-sinks-richtextbox\**" />
+   <EmbeddedResource Remove="serilog\assets\**" />
+   <EmbeddedResource Remove="serilog\results\**" />
+   <EmbeddedResource Remove="serilog\test\**" />
+   <None Remove="serilog-sinks-richtextbox\**" />
+   <None Remove="serilog\assets\**" />
+   <None Remove="serilog\results\**" />
+   <None Remove="serilog\test\**" /> 
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="serilog\.editorconfig" />
+    <None Remove="serilog\.git" />
+    <None Remove="serilog\.gitattributes" />
+    <None Remove="serilog\.gitignore" />
+    <None Remove="serilog\appveyor-perftest.yml" />
+    <None Remove="serilog\appveyor.yml" />
+    <None Remove="serilog\Build.ps1" />
+    <None Remove="serilog\build.sh" />
+    <None Remove="serilog\CODE_OF_CONDUCT.md" />
+    <None Remove="serilog\CONTRIBUTING.md" />
+    <None Remove="serilog\Directory.Build.props" />
+    <None Remove="serilog\Directory.Build.targets" />
+    <None Remove="serilog\global.json" />
+    <None Remove="serilog\INFLUENCES.md" />
+    <None Remove="serilog\LICENSE" />
+    <None Remove="serilog\NuGet.config" />
+    <None Remove="serilog\README.md" />
+    <None Remove="serilog\RunPerfTests.ps1" />
+    <None Remove="serilog\run_perf_tests.sh" />
+    <None Remove="serilog\Serilog.sln.DotSettings" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <None Include="serilog\src\Serilog\assets\icon.png" Pack="true" Visible="false" PackagePath="/" />
+    <None Include="serilog\src\Serilog\README.md" Pack="true" Visible="false" PackagePath="/" />
+    <EmbeddedResource Include="serilog\src\Serilog\ILLink.Substitutions.xml">
+      <LogicalName>ILLink.Substitutions.xml</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <!-- Per-TFM `ItemGroup` for exceptions only: -->
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="8.0.1" />
+    <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
+  </ItemGroup>
+
+  <Target Name="ForcePerformRestore" AfterTargets="BeforeBuild">	
+    <Exec Command="IF NOT EXIST  &quot;$(IntermediateOutputPath)..\project.assets.json&quot;  echo restore to $(IntermediateOutputPath)..\project.assets.json &amp;&amp;  dotnet restore &quot;$(ProjectName).csproj&quot; --no-dependencies &amp;&amp; move &quot;build\$(ProjectName)\obj\*&quot; &quot;$(IntermediateOutputPath)..\&quot; &amp;&amp; rmdir /Q /S build	 " /> 
+  </Target>
+  
+  <Target Name="RemoveEmptyObj" AfterTargets="AfterBuild">
+    <Exec Command="IF EXIST obj rmdir obj" />
+  </Target>
+  
+</Project>

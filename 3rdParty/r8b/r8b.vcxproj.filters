@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\DLL">
+      <UniqueIdentifier>{2fd5c8e0-80b0-42ae-b87d-941be52c30b1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\DLL">
+      <UniqueIdentifier>{3fd0edd1-f21c-42bd-8f3f-71e0992d3955}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="r8brain-free-src\DLL\r8bsrc.cpp">
+      <Filter>Source Files\DLL</Filter>
+    </ClCompile>
+    <ClCompile Include="r8brain-free-src\pffft.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="r8brain-free-src\r8bbase.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="r8brain-free-src\DLL\r8bsrc.h">
+      <Filter>Header Files\DLL</Filter>
+    </ClInclude>
+    <ClInclude Include="r8brain-free-src\pffft.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="r8brain-free-src\r8bbase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="r8brain-free-src\r8bconf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="r8brain-free-src\r8butil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

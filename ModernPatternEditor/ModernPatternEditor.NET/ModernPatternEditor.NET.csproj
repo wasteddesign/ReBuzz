@@ -6,26 +6,22 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Platforms>AnyCPU;x64</Platforms>
     <AssemblyName>Modern Pattern Editor.NET</AssemblyName>
+	<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+	<OutputPath>$(SolutionDir)bin\$(Configuration)\$(Platform)\$(TargetFramework)\Gear\Generators</OutputPath>
+	<IntermediateOutputPath>$(SolutionDir)build\$(Configuration)\$(Platform)\ModernPatternEditor.NET\obj</IntermediateOutputPath>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DebugType>full</DebugType>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <DebugType>full</DebugType>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DebugType>full</DebugType>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <DebugType>full</DebugType>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="BuzzGUI.Common">
-      <HintPath>..\..\..\..\..\..\Program Files\ReBuzz\BuzzGUI.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="BuzzGUI.Interfaces">
-      <HintPath>..\..\..\..\..\..\..\..\Program Files\ReBuzz\BuzzGUI.Interfaces.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
+    <ProjectReference Include="..\..\ReBuzzGUI\BuzzGUI.Common\BuzzGUI.Common.csproj"/>
+    
   </ItemGroup>
+
+  <Target Name="ForcePerformRestore" AfterTargets="BeforeBuild">	
+    <Exec Command="IF NOT EXIST  &quot;$(IntermediateOutputPath)project.assets.json&quot;  echo restore to $(IntermediateOutputPath)project.assets.json &amp;&amp;  dotnet restore &quot;$(ProjectName).csproj&quot;  --no-dependencies &amp;&amp; move &quot;build\$(ProjectName)\obj\*&quot; &quot;$(IntermediateOutputPath)&quot; &amp;&amp; rmdir /Q /S build	 " /> 
+  </Target>
+  
+  <Target Name="RemoveEmptyObj" AfterTargets="AfterBuild">
+    <Exec Command="IF EXIST obj rmdir obj" />
+  </Target>
+
 </Project>

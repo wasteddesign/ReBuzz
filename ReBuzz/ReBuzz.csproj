@@ -23,8 +23,10 @@
     <Platforms>AnyCPU;x64</Platforms>
     <UseWindowsThreadPool>true</UseWindowsThreadPool>
 	<CETCompat>false</CETCompat>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+	<IntermediateOutputPath>$(SolutionDir)build\$(Configuration)\$(Platform)\ReBuzz\$(Platform)\obj\</IntermediateOutputPath>
+	<OutputPath>$(SolutionDir)bin\$(Configuration)\$(Platform)\</OutputPath>
   </PropertyGroup>
+  
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <WarningsAsErrors>$(WarningsAsErrors);NU1605</WarningsAsErrors>
@@ -50,11 +52,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
-    <OutputPath>bin\x86\Debug\</OutputPath>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
-    <OutputPath>bin\x86\Release\</OutputPath>
   </PropertyGroup>
   <PropertyGroup>
     <TargetZone>LocalIntranet</TargetZone>
@@ -75,7 +73,6 @@
     <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <OutputPath>bin\x64\Debug\</OutputPath>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <WarningsAsErrors>$(WarningsAsErrors);NU1605</WarningsAsErrors>
     <NoWarn>1701;1702;CA1416</NoWarn>
@@ -120,65 +117,42 @@
     <None Remove="Common\gfx\squirrel.jpeg" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="BuzzGUI.BuzzUpdate">
-      <HintPath>..\..\..\..\..\..\Program Files\ReBuzz\BuzzGUI.BuzzUpdate.dll</HintPath>
-    </Reference>
-    <Reference Include="BuzzGUI.Common">
-      <HintPath>..\..\..\..\..\..\..\..\Program Files\ReBuzz\BuzzGUI.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="BuzzGUI.Interfaces">
-      <HintPath>..\..\..\..\..\..\..\..\Program Files\ReBuzz\BuzzGUI.Interfaces.dll</HintPath>
-    </Reference>
-    <Reference Include="BuzzGUI.MachineView">
-      <HintPath>..\..\..\..\..\..\..\..\Program Files\ReBuzz\BuzzGUI.MachineView.dll</HintPath>
-    </Reference>
-    <Reference Include="BuzzGUI.ParameterWindow">
-      <HintPath>..\..\..\..\..\..\..\..\Program Files\ReBuzz\BuzzGUI.ParameterWindow.dll</HintPath>
-    </Reference>
-    <Reference Include="BuzzGUI.PianoKeyboard">
-      <HintPath>..\..\..\..\..\..\..\..\Program Files\ReBuzz\BuzzGUI.PianoKeyboard.dll</HintPath>
-    </Reference>
-    <Reference Include="BuzzGUI.SequenceEditor">
-      <HintPath>..\..\..\..\..\..\..\..\Program Files\ReBuzz\BuzzGUI.SequenceEditor.dll</HintPath>
-    </Reference>
-    <Reference Include="BuzzGUI.ToolBar">
-      <HintPath>..\..\..\..\..\..\..\..\Program Files\ReBuzz\BuzzGUI.ToolBar.dll</HintPath>
-    </Reference>
-    <Reference Include="BuzzGUI.WaveformControl">
-      <HintPath>..\..\..\..\..\..\Program Files\ReBuzz\BuzzGUI.WaveformControl.dll</HintPath>
-    </Reference>
-    <Reference Include="BuzzGUI.WavetableView">
-      <HintPath>..\..\..\..\..\..\..\..\Program Files\ReBuzz\BuzzGUI.WavetableView.dll</HintPath>
-    </Reference>
-    <Reference Include="ModernSequenceEditor GUI">
-      <HintPath>..\..\..\..\..\..\..\..\Program Files\ReBuzz\ModernSequenceEditor GUI.dll</HintPath>
-    </Reference>
-    <Reference Include="ModernSequenceEditorHorizontal GUI">
-      <HintPath>..\..\..\..\..\..\..\..\Program Files\ReBuzz\ModernSequenceEditorHorizontal GUI.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\3rdParty\serilog\serilog.csproj" />
+    <ProjectReference Include="..\3rdParty\serilog\Serilog.Sinks.RichTextBox.Wpf.csproj" />
+    <ProjectReference Include="..\ReBuzzGUI\BuzzGUI.BuzzUpdate\BuzzGUI.BuzzUpdate.csproj" />
+    <ProjectReference Include="..\ReBuzzGUI\BuzzGUI.Common\BuzzGUI.Common.csproj" />
+    <ProjectReference Include="..\ReBuzzGUI\BuzzGUI.EnvelopeControl\BuzzGUI.EnvelopeControl.csproj" />
+    <ProjectReference Include="..\ReBuzzGUI\BuzzGUI.FileBrowser\BuzzGUI.FileBrowser.csproj" />
+    <ProjectReference Include="..\ReBuzzGUI\BuzzGUI.Interfaces\BuzzGUI.Interfaces.csproj" />
+    <ProjectReference Include="..\ReBuzzGUI\BuzzGUI.MachineView\BuzzGUI.MachineView.csproj" />
+    <ProjectReference Include="..\ReBuzzGUI\BuzzGUI.ParameterWindow\BuzzGUI.ParameterWindow.csproj" />
+    <ProjectReference Include="..\ReBuzzGUI\BuzzGUI.PianoKeyboard\BuzzGUI.PianoKeyboard.csproj" />
+    <ProjectReference Include="..\ReBuzzGUI\BuzzGUI.SequenceEditorExtended Rebuzz\BuzzGUI.SequenceEditorExtended Rebuzz.csproj" />
+    <ProjectReference Include="..\ReBuzzGUI\BuzzGUI.ToolBar\BuzzGUI.ToolBar.csproj" />
+    <ProjectReference Include="..\ReBuzzGUI\BuzzGUI.WaveformControl\BuzzGUI.WaveformControl.csproj" />
+    <ProjectReference Include="..\ReBuzzGUI\BuzzGUI.WavetableView\BuzzGUI.WavetableView.csproj" />
+    <ProjectReference Include="..\ReBuzzGUI\ModernSequenceEditor.Interfaces\ModernSequenceEditor.Interfaces.csproj" />
+    <ProjectReference Include="..\ReBuzzGUI\ModernSequenceEditorHorizontal\ModernSequenceEditorHorizontal.csproj" />
+    <ProjectReference Include="..\ReBuzzGUI\ModernSequenceEditor\ModernSequenceEditor.csproj" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="NAudio">
-      <HintPath>..\..\..\..\..\..\..\..\Program Files\ReBuzz\NAudio.dll</HintPath>
+      <HintPath>..\3rdParty\NAudio\NAudio.dll</HintPath>
     </Reference>
     <Reference Include="NAudio.Asio">
-      <HintPath>..\..\..\..\..\..\..\..\Program Files\ReBuzz\NAudio.Asio.dll</HintPath>
+      <HintPath>..\3rdParty\NAudio\NAudio.Asio.dll</HintPath>
     </Reference>
     <Reference Include="NAudio.Core">
-      <HintPath>..\..\..\..\..\..\..\..\Program Files\ReBuzz\NAudio.Core.dll</HintPath>
+      <HintPath>..\3rdParty\NAudio\NAudio.Core.dll</HintPath>
     </Reference>
     <Reference Include="NAudio.Midi">
-      <HintPath>..\..\..\..\..\..\..\..\Program Files\ReBuzz\NAudio.Midi.dll</HintPath>
+      <HintPath>..\3rdParty\NAudio\NAudio.Midi.dll</HintPath>
     </Reference>
     <Reference Include="NAudio.Wasapi">
-      <HintPath>..\..\..\..\..\..\..\..\Program Files\ReBuzz\NAudio.Wasapi.dll</HintPath>
+      <HintPath>..\3rdParty\NAudio\NAudio.Wasapi.dll</HintPath>
     </Reference>
     <Reference Include="NAudio.WinMM">
-      <HintPath>..\..\..\..\..\..\..\..\Program Files\ReBuzz\NAudio.WinMM.dll</HintPath>
-    </Reference>
-    <Reference Include="Serilog">
-      <HintPath>..\..\..\..\..\..\Program Files\ReBuzz\Serilog.dll</HintPath>
-    </Reference>
-    <Reference Include="Serilog.Sinks.RichTextBox.Wpf">
-      <HintPath>..\..\..\..\..\..\Program Files\ReBuzz\Serilog.Sinks.RichTextBox.Wpf.dll</HintPath>
+      <HintPath>..\3rdParty\NAudio\NAudio.WinMM.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -219,13 +193,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-windows|x64'">
     <DebugType>full</DebugType>
   </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="Serilog" Version="4.1.0" />
-    <PackageReference Include="Serilog.Sinks.RichTextBox.Wpf" Version="1.1.0" />
-    <PackageReference Include="System.Drawing.Common" Version="9.0.0" />
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.1.0" />
-    <PackageReference Include="System.Text.Json" Version="9.0.0" />
-    <PackageReference Include="VST.NET2-Host" Version="2.1.0" />
-    <PackageReference Include="VST.NET2-Plugin" Version="2.1.0" />
-  </ItemGroup>
+
+  <Target Name="ForcePerformRestore" AfterTargets="BeforeBuild">	
+    <Exec Command="IF NOT EXIST  &quot;$(IntermediateOutputPath)..\project.assets.json&quot;  echo restore to $(IntermediateOutputPath)..\project.assets.json &amp;&amp;  dotnet restore &quot;$(ProjectName).csproj&quot; --no-dependencies &amp;&amp; move &quot;build\$(ProjectName)\obj\*&quot; &quot;$(IntermediateOutputPath)..\&quot; &amp;&amp; rmdir /Q /S build	 " /> 
+  </Target>
+  
+  <Target Name="RemoveEmptyObj" AfterTargets="AfterBuild">
+    <Exec Command="IF EXIST obj rmdir obj" />
+  </Target>
+
 </Project>

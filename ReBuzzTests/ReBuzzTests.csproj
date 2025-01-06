@@ -28,16 +28,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ReBuzzGUI\BuzzGUI.Common\BuzzGUI.Common.csproj" />
+    <ProjectReference Include="..\ReBuzzGUI\BuzzGUI.Interfaces\BuzzGUI.Interfaces.csproj" />
     <ProjectReference Include="..\ReBuzz\ReBuzz.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="BuzzGUI.Common">
-      <HintPath>..\..\..\..\..\..\Program Files\ReBuzz\BuzzGUI.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="BuzzGUI.Interfaces">
-      <HintPath>..\..\..\..\..\..\Program Files\ReBuzz\BuzzGUI.Interfaces.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
   <ItemGroup>
