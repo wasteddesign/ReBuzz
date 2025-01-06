@@ -13,6 +13,7 @@ using System.Text;
 using System.Windows;
 using System.Xml;
 using System.Xml.Serialization;
+using BuzzGUI.Common;
 using static ReBuzz.FileOps.BMXFile;
 
 namespace ReBuzz.FileOps
@@ -28,11 +29,15 @@ namespace ReBuzz.FileOps
         private ImportSongAction importAction;
 
         List<MachineCore> machines;
+        private readonly string buzzPath;
+        private readonly IUiDispatcher dispatcher;
 
-        public BMXMLFile(ReBuzzCore buzz)
+        public BMXMLFile(ReBuzzCore buzz, string buzzPath, IUiDispatcher dispatcher)
         {
+            this.buzzPath = buzzPath;
             this.buzz = buzz;
             machines = new List<MachineCore>();
+            this.dispatcher = dispatcher;
         }
 
         void FileOpsEvent(FileEventType type, string text, object o = null)
@@ -160,7 +165,7 @@ namespace ReBuzz.FileOps
                 int tracks = machineData.ParameterGroups[2].TrackCount;
 
                 MachineDLL machineDLL = new MachineDLL();
-                MachineCore machineProto = new MachineCore(buzz.SongCore);
+                MachineCore machineProto = new MachineCore(buzz.SongCore, buzzPath, dispatcher);
                 string name = XmlConvert.DecodeName(machineData.Name);
                 if (Encoding.ASCII.GetBytes(name)[0] == 1)
                 {
@@ -224,6 +229,10 @@ namespace ReBuzz.FileOps
                         // Update Position
                         machineProto.Position = new Tuple<float, float>(x, y);
 
+                        // Update tpb & bpm immediately if machines read these during creation
+                        buzz.BPM = machineProto.ParameterGroups[1].Parameters[1].GetValue(0);
+                        buzz.TPB = machineProto.ParameterGroups[1].Parameters[2].GetValue(0);
+
                         // Copy parametervalues
                         CopyParameters(machineData.ParameterGroups[0], machineProto, 0, 0);
                         CopyParameters(machineData.ParameterGroups[1], machineProto, 1, 0);
@@ -283,12 +292,12 @@ namespace ReBuzz.FileOps
             // Some machines can remap machine names.
             //foreach (var machine in buzz.SongCore.MachinesList.Where(m => !m.DLL.IsManaged && !m.DLL.IsMissing))
             //{
-                //buzz.MachineManager.RemapMachineNames(machine, importDictionary);
-                //var idata = dictInitData[machine];
+            //    buzz.MachineManager.RemapMachineNames(machine, importDictionary);
+            //    var idata = dictInitData[machine];
 
-                //FileOpsEvent(FileEventType.StatusUpdate, "Init Machine: " + machine.Name + "...");
-                // Call Init
-                //buzz.MachineManager.CallInit(machine, idata.data, idata.tracks);
+            //    FileOpsEvent(FileEventType.StatusUpdate, "Init Machine: " + machine.Name + "...");
+            //    // Call Init
+            //    buzz.MachineManager.CallInit(machine, idata.data, idata.tracks);
             //}
 
             foreach (var machineData in songData.Machines)
@@ -316,7 +325,7 @@ namespace ReBuzz.FileOps
                 if (machineFrom == null || machineTo == null)
                     continue;
 
-                MachineConnectionCore connection = new MachineConnectionCore();
+                MachineConnectionCore connection = new MachineConnectionCore(dispatcher);
                 connection.Amp = cData.Amp;
                 connection.Pan = cData.Pan;
                 connection.SourceChannel = cData.SourceChannel;
@@ -337,7 +346,7 @@ namespace ReBuzz.FileOps
                     {
                         machineTo.InputChannelCount = 1;
                     }
-                    new ConnectMachinesAction(buzz, connection).Do();
+                    new ConnectMachinesAction(buzz, connection, dispatcher).Do();
                 }
             }
 
@@ -381,7 +390,7 @@ namespace ReBuzz.FileOps
                                 int track = c.Track;
                                 int indexInGroup = c.IndexInGroup;
 
-                                IParameter targetParameter = targetMachine != null && (group != -1 && indexInGroup != -1) ? targetMachine.ParameterGroups[group].Parameters[indexInGroup] : ParameterCore.GetMidiParameter(targetMachine);
+                                IParameter targetParameter = targetMachine != null && (group != -1 && indexInGroup != -1) ? targetMachine.ParameterGroups[group].Parameters[indexInGroup] : ParameterCore.GetMidiParameter(targetMachine, dispatcher);
                                 pattern.InsertColumn(j, targetParameter, track);
                                 var column = pattern.Columns[j];
 
@@ -562,7 +571,7 @@ namespace ReBuzz.FileOps
             int index = 0;
             foreach (var pFrom in pgFrom.Parameters)
             {
-                ParameterCore pTo = new ParameterCore();
+                ParameterCore pTo = new ParameterCore(dispatcher);
                 pTo.Group = pgTo;
                 pTo.IndexInGroup = index;
                 pTo.Name = pFrom.Name;

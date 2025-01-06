@@ -396,3 +396,5 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+/.NCrunch_ReBuzz
+/ReBuzz.v3.ncrunchsolution

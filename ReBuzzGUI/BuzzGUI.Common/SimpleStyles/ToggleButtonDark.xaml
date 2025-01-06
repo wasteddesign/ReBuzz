@@ -1,0 +1,166 @@
+<ResourceDictionary
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:c="clr-namespace:System.Windows.Controls;assembly=System.Windows.Controls"
+  xmlns:p="clr-namespace:System.Windows.Controls.Primitives;assembly=System.Windows.Controls"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+	<!--
+  <Style x:Key="SimpleToggleButton" TargetType="ToggleButton">
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="Padding" Value="2,4"/>
+		<Setter Property="Foreground" Value="#F0F0F0"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="ToggleButton">
+          <Grid x:Name="Root">
+            <VisualStateManager.VisualStateGroups>
+              <VisualStateGroup x:Name="CommonStates">
+                <VisualStateGroup.Transitions>
+                  <VisualTransition GeneratedDuration="0:0:0.02"/>
+                </VisualStateGroup.Transitions>
+                <VisualState x:Name="Normal"/>
+                <VisualState x:Name="MouseOver">
+                  <Storyboard>
+                    <DoubleAnimation Storyboard.TargetName="MouseOverElement" Storyboard.TargetProperty="(FrameworkElement.Opacity)" To="1"/>
+                  </Storyboard>
+                </VisualState>
+                <VisualState x:Name="Pressed">
+                  <Storyboard>
+                    <DoubleAnimation Storyboard.TargetName="PressedElement" Storyboard.TargetProperty="(FrameworkElement.Opacity)" To="1"/>
+                  </Storyboard>
+                </VisualState>
+                <VisualState x:Name="Disabled"/>
+              </VisualStateGroup>
+              <VisualStateGroup x:Name="CheckStates">
+                <VisualStateGroup.Transitions>
+                  <VisualTransition/>
+                </VisualStateGroup.Transitions>
+                <VisualState x:Name="Unchecked"/>
+                <VisualState x:Name="Checked">
+                  <Storyboard>
+                    <DoubleAnimation Duration="0:0:0" Storyboard.TargetName="CheckedElement" Storyboard.TargetProperty="(FrameworkElement.Opacity)" To="1"/>
+                  </Storyboard>
+                </VisualState>
+              </VisualStateGroup>
+              <VisualStateGroup x:Name="FocusStates">
+                <VisualState x:Name="Focused"/>
+                <VisualState x:Name="Unfocused"/>
+              </VisualStateGroup>
+            </VisualStateManager.VisualStateGroups>
+						<Border x:Name="BackgroundElement" Background="#595959" BorderBrush="#333333" BorderThickness="1"/>
+						<Border x:Name="MouseOverElement" Background="#CCCCCC" BorderBrush="Transparent" BorderThickness="1" Opacity="0"/>
+            <Border x:Name="PressedElement" Background="#E5E5E5" BorderBrush="Transparent" BorderThickness="1" Opacity="0"/>
+            <Border x:Name="CheckedElement" Background="#A0A0A0" BorderBrush="Transparent" BorderThickness="1" Opacity="0"/>
+            <ContentPresenter  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+          </Grid>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+-->
+
+	<Style x:Key="SimpleToggleButton" TargetType="ToggleButton">
+		<Setter Property="Padding" Value="2,2"/>
+		<Setter Property="Foreground" Value="#F0F0F0"/>
+		<Setter Property="Template">
+			<Setter.Value>
+				<ControlTemplate TargetType="ToggleButton">
+					<Border x:Name="MainBorder" TextBlock.Foreground="{TemplateBinding Foreground}">
+						<Grid>
+
+							<Border x:Name="Border" CornerRadius="2" BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="#333333" Background="#595959"/>
+							<Border x:Name="CheckBorder" CornerRadius="2" BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="Transparent" Background="Transparent"/>
+
+							<ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+
+						</Grid>
+						
+						<VisualStateManager.VisualStateGroups>
+							<VisualStateGroup x:Name="CommonStates">
+								<VisualStateGroup.Transitions>
+									<VisualTransition GeneratedDuration="0" />
+									<VisualTransition GeneratedDuration="0"
+																				To="Pressed" />
+								</VisualStateGroup.Transitions>
+								<VisualState x:Name="Normal" />
+								<VisualState x:Name="MouseOver">
+									<Storyboard>
+										<ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Panel.Background).(SolidColorBrush.Color)"
+																											Storyboard.TargetName="Border">
+											<EasingColorKeyFrame KeyTime="0" Value="#AAAAAA" />
+										</ColorAnimationUsingKeyFrames>
+										<ColorAnimationUsingKeyFrames
+														Storyboard.TargetProperty="(TextBlock.Foreground).(SolidColorBrush.Color)" Storyboard.TargetName="MainBorder">
+											<EasingColorKeyFrame KeyTime="0" Value="#1A1A1A" />
+										</ColorAnimationUsingKeyFrames>
+										<ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)"
+																											Storyboard.TargetName="Border">
+											<EasingColorKeyFrame KeyTime="0" Value="#424242" />
+										</ColorAnimationUsingKeyFrames>
+									</Storyboard>
+								</VisualState>
+								<VisualState x:Name="Pressed">
+									<Storyboard>
+										<ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Panel.Background).(SolidColorBrush.Color)"
+																											Storyboard.TargetName="Border">
+											<EasingColorKeyFrame KeyTime="0" Value="#424242" />
+										</ColorAnimationUsingKeyFrames>
+										<ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)"
+																											Storyboard.TargetName="Border">
+											<EasingColorKeyFrame KeyTime="0" Value="#1A1A1A" />
+										</ColorAnimationUsingKeyFrames>
+										<ColorAnimationUsingKeyFrames
+														Storyboard.TargetProperty="(TextBlock.Foreground).(SolidColorBrush.Color)" Storyboard.TargetName="MainBorder">
+											<EasingColorKeyFrame KeyTime="0" Value="#F0F0F0" />
+										</ColorAnimationUsingKeyFrames>
+									</Storyboard>
+								</VisualState>
+								<VisualState x:Name="Disabled">
+									<Storyboard>
+										<ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Panel.Background).(SolidColorBrush.Color)"
+																											Storyboard.TargetName="Border">
+											<EasingColorKeyFrame KeyTime="0" Value="#666666" />
+										</ColorAnimationUsingKeyFrames>
+										<ColorAnimationUsingKeyFrames
+														Storyboard.TargetProperty="(TextBlock.Foreground).(SolidColorBrush.Color)" Storyboard.TargetName="MainBorder">
+											<EasingColorKeyFrame KeyTime="0" Value="#424242" />
+										</ColorAnimationUsingKeyFrames>
+										<ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)"
+																											Storyboard.TargetName="Border">
+											<EasingColorKeyFrame KeyTime="0" Value="#424242" />
+										</ColorAnimationUsingKeyFrames>
+									</Storyboard>
+								</VisualState>
+							</VisualStateGroup>
+
+							<VisualStateGroup x:Name="CheckStates">
+								<VisualState x:Name="Checked">
+									<Storyboard>
+										<ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Panel.Background).(SolidColorBrush.Color)"
+																											Storyboard.TargetName="CheckBorder">
+											<EasingColorKeyFrame KeyTime="0" Value="#424242" />
+										</ColorAnimationUsingKeyFrames>
+										<ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)"
+																											Storyboard.TargetName="CheckBorder">
+											<EasingColorKeyFrame KeyTime="0" Value="#1A1A1A" />
+										</ColorAnimationUsingKeyFrames>
+										<ColorAnimationUsingKeyFrames
+														Storyboard.TargetProperty="(TextBlock.Foreground).(SolidColorBrush.Color)" Storyboard.TargetName="MainBorder">
+											<EasingColorKeyFrame KeyTime="0" Value="#F0F0F0" />
+										</ColorAnimationUsingKeyFrames>
+									</Storyboard>
+								</VisualState>
+								<VisualState x:Name="Unchecked" />
+							</VisualStateGroup>
+
+						</VisualStateManager.VisualStateGroups>
+
+					</Border>
+				</ControlTemplate>
+			</Setter.Value>
+		</Setter>
+	</Style>
+
+
+
+</ResourceDictionary>

@@ -1,0 +1,239 @@
+﻿<UserControl x:Class="WDE.ModernPatternEditor.PatternEditor"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+						 xmlns:sys="clr-namespace:System;assembly=mscorlib" 						 
+						 xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+						 xmlns:l="clr-namespace:WDE.ModernPatternEditor"
+						 xmlns:bgc="clr-namespace:BuzzGUI.Common;assembly=BuzzGUI.Common"
+             mc:Ignorable="d"
+             d:DesignHeight="300" d:DesignWidth="500"
+						 UseLayoutRounding="True" TextOptions.TextFormattingMode="{Binding TextFormattingMode}" Focusable="True">
+    <Grid>
+        <Grid.Resources>
+            <ResourceDictionary>
+                <!--
+                <ResourceDictionary.MergedDictionaries>
+                    <ResourceDictionary Source="/BuzzGUI.Common;component/SimpleStyles/ButtonDark.xaml"/>
+                    <ResourceDictionary Source="/BuzzGUI.Common;component/SimpleStyles/ToggleButtonDark.xaml"/>
+                    <ResourceDictionary Source="/BuzzGUI.Common;component/SimpleStyles/ScrollBarDark.xaml"/>
+                    <ResourceDictionary Source="/BuzzGUI.Common;component/SimpleStyles/ScrollViewerDark.xaml"/>
+                    <ResourceDictionary Source="/BuzzGUI.Common;component/SimpleStyles/ComboBoxDark.xaml"/>
+                    <ResourceDictionary Source="/BuzzGUI.Common;component/SimpleStyles/NumericUpDownDark.xaml"/>
+                    <ResourceDictionary Source="/BuzzGUI.Common;component/SimpleStyles/StatusBarDark.xaml"/>
+                    <ResourceDictionary Source="/BuzzGUI.Common;component/SimpleStyles/TextBoxDark.xaml"/>
+
+                </ResourceDictionary.MergedDictionaries>
+-->
+                <Style x:Key="{x:Type ComboBox}" TargetType="{x:Type ComboBox}" BasedOn="{StaticResource ComboBoxDark}"/>
+
+                <Style x:Key="{x:Type Button}" TargetType="{x:Type Button}" BasedOn="{StaticResource SimpleButton}"/>
+                <Style x:Key="{x:Type ToggleButton}" TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource SimpleToggleButton}"/>
+
+                <!--
+                <Style TargetType="{x:Type Label}">
+                    <Style.Setters>
+                        <Setter Property="Foreground" Value="#F0F0F0"/>
+                    </Style.Setters>
+                </Style>
+-->
+                <!--
+			<LinearGradientBrush x:Key="PatEdBackgroundBrush" StartPoint="0,0" EndPoint="1,0" po:Freeze="True">
+				<GradientStop Color="#E5E5D7" Offset="0.0" />
+				<GradientStop Color="#F7F7F3" Offset="1.0" />
+			</LinearGradientBrush>
+			<SolidColorBrush x:Key="PatEdBorderBrush" Color="#8000" po:Freeze="True"/>
+
+
+                <SolidColorBrush x:Key="PatEdBackgroundBrush" Color="#333333" po:Freeze="True"/>
+                <SolidColorBrush x:Key="PatEdBorderBrush" Color="#8000" po:Freeze="True"/>
+-->
+                <!--
+			<LinearGradientBrush x:Key="PatEdElementBackgroundBrush" StartPoint="0,0" EndPoint="0.05,1" po:Freeze="True">
+				<GradientStop Color="#BA9" Offset="0.0"/>
+				<GradientStop Color="#BA9" Offset="1.0"/>
+			</LinearGradientBrush>
+	-->
+
+                <!--
+			<SolidColorBrush x:Key="PatEdElementBackgroundBrush" Color="#AAA" po:Freeze="True"/>
+
+
+
+
+                <SolidColorBrush x:Key="PatEdElementBackgroundSolidColorBrush" Color="#444444" po:Freeze="True"/>
+
+                <Style x:Key="PatEdElementBorderStyle" TargetType="{x:Type Border}">
+                    <Setter Property="Background" Value="{DynamicResource PatEdElementBackgroundBrush}"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource PatEdBorderBrush}"/>
+                    <Setter Property="BorderThickness" Value="1"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Path=BindableSettings.BackgroundImage}" Value="False">
+                            <Setter Property="Background" Value="{DynamicResource PatEdElementBackgroundSolidColorBrush}"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+
+
+                <SolidColorBrush x:Key="ThemeColorOverride_PE_BG_Dark" Color="#50000000" po:Freeze="True"/>
+                <SolidColorBrush x:Key="ThemeColorOverride_PE_BG" Color="#30000000" po:Freeze="True"/>
+                -->
+                <!--
+			<SolidColorBrush x:Key="ThemeColorOverride_PE_Text" Color="#CCC" po:Freeze="True"/>
+		
+                <SolidColorBrush x:Key="ThemeColorOverride_PE_Text" Color="#BBB" po:Freeze="True"/>
+
+                <SolidColorBrush x:Key="TextDropShadowBrush" Color="Black" po:Freeze="True"/>
+
+                <SolidColorBrush x:Key="NoValueBrush" Color="#6CCC" po:Freeze="True"/>
+                <SolidColorBrush x:Key="NoValueDropShadowBrush" Color="Transparent" po:Freeze="True"/>
+
+                <SolidColorBrush x:Key="RowNumberBrush" Color="#AAA" po:Freeze="True"/>
+                <SolidColorBrush x:Key="RowNumberDropShadowBrush" Color="Black" po:Freeze="True"/>
+                
+                -->
+
+                <ObjectDataProvider x:Key="PatternNoteColors" ObjectType="{x:Type bgc:HSPAColorProvider}">
+                    <ObjectDataProvider.ConstructorParameters>
+                        <sys:Int32>12</sys:Int32>
+                        <sys:Double>0</sys:Double>
+                        <sys:Double>0.916667</sys:Double>
+                        <sys:Double>0.7</sys:Double>
+                        <sys:Double>0.7</sys:Double>
+                        <sys:Double>0.6</sys:Double>
+                        <sys:Double>0.6</sys:Double>
+                    </ObjectDataProvider.ConstructorParameters>
+                </ObjectDataProvider>
+
+                <!--
+                <SolidColorBrush x:Key="CursorBrush" Color="#2FFF" po:Freeze="True"/>
+                <SolidColorBrush x:Key="CursorBorderBrush" Color="#8FFF" po:Freeze="True"/>
+                <SolidColorBrush x:Key="CursorInactiveBrush" Color="#2005" po:Freeze="True"/>
+                <SolidColorBrush x:Key="CursorLineBrush" Color="#20F0" po:Freeze="True"/>
+
+                <SolidColorBrush x:Key="ColumnSetLabelBrush" Color="#CCC" po:Freeze="True"/>
+                <SolidColorBrush x:Key="ColumnLabelBrush" Color="#CCC" po:Freeze="True"/>
+-->
+                <x:Array Type="Color" x:Key="NoteColors">
+                    <Binding/>
+                </x:Array>
+
+                <Geometry x:Key="RightArrow">M0,0 L1,0.5 0,1Z</Geometry>
+
+                <!--
+                <SolidColorBrush x:Key="ToolbarBackgroundBrush" Color="#595959"/>
+-->
+            </ResourceDictionary>
+        </Grid.Resources>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="8*"/>
+            <RowDefinition Height="67*"/>
+        </Grid.RowDefinitions>
+        <Border Background="{StaticResource PatEdBackgroundBrush}" Margin="0,0,0,0" Grid.RowSpan="2">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!--
+			<Border BorderThickness="0,1,0,0" BorderBrush="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" Grid.ColumnSpan="2">
+				<Border BorderThickness="0,1,0,0" BorderBrush="{DynamicResource {x:Static SystemColors.ControlLightLightBrushKey}}">
+					<Border Background="{DynamicResource ToolbarBackgroundBrush}" BorderBrush="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" BorderThickness="0,0,0,1">
+			-->
+                <Border Grid.ColumnSpan="2">
+                    <Border>
+                        <Border Background="{DynamicResource ToolbarBackgroundBrush}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <WrapPanel Margin="4,0,4,0">
+<!--
+                                    <Label VerticalAlignment="Center" Margin="4,0,0,0" Visibility="Visible">Machine:</Label>
+                                    <ComboBox Name="machineBox" Margin="4,4,0,4" Height="22" Width="100" SelectedItem="{Binding ChangeMachine}" ItemsSource="{Binding Machines}"  DisplayMemberPath="Name" ToolTip="Machine (Alt+M)"  Visibility="Visible"/>
+                                    <Label Target="patternBox" VerticalAlignment="Center" Margin="4,0,0,0"  Visibility="Visible">Pattern:</Label>
+                                    <ComboBox Name="patternBox" Margin="4,4,0,4" Height="22" Width="100" SelectedItem="{Binding SelectedMachine.SelectedPattern}" ItemsSource="{Binding SelectedMachine.Patterns}" DisplayMemberPath="Name" ToolTip="Pattern (Alt+P)"  Visibility="Visible"/>
+-->
+                                    <ToggleButton Width="14" Height="14" VerticalAlignment="Center" Margin="8,4,0,4" Focusable="False" Padding="3" ToolTip="Play/Stop Pattern (Space)" IsChecked="{Binding SelectedMachine.SelectedPattern.Pattern.IsPlayingSolo, Mode=TwoWay}">
+                                        <ToggleButton.Content>
+                                            <Path Data="{DynamicResource RightArrow}" Stretch="Fill" Fill="#F0F0F0" />
+                                        </ToggleButton.Content>
+                                    </ToggleButton>
+
+                                    <Button Width="14" Height="14" VerticalAlignment="Center" Margin="8,4,0,4" Focusable="False" Padding="0,-1,0,1" FontSize="9" Content="+" ToolTip="Create Pattern (Ctrl+Return)" Command="{Binding CreatePatternCommand}"/>
+                                    <Button Width="14" Height="14" VerticalAlignment="Center" Margin="5,4,0,4" Focusable="False" Padding="0" FontSize="9" Content="C" ToolTip="Clone Pattern (Ctrl+Shift+Return)" Command="{Binding ClonePatternCommand}"/>
+                                    <Button Width="14" Height="14" VerticalAlignment="Center" Margin="5,4,0,4" Focusable="False" Padding="0,-1,0,1" FontSize="9" Content="-" ToolTip="Delete Pattern (Ctrl+Del)" Command="{Binding DeletePatternCommand}"/>
+
+                                    <Label Target="lengthBox" VerticalAlignment="Center" Margin="4,0,0,0">Beats:</Label>
+                                    <bgc:NumericUpDown Name="lengthBox" Width="48" Height="22" Margin="4,4,0,4" Minimum="1" Maximum="8192" Value="{Binding SelectedMachine.SelectedPattern.UndoableBeatCount, Mode=TwoWay}" IsEnabled="{Binding SelectedMachine.HasSelectedPattern}" />
+
+                                    <Label Target="tracksBox" VerticalAlignment="Center" Margin="4,0,0,0">Tracks:</Label>
+                                    <bgc:NumericUpDown Name="tracksBox" Width="48" Height="22" Margin="4,4,0,4" Minimum="{Binding SelectedMachine.MinTracks}" Maximum="{Binding SelectedMachine.MaxTracks}" Value="{Binding SelectedMachine.UndoableTrackCount, Mode=TwoWay}" IsEnabled="{Binding SelectedMachine.CanChangeTrackCount}"/>
+
+                                    <Label Target="waveBox" VerticalAlignment="Center" Margin="4,0,0,0">Wave:</Label>
+                                    <ComboBox Name="waveBox" Margin="4,4,0,4" Height="22" Width="160" SelectedItem="{Binding SelectedWave}" ItemsSource="{Binding Waves}" DisplayMemberPath="Name" ToolTip="Wave (Alt+W)"/>
+
+                                    <Label Target="baseOctaveBox" VerticalAlignment="Center" Margin="4,0,0,0">Base Octave:</Label>
+                                    <ComboBox Name="baseOctaveBox" Margin="4,4,0,4" Height="22" Width="40" SelectedItem="{Binding SelectedMachine.BaseOctave}" ItemsSource="{Binding SelectedMachine.BaseOctaves}" ToolTip="Base Octave (Alt+B)"/>
+                                    <ToggleButton Width="14" Height="14" VerticalAlignment="Center" Margin="4,4,0,4" Focusable="False" Padding="0" FontSize="9" Content="K" ToolTip="Show Keyboard Mapping" IsChecked="{Binding IsKeyboardMappingVisible}"/>
+                                    <ComboBox Name="rootNoteBox" Visibility="{Binding KeyboardMappingVisibility}" Margin="4,4,0,4" Height="22" Width="40" SelectedIndex="{Binding SelectedRootNote}" ItemsSource="{Binding RootNotes}" ToolTip="Keyboard Root Note (Alt+R)"/>
+                                    <ComboBox Name="kbMappingBox" Visibility="{Binding KeyboardMappingVisibility}" Margin="4,4,0,4" Height="22" Width="120" SelectedItem="{Binding SelectedKeyboardMapping}" ItemsSource="{Binding KeyboardMappings}" DisplayMemberPath="DisplayName" ToolTip="Keyboard Mapping (Alt+Y)"/>
+                                    <Button Name="btChords" Margin="4,4,0,4" Visibility="{Binding KeyboardMappingVisibility}" ToolTip="Chords Window" Content="Chords"></Button>
+                                    <Label Target="stepDownBox" Visibility="{Binding KeyboardMappingVisibility}" VerticalAlignment="Center" Margin="4,0,0,0">Down:</Label>
+                                    <bgc:NumericUpDown Name="stepDownBox" Visibility="{Binding KeyboardMappingVisibility}" ToolTip="Steps down when editing" Width="48" Height="22" Margin="4,4,0,4" Minimum="0" Maximum="32" Value="{Binding SelectedStepsDown, Mode=TwoWay}" IsEnabled="{Binding SelectedMachine.HasSelectedPattern}" />
+                                    <Label Target="stepRightBox" Visibility="{Binding KeyboardMappingVisibility}" VerticalAlignment="Center" Margin="4,0,0,0">Right:</Label>
+                                    <bgc:NumericUpDown Name="stepRightBox" Visibility="{Binding KeyboardMappingVisibility}" Width="48" Height="22" Margin="4,4,0,4" Minimum="0" Maximum="32" Value="{Binding SelectedStepsRight, Mode=TwoWay}" IsEnabled="{Binding SelectedMachine.HasSelectedPattern}" />
+
+                                    <!--..<Label Target="midiEditBox" Visibility="{Binding KeyboardMappingVisibility}" VerticalAlignment="Center" Margin="4,0,0,0">Midi Edit:</Label>-->
+                                    <CheckBox Name="midiEditBox" Visibility="{Binding KeyboardMappingVisibility}" Height="21" Margin="0,0,4,0" FlowDirection="RightToLeft" IsChecked="{Binding MidiEdit, Mode=TwoWay}" IsEnabled="{Binding SelectedMachine.HasSelectedPattern}">
+                                        <Label Visibility="{Binding KeyboardMappingVisibility}" VerticalAlignment="Center" Margin="0,-4,0,0">:Midi Edit</Label>
+                                    </CheckBox>
+
+                                    <!--
+                                    <ToggleButton Width="14" Height="14" VerticalAlignment="Center" Margin="4,4,0,4" Focusable="False" Padding="0" FontSize="9" Content="E" ToolTip="Select Pattern Editor" IsChecked="{Binding IsSelectPatternEditorVisible}"/>
+                                    <Label Target="kbPatternEditorBox" Visibility="{Binding SelectPatternEditorVisibility}" VerticalAlignment="Center" Margin="4,0,0,0">Editor:</Label>
+                                    <ComboBox Name="kbPatternEditorBox" Visibility="{Binding SelectPatternEditorVisibility}" Margin="4,4,0,4" Height="22" Width="180" SelectedItem="{Binding EditorMachine}" ItemsSource="{Binding EditorMachines}" DisplayMemberPath="Name" ToolTip="Pattern Editor"/>
+                                    <Button Name="btDefThis" Margin="4,4,0,4" Padding="4,0,4,0" Visibility="{Binding SelectPatternEditorVisibility}" ToolTip="Make default for this machine" Content="Def This"></Button>
+                                    <Button Name="btDefAll" Margin="4,4,0,4" Padding="4,0,4,0" Visibility="{Binding SelectPatternEditorVisibility}" ToolTip="Make default" Content="Def All"></Button>
+                                    -->
+                                    
+                                    <ToggleButton Width="26" Height="14" VerticalAlignment="Center" Margin="4,4,0,4" Focusable="False" Padding="0" FontSize="9" Content="I / E" ToolTip="Import/Export Pattern(s)" IsChecked="{Binding IsImportExportPatternVisible}"/>
+                                    <Button Name="btExportPattern" Margin="4,4,0,4" Padding="4,0,4,0" Visibility="{Binding SelectImportExportPatternVisibility}" ToolTip="Export Pattern" Content="Export Pattern"></Button>
+                                    <Button Name="btExportPatterns" Margin="4,4,0,4" Padding="4,0,4,0" Visibility="{Binding SelectImportExportPatternVisibility}" ToolTip="Export Patterns" Content="Export Patterns"></Button>
+                                    <Button Name="btImportPatterns" Margin="4,4,0,4" Padding="4,0,4,0" Visibility="{Binding SelectImportExportPatternVisibility}" ToolTip="Import Pattern(s)" Content="Import Pattern(s)"></Button>                                    
+
+                                    <ToggleButton Width="14" Height="14" VerticalAlignment="Center" Margin="4,4,0,4" Focusable="False" Padding="0,-0.5,0,0.5" FontSize="9" FontFamily="Webdings" Content="X" ToolTip="Play Notes (Alt+N)" IsChecked="{Binding PlayNotes}"/>
+                                    <Slider Width="100" Minimum="0" Maximum="20" Value="{Binding ScaleFactor, Mode=TwoWay}" ToolTip="Pattern Zoom" Margin="4,4,0,4"></Slider>
+                                </WrapPanel>
+                                <ToggleButton Grid.Column="1" Width="40" Height="14" VerticalAlignment="Center" Margin="8,4,8,4" Focusable="False" Padding="0" FontSize="9" Content="Help" ToolTip="Show Help (F1)" IsChecked="{Binding IsHelpVisible}"/>
+                            </Grid>
+
+                        </Border>
+                    </Border>
+                </Border>
+
+                <l:PatternControl x:Name="patternControl" Grid.Row="1" DataContext="{Binding SelectedMachine.SelectedPattern}"/>
+                <l:Help x:Name="helpControl" Grid.Column="1" Grid.Row="1" Visibility="Collapsed"/>
+
+                <StatusBar Grid.Row="2" Grid.ColumnSpan="2" Height="20">
+                    <StatusBarItem Width="100" Content="{Binding StatusBarItem1}"/>
+                    <Separator/>
+                    <StatusBarItem Width="150" Content="{Binding StatusBarItem2}"/>
+                    <Separator/>
+                    <StatusBarItem Content="{Binding StatusBarItem3}"/>
+                </StatusBar>
+
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

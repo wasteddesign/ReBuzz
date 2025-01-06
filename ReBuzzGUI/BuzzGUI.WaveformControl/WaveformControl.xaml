@@ -1,0 +1,120 @@
+﻿<UserControl x:Class="BuzzGUI.WaveformControl.WaveformControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:l="clr-namespace:BuzzGUI.WaveformControl"
+             xmlns:common="clr-namespace:BuzzGUI.Common;assembly=BuzzGUI.Common"
+             UseLayoutRounding="True" TextOptions.TextFormattingMode="Display"
+             >
+    <UserControl.Resources>
+
+        <SolidColorBrush x:Key="WaveformOutlineBrush" Color="#254b25" Opacity="1.0"></SolidColorBrush>
+
+        <LinearGradientBrush x:Key="FillBrush" StartPoint="0,0" EndPoint="0,100" Opacity="1.0" MappingMode="Absolute">
+            <GradientStop Color="#326732" Offset="0"/>
+            <GradientStop Color="#41ab41" Offset="0.5"/>
+            <GradientStop Color="#326732" Offset="1"/>
+        </LinearGradientBrush>
+
+        <LinearGradientBrush x:Key="BackgroundBrush" StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Color="#F7F7F7" Offset="0.0" />
+            <GradientStop Color="#DDDDDD" Offset="0.5" />
+            <GradientStop Color="#F7F7F7" Offset="1.0" />
+        </LinearGradientBrush>
+
+        <Style x:Key="WaveformControlBorderStyle" TargetType="{x:Type Border}">
+            <Setter Property="BorderBrush" Value="#888"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <Style x:Key="WaveformElementStyle" TargetType="{x:Type ScrollViewer}">
+            <Setter Property="Background" Value="{StaticResource BackgroundBrush}"/>
+        </Style>
+
+        <SolidColorBrush x:Key="MidlineBrush" Color="Black" Opacity="0.4"></SolidColorBrush>
+        <SolidColorBrush x:Key="CursorBrush" Color="Black" Opacity="1.0"></SolidColorBrush>
+        <SolidColorBrush x:Key="AdjustmentTargetBrush" Color="Red" Opacity="1.0"></SolidColorBrush>
+        <SolidColorBrush x:Key="SelectionBrush" Color="Red" Opacity="0.2"></SolidColorBrush>
+    </UserControl.Resources>
+
+    <Border Style="{StaticResource WaveformControlBorderStyle}" ClipToBounds="True">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="20"></RowDefinition>
+                <RowDefinition Height="*"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+            </Grid.RowDefinitions>
+            
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="100"/>
+            </Grid.ColumnDefinitions>
+
+            <Canvas Name="Timeline" Grid.Row="0" Grid.ColumnSpan="4" Background="#999999" MouseLeftButtonDown="Canvas_MouseLeftButtonDown">
+                <Canvas Name="TimelineCursor" Width="1" Height="20" Background="Black"></Canvas>
+            </Canvas>
+
+            <ScrollViewer Style="{StaticResource WaveformElementStyle}" Grid.Row="1" Grid.ColumnSpan="4"  HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Hidden" CanContentScroll="True" Name="sv">
+                <l:WaveformElement x:Name="waveformElement" Waveform="{Binding Waveform}" SnapsToDevicePixels="True" 
+                    common:CommandBehavior.Event="SelectionChanged"
+                    common:CommandBehavior.Command="{Binding SelectionChangedCommand}"
+                    common:CommandBehavior.CommandParameter="{Binding ElementName=waveformElement, Path=Selection }">
+                </l:WaveformElement>
+                <ScrollViewer.ContextMenu>
+                    <ContextMenu Name="contextMenu" >
+                        <MenuItem Header="Volume">
+                            <MenuItem Header="Normalize" Command="{Binding Path=NormalizeEditCommand}" CommandParameter="{Binding ElementName=waveformElement, Path=WaveformSelectionTuple}"/>
+                            <MenuItem Header="Mute" Command="{Binding Path=MuteCommand}" CommandParameter="{Binding ElementName=waveformElement, Path=WaveformSelectionTuple}"/>
+                            <MenuItem Header="Gain" Command="{Binding Path=GainEditCommand}" CommandParameter="{Binding ElementName=waveformElement, Path=WaveformSelectionTuple}"/>
+                            <MenuItem Header="Fade">
+                                <MenuItem Header="Fade In Linear" Command="{Binding Path=FadeInLinearCommand}" CommandParameter="{Binding ElementName=waveformElement, Path=WaveformSelectionTuple}" />
+                                <MenuItem Header="Fade Out Linear" Command="{Binding Path=FadeOutLinearCommand}" CommandParameter="{Binding ElementName=waveformElement, Path=WaveformSelectionTuple}" />
+                            </MenuItem>
+                        </MenuItem>
+                        <MenuItem Header="Looping">
+                            <MenuItem Header="Set Loop" Command="{Binding Path=SetLoopCommand}" CommandParameter="{Binding ElementName=waveformElement, Path=WaveformSelectionTuple}"/>
+                            <MenuItem Header="Snap to zero crossings" Command="{Binding Path=SnapToZeroCrossingCommand}" CommandParameter="{Binding ElementName=waveformElement, Path=WaveformSelectionTuple}"/>
+                            <MenuItem Header="Select Loop" Command="{Binding Path=SelectLoopCommand}" CommandParameter="{Binding ElementName=waveformElement, Path=WaveformSelectionTuple}"/>
+                        </MenuItem>
+                        <MenuItem Header="Editing">
+                            <MenuItem Header="Delete" Command="{Binding Path=DeleteEditCommand}" CommandParameter="{Binding ElementName=waveformElement, Path=WaveformSelectionTuple}"/>
+                            <MenuItem Header="Trim" Command="{Binding Path=TrimEditCommand}" CommandParameter="{Binding ElementName=waveformElement, Path=WaveformSelectionTuple}"/>
+                            <MenuItem Header="SaveSelection" ToolTip="Saves selection to next available waveslot" Command="{Binding Path=SaveSelectionCommand}" CommandParameter="{Binding ElementName=waveformElement, Path=WaveformSelectionTuple}" />
+                            <MenuItem Header="Insert Silence" Command="{Binding Path=InsertSilenceCommand}" CommandParameter="{Binding ElementName=waveformElement, Path=WaveformSelectionTuple}"/>
+                        </MenuItem>
+                        <MenuItem Header="Reverse" Command="{Binding Path=ReverseEditCommand}" CommandParameter="{Binding ElementName=waveformElement, Path=WaveformSelectionTuple}"/>
+                        <MenuItem Header="Phase Invert" Command="{Binding Path=PhaseInvertCommand}" CommandParameter="{Binding ElementName=waveformElement, Path=WaveformSelectionTuple}"/>
+                        <MenuItem Header="DC Remove" Command="{Binding Path=DCRemoveCommand}" CommandParameter="{Binding ElementName=waveformElement, Path=WaveformSelectionTuple}"/>
+                        <MenuItem Header="Resample">
+                            <MenuItem Header="44100" Command="{Binding Path=Resample44100Command}" CommandParameter="{Binding ElementName=waveformElement, Path=WaveformSelectionTuple}"/>
+                            <MenuItem Header="48000" Command="{Binding Path=Resample48000Command}" CommandParameter="{Binding ElementName=waveformElement, Path=WaveformSelectionTuple}"/>
+                            <MenuItem Header="88200" Command="{Binding Path=Resample88200Command}" CommandParameter="{Binding ElementName=waveformElement, Path=WaveformSelectionTuple}"/>
+                            <MenuItem Header="96000" Command="{Binding Path=Resample96000Command}" CommandParameter="{Binding ElementName=waveformElement, Path=WaveformSelectionTuple}"/>
+                            <MenuItem Header="176400" Command="{Binding Path=Resample176400Command}" CommandParameter="{Binding ElementName=waveformElement, Path=WaveformSelectionTuple}"/>
+                            <MenuItem Header="192000" Command="{Binding Path=Resample192000Command}" CommandParameter="{Binding ElementName=waveformElement, Path=WaveformSelectionTuple}"/>
+                        </MenuItem>
+                        <MenuItem Header="Change">
+                            <MenuItem Header="Pitch..." Command="{Binding Path=ChangePitchCommand}" CommandParameter="{Binding ElementName=waveformElement, Path=WaveformSelectionTuple}"/>
+                            <MenuItem Header="Tempo..." Command="{Binding Path=ChangeTempoCommand}" CommandParameter="{Binding ElementName=waveformElement, Path=WaveformSelectionTuple}"/>
+                            <MenuItem Header="Rate..." Command="{Binding Path=ChangeRateCommand}" CommandParameter="{Binding ElementName=waveformElement, Path=WaveformSelectionTuple}"/>
+                        </MenuItem>
+                        <MenuItem Header="AI Noise Suppression..." Command="{Binding Path=AINoiseSuppressionCommand}" CommandParameter="{Binding ElementName=waveformElement, Path=WaveformSelectionTuple}"/>
+                        <MenuItem Header="Other">
+                            <MenuItem Header="Detect BPM..." Command="{Binding Path=DetectPBMCommand}" CommandParameter="{Binding ElementName=waveformElement, Path=WaveformSelectionTuple}"/>
+                        </MenuItem>
+                    </ContextMenu>
+                </ScrollViewer.ContextMenu>
+            </ScrollViewer>
+
+            <Label Grid.Row="2" Grid.Column="0" Content="{Binding ElementName=waveformElement, Path=OffsetString}" HorizontalAlignment="Left"/>
+            <Label Grid.Row="2" Grid.Column="1" Content="{Binding ElementName=waveformElement, Path=SelectionString}" HorizontalAlignment="Left"/>
+            <Label Grid.Row="2" Grid.Column="2" Content="" HorizontalAlignment="Left"/>
+            <Label Grid.Row="2" Grid.Column="3" Content="{Binding ElementName=waveformElement, Path=WaveFormatString}" HorizontalAlignment="Right"/>
+        </Grid>
+    </Border>
+
+</UserControl>

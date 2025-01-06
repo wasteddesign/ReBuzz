@@ -1,0 +1,16 @@
+﻿<Window x:Class="BuzzGUI.Common.SettingsWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Settings" Height="500" Width="340" WindowStyle="ToolWindow"
+        UseLayoutRounding="True" TextOptions.TextFormattingMode="{Binding TextFormattingMode}"
+        Background="{StaticResource {x:Static SystemColors.ControlBrushKey}}"
+				Style="{DynamicResource ThemeWindowStyle}">
+	<Window.Resources>
+
+        <DataTemplate x:Key="ComboBoxItemTemplate">
+            <TextBlock Name="tb" Text="{Binding}"/>
+        </DataTemplate>
+
+    </Window.Resources>
+	<TabControl Name="tc"/>
+</Window>

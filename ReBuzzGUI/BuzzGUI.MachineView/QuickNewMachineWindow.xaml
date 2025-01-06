@@ -1,0 +1,34 @@
+﻿<Window x:Class="BuzzGUI.MachineView.QuickNewMachineWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+				xmlns:bgc="clr-namespace:BuzzGUI.Common;assembly=BuzzGUI.Common"
+        Height="295" Width="216" WindowStyle="None" ShowInTaskbar="False" ResizeMode="NoResize"
+				UseLayoutRounding="True" TextOptions.TextFormattingMode="Ideal"
+				Background="{DynamicResource MVChildWindowBackgroundBrush}"
+				Name="PART_Window">
+	<Window.Resources>
+
+		<!--
+		<DataTemplate x:Key="MachineListItemTemplate">
+			<TextBlock Text="{Binding Path=DisplayName}" Foreground="{Binding Path=DisplayNameBrush}"/>
+		</DataTemplate>
+-->
+		
+		<Style x:Key="ItemStyle" TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+			<Setter Property="bgc:CommandBehavior.Event" Value="MouseDoubleClick" />
+			<Setter Property="bgc:CommandBehavior.Command" Value="{Binding ElementName=PART_Window, Path=SelectCommand}" />
+			<Setter Property="bgc:CommandBehavior.CommandParameter" Value="{Binding}" />
+		</Style>
+		
+	</Window.Resources>
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="20"/>
+			<RowDefinition Height="*"/>
+		</Grid.RowDefinitions>
+		
+		<TextBox Grid.Row="0" Name="PART_TextBox"/>
+		<ListBox Grid.Row="1" Name="PART_ListBox" ItemsSource="{Binding Path=Items}" ItemContainerStyle="{StaticResource ItemStyle}" ItemTemplate="{DynamicResource MachineListItemTemplate}" VirtualizingStackPanel.IsVirtualizing="True" />
+        
+	</Grid>
+</Window>

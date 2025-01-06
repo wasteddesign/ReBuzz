@@ -1,0 +1,295 @@
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
+  <PropertyGroup>
+    <ProjectType>Local</ProjectType>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{4269C72A-8D3A-4737-8F89-72EAA33EA9E1}</ProjectGuid>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ApplicationIcon>
+    </ApplicationIcon>
+    <AssemblyKeyContainerName>
+    </AssemblyKeyContainerName>
+    <AssemblyName>Sanford.Multimedia.Midi</AssemblyName>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
+    <DefaultClientScript>JScript</DefaultClientScript>
+    <DefaultHTMLPageLayout>Grid</DefaultHTMLPageLayout>
+    <DefaultTargetSchema>IE50</DefaultTargetSchema>
+    <DelaySign>false</DelaySign>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Sanford.Multimedia.Midi</RootNamespace>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+    <StartupObject>
+    </StartupObject>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <OldToolsVersion>2.0</OldToolsVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>bin\Debug\</OutputPath>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <BaseAddress>285212672</BaseAddress>
+    <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
+    <ConfigurationOverrideFile>
+    </ConfigurationOverrideFile>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DocumentationFile>
+    </DocumentationFile>
+    <DebugSymbols>true</DebugSymbols>
+    <FileAlignment>4096</FileAlignment>
+    <NoStdLib>false</NoStdLib>
+    <NoWarn>
+    </NoWarn>
+    <Optimize>false</Optimize>
+    <RegisterForComInterop>false</RegisterForComInterop>
+    <RemoveIntegerChecks>false</RemoveIntegerChecks>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
+    <DebugType>full</DebugType>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>bin\Release\</OutputPath>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <BaseAddress>285212672</BaseAddress>
+    <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
+    <ConfigurationOverrideFile>
+    </ConfigurationOverrideFile>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DocumentationFile>
+    </DocumentationFile>
+    <DebugSymbols>false</DebugSymbols>
+    <FileAlignment>4096</FileAlignment>
+    <NoStdLib>false</NoStdLib>
+    <NoWarn>
+    </NoWarn>
+    <Optimize>true</Optimize>
+    <RegisterForComInterop>false</RegisterForComInterop>
+    <RemoveIntegerChecks>false</RemoveIntegerChecks>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
+    <DebugType>none</DebugType>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Sanford.Collections, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Sanford.Collections.dll</HintPath>
+    </Reference>
+    <Reference Include="Sanford.Multimedia, Version=6.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Sanford.Multimedia.dll</HintPath>
+    </Reference>
+    <Reference Include="Sanford.Multimedia.Timers, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Sanford.Multimedia.Timers.dll</HintPath>
+    </Reference>
+    <Reference Include="Sanford.Threading, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Sanford.Threading.dll</HintPath>
+    </Reference>
+    <Reference Include="System">
+      <Name>System</Name>
+    </Reference>
+    <Reference Include="System.Data">
+      <Name>System.Data</Name>
+    </Reference>
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml">
+      <Name>System.XML</Name>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Device Classes\MidiDevice.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Device Classes\MidiDeviceException.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Device Classes\InputDevice Class\InputDevice.Construction.cs" />
+    <Compile Include="Device Classes\InputDevice Class\InputDevice.Fields.cs" />
+    <Compile Include="Device Classes\InputDevice Class\InputDevice.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Device Classes\InputDevice Class\InputDevice.Messaging.cs" />
+    <Compile Include="Device Classes\InputDevice Class\InputDevice.Properties.cs" />
+    <Compile Include="Device Classes\InputDevice Class\InputDevice.PublicMethods.cs" />
+    <Compile Include="Device Classes\InputDevice Class\InputDevice.Win32.cs" />
+    <Compile Include="Device Classes\MidiHeader.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Device Classes\MidiHeaderBuilder.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Device Classes\InputDevice Class\MidiInCaps.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Device Classes\OutputDevice Classes\MidiOutCaps.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Device Classes\OutputDevice Classes\NoOpEventArgs.cs" />
+    <Compile Include="Device Classes\OutputDevice Classes\OutputDevice.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Device Classes\OutputDevice Classes\OutputDeviceBase.cs" />
+    <Compile Include="Messages\Message Builders\KeySignatureBuilder.cs" />
+    <Compile Include="GeneralMidi.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Messages\ChannelMessage.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Messages\IMidiMessage.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Messages\Message Builders\ChannelMessageBuilder.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Messages\Message Builders\IMessageBuilder.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Messages\Message Builders\MetaTextBuilder.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Messages\Message Builders\SongPositionPointerBuilder.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Messages\Message Builders\SysCommonMessageBuilder.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Messages\Message Builders\TempoChangeBuilder.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Messages\Message Builders\TimeSignatureBuilder.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Messages\MetaMessage.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Messages\ShortMessage.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Messages\SysCommonMessage.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Messages\SysExMessage.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Messages\SysRealtimeMessage.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MidiNoteConverter.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Processing\ChannelChaser.cs" />
+    <Compile Include="Clocks\IClock.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Processing\ChannelStopper.cs" />
+    <Compile Include="Sequencing\MidiFileProperties.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Clocks\MidiInternalClock.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Clocks\PpqnClock.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Sequencing\Sequence.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Sequencing\MidiEvent.cs" />
+    <Compile Include="Sequencing\Track Classes\Track.cs" />
+    <Compile Include="Sequencing\Track Classes\Track.Iterators.cs" />
+    <Compile Include="Sequencing\Track Classes\TrackReader.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Sequencing\Track Classes\TrackWriter.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Device Classes\OutputDevice Classes\OutputStream.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Messages\MessageDispatcher.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Device Classes\InputDevice Class\InputDevice.Events.cs" />
+    <Compile Include="Messages\EventArgs\ChannelMessageEventArgs.cs" />
+    <Compile Include="Messages\EventArgs\InvalidShortMessageEventArgs.cs" />
+    <Compile Include="Messages\EventArgs\InvalidSysExMessageEventArgs.cs" />
+    <Compile Include="Messages\EventArgs\MetaMessageEventArgs.cs" />
+    <Compile Include="Messages\EventArgs\SysCommonMessageEventArgs.cs" />
+    <Compile Include="Messages\EventArgs\SysExMessageEventArgs.cs" />
+    <Compile Include="Messages\EventArgs\SysRealtimeMessageEventArgs.cs" />
+    <Compile Include="Processing\ChasedEventArgs.cs" />
+    <Compile Include="Processing\StoppedEventArgs.cs" />
+    <Compile Include="Sequencing\RecordingSession.cs" />
+    <Compile Include="Sequencing\Sequencer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Sequencing\Track Classes\Track.Test.cs" />
+    <Compile Include="UI\DeviceDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\DeviceDialog.Designer.cs">
+      <DependentUpon>DeviceDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\InputDeviceDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\InputDeviceDialog.Designer.cs">
+      <DependentUpon>InputDeviceDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\OutputDeviceDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\OutputDeviceDialog.Designer.cs">
+      <DependentUpon>OutputDeviceDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\PianoControl.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="UI\PianoControl.PianoKey.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="UI\PianoControlDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\PianoControlDialog.Designer.cs">
+      <DependentUpon>PianoControlDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\PianoKeyEventArgs.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="UI\DeviceDialog.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>DeviceDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\InputDeviceDialog.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>InputDeviceDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\OutputDeviceDialog.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>OutputDeviceDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\PianoControlDialog.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>PianoControlDialog.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <BaseOutputPath>..\rel</BaseOutputPath>
+    <Platforms>AnyCPU;x64</Platforms>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartAction>Program</StartAction>
+    <StartProgram>myexecutable.exe</StartProgram>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BuzzGUI.Common\BuzzGUI.Common.csproj" />
+    <ProjectReference Include="..\BuzzGUI.Interfaces\BuzzGUI.Interfaces.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Jacobi.Vst.Core">
+      <HintPath>..\..\..\..\..\..\Program Files\ReBuzz\Jacobi.Vst.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Jacobi.Vst.Host.Interop">
+      <HintPath>..\..\..\..\..\..\Program Files\ReBuzz\Jacobi.Vst.Host.Interop.dll</HintPath>
+    </Reference>
+    <Reference Include="Jacobi.Vst.Plugin.Framework">
+      <HintPath>..\..\..\..\..\..\Program Files\ReBuzz\Jacobi.Vst.Plugin.Framework.dll</HintPath>
+    </Reference>
+    <Reference Include="Jacobi.Vst.Plugin.Interop">
+      <HintPath>..\..\..\..\..\..\Program Files\ReBuzz\Jacobi.Vst.Plugin.Interop.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>

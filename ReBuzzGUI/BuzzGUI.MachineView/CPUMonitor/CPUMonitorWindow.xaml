@@ -1,0 +1,39 @@
+﻿<Window x:Class="BuzzGUI.MachineView.CPUMonitor.CPUMonitorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="CPU Monitor" Height="600" Width="460" WindowStyle="ToolWindow" ShowInTaskbar="False"
+				UseLayoutRounding="True" TextOptions.TextFormattingMode="{Binding TextFormattingMode}" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
+				Style="{DynamicResource ThemeWindowStyle}">
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="*"/>
+			<RowDefinition Height="24"/>
+		</Grid.RowDefinitions>
+		<ListView Name="listView">
+			<ListView.View>
+				<GridView>
+					<GridView.Columns>
+						<GridViewColumn Width="100" DisplayMemberBinding="{Binding Name}">
+							<GridViewColumnHeader Content="Machine" Click="SortClick" Tag="Name"/>
+						</GridViewColumn>
+						<GridViewColumn Width="100" DisplayMemberBinding="{Binding CPUUsageString}">
+							<GridViewColumnHeader Content="CPU Usage" Click="SortClick" Tag="CPUUsage"/>
+						</GridViewColumn>
+						<GridViewColumn Width="100" DisplayMemberBinding="{Binding CCPerSample}">
+							<GridViewColumnHeader Content="CC/Sample" Click="SortClick" Tag="CCPerSample" ToolTip="Clock cycles per sample"/>
+						</GridViewColumn>
+						<GridViewColumn Width="120" DisplayMemberBinding="{Binding MaxLockTime}">
+							<GridViewColumnHeader Content="Lock Time (µs)" Click="SortClick" Tag="MaxLockTime" ToolTip="Maximum global engine lock time in microseconds. High values can cause audio glitches."/>
+						</GridViewColumn>
+					</GridView.Columns>
+				</GridView>
+			</ListView.View>
+		</ListView>
+        
+		<StackPanel Grid.Row="1" Orientation="Horizontal">
+			<TextBlock Name="totalText" Margin="8,0,0,0" VerticalAlignment="Center" ToolTip="Total audio engine CPU usage including overhead"/>
+			<TextBlock Name="overheadText" Margin="8,0,0,0" VerticalAlignment="Center" ToolTip="CPU usage by non-machines (internal mixers, amplifiers, synchronization etc.)"/>
+		</StackPanel>
+		
+	</Grid>
+</Window>

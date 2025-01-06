@@ -1,0 +1,33 @@
+﻿<Window x:Class="BuzzGUI.ParameterWindow.PresetsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        UseLayoutRounding="True" TextOptions.TextFormattingMode="{Binding TextFormattingMode}"
+        Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
+        Title="Presets" Height="300" Width="400"
+				FocusManager.FocusedElement="{Binding ElementName=nameBox}"
+				>
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="32"/>
+    </Grid.RowDefinitions>
+    
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="2*"/>
+      <ColumnDefinition Width="3*"/>
+    </Grid.ColumnDefinitions>
+    
+    <ListBox Margin="8,8,4,4" ItemsSource="{Binding Presets}" SelectedValue="{Binding PresetEditorSelectedValue}"/>
+    
+    <TextBox Grid.Column="1" Margin="0,8,8,4" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Text="{Binding PresetEditorComment}"/>
+    
+    <TextBox Name="nameBox" Grid.Row="1" Margin="8,0,4,8" Text="{Binding PresetEditorPresetName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+    
+    <StackPanel Grid.Column="1" Grid.Row="1" Margin="0,0,8,8" Orientation="Horizontal">
+      <Button Width="70" Content="{Binding PresetEditorButtonText}" Command="{Binding PresetEditorAddCommand}" IsDefault="True"/>
+      <Button Width="70" Margin="6,0,0,0" Command="{Binding PresetEditorDeleteCommand}">Delete</Button>
+      <Button Width="70" Margin="6,0,0,0" Command="{Binding PresetEditorImportCommand}">Import...</Button>
+    </StackPanel>
+        
+  </Grid>
+</Window>

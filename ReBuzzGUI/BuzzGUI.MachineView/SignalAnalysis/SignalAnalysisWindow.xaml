@@ -1,0 +1,155 @@
+﻿<Window x:Class="BuzzGUI.MachineView.SignalAnalysis.SignalAnalysisWindow"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:BuzzGUI.MachineView.SignalAnalysis"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800" UseLayoutRounding="True"
+             MinHeight="400" MinWidth="640"
+             Height="400" Width="640"
+             TextOptions.TextFormattingMode="{Binding TextFormattingMode}"
+		     Style="{DynamicResource ThemeWindowStyle}">
+
+    <Grid>
+        <Grid.Resources>
+            <!--
+            <SolidColorBrush x:Key="VUMeterBorderBrush" Color="Gray"/>
+            <SolidColorBrush x:Key="TopBGBrush" Color="#FF443C3C"/>
+            <SolidColorBrush x:Key="TopBorderBrush" Color="Gray"/>
+            <SolidColorBrush x:Key="GridLinesBrush" Color="#FF9A8181"/>
+            <Color x:Key="VUMeterBackgroundColor">#333</Color>
+            <SolidColorBrush x:Key="VUMeterBackgroundBrush">#333</SolidColorBrush>
+            <SolidColorBrush x:Key="VUMeterSplitBrush">#292929</SolidColorBrush>
+            <SolidColorBrush x:Key="AudioLBrush" Color="Red"/>
+            <SolidColorBrush x:Key="AudioRBrush" Color="#0F0"/>
+
+            <LinearGradientBrush x:Key="VUMeterBrush" StartPoint="0,1" EndPoint="0,0">
+                <GradientStop Color="#0F0" Offset="0.0"/>
+                <GradientStop Color="#FF0" Offset="0.75"/>
+                <GradientStop Color="#F00" Offset="1.0"/>
+            </LinearGradientBrush>
+            -->
+        </Grid.Resources>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <WrapPanel Grid.Row="0">
+            <Label Target="swzoom" Margin="4,4,4,4">Wave Zoom</Label>
+            <Slider Name="swzoom" Margin="8,4,4,4" Width="90" Minimum="0" Maximum="20" Value="{Binding WaveZoom}"></Slider>            
+            <Label Target="wss" Margin="4,4,4,4">Window Size</Label>
+            <Slider Name="wss" Margin="8,4,4,4" Width="90" Minimum="1" Maximum="200" Value="{Binding WindowSize}"></Slider>
+            <Label Target="sliderPos" Margin="4,4,4,4">Position</Label>
+            <Slider Name="sliderPos" Margin="8,4,4,4" Width="90" Minimum="0" Maximum="100" Value="{Binding WindowPosition}"></Slider>
+            <Label Target="cbwnd" Margin="4,4,4,4">Window</Label>
+            <ComboBox Name="cbwnd" Height="20" Margin="4,4,4,4" Width="120" VerticalContentAlignment="Center" ItemsSource="{Binding FFTWindows}" SelectedItem="{Binding SelectedFFTWindow}"></ComboBox>
+
+            <Label Target="cbconn" Margin="4,4,4,4">Connection</Label>
+            <ComboBox Name="cbconn" Height="20" Margin="4,4,4,4" Width="120" VerticalContentAlignment="Center" ItemsSource="{Binding Machine.Outputs}" SelectedItem="{Binding SelectedConnection}" DisplayMemberPath="Destination.Name"></ComboBox>
+
+        </WrapPanel>
+            
+        <Grid Grid.Row="1">
+            
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="100"/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+
+
+            <Border Grid.Row="0">
+                <Canvas Margin="4,4,4,4" ClipToBounds="True" x:Name="cWaveL" Width="auto" Height="auto" Background="{DynamicResource VUMeterBackgroundBrush}">
+                </Canvas>
+            </Border>
+            <Border Grid.Row="1">
+                <Canvas Margin="4,4,4,4" ClipToBounds="True" x:Name="cWaveR" Width="auto" Height="auto" Background="{DynamicResource VUMeterBackgroundBrush}">
+                </Canvas>
+            </Border>
+                <Border Grid.Row="2">
+                    <Canvas  Margin="4,4,4,4" ClipToBounds="True" x:Name="cSpecL" Width="auto" Height="auto" Background="{DynamicResource VUMeterBackgroundBrush}">
+                    </Canvas>
+                </Border>
+                <Border Grid.Row="3">
+                    <Canvas Margin="4,4,4,4" ClipToBounds="True" x:Name="cSpecR" Width="auto" Height="auto" Background="{DynamicResource VUMeterBackgroundBrush}">
+                    </Canvas>
+                </Border>
+            </Grid>
+
+        <Border Grid.Row="3" BorderBrush="{DynamicResource VUMeterBorderBrush}" BorderThickness="1" HorizontalAlignment="Stretch" CornerRadius="0" ToolTip="{Binding VUMeterToolTip}" >
+            <Grid x:Name="grid">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="50"></ColumnDefinition>
+                    <ColumnDefinition Width="*"></ColumnDefinition>
+                    <ColumnDefinition Width="2"></ColumnDefinition>
+                    <ColumnDefinition Width="*"></ColumnDefinition>
+                    <ColumnDefinition Width="2"></ColumnDefinition>
+                    <ColumnDefinition Width="*"></ColumnDefinition>
+                    <ColumnDefinition Width="2"></ColumnDefinition>
+                    <ColumnDefinition Width="*"></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" BorderBrush="{DynamicResource VUMeterBorderBrush}" BorderThickness="0,0,1,0" HorizontalAlignment="Stretch" CornerRadius="0" />
+
+                <Rectangle Grid.Column="1" Fill="{DynamicResource VUMeterBrush}" ToolTip="RMS Left"/>
+                <Rectangle Grid.Column="1" ToolTip="RMS Left">
+                    <Rectangle.Fill>
+                        <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
+                            <GradientStop Color="Transparent" Offset="0"/>
+                            <GradientStop Color="Transparent" Offset="{Binding VUMeterRMSLevelL}"/>
+                            <GradientStop Color="{DynamicResource VUMeterBackgroundColor}" Offset="{Binding VUMeterRMSLevelL}"/>
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
+
+                <Rectangle Fill="{DynamicResource VUMeterSplitBrush}" Grid.Column="2"></Rectangle>
+
+                <Rectangle Grid.Column="3" Fill="{DynamicResource VUMeterBrush}" ToolTip="Peak Left"/>
+                <Rectangle Grid.Column="3" ToolTip="Peak Left">
+                    <Rectangle.Fill>
+                        <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
+                            <GradientStop Color="Transparent" Offset="0"/>
+                            <GradientStop Color="Transparent" Offset="{Binding VUMeterLevelL}"/>
+                            <GradientStop Color="{DynamicResource VUMeterBackgroundColor}" Offset="{Binding VUMeterLevelL}"/>
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
+
+                <Rectangle Fill="{DynamicResource VUMeterSplitBrush}" Grid.Column="4"></Rectangle>
+
+                <Rectangle Grid.Column="5" Fill="{DynamicResource VUMeterBrush}" ToolTip="Peak Right"/>
+                <Rectangle Grid.Column="5" ToolTip="Peak Right">
+                    <Rectangle.Fill>
+                        <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
+                            <GradientStop Color="Transparent" Offset="0"/>
+                            <GradientStop Color="Transparent" Offset="{Binding VUMeterLevelR}"/>
+                            <GradientStop Color="{DynamicResource VUMeterBackgroundColor}" Offset="{Binding VUMeterLevelR}"/>
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
+
+                <Rectangle Fill="{DynamicResource VUMeterSplitBrush}" Grid.Column="6"></Rectangle>
+
+                <Rectangle Grid.Column="7" Fill="{DynamicResource VUMeterBrush}" ToolTip="RMS Right"/>
+                <Rectangle Grid.Column="7" ToolTip="RMS Right">
+                    <Rectangle.Fill>
+                        <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
+                            <GradientStop Color="Transparent" Offset="0"/>
+                            <GradientStop Color="Transparent" Offset="{Binding VUMeterRMSLevelR}"/>
+                            <GradientStop Color="{DynamicResource VUMeterBackgroundColor}" Offset="{Binding VUMeterRMSLevelR}"/>
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
+            </Grid>
+        </Border>
+        <Canvas x:Name="volTextCanvas" Grid.Row="5" Margin="0,2,0,2" Width="50" HorizontalAlignment="Left"></Canvas>
+        </Grid>
+    </Grid>
+</Window>

@@ -1,0 +1,21 @@
+﻿<UserControl x:Class="BuzzGUI.SequenceEditor.TrackHeaderControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:l="clr-namespace:BuzzGUI.SequenceEditor"
+             Width="180" Background="{StaticResource SeqEdTrackHeaderBackgroundBrush}">
+  
+  <Grid>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="*"/>
+      <ColumnDefinition Width="16"/>
+      <ColumnDefinition Width="16"/>
+    </Grid.ColumnDefinitions>
+    
+    <TextBlock Text="{Binding Machine.Name}" VerticalAlignment="Center" Margin="2,0,0,0" Foreground="{StaticResource SeqEdTrackHeaderTextBrush}" FontSize="14"/>
+
+    <ToggleButton Grid.Column="1" Style="{StaticResource MuteButtonStyle}" IsChecked="{Binding Machine.IsMuted}">M</ToggleButton>
+    <ToggleButton Grid.Column="2" Style="{StaticResource SoloButtonStyle}" IsChecked="{Binding Machine.IsSoloed}">S</ToggleButton>
+
+  </Grid>
+</UserControl>

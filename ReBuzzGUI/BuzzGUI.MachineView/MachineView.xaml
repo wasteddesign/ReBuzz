@@ -1,0 +1,376 @@
+﻿<UserControl x:Class="BuzzGUI.MachineView.MachineView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:l="clr-namespace:BuzzGUI.MachineView"
+		xmlns:bgc="clr-namespace:BuzzGUI.Common;assembly=BuzzGUI.Common"
+    UseLayoutRounding="True"
+    >
+    <UserControl.Resources>
+
+        <Style TargetType="{x:Type Image}" x:Key="ButtonImageStyle">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type Button}, AncestorLevel=1}, Path=IsEnabled}" Value="False">
+                    <Setter Property="Opacity" Value="0.25"></Setter>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <DataTemplate x:Key="MachineListItemDetailTemplate">
+            <ScrollViewer HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Auto">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <BulletDecorator Grid.Row="0">
+                    <BulletDecorator.Bullet>
+                        <Label Padding="4,2,4,2">Machine:</Label>
+                    </BulletDecorator.Bullet>
+                    <TextBox Background="Transparent" BorderThickness="0" IsReadOnly="True" VerticalAlignment="Center" Text="{Binding Path=MachineName, Mode=OneWay}"/>
+                </BulletDecorator>
+
+                <BulletDecorator Grid.Row="1">
+                    <BulletDecorator.Bullet>
+                        <Label Padding="4,2,4,2">Path:</Label>
+                    </BulletDecorator.Bullet>
+                    <TextBox Background="Transparent" BorderThickness="0" IsReadOnly="True" VerticalAlignment="Center" Text="{Binding Path=MachinePath, Mode=OneWay}"/>
+                </BulletDecorator>
+
+                <BulletDecorator Grid.Row="2">
+                    <BulletDecorator.Bullet>
+                        <Label Padding="4,2,4,2">SHA-1:</Label>
+                    </BulletDecorator.Bullet>
+                    <TextBox Background="Transparent" BorderThickness="0" IsReadOnly="True" VerticalAlignment="Center" Text="{Binding Path=MachineDLL.SHA1Hash, Mode=OneWay}"/>
+                </BulletDecorator>
+
+                <BulletDecorator Grid.Row="3">
+                    <BulletDecorator.Bullet>
+                        <Label Padding="4,2,4,2">Instrument:</Label>
+                    </BulletDecorator.Bullet>
+                    <TextBox Background="Transparent" BorderThickness="0" IsReadOnly="True" VerticalAlignment="Center" Text="{Binding Path=InstrumentName, Mode=OneWay}"/>
+                </BulletDecorator>
+
+                <BulletDecorator Grid.Row="4">
+                    <BulletDecorator.Bullet>
+                        <Label Padding="4,2,4,2">Path:</Label>
+                    </BulletDecorator.Bullet>
+                    <TextBox Background="Transparent" BorderThickness="0" IsReadOnly="True" VerticalAlignment="Center" Text="{Binding Path=InstrumentPath, Mode=OneWay}"/>
+                </BulletDecorator>
+
+                <BulletDecorator Grid.Row="5">
+                    <BulletDecorator.Bullet>
+                        <Label Padding="4,2,4,2">Author:</Label>
+                    </BulletDecorator.Bullet>
+                    <TextBox Background="Transparent" BorderThickness="0" IsReadOnly="True" VerticalAlignment="Center" Text="{Binding Path=MachineDLL.Info.Author, Mode=OneWay}"/>
+                </BulletDecorator>
+
+                <BulletDecorator Grid.Row="6">
+                    <BulletDecorator.Bullet>
+                        <Label Padding="4,2,4,2">MI Version:</Label>
+                    </BulletDecorator.Bullet>
+                    <TextBox Background="Transparent" BorderThickness="0" IsReadOnly="True" VerticalAlignment="Center" Text="{Binding Path=MachineDLL.Info.Version, Mode=OneWay}"/>
+                </BulletDecorator>
+
+                <BulletDecorator Grid.Row="7">
+                    <BulletDecorator.Bullet>
+                        <Label Padding="4,2,4,2">Flags:</Label>
+                    </BulletDecorator.Bullet>
+                    <TextBox Background="Transparent" BorderThickness="0" IsReadOnly="True" VerticalAlignment="Center" Text="{Binding Path=MachineDLL.Info.Flags, Mode=OneWay}"/>
+                </BulletDecorator>
+
+            </Grid>
+            </ScrollViewer>
+        </DataTemplate>
+
+        <DataTemplate x:Key="TemplateListItemTemplate">
+            <StackPanel Orientation="Horizontal">
+                <Image Width="12" Height="12" Source="{Binding Icon}" />
+                <TextBlock Margin="3,0" Text="{Binding DisplayName}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <Style x:Key="TemplateListItemContainerStyle" TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+            <EventSetter Event="PreviewKeyDown" Handler="TemplateListPreviewKeyDown"/>
+            <EventSetter Event="MouseDoubleClick" Handler="TemplateListMouseDoubleClick"/>
+            <Setter Property="ContextMenu">
+                <Setter.Value>
+                    <ContextMenu>
+                        <MenuItem Header="Explore" Command="{Binding ExploreCommand}"/>
+                        <MenuItem Header="Delete" InputGestureText="Del" Command="{Binding DeleteCommand}"/>
+                    </ContextMenu>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="MachineListItemContainerStyle" TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+        </Style>
+
+        <bgc:EnumBooleanConverter x:Key="enumBooleanConverter"/>
+    </UserControl.Resources>
+
+    <Grid Name="mainGrid" Background="{StaticResource MVMainGridBackgroundBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="300" MaxWidth="1000"/>
+        </Grid.ColumnDefinitions>
+
+        <Control Grid.ColumnSpan="2" Style="{StaticResource MVToolBarSeparatorStyle}"/>
+
+        <!--
+    <StackPanel Grid.ColumnSpan="2">
+      <Rectangle HorizontalAlignment="Stretch" Height="1" Fill="{StaticResource {x:Static SystemColors.ControlDarkBrushKey}}"/>
+      <Rectangle HorizontalAlignment="Stretch" Height="1" Fill="{StaticResource {x:Static SystemColors.ControlLightLightBrushKey}}"/>
+    </StackPanel>
+-->
+        <Border Style="{StaticResource TopBorderStyle}" Grid.Row="1" Grid.ColumnSpan="2" TextOptions.TextFormattingMode="{Binding TextFormattingMode}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!--
+                <TextBlock Grid.Column="1" VerticalAlignment="Center" Margin="4,0,4,0">
+					<Hyperlink Click="Hyperlink_Click" NavigateUri="http://jeskola.net/" ToolTip="http://jeskola.net/">jeskola.net</Hyperlink>
+					<Hyperlink Click="Hyperlink_Click" NavigateUri="http://forums.jeskola.net/" ToolTip="http://forums.jeskola.net/">forums</Hyperlink>
+                </TextBlock>
+                -->
+
+                <Slider Grid.Column="2" Margin="0,1,4,1" Width="100" Value="{Binding Path=Zoomer.Level, Mode=TwoWay}" Minimum="-8" Maximum="8" TickFrequency="1" IsSnapToTickEnabled="True"/>
+
+            </Grid>
+        </Border>
+
+        <Grid Name="viewGrid" Grid.Row="2">
+            <ScrollViewer Name="sv" HorizontalScrollBarVisibility="Visible"  VerticalScrollBarVisibility="Visible" Focusable="False">
+                <Grid Name="grid" Style="{StaticResource BackgroundGridStyle}" Focusable="True" AllowDrop="True">
+                    <Canvas Name="containerCanvas">
+                        <Canvas Name="connectionCanvas"/>
+                        <l:MachineCanvas x:Name="machineCanvas" CanvasSize="2"/>
+                    </Canvas>
+                </Grid>
+            </ScrollViewer>
+
+            <l:SelectionLayer x:Name="selectionLayer"/>
+            <Canvas x:Name="ampCanvas"/>
+
+            <Grid.ContextMenu>
+                <ContextMenu TextOptions.TextFormattingMode="{Binding TextFormattingMode}">
+                    <MenuItem Header="_New" ItemsSource="{Binding MachineIndex}" ItemContainerStyle="{StaticResource ContextMenuItemStyle}"/>
+                    <MenuItem Header="_Import Song..." Command="{Binding ImportSongCommand}"/>
+                    <MenuItem Header="_Unmute all machines" InputGestureText="Ctrl+U" Command="{Binding UnmuteAllMachinesCommand}"/>
+                    <Separator/>
+                    <MenuItem Header="_Cut" InputGestureText="Ctrl+X" Command="{Binding CutCommand}"/>
+                    <MenuItem Header="_Copy" InputGestureText="Ctrl+C" Command="{Binding CopyCommand}"/>
+                    <MenuItem Header="_Paste" InputGestureText="Ctrl+V" Command="{Binding PasteCommand}"/>
+                    <Separator/>
+                    <MenuItem Header="Snap Machines" Command="{Binding ArrangeCommand}"/>
+                    <Separator/>
+                    <MenuItem Header="Select _All" InputGestureText="Ctrl+A" Command="{Binding SelectAllCommand}"/>
+                    <MenuItem Header="_Deselect" InputGestureText="Ctrl+D" Command="{Binding DeselectCommand}"/>
+                    <Separator/>
+                    <MenuItem Header="_Settings..." InputGestureText="Ctrl+E" Command="{Binding SettingsCommand}"/>
+                </ContextMenu>
+            </Grid.ContextMenu>
+        </Grid>
+
+        <Border Name="sidebar" Margin="4,4,4,4" BorderBrush="Black" BorderThickness="0" Grid.Column="1" Grid.Row="2" Grid.RowSpan="1">
+            <Grid TextOptions.TextFormattingMode="{Binding TextFormattingMode}">
+                <TabControl Name="tabControl">
+                    <TabItem Header="_Machines" Name="machinesTab">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <WrapPanel Margin="0,0,0,4">
+                                <RadioButton Margin="4,4,8,4" VerticalAlignment="Center" IsChecked="{Binding Path=MachineList.VisibleMachines, Converter={StaticResource enumBooleanConverter}, ConverterParameter=All}">All</RadioButton>
+                                <RadioButton Margin="0,4,8,4" VerticalAlignment="Center" IsChecked="{Binding Path=MachineList.VisibleMachines, Converter={StaticResource enumBooleanConverter}, ConverterParameter=Generator}">Generator</RadioButton>
+                                <RadioButton Margin="0,4,8,4" VerticalAlignment="Center" IsChecked="{Binding Path=MachineList.VisibleMachines, Converter={StaticResource enumBooleanConverter}, ConverterParameter=Effect}">Effect</RadioButton>
+                                <RadioButton Margin="0,4,8,4" VerticalAlignment="Center" IsChecked="{Binding Path=MachineList.VisibleMachines, Converter={StaticResource enumBooleanConverter}, ConverterParameter=Control}">Control</RadioButton>
+
+                                <bgc:SearchTextBox Name="machineListSearchTextBox" Width="100" Height="21" SearchEventTimeDelay="0"/>
+
+                            </WrapPanel>
+
+                            <ListBox Name="machineListBox" ItemsSource="{Binding Path=MachineList.Items}" Grid.Row="1" ScrollViewer.HorizontalScrollBarVisibility="Visible" VirtualizingStackPanel.IsVirtualizing="True" ItemTemplate="{StaticResource MachineListItemTemplate}"  ItemContainerStyle="{StaticResource MachineListItemContainerStyle}"/>
+
+                            <GridSplitter Grid.Row="1" Margin="2,0,2,0"
+                  Height="3" Foreground="Transparent" Background="Transparent"
+                  VerticalAlignment="Bottom" 
+                  HorizontalAlignment="Stretch" />
+                            <ContentControl Grid.Row="2" Name="machineListDetail" ContentTemplate="{StaticResource MachineListItemDetailTemplate}" Content="{Binding ElementName=machineListBox, Path=SelectedItem}"/>
+
+                        </Grid>
+                    </TabItem>
+
+                    <TabItem Header="_Parameters" Name="parametersTab" DataContext="{Binding ParametersTabVM}">
+                        <Grid>
+                            <Grid.Resources>
+                                <Style x:Key="{x:Type Thumb}" TargetType="{x:Type Thumb}" BasedOn="{StaticResource ParameterSliderThumb}"/>
+                            </Grid.Resources>
+
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <WrapPanel Margin="0,0,0,4">
+                                <RadioButton Margin="4,4,8,4" VerticalAlignment="Center" IsChecked="{Binding Path=VisibleMachines, Converter={StaticResource enumBooleanConverter}, ConverterParameter=All}">All</RadioButton>
+                                <RadioButton Margin="0,4,8,4" VerticalAlignment="Center" IsChecked="{Binding Path=VisibleMachines, Converter={StaticResource enumBooleanConverter}, ConverterParameter=Selected}">Selected</RadioButton>
+                                <bgc:SearchTextBox Text="{Binding MachineFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" LabelText="Machine" Width="100" Height="21" SearchEventTimeDelay="0"/>
+                                <bgc:SearchTextBox Text="{Binding ParameterFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" LabelText="Parameter" Margin="8,0,0,0" Width="100" Height="21" SearchEventTimeDelay="0"/>
+
+                            </WrapPanel>
+
+                            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Visible" Margin="2,2,2,2">
+                                <ItemsControl ItemsSource="{Binding Machines}" Focusable="False">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Visibility="{Binding Visibility}">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="24"/>
+                                                    <RowDefinition Height="*"/>
+                                                </Grid.RowDefinitions>
+
+                                                <Border BorderThickness="1" BorderBrush="Black" Margin="0,0,2,0">
+                                                    <Border.Background>
+                                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                            <GradientStop Color="{Binding TitleBackgroundColor}" Offset="0"/>
+                                                            <GradientStop Color="White" Offset="2"/>
+                                                        </LinearGradientBrush>
+                                                    </Border.Background>
+
+                                                    <TextBlock Text="{Binding Name}" Margin="4,0,0,0" VerticalAlignment="Center">
+                                                        <TextBlock.Foreground>
+                                                            <SolidColorBrush Color="{Binding TitleForegroundColor}"/>
+                                                        </TextBlock.Foreground>
+                                                    </TextBlock>
+                                                </Border>
+
+                                                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="4,4,4,4">
+                                                    <ItemsControl ItemsSource="{Binding Parameters}" Focusable="False">
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <Grid Height="16" Visibility="{Binding Visibility}">
+
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="90"/>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                        <ColumnDefinition Width="90"/>
+                                                                    </Grid.ColumnDefinitions>
+
+                                                                    <TextBlock Grid.Column="0" Text="{Binding Name}" ToolTip="{Binding Description}"/>
+                                                                    <Border Grid.Column="1" Height="14" Background="#333" CornerRadius="3" SnapsToDevicePixels="True">
+                                                                        <bgc:ParameterSlider MinimumThumbWidth="16" Focusable="True" Value="{Binding Value}" Minimum="{Binding MinValue}" Maximum="{Binding MaxValue}"/>
+                                                                    </Border>
+                                                                    <TextBlock Grid.Column="2" Margin="4,0,0,0" Text="{Binding ValueDescription}"/>
+
+                                                                </Grid>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </ScrollViewer>
+
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+
+                        </Grid>
+                    </TabItem>
+
+                    <TabItem Header="_Templates" Name="templatesTab">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <WrapPanel Margin="0,0,0,4">
+                                <Button Margin="4,4,4,4" Padding="8,2,8,2" Content="Create Template..." Command="{Binding CreateTemplateCommand}"/>
+                                <Button Margin="0,4,4,4" Width="23" Height="23" Padding="0" Command="{Binding TemplateListParentCommand}">
+                                    <Image Source="/BuzzGUI.MachineView;component/Images/075b_UpFolder_16x16_72.png" Width="16" Height="16" Style="{StaticResource ButtonImageStyle}" ToolTip="Go Up"/>
+                                </Button>
+                                <bgc:SearchTextBox Name="templateListSearchTextBox" Width="100" Height="21" SearchEventTimeDelay="0"/>
+                            </WrapPanel>
+
+                            <ListBox Name="templateListBox" Grid.Row="1" ScrollViewer.HorizontalScrollBarVisibility="Visible" VirtualizingStackPanel.IsVirtualizing="True" ItemTemplate="{StaticResource TemplateListItemTemplate}" ItemsSource="{Binding Path=TemplateList.Items}" ItemContainerStyle="{StaticResource TemplateListItemContainerStyle}"/>
+
+                        </Grid>
+
+                    </TabItem>
+
+                    <TabItem Header="M_ore Machines" Name="mdbTab" DataContext="{Binding MDBTabVM}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid Visibility="{Binding DownloadVisibility}" >
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button Margin="4,4,4,4" Padding="8,2,8,2" Command="{Binding DownloadMDBCommand}" IsEnabled="{Binding IsDownloadButtonEnabled}">Download...</Button>
+                                    <ProgressBar Grid.Column="1" Margin="0,4,4,4" Visibility="{Binding ProgressBarVisibility}" Value="{Binding ProgressBarValue}"/>
+                                </Grid>
+                                <TextBlock Grid.Row="1" TextWrapping="Wrap" Margin="4,0,4,4">
+								Click to download a big collection of machines. The machines will not be automatically installed so they will not mess up your Buzz installation.
+                                </TextBlock>
+                                <TextBlock Grid.Row="2" TextWrapping="Wrap" Margin="4,0,4,4" Foreground="Red">
+								DISCLAIMER: The machines are third-party binaries. Use them at your own risk.
+                                </TextBlock>
+                            </Grid>
+
+                            <WrapPanel Margin="0,0,0,4" Grid.Row="1" IsEnabled="{Binding IsListBoxEnabled}">
+                                <RadioButton Margin="4,4,8,4" VerticalAlignment="Center" IsChecked="{Binding Path=VisibleMachines, Converter={StaticResource enumBooleanConverter}, ConverterParameter=All}">All</RadioButton>
+                                <RadioButton Margin="0,4,8,4" VerticalAlignment="Center" IsChecked="{Binding Path=VisibleMachines, Converter={StaticResource enumBooleanConverter}, ConverterParameter=Generator}">Generator</RadioButton>
+                                <RadioButton Margin="0,4,8,4" VerticalAlignment="Center" IsChecked="{Binding Path=VisibleMachines, Converter={StaticResource enumBooleanConverter}, ConverterParameter=Effect}">Effect</RadioButton>
+                                <RadioButton Margin="0,4,8,4" VerticalAlignment="Center" IsChecked="{Binding Path=VisibleMachines, Converter={StaticResource enumBooleanConverter}, ConverterParameter=Control}">Control</RadioButton>
+
+                                <bgc:SearchTextBox Name="mdbListSearchTextBox" Width="100" Height="21" SearchEventTimeDelay="0"/>
+
+                            </WrapPanel>
+
+                            <ListBox Name="mdbListBox" ItemsSource="{Binding Path=Machines}" Grid.Row="2" Margin="0,0,0,0" ScrollViewer.HorizontalScrollBarVisibility="Visible" VirtualizingStackPanel.IsVirtualizing="True" IsEnabled="{Binding IsListBoxEnabled}" ItemTemplate="{StaticResource MachineListItemTemplate}"  ItemContainerStyle="{StaticResource MachineListItemContainerStyle}"/>
+                    <!--
+                            <ScrollViewer Grid.Row="3" Margin="0,0,0,0" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible" >
+                                <ContentControl IsEnabled="{Binding IsListBoxEnabled}" ContentTemplate="{StaticResource MachineListItemDetailTemplate}" Content="{Binding ElementName=mdbListBox, Path=SelectedItem}"/>
+                            </ScrollViewer>
+                    -->
+                            <ContentControl Grid.Row="3" IsEnabled="{Binding IsListBoxEnabled}" ContentTemplate="{StaticResource MachineListItemDetailTemplate}" Content="{Binding ElementName=mdbListBox, Path=SelectedItem}"/>
+                        </Grid>
+                    </TabItem>
+                </TabControl>
+            </Grid>
+        </Border>
+
+        <GridSplitter Grid.Row="2" Grid.Column="1" VerticalAlignment="Stretch" HorizontalAlignment="Left" Width="4" Background="Transparent"/>
+
+    </Grid>
+</UserControl>
