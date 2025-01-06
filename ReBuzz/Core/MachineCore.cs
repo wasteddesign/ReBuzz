@@ -665,7 +665,7 @@ namespace ReBuzz.Core
                         machineGUIWindow = new MachineGUIHostWindow();
 
                         machineGUIWindow.SizeToContent = SizeToContent.WidthAndHeight;
-                        var gui = DLL.GUIFactory.CreateGUI(machineGUIWindow);
+                        this.gui = DLL.GUIFactory.CreateGUI(machineGUIWindow);
                         var guiUIElement = gui as UserControl;
                         Viewbox vb = new Viewbox();
                         vb.Stretch = System.Windows.Media.Stretch.Fill;
@@ -803,13 +803,11 @@ namespace ReBuzz.Core
             if (parameterWindow != null)
             {
                 parameterWindow.Close();
-                parameterWindow = null;
             }
 
             if (machineGUIWindow != null)
             {
                 machineGUIWindow.Close();
-                machineGUIWindow = null;
             }
         }
 
@@ -1296,6 +1294,7 @@ namespace ReBuzz.Core
         internal long performanceLastCount;
         internal long performanceBranchCount;
         internal Dictionary<int, int> remappedLoadedMachineParameterIndexes;
+        internal IMachineGUI gui;
         private readonly string buzzPath;
         private readonly IUiDispatcher dispatcher;
 
