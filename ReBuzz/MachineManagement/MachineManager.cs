@@ -13,6 +13,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using BuzzGUI.Common.Settings;
+using BuzzGUI.ParameterWindow;
 
 namespace ReBuzz.MachineManagement
 {
@@ -558,6 +559,21 @@ namespace ReBuzz.MachineManagement
                 machine.Ready = false;
                 machine.ClearEvents();
 
+                var gui = machine.gui;
+                if (gui != null)
+                {
+                    gui.Machine = null;
+                    gui = null;
+                }
+
+                var pw = machine.ParameterWindow;
+                if (pw != null)
+                {
+                    var dc = machine.ParameterWindow.DataContext as ParameterWindowVM;
+                    if (dc != null)
+                        dc.Machine = null;
+                }
+
                 if (nativeMachines.ContainsKey(machine))
                 {
                     /*
@@ -585,6 +601,7 @@ namespace ReBuzz.MachineManagement
                 else if (managedMachines.ContainsKey(machine))
                 {
                     var machineHost = managedMachines[machine];
+                        
                     machineHost.Release();
                     managedMachines.Remove(machine);
                 }
