@@ -69,9 +69,5 @@ All the basic functionality is implemented but there many areas to improve. In g
 - [ ] Improve file handling to support older songs
 - [ ] Reduce latency, optimize code
 
-You might want to improve also
-- [ReBuzz GUI Components](https://github.com/wasteddesign/ReBuzzGUI)
-- [ReBuzzEngine](https://github.com/wasteddesign/ReBuzzEngine)
-- [ModernPatternEditor](https://github.com/wasteddesign/ModernPatternEditor)
 
 Let's make this a good one.
