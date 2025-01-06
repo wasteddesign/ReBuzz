@@ -19,38 +19,23 @@ Requires:
 2. [Latest Microsoft Visual C++ Redistributable](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170)
 
 ## How to build?
-1. Get all the solution components<br>
-   a) ReBuzz (this repo)<br>
-   b) ReBuzzGUI<br>
-   c) ReBuzzEngine<br>
-   d) ModernPatternEditor<br>
-   e) ReBuzzRunTime [https://github.com/themarcnet/ReBuzzRunTime]<br>
-   f) ReBuzz3rdParty [https://github.com/themarcnet/ReBuzz3rdParty] - **IMPORTANT: Get with --recurse-submodules** <br>
+1. Clone this repo. **IMPORTANT: Clone with --recurse-submodules** <br>
 
-2. Your directory layout should be:
-    - \ <br> 
-    - \ModernPatternEditor\ <br>
-    - \ReBuzz\ <br>
-    - \ReBuzz3rdParty\ <br>
-    - \ReBuzzEngine\ <br>
-    - \ReBuzzGUI\ <br>
-    - \ReBuzzRunTime\ <br>
+2. Load the ReBuzz.sln (located at \ReBuzz\ReBuzz.sln) **In Visual Studio 2022** (Community version will suffice) 
 
-3. Load the ReBuzz.sln (located at \ReBuzz\ReBuzz.sln) **In Visual Studio 2022** (Community version will suffice) 
-
-4. Ensure ReBuzz is the Startup project. It should be highlighted bold in the Solution Explorer.<br><br>
+3. Ensure ReBuzz is the Startup project. It should be highlighted bold in the Solution Explorer.<br><br>
     If it is not, then right click the ReBuzz project in Solution Explorer, and select "Set as Startup Project"
 
-5. Build all.
+4. Build all.
 
-6. The result should be output to (depending on if Debug or Release is selected):<br>
-    - root\ReBuzz\bin\Debug\net9.0-windows\ <br>
-    - root\ReBuzz\bin\Release\net9.0-windows\ <br>
+5. The result should be output to (depending on if Debug or Release is selected):<br>
+    - <repo dir>\bin\Debug\x64\net9.0-windows\ <br>
+    - <repo dir>\bin\Release\x64\net9.0-windows\ <br>
 
-7. You should be able to run ReBuzz directly from there.
+6. You should be able to run ReBuzz directly from there.
 
-8. In order to prevent pollution of the source tree(s), **all** intermediate files are located in: <br>
-    - root\ReBuzz\build
+In order to prevent pollution of the source tree(s), **all** intermediate files are located in: <br>
+    - <repo dir>\build
 
     This has been achieved by (*This is information only. This is only useful when adding new projects to ReBuzz*): <br>
       - Placing ``Directory.build.props`` in each project (same level as each .csproj file) <br>
