@@ -4,10 +4,19 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <ImplicitUsings>enable</ImplicitUsings>
-    <BaseOutputPath>..\rel</BaseOutputPath>
+    <BaseOutputPath>$(SolutionDir)build\$(Configuration)\$(Platform)\BuzzGUI.FileBrowser\bin</BaseOutputPath>
+    <IntermediateOutputPath>$(SolutionDir)build\$(Configuration)\$(Platform)\BuzzGUI.FileBrowser\obj</IntermediateOutputPath>
     <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\BuzzGUI.Common\BuzzGUI.Common.csproj" />
   </ItemGroup>
+  
+  <Target Name="ForcePerformRestore" AfterTargets="BeforeBuild">	
+    <Exec Command="IF NOT EXIST  $(IntermediateOutputPath)..\project.assets.json  echo restore to $(IntermediateOutputPath)..\project.assets.json &amp;&amp;  dotnet restore $(ProjectName).csproj --no-dependencies &amp;&amp; move build\$(ProjectName)\obj\* $(IntermediateOutputPath)..\ &amp;&amp; rmdir /Q /S build	 " /> 
+  </Target>
+  
+  <Target Name="RemoveEmptyObj" AfterTargets="AfterBuild">
+    <Exec Command="IF EXIST obj rmdir obj" />
+  </Target>
 </Project>

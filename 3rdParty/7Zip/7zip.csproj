@@ -1,0 +1,75 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{4B01F1FA-1AC3-4E2B-8D6F-9BB666EFCA9E}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>_7zip</RootNamespace>
+    <AssemblyName>7zip</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>false</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\build\debug\x64\7zip\bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <BaseIntermediateOutputPath>..\..\build\debug\x64\7zip\obj\</BaseIntermediateOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\build\release\x64\7zip\bin\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <BaseIntermediateOutputPath>..\..\build\release\x64\7zip\obj\</BaseIntermediateOutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="sdk\CS\7zip\Common\CommandLineParser.cs" />
+    <Compile Include="sdk\CS\7zip\Common\CRC.cs" />
+    <Compile Include="sdk\CS\7zip\Common\InBuffer.cs" />
+    <Compile Include="sdk\CS\7zip\Common\OutBuffer.cs" />
+    <Compile Include="sdk\CS\7zip\Compress\LzmaAlone\LzmaAlone.cs" />
+    <Compile Include="sdk\CS\7zip\Compress\LzmaAlone\LzmaBench.cs" />
+    <Compile Include="sdk\CS\7zip\Compress\LzmaAlone\Properties\AssemblyInfo.cs" />
+    <Compile Include="sdk\CS\7zip\Compress\LzmaAlone\Properties\Resources.cs" />
+    <Compile Include="sdk\CS\7zip\Compress\LzmaAlone\Properties\Settings.cs" />
+    <Compile Include="sdk\CS\7zip\Compress\LZMA\LzmaBase.cs" />
+    <Compile Include="sdk\CS\7zip\Compress\LZMA\LzmaDecoder.cs" />
+    <Compile Include="sdk\CS\7zip\Compress\LZMA\LzmaEncoder.cs" />
+    <Compile Include="sdk\CS\7zip\Compress\LZ\IMatchFinder.cs" />
+    <Compile Include="sdk\CS\7zip\Compress\LZ\LzBinTree.cs" />
+    <Compile Include="sdk\CS\7zip\Compress\LZ\LzInWindow.cs" />
+    <Compile Include="sdk\CS\7zip\Compress\LZ\LzOutWindow.cs" />
+    <Compile Include="sdk\CS\7zip\Compress\RangeCoder\RangeCoder.cs" />
+    <Compile Include="sdk\CS\7zip\Compress\RangeCoder\RangeCoderBit.cs" />
+    <Compile Include="sdk\CS\7zip\Compress\RangeCoder\RangeCoderBitTree.cs" />
+    <Compile Include="sdk\CS\7zip\ICoder.cs" />
+    <Compile Include="SevenZipHelper.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="sdk\CS\7zip\Compress\LzmaAlone\LzmaAlone.sln" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

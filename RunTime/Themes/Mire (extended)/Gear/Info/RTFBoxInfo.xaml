@@ -1,0 +1,60 @@
+﻿
+<ResourceDictionary 
+xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:shell="clr-namespace:Microsoft.Windows.Shell;assembly=BuzzGUI.Common"
+    >
+	<ResourceDictionary.MergedDictionaries>
+
+		<ResourceDictionary Source="SimpleStyles/Button.xaml" />
+		<ResourceDictionary Source="SimpleStyles/ToolBarDark.xaml" />
+		<ResourceDictionary Source="SimpleStyles/SliderDark.xaml" />
+		
+		<ResourceDictionary Source="SimpleStyles/ListBoxDark.xaml" />
+		<ResourceDictionary Source="pack://application:,,,/BuzzGUI.Common;component/SimpleStyles/ComboBoxDark.xaml"/>
+		<ResourceDictionary Source="pack://application:,,,/BuzzGUI.Common;component/SimpleStyles/ScrollBarDark.xaml"/>
+				<!--	
+		<ResourceDictionary Source="pack://application:,,,/BuzzGUI.Common;component/SimpleStyles/ButtonDark.xaml"/>
+		<ResourceDictionary Source="pack://application:,,,/BuzzGUI.Common;component/SimpleStyles/ToggleButtonDark.xaml"/>
+
+		<ResourceDictionary Source="pack://application:,,,/BuzzGUI.Common;component/SimpleStyles/ScrollBarDark.xaml"/>
+		<ResourceDictionary Source="pack://application:,,,/BuzzGUI.Common;component/SimpleStyles/ScrollViewerDark.xaml"/>
+		<ResourceDictionary Source="pack://application:,,,/BuzzGUI.Common;component/SimpleStyles/ComboBoxDark.xaml"/>
+		<ResourceDictionary Source="pack://application:,,,/BuzzGUI.Common;component/SimpleStyles/NumericUpDownDark.xaml"/>
+		<ResourceDictionary Source="pack://application:,,,/BuzzGUI.Common;component/SimpleStyles/ListBoxDark.xaml"/>
+	
+		<ResourceDictionary Source="pack://application:,,,/BuzzGUI.Common;component/SimpleStyles/TabControlDark.xaml"/>
+		<ResourceDictionary Source="pack://application:,,,/BuzzGUI.Common;component/SimpleStyles/SliderDark.xaml"/>
+		<ResourceDictionary Source="pack://application:,,,/BuzzGUI.Common;component/SimpleStyles/TextBoxDark.xaml"/>
+		<ResourceDictionary Source="pack://application:,,,/BuzzGUI.Common;component/SimpleStyles/RadioButtonDark.xaml"/>
+		<ResourceDictionary Source="pack://application:,,,/BuzzGUI.Common;component/SimpleStyles/CheckBoxDark.xaml"/>
+		
+		<ResourceDictionary Source="../../SimpleStyles/ListViewDark.xaml"/>
+		<ResourceDictionary Source="pack://application:,,,/BuzzGUI.Common;component/SimpleStyles/GroupBoxDark.xaml"/>
+		<ResourceDictionary Source="pack://application:,,,/BuzzGUI.Common;component/SimpleStyles/ProgressBarDark.xaml"/>
+-->
+
+	</ResourceDictionary.MergedDictionaries>
+
+	<Style x:Key="{x:Static ToolBar.SeparatorStyleKey}" 
+TargetType="{x:Type Separator}">
+		<Setter Property="Background" 
+Value="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}"/>
+		<Setter Property="Margin" Value="0,2,0,2"/>
+		<Setter Property="Focusable" Value="false"/>
+		<Setter Property="Template">
+			<Setter.Value>
+				<ControlTemplate TargetType="{x:Type Separator}">
+					<Border 
+			BorderBrush="{TemplateBinding BorderBrush}" 
+			BorderThickness="{TemplateBinding BorderThickness}" 
+			Background="#444" 
+			Height="16" 
+			SnapsToDevicePixels="true"/>
+				</ControlTemplate>
+			</Setter.Value>
+		</Setter>
+	</Style>
+</ResourceDictionary>

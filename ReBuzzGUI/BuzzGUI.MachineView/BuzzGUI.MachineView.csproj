@@ -4,32 +4,43 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <ImplicitUsings>enable</ImplicitUsings>
-    <BaseOutputPath>..\rel</BaseOutputPath>
+	  <BaseOutputPath>$(SolutionDir)build\$(Configuration)\$(Platform)\BuzzGUI.MachineView\bin</BaseOutputPath>
+	  <IntermediateOutputPath>$(SolutionDir)build\$(Configuration)\$(Platform)\BuzzGUI.MachineView\obj</IntermediateOutputPath>
     <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
   <PropertyGroup>
     <StartAction>Program</StartAction>
     <StartProgram>myexecutable.exe</StartProgram>
   </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\BuzzGUI.Common\BuzzGUI.Common.csproj" />
     <ProjectReference Include="..\BuzzGUI.Interfaces\BuzzGUI.Interfaces.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Jacobi.Vst.Core">
-      <HintPath>..\..\..\..\..\..\Program Files\ReBuzz\Jacobi.Vst.Core.dll</HintPath>
+      <HintPath>..\..\3rdParty\Jacobi\Jacobi.Vst.Core.dll</HintPath>
     </Reference>
     <Reference Include="Jacobi.Vst.Host.Interop">
-      <HintPath>..\..\..\..\..\..\Program Files\ReBuzz\Jacobi.Vst.Host.Interop.dll</HintPath>
+      <HintPath>..\..\3rdParty\Jacobi\Jacobi.Vst.Host.Interop.dll</HintPath>
     </Reference>
     <Reference Include="Jacobi.Vst.Plugin.Framework">
-      <HintPath>..\..\..\..\..\..\Program Files\ReBuzz\Jacobi.Vst.Plugin.Framework.dll</HintPath>
+      <HintPath>..\..\3rdParty\Jacobi\Jacobi.Vst.Plugin.Framework.dll</HintPath>
     </Reference>
     <Reference Include="Jacobi.Vst.Plugin.Interop">
-      <HintPath>..\..\..\..\..\..\Program Files\ReBuzz\Jacobi.Vst.Plugin.Interop.dll</HintPath>
+      <HintPath>..\..\3rdParty\Jacobi\Jacobi.Vst.Plugin.Interop.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\3rdParty\Newtonsoft.Json.dll</HintPath>
     </Reference>
   </ItemGroup>
+  
+  <Target Name="ForcePerformRestore" AfterTargets="BeforeBuild">	
+    <Exec Command="IF NOT EXIST  $(IntermediateOutputPath)..\project.assets.json  echo restore to $(IntermediateOutputPath)..\project.assets.json &amp;&amp;  dotnet restore $(ProjectName).csproj --no-dependencies &amp;&amp; move build\$(ProjectName)\obj\* $(IntermediateOutputPath)..\ &amp;&amp; rmdir /Q /S build	 " /> 
+  </Target>
+  
+  <Target Name="RemoveEmptyObj" AfterTargets="AfterBuild">
+    <Exec Command="IF EXIST obj rmdir obj" />
+  </Target>
+
 </Project>

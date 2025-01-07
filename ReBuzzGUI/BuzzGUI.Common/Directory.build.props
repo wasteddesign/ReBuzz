@@ -1,0 +1,5 @@
+<Project>
+    <PropertyGroup>
+        <MSBUildProjectExtensionsPath>$(SolutionDir)build\$(Configuration)\$(Platform)\BuzzGUI.Common\obj</MSBUildProjectExtensionsPath>
+    </PropertyGroup>
+</Project>

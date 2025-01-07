@@ -1,0 +1,117 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>Serilog</RootNamespace>
+
+    <AssemblyName>Serilog.Sinks.RichTextBox.Wpf</AssemblyName>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <GenerateAssemblyVersionAttribute>true</GenerateAssemblyVersionAttribute>
+    <GenerateAssemblyFileVersionAttribute>true</GenerateAssemblyFileVersionAttribute>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <DebugType>portable</DebugType>
+    <IncludeSymbols>true</IncludeSymbols>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+
+    <SignAssembly>False</SignAssembly>
+    <AssemblyOriginatorKeyFile>serilog-sinks-richtextbox\asset\Serilog.snk</AssemblyOriginatorKeyFile>
+    <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
+
+    <NoWarn>$(NoWarn);NU5048</NoWarn>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <TreatSpecificWarningsAsErrors />
+	
+	<BaseOutputPath>$(SolutionDir)build\$(Configuration)\$(Platform)\$(MSBuildProjectName)\bin</BaseOutputPath>
+	<IntermediateOutputPath>$(SolutionDir)build\$(Configuration)\$(Platform)\$(MSBuildProjectName)\obj</IntermediateOutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <MinClientVersion>3.3</MinClientVersion>
+    <PackageId>Serilog.Sinks.RichTextBox.Wpf</PackageId>
+    <Version>0.0.1-local</Version>
+    <Authors>C. Augusto Proiete &amp; Contributors</Authors>
+    <Company>augustoproiete.net</Company>
+    <Description>A Serilog sink that writes log events to any WPF RichTextBox control with coloring and custom theme support.</Description>
+    <Copyright>Copyright 2021 C. Augusto Proiete &amp; Contributors - Provided under the Apache License, Version 2.0</Copyright>
+    <PackageTags>serilog;sinks;richtextbox;wpf;windows;sink;colored;colors;color;theme;themes;windows-presentation-foundation;textbox;serilog-sink;serilog-contrib;augustoproiete;augusto-proiete</PackageTags>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageIcon>images\icon.png</PackageIcon>
+    <PackageIconUrl>http://serilog.net/images/serilog-sink-nuget.png</PackageIconUrl>
+    <PackageProjectUrl>https://github.com/serilog-contrib/serilog-sinks-richtextbox</PackageProjectUrl>
+    <PackageReleaseNotes>https://github.com/serilog-contrib/serilog-sinks-richtextbox/releases</PackageReleaseNotes>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/serilog-contrib/serilog-sinks-richtextbox.git</RepositoryUrl>
+  </PropertyGroup>
+
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>Serilog.Sinks.RichTextBox.Wpf.Tests, PublicKey=0024000004800000940000000602000000240000525341310004000001000100fb8d13fd344a1c6fe0fe83ef33c1080bf30690765bc6eb0df26ebfdf8f21670c64265b30db09f73a0dea5b3db4c9d18dbf6d5a25af5ce9016f281014d79dc3b4201ac646c451830fc7e61a2dfd633d34c39f87b81894191652df5ac63cc40c77f3542f702bda692e6e8a9158353df189007a49da0f3cfd55eb250066b19485ec</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="*.DotSettings" />
+  
+  <Compile Remove="serilog\**" />
+   <Compile Remove="serilog-sinks-richtextbox\asset\**" />
+   <Compile Remove="serilog-sinks-richtextbox\sample\**" /> 
+   <Compile Remove="serilog-sinks-richtextbox\test\**" />
+   
+   <EmbeddedResource Remove="serilog\**" />
+   <EmbeddedResource Remove="serilog-sinks-richtextbox\asset\**" />
+   <EmbeddedResource Remove="serilog-sinks-richtextbox\sample\**" />
+   <EmbeddedResource Remove="serilog-sinks-richtextbox\test\**" />
+   
+   <None Remove="serilog\**" />
+   <None Remove="serilog-sinks-richtextbox\asset\**" />
+   <None Remove="serilog-sinks-richtextbox\sample\**" />
+   <None Remove="serilog-sinks-richtextbox\test\**" />
+   <Page Remove="serilog-sinks-richtextbox\sample\**" /> 
+ 
+    <None Remove="serilog-sinks-richtextbox\.editorconfig" />
+    <None Remove="serilog-sinks-richtextbox\.git" />
+    <None Remove="serilog-sinks-richtextbox\.gitattributes" />
+    <None Remove="serilog-sinks-richtextbox\.gitignore" />
+    <None Remove="serilog-sinks-richtextbox\build.cake" />
+    <None Remove="serilog-sinks-richtextbox\build.cmd" />
+    <None Remove="serilog-sinks-richtextbox\build.ps1" />
+    <None Remove="serilog-sinks-richtextbox\build.sh" />
+    <None Remove="serilog-sinks-richtextbox\cake.config" />
+    <None Remove="serilog-sinks-richtextbox\CHANGES.md" />
+    <None Remove="serilog-sinks-richtextbox\CODEOWNERS" />
+    <None Remove="serilog-sinks-richtextbox\Directory.Build.props" />
+    <None Remove="serilog-sinks-richtextbox\global.json" />
+    <None Remove="serilog-sinks-richtextbox\LICENSE" />
+    <None Remove="serilog-sinks-richtextbox\nuget.config" />
+    <None Remove="serilog-sinks-richtextbox\README.md" />
+    <None Remove="serilog-sinks-richtextbox\serilog-sinks-richtextbox.sln.DotSettings" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="serilog-sinks-richtextbox\asset\serilog-sink-nuget.png" Pack="true" Visible="false" PackagePath="images\icon.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="serilog.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EditorConfigFiles Remove="serilog-sinks-richtextbox\.editorconfig" />
+  </ItemGroup>
+
+  <Target Name="ForcePerformRestore" AfterTargets="BeforeBuild">	
+    <Exec Command="IF NOT EXIST  &quot;$(IntermediateOutputPath)..\project.assets.json&quot;  echo restore to $(IntermediateOutputPath)..\project.assets.json &amp;&amp;  dotnet restore &quot;$(ProjectName).csproj&quot; --no-dependencies &amp;&amp; move &quot;build\$(ProjectName)\obj\*&quot; &quot;$(IntermediateOutputPath)..\&quot; &amp;&amp; rmdir /Q /S build	 " /> 
+  </Target>
+  
+  <Target Name="RemoveEmptyObj" AfterTargets="AfterBuild">
+    <Exec Command="IF EXIST obj rmdir obj" />
+  </Target>
+
+
+</Project>

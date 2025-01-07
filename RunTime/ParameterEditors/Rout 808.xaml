@@ -1,0 +1,93 @@
+<ControlTemplate
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:l="clr-namespace:BuzzGUI.ParameterWindow;assembly=BuzzGUI.ParameterWindow"
+  xmlns:bgc="clr-namespace:BuzzGUI.Common;assembly=BuzzGUI.Common"
+  >
+  <ControlTemplate.Resources>
+
+  <Style x:Key="808SwitchStyle" TargetType="ToggleButton">
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate>
+          <Image Name="img" Source="gfx/808_switch_down.png"/>
+          <ControlTemplate.Triggers>
+            <Trigger Property="ToggleButton.IsChecked" Value="True">
+              <Setter TargetName="img" Property="Source" Value="gfx/808_switch_up.png"/>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+  
+  </ControlTemplate.Resources>
+
+<Canvas Height="341" Width="700" Background="Black">
+<Image Source="gfx/rout808.png"/>
+
+<!--Shuffle-->
+<bgc:Knob Canvas.Left="65" Canvas.Top="98" Width="19" Value="{Binding Path=GlobalParameters[26].Value01, Mode=TwoWay}" Foreground="Gold" />
+<bgc:Knob Canvas.Left="65" Canvas.Top="152" Width="19" Value="{Binding Path=GlobalParameters[27].Value01, Mode=TwoWay}"/>
+<!--BD-->
+<bgc:Knob Canvas.Left="115" Canvas.Top="98" Width="19" Value="{Binding Path=GlobalParameters[0].Value01, Mode=TwoWay}"/>
+<bgc:Knob Canvas.Left="115" Canvas.Top="152" Width="19"  Value="{Binding Path=GlobalParameters[11].Value01, Mode=TwoWay}"/>
+<bgc:Knob Canvas.Left="115" Canvas.Top="206" Width="19"  Value="{Binding Path=GlobalParameters[12].Value01, Mode=TwoWay}"/>
+<!--SD-->
+<bgc:Knob Canvas.Left="165" Canvas.Top="98" Width="19" Value="{Binding Path=GlobalParameters[1].Value01, Mode=TwoWay}"/>
+<bgc:Knob Canvas.Left="165" Canvas.Top="152" Width="19"  Value="{Binding Path=GlobalParameters[13].Value01, Mode=TwoWay}"/>
+<bgc:Knob Canvas.Left="165" Canvas.Top="206" Width="19"  Value="{Binding Path=GlobalParameters[14].Value01, Mode=TwoWay}"/>
+<!--LT/LC-->
+<bgc:Knob Canvas.Left="215" Canvas.Top="98" Width="19"  Value="{Binding Path=GlobalParameters[2].Value01, Mode=TwoWay}"/>
+<bgc:Knob Canvas.Left="215" Canvas.Top="152" Width="19"  Value="{Binding Path=GlobalParameters[15].Value01, Mode=TwoWay}"/>
+<!--MT/MC-->
+<bgc:Knob Canvas.Left="265" Canvas.Top="98" Width="19"  Value="{Binding Path=GlobalParameters[3].Value01, Mode=TwoWay}"/>
+<bgc:Knob Canvas.Left="265" Canvas.Top="152" Width="19"  Value="{Binding Path=GlobalParameters[17].Value01, Mode=TwoWay}"/>
+<!--HT/HC-->
+<bgc:Knob Canvas.Left="315" Canvas.Top="98" Width="19"  Value="{Binding Path=GlobalParameters[4].Value01, Mode=TwoWay}"/>
+<bgc:Knob Canvas.Left="315" Canvas.Top="152" Width="19"  Value="{Binding Path=GlobalParameters[19].Value01, Mode=TwoWay}"/>
+<!--Clave/RimShot-->
+<bgc:Knob Canvas.Left="364" Canvas.Top="98" Width="19"  Value="{Binding Path=GlobalParameters[5].Value01, Mode=TwoWay}"/>
+<!--Maracas/Clap-->
+<bgc:Knob Canvas.Left="414" Canvas.Top="98" Width="19"  Value="{Binding Path=GlobalParameters[6].Value01, Mode=TwoWay}"/>
+<!--Cowbell-->
+<bgc:Knob Canvas.Left="464" Canvas.Top="98" Width="19"  Value="{Binding Path=GlobalParameters[7].Value01, Mode=TwoWay}"/>
+<!--Cymbal-->
+<bgc:Knob Canvas.Left="514" Canvas.Top="98" Width="19"  Value="{Binding Path=GlobalParameters[8].Value01, Mode=TwoWay}"/>
+<bgc:Knob Canvas.Left="514" Canvas.Top="152" Width="19"  Value="{Binding Path=GlobalParameters[23].Value01, Mode=TwoWay}"/>
+<bgc:Knob Canvas.Left="514" Canvas.Top="206" Width="19"  Value="{Binding Path=GlobalParameters[24].Value01, Mode=TwoWay}"/>
+<!--OpenHat-->
+<bgc:Knob Canvas.Left="564" Canvas.Top="98" Width="19"  Value="{Binding Path=GlobalParameters[10].Value01, Mode=TwoWay}"/>
+<bgc:Knob Canvas.Left="564" Canvas.Top="206" Width="19"  Value="{Binding Path=GlobalParameters[25].Value01, Mode=TwoWay}"/>
+<!--Closed Hat-->
+<bgc:Knob Canvas.Left="613" Canvas.Top="98" Width="19"  Value="{Binding Path=GlobalParameters[9].Value01, Mode=TwoWay}"/>
+
+<!--ToggleButton LT/LC-->
+<ToggleButton Canvas.Left="215" Style="{StaticResource 808SwitchStyle}" Canvas.Top="210" Width="19" Height="19" IsChecked="{Binding Path=GlobalParameters[16].Value01, Mode=TwoWay}"/>  
+<!--ToggleButton MT/MC-->
+<ToggleButton Canvas.Left="265" Style="{StaticResource 808SwitchStyle}" Canvas.Top="210" Width="19" Height="19" IsChecked="{Binding Path=GlobalParameters[18].Value01, Mode=TwoWay}"/>  
+<!--ToggleButton HT/HC-->
+<ToggleButton Canvas.Left="315" Style="{StaticResource 808SwitchStyle}" Canvas.Top="210" Width="19" Height="19" IsChecked="{Binding Path=GlobalParameters[20].Value01, Mode=TwoWay}"/>  
+<!--ToggleButton CL/RS-->
+<ToggleButton Canvas.Left="364" Style="{StaticResource 808SwitchStyle}" Canvas.Top="210" Width="19" Height="19" IsChecked="{Binding Path=GlobalParameters[21].Value01, Mode=TwoWay}"/>  
+<!--ToggleButton MA/CP-->
+<ToggleButton Canvas.Left="414" Style="{StaticResource 808SwitchStyle}" Canvas.Top="210" Width="19" Height="19" IsChecked="{Binding Path=GlobalParameters[22].Value01, Mode=TwoWay}"/>  
+
+<!--
+ <ToggleButton Name="ToggleBtn" IsThreeState="False"> 
+            <ToggleButton.Template> 
+                <ControlTemplate> 
+                    <ControlTemplate.Triggers> 
+                    <Trigger Property="ToggleButton.IsChecked" Value="True"> 
+                    </Trigger> 
+					</ControlTemplate.Triggers> 
+                 </ControlTemplate> 
+            </ToggleButton.Template> 
+ </ToggleButton> 
+-->
+
+
+
+</Canvas>
+
+</ControlTemplate>

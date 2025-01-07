@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<PresetDictionary>
+  <Item Key="Crunch example">
+    <Preset Machine="Joachims Mars filter 2">
+      <Parameters>
+        <Parameter Name="Distortion mode" Group="1" Index="0" Track="0" Value="11" />
+        <Parameter Name="PreGain" Group="1" Index="1" Track="0" Value="71" />
+        <Parameter Name="Amount" Group="1" Index="2" Track="0" Value="63" />
+        <Parameter Name="Treble" Group="1" Index="3" Track="0" Value="127" />
+        <Parameter Name="Bass" Group="1" Index="4" Track="0" Value="127" />
+      </Parameters>
+      <Attributes />
+    </Preset>
+  </Item>
+</PresetDictionary>

@@ -2,7 +2,7 @@
   "profiles": {
     "ReBuzz": {
       "commandName": "Executable",
-      "executablePath": "C:\\Program Files\\ReBuzz\\ReBuzz.exe",
+      "executablePath": "$(OutDir)ReBuzz.exe",
       "nativeDebugging": true
     }
   }

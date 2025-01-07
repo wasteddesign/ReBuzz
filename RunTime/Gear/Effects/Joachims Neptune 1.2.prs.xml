@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<PresetDictionary>
+  <Item Key="Back seat reverb">
+    <Preset Machine="Joachims Neptune 1.2">
+      <Parameters>
+        <Parameter Name="Threshold" Group="1" Index="0" Track="0" Value="71" />
+        <Parameter Name="PitchShift" Group="1" Index="1" Track="0" Value="128" />
+        <Parameter Name="Spec.Boost" Group="1" Index="2" Track="0" Value="127" />
+        <Parameter Name="Spec.Dist" Group="1" Index="3" Track="0" Value="0" />
+        <Parameter Name="Spec.Clean" Group="1" Index="4" Track="0" Value="0" />
+        <Parameter Name="Scramble" Group="1" Index="5" Track="0" Value="77" />
+        <Parameter Name="FFT size" Group="1" Index="6" Track="0" Value="8" />
+      </Parameters>
+      <Attributes />
+    </Preset>
+  </Item>
+  <Item Key="Crystal water">
+    <Preset Machine="Joachims Neptune 1.2">
+      <Parameters>
+        <Parameter Name="Threshold" Group="1" Index="0" Track="0" Value="71" />
+        <Parameter Name="PitchShift" Group="1" Index="1" Track="0" Value="128" />
+        <Parameter Name="Spec.Boost" Group="1" Index="2" Track="0" Value="127" />
+        <Parameter Name="Spec.Dist" Group="1" Index="3" Track="0" Value="0" />
+        <Parameter Name="Spec.Clean" Group="1" Index="4" Track="0" Value="64" />
+        <Parameter Name="Scramble" Group="1" Index="5" Track="0" Value="0" />
+        <Parameter Name="FFT size" Group="1" Index="6" Track="0" Value="8" />
+      </Parameters>
+      <Attributes />
+    </Preset>
+  </Item>
+  <Item Key="General vitalizer">
+    <Preset Machine="Joachims Neptune 1.2">
+      <Parameters>
+        <Parameter Name="Threshold" Group="1" Index="0" Track="0" Value="71" />
+        <Parameter Name="PitchShift" Group="1" Index="1" Track="0" Value="128" />
+        <Parameter Name="Spec.Boost" Group="1" Index="2" Track="0" Value="191" />
+        <Parameter Name="Spec.Dist" Group="1" Index="3" Track="0" Value="0" />
+        <Parameter Name="Spec.Clean" Group="1" Index="4" Track="0" Value="0" />
+        <Parameter Name="Scramble" Group="1" Index="5" Track="0" Value="0" />
+        <Parameter Name="FFT size" Group="1" Index="6" Track="0" Value="3" />
+      </Parameters>
+      <Attributes />
+    </Preset>
+  </Item>
+  <Item Key="Remove reverb">
+    <Preset Machine="Joachims Neptune 1.2">
+      <Parameters>
+        <Parameter Name="Threshold" Group="1" Index="0" Track="0" Value="71" />
+        <Parameter Name="PitchShift" Group="1" Index="1" Track="0" Value="128" />
+        <Parameter Name="Spec.Boost" Group="1" Index="2" Track="0" Value="63" />
+        <Parameter Name="Spec.Dist" Group="1" Index="3" Track="0" Value="0" />
+        <Parameter Name="Spec.Clean" Group="1" Index="4" Track="0" Value="0" />
+        <Parameter Name="Scramble" Group="1" Index="5" Track="0" Value="0" />
+        <Parameter Name="FFT size" Group="1" Index="6" Track="0" Value="3" />
+      </Parameters>
+      <Attributes />
+    </Preset>
+  </Item>
+  <Item Key="Smudged knuckles boost">
+    <Preset Machine="Joachims Neptune 1.2">
+      <Parameters>
+        <Parameter Name="Threshold" Group="1" Index="0" Track="0" Value="71" />
+        <Parameter Name="PitchShift" Group="1" Index="1" Track="0" Value="128" />
+        <Parameter Name="Spec.Boost" Group="1" Index="2" Track="0" Value="127" />
+        <Parameter Name="Spec.Dist" Group="1" Index="3" Track="0" Value="52" />
+        <Parameter Name="Spec.Clean" Group="1" Index="4" Track="0" Value="0" />
+        <Parameter Name="Scramble" Group="1" Index="5" Track="0" Value="0" />
+        <Parameter Name="FFT size" Group="1" Index="6" Track="0" Value="2" />
+      </Parameters>
+      <Attributes />
+    </Preset>
+  </Item>
+  <Item Key="Speech vitalizer">
+    <Preset Machine="Joachims Neptune 1.2">
+      <Parameters>
+        <Parameter Name="Threshold" Group="1" Index="0" Track="0" Value="71" />
+        <Parameter Name="PitchShift" Group="1" Index="1" Track="0" Value="128" />
+        <Parameter Name="Spec.Boost" Group="1" Index="2" Track="0" Value="55" />
+        <Parameter Name="Spec.Dist" Group="1" Index="3" Track="0" Value="46" />
+        <Parameter Name="Spec.Clean" Group="1" Index="4" Track="0" Value="0" />
+        <Parameter Name="Scramble" Group="1" Index="5" Track="0" Value="0" />
+        <Parameter Name="FFT size" Group="1" Index="6" Track="0" Value="5" />
+      </Parameters>
+      <Attributes />
+    </Preset>
+  </Item>
+</PresetDictionary>

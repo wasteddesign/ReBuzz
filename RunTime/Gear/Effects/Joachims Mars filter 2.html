@@ -1,0 +1,104 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
+  <title>Mars filter v2.5</title>
+</head>
+<body bgcolor="#404040" text="#E0E0E0" link="#FFFFFF" vlink="#FFFFFF" alink="#000000">
+<table border=0 cellpadding=15 cellspacing=0 bgcolor="#000000" width="100%">
+ <tr>
+  <td nowrap valign="middle">
+   <font size="3" face="helvetica"><b>Joachim's Mars filter</b></font> <font size="1" face="helvetica">(11-Sep-17)</font>
+  </td>
+  <td nowrap align="right" valign="middle">
+   <font size="2" face="verdana, helvetica"><b>Planet Filter Series</b></font>
+  </td>
+ </tr>
+</table>
+<font face="verdana, helvetica" size="2"><br><br>
+
+<center>
+<font size="3"><b>Mars - The weapon of mass distortion</b></font><br><br>
+</center>
+
+<font size="3"><b>Mode:</b></font><br>
+<ul style="margin: 10 10 0 10px; padding: 0 0 0 12px;">
+ <li> 0: <b>Bypass</b><br>
+ Does nothing. Good for comparing what you did to the original.<br><br>
+ <li> 1: <b>Red crust</b> (based on square root and more)<br>
+ A soft mooshy kind of distortion that leaves the bass round and and fat.<br><br>
+ <li> 2: <b>Phobos</b> (based on sinus and more)<br>
+ Phat crushing machine. Adds some agression and edge.<br><br>
+ <li> 3: <b>Deimos</b> (based on inverse tangens and more)<br>
+ The heavy deep plunge into round warm distortion, but not as bass emphasising as Red crust.<br><br>
+ <li> 4: <b>Cratered</b> (a simple tube simulation)<br>
+ Flat hard and aggressive. This one squashes the bass end a lot more than the first three types.<br><br>
+ <li> 5: <b>God of iron</b> (another simple tube simulation)<br>
+ Similar to Cratered, but less aggressive. Amount is simply mix between clean and distorted.<br><br>
+ <li> 6: <b>Battle axe</b> (resembles ring modulation)<br>
+ Creates strange ringy overtones and also adds muffling. Then clipping is applied.<br><br>
+ <li> 7: <b>Scarred</b> (a more sublte but correct tube simulation)<br>
+ The effects of this algorithm are not easily heard, but this should resemble what happens in tube electronics a lot more than Cratered.<br><br>
+ <li> 8: <b>Bruised</b> (aggressive wave squash)<br>
+ Even wilder than Cratered, and this one switches the lowpass filter into "muffled" mode.<br><br>
+ <li> 9: <b>Rusty</b> (based on inverse tangens and more)<br>
+ Resembles Deimos, but a slightly different and possibly more clean algorithm.<br><br>
+ <li> 10: <b>Steel pain</b> (sinus)<br>
+ Quite a simple formula, but the effect is drastic. Deep bass curls up in agony, and the effect resembles FM modulation a bit. Notice that PreGain and Amount have the same effect with this algorithm.<br><br>
+ <li> 11: <b>Crunch</b> (FM)<br>
+ Real FM. The louder the signal is, and the higher the Amount setting is, the more effect you get. The effect typically works best on lesser complex signals with not too much treble. This algorithm results in a slight delay.<br><br>
+ <li> 12: <b>Shatter</b> (FM)<br>
+ This algorithm resembles Crunch but works on the differential signal which means it reacts more to the treble part of the signal.<br><br>
+ <li> 13: <b>Cannon</b><br>
+ Semi-harsh distortion. Be aware that the Bass slider has a very different meaning for this mode: It will prevent the bass from being affected too much by the distortion.
+</ul><br>
+
+<font size="3"><b>PreGain:</b></font><br><br>
+
+Here you can adjust the volume of the signal <b>before</b> it enters the distortion.
+<br><br><br>
+
+<font size="3"><b>Amount:</b></font><br><br>
+
+The intensity of the distortion effect itself. This parameter has a slightly different
+depending on what mode you are using.
+<br><br><br>
+
+<font size="3"><b>Treble Behavior:</b></font><br><br>
+
+Treble attenuator. When set to 0 it is disabled. Works differently when using the "Bruised" mode.
+<br><br><br>
+
+<font size="3"><b>Bass Behavior:</b></font><br><br>
+
+Bass attenuator highpass filter. When set to 0 it is disabled and uses less CPU. Works very differently in "Cannon" mode.
+<br><br>
+
+<br><br>
+<table border=0 cellpadding=15 cellspacing=0 width="100%">
+ <tr>
+  <td nowrap valign="middle" bgcolor="#000000">
+   <font size=2 face="verdana, helvetica">
+   <b>Plug-in written by Joachim Michaelis</b><br></font>
+   <font size=1 face="verdana, helvetica">
+   <a href="http://error.homepage.dk/">Homepage</a> |
+   <a href="http://web.hibo.no/~mva/search.php?searchtarget=machinesdev&developer=Joachim">Latest machines</a> |
+   <a href="http://voyager.adsl.dk/knef/vumeter/">VUmeter.exe</a><br>
+   </font>
+  </td>
+ </tr>
+</table>
+<br><div align="right">
+<table border=0 cellpadding=0 cellspacing=0>
+ <tr>
+  <td width=240 align="right">
+   <font size=1 face="verdana, helvetica" color="#A0A0A0"><i>DISCLAIMER:</i><br>
+   This software may be distrbuted freely. The author of this software cannot be held
+   responsible for any damage caused directly or indirectly by using this software.</font><br>
+  </td>
+ </tr>
+</table>
+</div>
+</font>
+</body>
+</html>

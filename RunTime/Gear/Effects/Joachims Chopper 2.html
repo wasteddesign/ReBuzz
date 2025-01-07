@@ -1,0 +1,55 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+ <title>Joachims Chopper 2.2</title>
+ <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+ <style type="text/css">
+body	{ font-family: verdana; font-size: 12px; background: #000000; color: #B00030; margin: 0px; background-image:url(Joachims%20Chopper%202%20bg.jpg); }
+h1		{ font-family: impact; font-weight: normal; color: #C0B050; font-size: 29px; background: #2C2810; padding: 10px 40px 10px 40px; margin: 0px; border: dashed #C0B050; border-width: 0px 0px 1px 0px; text-shadow: 2px 2px 0px #000000; }
+h2		{ color: #C0B050; font-size: 15px; background: #2C2810; padding: 6px 40px 6px 40px; margin: 0px; border: dashed #C0B050; border-width: 0px 0px 1px 0px; text-shadow: 1px 1px 0px #000000; }
+p		{ color: #D0D0D0; margin: 10px 40px 10px 40px; text-shadow: 1px 1px 1px #000000; }
+ul		{ color: #C0B050; margin: 10px 40px 10px 10px; text-shadow: 1px 1px 1px #000000; }
+li		{ margin: 0px 0px 8px 0px; }
+a:link	{ color: #C0C0C0; }
+a:visited { color: #C0C0C0; }
+a:hover { color: #FFFFFF; background: #202020; }
+.mypic	{ float: right; margin: 10px 40px 2px 20px; }
+ </style>
+</head>
+<body>
+<h1>Joachim's Chopper 2.2</h1>
+<img src="Joachims%20Chopper%202%20logo.png" class="mypic" alt="logo">
+<p><br>A gapper plug-in for Jeskola Buzz that features filters, de-clicker and a time travel feature.<br><br></p>
+<ul>
+ <li> <b>Dry/wet mix:</b> Sets the mix ratio between the dry signal and the chopped up signal.
+ <li> <b>Trigger:</b> Everytime you set this parameter, sound is triggered. Large values keep the sound open for an entire tick, like traditional gapper machines. Shorter values result in a logaritmic decay curve.
+ <li> <b>Customizable:</b> This sets the value of the assignable parameter. You can specify what this column does using the "10" command.
+ <li> <b>Frequency:</b> Controls the butterworth filters. Center frequency of current gap being played. This has no effect if "Bandwidth" is set to the default maximum value "OFF".
+ <li> <b>Bandwidth:</b> The smaller then number, the more narrow the bandpassing of this frequency will be. Largest number effectively bypasses the filter.
+ <li> <b>Attack:</b> Changing the volume from one sample to the next can give a click. Increase this until you are not bothered with clicks. Too large values make the attack become dull.
+ <li> <b>Travel back:</b> Instead of letting the current sound through, you can go back in time and play previous stuff.
+ <li> <b>Command:</b> Set specific command. Commands are:
+  <ul>
+   <li> <b>01:</b> Reset all steps of the internal randomize pattern to 50%.
+   <li> <b>02:</b> Reset the randomize pattern to a specific random seed (set by the next parameter).
+   <li> <b>03:</b> Randomize the internal randomize pattern (new time every time you issue this command, next parameter is ignored).
+   <li> <b>04:</b> Temporarily randomize relative to the internal randomize pattern (next parameter specifies how much).
+   <li> <b>05:</b> Set the filter steepness (valid range is are 1-3).
+   <li> <b>06:</b> The next parameter controls how much the randomize pattern affects the decay curve shape.
+   <li> <b>07:</b> The next parameter controls how much the randomize pattern affects the filter randomization.
+   <li> <b>08:</b> The next parameter controls how much the randomize pattern affects panning.
+   <li> <b>0A:</b> Sets how fast the internal randomize pattern mutates over time.
+   <li> <b>0B:</b> Chopper mode: 1=normal gating, 2=sidechain-like ducking of the signal.
+   <li> <b>10:</b> This controls what the customizable column does. Currently only "1" (panning) is supported.
+  </ul>
+ <li> <b>Value:</b> Specifies the value of whatever the Command column is set to.
+ <li> Rows per beat <i>(attribute)</i>: If you use this plug-in with Pattern XP with a different Rows Per Beat setting than the default of "4", you should change this. When in doubt simply leave this at 4.
+ <li> Filter steepness <i>(attribute)</i>: If you don't find the filter aggressive enough, increasing this will make the filter effect more drastic.
+</ul><br>
+<p style="float:right;">(revision $Rev: 45 $)</p>
+<p>Version <b>2.2</b>, June 2017: Fixed way to slow evolution/mutation speed. (Now, 4000 is "very slow", 8000 is "medium" and C000 is "quite fast")</p>
+<p>Version <b>2.1</b>, April 2016: Added new inverted mode.</p>
+<p>Version <b>1.1</b>, January 2011: Fixed output level bug when using trigger "80" multiple times.</p>
+<p>Version <b>1.0</b>, December 2010: Initial release.</p>
+</body>
+</html>

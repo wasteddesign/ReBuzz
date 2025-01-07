@@ -1,0 +1,9 @@
+[submodule "3rdParty/r8b/r8brain-free-src"]
+	path = 3rdParty/r8b/r8brain-free-src
+	url = https://github.com/avaneev/r8brain-free-src
+[submodule "3rdParty/serilog/serilog"]
+	path = 3rdParty/serilog/serilog
+	url = https://github.com/serilog/serilog
+[submodule "3rdParty/serilog/serilog-sinks-richtextbox"]
+	path = 3rdParty/serilog/serilog-sinks-richtextbox
+	url = https://github.com/serilog-contrib/serilog-sinks-richtextbox

@@ -1,11 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
   <PropertyGroup>
     <TargetFramework>net9.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>disable</ImplicitUsings>
-    <BaseOutputPath>..\rel</BaseOutputPath>
+    <BaseOutputPath>$(SolutionDir)build\$(Configuration)\$(Platform)\BuzzGUI.Common\bin</BaseOutputPath>
+    <IntermediateOutputPath>$(SolutionDir)build\$(Configuration)\$(Platform)\BuzzGUI.Common\obj</IntermediateOutputPath>
     <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
   <ItemGroup>
@@ -56,11 +58,19 @@
     <Compile Include="Sanford.Multimedia.Midi\Processing\ChasedEventArgs.cs" />
     <Compile Include="Sanford.Multimedia.Midi\Processing\StoppedEventArgs.cs" />
   </ItemGroup>
+ 
   <ItemGroup>
-    <PackageReference Include="SharpZipLib" Version="1.4.2" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\BuzzGUI.Interfaces\BuzzGUI.Interfaces.csproj" />
+    <ProjectReference Include="..\..\3rdParty\7Zip\7zip.csproj">
+		<Private>False</Private>
+		<CopyLocalSatelliteAssemblies>False</CopyLocalSatelliteAssemblies>
+	</ProjectReference>
+	
+	
+    <ProjectReference Include="..\BuzzGUI.Interfaces\BuzzGUI.Interfaces.csproj">
+		<CopyLocalSatelliteAssemblies>False</CopyLocalSatelliteAssemblies>
+		<Private>False</Private>
+	</ProjectReference>
+	
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Themes\Images\clear.png">
@@ -173,4 +183,17 @@
   <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
+  <ItemGroup>
+    <Reference Include="ICSharpCode.SharpZipLib">
+      <HintPath>..\..\3rdParty\ICSharpCode.SharpZipLib.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  
+  <Target Name="ForcePerformRestore" AfterTargets="BeforeBuild">	
+    <Exec Command="IF NOT EXIST  $(IntermediateOutputPath)..\project.assets.json  echo restore to $(IntermediateOutputPath)..\project.assets.json &amp;&amp;  dotnet restore $(ProjectName).csproj --no-dependencies &amp;&amp; move build\$(ProjectName)\obj\* $(IntermediateOutputPath)..\ &amp;&amp; rmdir /Q /S build	 " />
+  </Target>
+  
+  <Target Name="RemoveEmptyObj" AfterTargets="AfterBuild">
+    <Exec Command="IF EXIST obj rmdir obj" />
+  </Target>
 </Project>

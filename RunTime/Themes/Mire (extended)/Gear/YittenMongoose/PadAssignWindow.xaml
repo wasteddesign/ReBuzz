@@ -1,0 +1,17 @@
+﻿<ResourceDictionary 
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:bgc="clr-namespace:BuzzGUI.Common;assembly=BuzzGUI.Common"
+	xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options">
+	
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceDictionary Source="../../MachineView/MVResources.xaml"/>
+			</ResourceDictionary.MergedDictionaries>
+			
+			<Style TargetType="{x:Type Button}" BasedOn="{StaticResource {x:Type Button}}">
+				<Setter Property="FontSize" Value="10"/>
+			</Style>
+			
+			<SolidColorBrush x:Key="AllBGBrush" Color="#333" po:Freeze="True"/>
+  
+</ResourceDictionary>
