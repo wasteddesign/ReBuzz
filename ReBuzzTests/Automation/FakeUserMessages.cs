@@ -4,7 +4,7 @@ using System;
 
 namespace ReBuzzTests.Automation
 {
-    public class FakeUserMessages : IUserMessages //bug
+    public class FakeUserMessages : IUserMessages
     {
         public void Error(string message, string caption, Exception exception)
         {
@@ -13,8 +13,8 @@ namespace ReBuzzTests.Automation
             StackStrace = exception.StackTrace.OrThrow();
         }
 
-        public string StackStrace { get; set; } = string.Empty;
-        public string Message { get; set; } = string.Empty;
-        public string Caption { get; set; } = string.Empty;
+        public string StackStrace { get; private set; } = string.Empty;
+        public string Message { get; private set; } = string.Empty;
+        public string Caption { get; private set; } = string.Empty;
     }
 }

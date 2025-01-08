@@ -1,5 +1,4 @@
 using ReBuzzTests.Automation;
-using System.Threading;
 
 namespace ReBuzzTests
 {

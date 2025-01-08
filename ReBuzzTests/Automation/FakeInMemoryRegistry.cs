@@ -2,7 +2,6 @@ using ReBuzz.Core;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Windows.Input;
 
 namespace ReBuzzTests.Automation
 {
@@ -123,18 +122,6 @@ namespace ReBuzzTests.Automation
                 TestContext.Out.WriteLine($"Create subkey: {subKey} => extracted {path}");
                 return new FakeInMemoryRegistryKey(registryDictionary, path);
             }
-        }
-    }
-
-    internal class FakeInMemoryRegistryKey(
-        Dictionary<(string Path, string Key), object> registryDictionary,
-        string path)
-        : IRegistryKey //bug move it out
-    {
-        public void SetValue(string name, object value)
-        {
-            registryDictionary[(path, name)] = value;
-            TestContext.Out.WriteLine($"Set subkey value: {path}=>{name}=>{value}");
         }
     }
 }

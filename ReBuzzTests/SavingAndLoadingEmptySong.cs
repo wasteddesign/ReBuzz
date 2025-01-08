@@ -1,6 +1,5 @@
 using AtmaFileSystem;
 using ReBuzzTests.Automation;
-using System.Diagnostics.CodeAnalysis;
 
 namespace ReBuzzTests
 {
@@ -38,7 +37,7 @@ namespace ReBuzzTests
 
         //bug make more tests for exception scenarios
         [Test]
-        public void MaintainsCleanStateAfterSavingEmptySong()
+        public void MaintainsCleanStateAfterSavingEmptySong() //bug test for backup song
         {
             var emptySongPath = AbsoluteDirectoryPath.OfThisFile().AddFileName("EmptySongBmx.bmx"); //bug use a unique location
             using var driver = new Driver();

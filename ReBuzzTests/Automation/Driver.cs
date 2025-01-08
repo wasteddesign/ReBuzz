@@ -130,14 +130,13 @@ namespace ReBuzzTests.Automation
             );
 
             initialization.StartReBuzzEngineStep5(s => { TestContext.Out.WriteLine("OpenFile: " + s); });
-            reBuzzCore.SaveSong += s => { TestContext.Out.WriteLine($"SaveSong: {s}"); }; //bug prod code doesn't do this!!
+            reBuzzCore.SaveSong += s => { TestContext.Out.WriteLine($"SaveSong: {s}"); };
             initialization.StartReBuzzEngineStep6();
 
-            reBuzzCore.FileEvent += (type, s, arg3) => //bug
+            reBuzzCore.FileEvent += (type, s, arg3) =>
             {
                 TestContext.Out.WriteLine($"FileEvent: {type}, {s}, {arg3}");
             };
-
 
             reBuzzCore.BuzzCommandRaised += command =>
             {

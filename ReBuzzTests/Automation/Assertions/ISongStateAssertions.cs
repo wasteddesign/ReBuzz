@@ -1,7 +1,6 @@
 using AtmaFileSystem;
 using BuzzGUI.Interfaces;
 using ReBuzz.Core;
-using System.Threading;
 
 namespace ReBuzzTests.Automation.Assertions
 {

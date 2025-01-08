@@ -2,7 +2,7 @@ using ReBuzz.Core;
 
 namespace ReBuzzTests.Automation
 {
-    public class FakeFileNameChoice : IFileNameChoice //bug move
+    public class FakeFileNameChoice : IFileNameChoice
     {
         private ChosenValue<string> fileName = ChosenValue<string>.Nothing;
 
