@@ -268,9 +268,19 @@ namespace ReBuzzTests.Automation
             fileNameToLoadChoice.SetToUserCancel();
         }
 
+        public void SetupLoadedFileChoiceTo(AbsoluteFilePath fileName)
+        {
+            fileNameToLoadChoice.SetTo(fileName.ToString());
+        }
+
         public void SetupLoadedFileChoiceTo(string fileName)
         {
-            fileNameToLoadChoice.SetTo(fileName);
+            fileNameToLoadChoice.SetTo(fileName.ToString());
+        }
+
+        public void SetupSavedFileChoiceTo(AbsoluteFilePath fileName) //bug also user cancel scenario
+        {
+            fileNameToSaveChoice.SetTo(fileName.ToString());
         }
 
         public void SetupSavedFileChoiceTo(string fileName) //bug also user cancel scenario

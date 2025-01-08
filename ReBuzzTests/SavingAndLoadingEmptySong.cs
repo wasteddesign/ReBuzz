@@ -1,5 +1,6 @@
 using AtmaFileSystem;
 using ReBuzzTests.Automation;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ReBuzzTests
 {
@@ -77,8 +78,8 @@ namespace ReBuzzTests
             var emptySongPath = driver.RandomSongPath();
             driver.Start();
 
-            driver.SetupSavedFileChoiceTo(emptySongPath.ToString());
-            driver.SetupLoadedFileChoiceTo(emptySongPath.ToString());
+            driver.SetupSavedFileChoiceTo(emptySongPath);
+            driver.SetupLoadedFileChoiceTo(emptySongPath);
 
             driver.SaveCurrentSong();
             driver.LoadSong();
@@ -95,8 +96,8 @@ namespace ReBuzzTests
             var emptySongPath = driver.RandomSongPath();
             driver.Start();
 
-            driver.SetupSavedFileChoiceTo(emptySongPath.ToString());
-            driver.SetupLoadedFileChoiceTo(emptySongPath.ToString());
+            driver.SetupSavedFileChoiceTo(emptySongPath);
+            driver.SetupLoadedFileChoiceTo(emptySongPath);
 
             driver.SaveCurrentSong();
             driver.LoadSong();

@@ -220,7 +220,6 @@
     <DebugType>full</DebugType>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Core.Maybe" Version="7.0.0" />
     <PackageReference Include="Serilog" Version="4.1.0" />
     <PackageReference Include="Serilog.Sinks.RichTextBox.Wpf" Version="1.1.0" />
     <PackageReference Include="System.Drawing.Common" Version="9.0.0" />

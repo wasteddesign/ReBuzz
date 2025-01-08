@@ -18,7 +18,6 @@ using Buzz.MachineInterface;
 using BuzzGUI.Common;
 using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
-using Core.Maybe;
 using Microsoft.Win32;
 using NAudio.Midi;
 using ReBuzz.Audio;
@@ -906,7 +905,7 @@ namespace ReBuzz.Core
             }
             else if (cmd == BuzzCommand.OpenFile)
             {
-                Maybe<string> fileName = fileNameToLoadChoice.SelectFileName();
+                ChosenValue<string> fileName = fileNameToLoadChoice.SelectFileName();
 
                 if (fileName.HasValue)
                 {
@@ -1155,7 +1154,7 @@ namespace ReBuzz.Core
             // Check filename
             if (filename == null)
             {
-                Maybe<string> saveFileName = fileNameToSaveChoice.SelectFileName();
+                ChosenValue<string> saveFileName = fileNameToSaveChoice.SelectFileName();
 
                 if (saveFileName.HasValue)
                 {
