@@ -1,0 +1,112 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"  
+    xmlns:bgc="clr-namespace:BuzzGUI.Common;assembly=BuzzGUI.Common"             
+    xmlns:vsm="clr-namespace:System.Windows;assembly=BuzzGUI.Common"             
+    xmlns:local="clr-namespace:BuzzGUI.MachineView;assembly=BuzzGUI.MachineView">
+
+  <ResourceDictionary.MergedDictionaries>
+    <ResourceDictionary Source="MVResources.xaml"/>
+    <ResourceDictionary Source="MachineControl.xaml"/>
+    <ResourceDictionary Source="AmpControl.xaml"/>
+  </ResourceDictionary.MergedDictionaries>
+
+  <Style TargetType="{x:Type local:AmpControl}" BasedOn="{StaticResource ConnectionAmpControlStyleBase}"/>
+  <Style x:Key="MachineConnectionTriangleStyle" TargetType="{x:Type Control}" BasedOn="{StaticResource MachineConnectionTriangleStyleBase}"/>
+  
+  <Style x:Key="BackgroundGridStyle" TargetType="{x:Type Grid}" BasedOn="{StaticResource BackgroundGridStyleBase}">
+    <Setter Property="Background">
+      <Setter.Value>
+        <ImageBrush ImageSource="gfx/bg2.png" TileMode="Tile" />
+      </Setter.Value>
+    </Setter>
+	
+	<Setter Property="Opacity" Value="0"/>
+	<Style.Triggers>
+		<EventTrigger RoutedEvent="Grid.Loaded">
+			<BeginStoryboard>
+				<Storyboard>
+					<DoubleAnimation x:Name="FadeIn" Storyboard.TargetProperty="Opacity" From="0" To="100" Duration="0:1:0"/>
+				</Storyboard>
+			</BeginStoryboard>
+		</EventTrigger>     	
+	</Style.Triggers>
+	
+  </Style>
+
+  <Style TargetType="{x:Type local:MachineControl}" BasedOn="{StaticResource MachineControlStyleBase}">
+    <Style.Triggers>
+      <DataTrigger Binding="{Binding Path=Machine.DLL.Info.Type}" Value="Master">
+        <Setter Property="ThemeMachineImageSource" Value="gfx/master.png"/>
+      </DataTrigger>
+      <DataTrigger Binding="{Binding Path=Machine.DLL.Info.Type}" Value="Generator">
+        <Setter Property="ThemeMachineImageSource" Value="gfx/generator.png"/>
+      </DataTrigger>
+      <DataTrigger Binding="{Binding Path=Machine.DLL.Info.Type}" Value="Effect">
+        <Setter Property="ThemeMachineImageSource" Value="gfx/effect.png"/>
+      </DataTrigger>
+      <DataTrigger Binding="{Binding Path=Machine.IsControlMachine}" Value="True">
+        <Setter Property="ThemeMachineImageSource" Value="gfx/control.png"/>
+      </DataTrigger>
+      <MultiDataTrigger>
+        <MultiDataTrigger.Conditions>
+          <Condition Binding="{Binding Path=Machine.DLL.Info.Type}" Value="Generator"/>
+          <Condition Binding="{Binding Path=Machine.IsMuted}" Value="True"/>
+        </MultiDataTrigger.Conditions>
+        <Setter Property="ThemeMachineImageSource" Value="gfx/generatormute.png"/>
+      </MultiDataTrigger>
+      <MultiDataTrigger>
+        <MultiDataTrigger.Conditions>
+          <Condition Binding="{Binding Path=Machine.DLL.Info.Type}" Value="Effect"/>
+          <Condition Binding="{Binding Path=Machine.IsMuted}" Value="True"/>
+        </MultiDataTrigger.Conditions>
+        <Setter Property="ThemeMachineImageSource" Value="gfx/effectmute.png"/>
+      </MultiDataTrigger>
+	  
+	  <MultiDataTrigger>
+        <MultiDataTrigger.Conditions>
+          <Condition Binding="{Binding Path=Machine.DLL.Info.Type}" Value="Master"/>
+          <Condition Binding="{Binding Path=Machine.IsMuted}" Value="True"/>
+        </MultiDataTrigger.Conditions>
+        <Setter Property="ThemeMachineImageSource" Value="gfx/mastermute.png"/>
+      </MultiDataTrigger>
+	  
+	  
+    </Style.Triggers>
+  </Style>
+
+  <Style x:Key="MachineConnectionPathStyle" TargetType="{x:Type Shape}">
+    <Setter Property="IsHitTestVisible" Value="False"/>
+    <Setter Property="StrokeThickness" Value="5"/>
+    <Setter Property="Stroke" Value="#212121"/>
+
+    <Style.Triggers>
+      <DataTrigger Binding="{Binding IsConnecting}" Value="True">
+        <Setter Property="Opacity" Value="0.5"/>
+      </DataTrigger>
+    </Style.Triggers>
+
+  </Style>
+
+  <Style x:Key="MachineConnectionInnerPathStyle" TargetType="{x:Type Shape}">
+    <Setter Property="IsHitTestVisible" Value="False"/>
+    <Setter Property="StrokeThickness" Value="3"/>
+    <Setter Property="Stroke">
+      <Setter.Value>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="0.05,0.05" SpreadMethod="Reflect" po:Freeze="True">
+          <GradientStop Offset="0" Color="#afaf9b"/>
+          <GradientStop Offset="1" Color="#afaf9b"/>
+        </LinearGradientBrush>
+      </Setter.Value>
+    </Setter>
+
+    <Style.Triggers>
+      <DataTrigger Binding="{Binding IsConnecting}" Value="True">
+        <Setter Property="Opacity" Value="0.5"/>
+      </DataTrigger>
+    </Style.Triggers>
+
+  </Style>
+
+
+</ResourceDictionary>

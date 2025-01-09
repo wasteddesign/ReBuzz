@@ -1,0 +1,390 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+  The installer overwrites this file so do not edit it. You can make a copy to "%UserProfile%\Documents\Buzz". Buzz will try to load that file first.
+
+  Notes are Buzz notes.
+
+-->
+
+<ChordMappingFile xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <StepMappings>
+    <StepMapping Name="0" Steps="0"/>
+	<StepMapping Name="1" Steps="1"/>
+	<StepMapping Name="2" Steps="2"/>
+	<StepMapping Name="3" Steps="3"/>	
+	<StepMapping Name="4" Steps="4"/>	
+	<StepMapping Name="1 1 0 2" Steps="1 1 0 2"/>
+  </StepMappings>
+  <ChordSets>
+  	<ChordSet Name="Piano Basic">
+	  <Mappings>
+		<ChordMapping Name="A" Notes="A-4 C#5 E-5"/>
+		<ChordMapping Name="Am" Notes="A-4 C-5 E-5"/>
+		<ChordMapping Name="B" Notes="B-4 D#5 F#5"/>
+		<ChordMapping Name="Bm" Notes="B-4 D-5 F#5"/>
+		<ChordMapping Name="C" Notes="C-5 E-5 G-5"/>
+		<ChordMapping Name="Cm" Notes="C-5 D#5 G-5"/>		
+		<ChordMapping Name="D" Notes="D-5 F#5 A-5"/>
+		<ChordMapping Name="Dm" Notes="D-5 F-5 A-5"/>
+		<ChordMapping Name="E" Notes="E-5 G#5 B-5"/>
+		<ChordMapping Name="Em" Notes="E-5 G-5 B-5"/>
+		<ChordMapping Name="F" Notes="F-5 A-5 C-6"/>
+		<ChordMapping Name="Fm" Notes="F-5 G#5 C-6"/>
+		<ChordMapping Name="G" Notes="G-5 B-5 D-6"/>
+		<ChordMapping Name="Gm" Notes="G-5 A#5 D-6"/>
+      </Mappings>
+	</ChordSet>
+	<ChordSet Name="Big">
+	  <Mappings>
+		<ChordMapping Name="C" Notes="C-4 E-4 G-4 C-5 E-5"/>
+		<ChordMapping Name="C" Notes="C-4 E-4 G-4 C-5"/>
+		<ChordMapping Name="Cmaj7" Notes="C-4 E-4 G-4 B-4"/>
+		<ChordMapping Name="Cmaj7" Notes="C-4 E-4 G-4 B-4 E-5"/>
+		<ChordMapping Name="CM7/9" Notes="C-4 E-4 B-4 D-5"/>
+		<ChordMapping Name="C6/9" Notes="C-4 E-4 A-4 D-5"/>
+		<ChordMapping Name="C6/9" Notes="C-4 E-4 A-4 D-5 G-5"/>
+		<ChordMapping Name="Cadd9" Notes="C-4 E-4 G-4 D-5"/>
+		<ChordMapping Name="Cadd9" Notes="C-4 E-4 G-4 D-5 G-5"/>
+		<ChordMapping Name="C6maj7" Notes="C-4 E-4 A-4 B-4"/>
+		<ChordMapping Name="C6" Notes="C-4 E-4 A-4 C-5"/>
+		<ChordMapping Name="Cm" Notes="C-4 G-4 D#5 G-5"/>
+		<ChordMapping Name="Cm" Notes="C-4 G-4 C-5 D#5 G-5"/>
+		<ChordMapping Name="Cm7" Notes="C-4 G-4 A#4 D#5 G-5"/>
+		<ChordMapping Name="Cm7sus4" Notes="C-4 F-4 A#4 D#5 G-5"/>
+		<ChordMapping Name="Cm7b5" Notes="C-4 F#4 A#4 D#5"/>
+		<ChordMapping Name="Cm7M" Notes="C-4 D#4 G-4 B-4"/>
+		<ChordMapping Name="Cm9" Notes="C-4 D#4 A#4 D-5"/>
+		<ChordMapping Name="Cmadd9" Notes="C-4 D#4 G-4 D-5"/>
+		<ChordMapping Name="Cm6" Notes="C-4 A-4 D#5 G-5"/>
+		<ChordMapping Name="C9" Notes="C-4 E-4 A#4 D-5"/>
+		<ChordMapping Name="C7" Notes="C-4 E-4 A#4 C-5 E-5"/>
+		<ChordMapping Name="C7" Notes="C-4 E-4 A#4 C-5"/>
+		<ChordMapping Name="C7#9" Notes="C-4 E-4 A#4 D#5"/>
+		<ChordMapping Name="C7b9" Notes="C-4 E-4 A#4 C#5"/>
+		<ChordMapping Name="C7b9/13" Notes="C-4 E-4 A#4 C#5 A-5"/>
+		<ChordMapping Name="C7b9/13b" Notes="C-4 E-4 A#4 C#5 G#5"/>
+		<ChordMapping Name="C9sus4" Notes="C-4 F-4 A#4 D-5"/>
+		<ChordMapping Name="C11" Notes="C-4 A#4 C-5 F-5"/>
+		<ChordMapping Name="Caug" Notes="C-4 E-4 G#4 C-5"/>
+		<ChordMapping Name="Cmaj7#5" Notes="C-4 E-4 G#4 B-4"/>
+		<ChordMapping Name="Cdim" Notes="C-4 F#4 A-4 D#5"/>
+		<ChordMapping Name="C" Notes="G-3 C-4 E-4 G-4 C-5 E-5"/>
+		<ChordMapping Name="C" Notes="E-3 G-4 C-5 E-5"/>
+		<ChordMapping Name="Cmaj7" Notes="G-3 C-4 E-4 G-4 B-4 E-5"/>
+		<ChordMapping Name="Cmaj7" Notes="E-4 B-4 C-5 G-5"/>
+		<ChordMapping Name="C6/9" Notes="E-4 A-4 D-5 G-5"/>
+		<ChordMapping Name="Cm7" Notes="G-3 D#4 A#4 C-5"/>
+		<ChordMapping Name="C7" Notes="A#3 G-4 C-5 E-5"/>
+		<ChordMapping Name="C7" Notes="E-4 A#4 C-5 G-5"/>
+		<ChordMapping Name="G" Notes="G-3 B-3 D-4 G-4 B-4 G-5"/>
+		<ChordMapping Name="G" Notes="G-3 B-3 D-4 G-4 D-5 G-5"/>
+		<ChordMapping Name="G" Notes="G-3 D-4 G-4 B-4 D-5 G-5"/>
+		<ChordMapping Name="G6" Notes="G-3 B-3 D-4 G-4 B-4 E-5"/>
+		<ChordMapping Name="G6" Notes="G-3 E-4 B-4 D-5"/>
+		<ChordMapping Name="Gmaj7" Notes="G-3 F#4 B-4 D-5"/>
+		<ChordMapping Name="Gmaj7" Notes="G-3 B-4 D-5 F#5"/>
+		<ChordMapping Name="Gmaj7" Notes="G-3 D-4 A-4 B-4 F#5"/>
+		<ChordMapping Name="Gmaj7" Notes="G-4 B-4 D-5 F#5"/>
+		<ChordMapping Name="Gmaj7#11" Notes="G-3 B-4 C#5 F#5"/>
+		<ChordMapping Name="Gm" Notes="G-3 D-4 G-4 A#4 D-5 G-5"/>
+		<ChordMapping Name="Gm7" Notes="G-3 F-4 G-4 A#4 D-5 G-5"/>
+		<ChordMapping Name="Gm6" Notes="G-3 E-4 A#4 D-5"/>
+		<ChordMapping Name="Gm11" Notes="G-3 F-4 A#4 C-5"/>
+		<ChordMapping Name="Gm7M" Notes="G-3 F#4 A#4 D-5"/>
+		<ChordMapping Name="G7" Notes="G-3 B-3 D-4 G-4 B-4 F-5"/>
+		<ChordMapping Name="G7" Notes="G-3 F-4 G-4 B-4"/>
+		<ChordMapping Name="Gadd9" Notes="G-3 D-4 A-4 B-4"/>
+		<ChordMapping Name="G9" Notes="G-3 F-4 A-4 B-4"/>
+		<ChordMapping Name="G7b9" Notes="G-3 F-4 G#4 B-4"/>
+		<ChordMapping Name="G7b9/11" Notes="G-3 F-4 G#4 C-5"/>
+		<ChordMapping Name="G7/9/11" Notes="G-3 F-4 A-4 C-5"/>
+		<ChordMapping Name="G7dim" Notes="G-3 E-4 A#4 C#5"/>
+		<ChordMapping Name="G" Notes="B-3 G-4 D-5 G-5"/>
+		<ChordMapping Name="Gm" Notes="A#3 G-4 D-5 G-5"/>
+		<ChordMapping Name="Gm" Notes="A#3 D-4 G-4 D-5"/>
+		<ChordMapping Name="G7" Notes="B-3 G-4 D-5 F-5"/>
+		<ChordMapping Name="G9" Notes="F-4 A-4 B-4 G-5"/>
+		<ChordMapping Name="F" Notes="F-3 C-4 F-4 A-4 C-5 F-5"/>
+		<ChordMapping Name="Fsus4" Notes="F-3 C-4 F-4 A#4 C-5 F-5"/>
+		<ChordMapping Name="Fmaj7b5" Notes="F-3 C-4 F-4 A-4 B-4 E-5"/>
+		<ChordMapping Name="Fmaj7" Notes="F-4 A-4 C-5 E-5"/>
+		<ChordMapping Name="Fmaj7" Notes="F-3 E-4 A-4 C-5"/>
+		<ChordMapping Name="Fmaj7b5" Notes="F-3 E-4 A-4 B-4"/>
+		<ChordMapping Name="Fmaj7#5" Notes="F-3 E-4 A-4 C#5"/>
+		<ChordMapping Name="F6" Notes="F-3 D-4 A-4 C-5"/>
+		<ChordMapping Name="Fm" Notes="F-3 C-4 F-4 G#4 C-5 F-5"/>
+		<ChordMapping Name="Fm6" Notes="F-3 D-4 G#4 C-5"/>
+		<ChordMapping Name="Fm7" Notes="F-3 D#4 G#4 C-5"/>
+		<ChordMapping Name="Fm7M" Notes="F-3 E-4 G#4 C-5"/>
+		<ChordMapping Name="Fm9" Notes="F-3 C-4 D#4 G#4 C-5 G-5"/>
+		<ChordMapping Name="F7" Notes="F-3 D#4 A-4 C-5"/>
+		<ChordMapping Name="F7" Notes="F-3 C-4 D#4 A-4 C-5 F-5"/>
+		<ChordMapping Name="F7#5" Notes="F-3 D#4 A-4 C#5"/>
+		<ChordMapping Name="F7b5" Notes="F-3 D#4 A-4 B-4"/>
+		<ChordMapping Name="F7#9" Notes="F-3 D#4 A-4 D#5 G#5"/>
+		<ChordMapping Name="F7sus4" Notes="F-3 C-4 D#4 A#4 C-5 F-5"/>
+		<ChordMapping Name="F13" Notes="F-3 D#4 A-4 D-5"/>
+		<ChordMapping Name="F7/4/13" Notes="F-3 D#4 A#4 D-5"/>
+		<ChordMapping Name="Fdim" Notes="F-3 D-4 G#4 B-4"/>
+		<ChordMapping Name="Fdim" Notes="F-4 B-4 D-5 G#5"/>
+		<ChordMapping Name="Faug" Notes="F-4 A-4 C#5 F-5"/>
+		<ChordMapping Name="F" Notes="A-3 F-4 A-4 C-5"/>
+		<ChordMapping Name="F6" Notes="C-4 A-4 D-5 F-5"/>
+		<ChordMapping Name="F6/9" Notes="A-3 D-4 G-4 C-5"/>
+		<ChordMapping Name="Fm" Notes="F-4 G#4 C-5 F-5"/>
+		<ChordMapping Name="Fm7M" Notes="E-4 G#4 C-5 F-5"/>
+		<ChordMapping Name="Fm7" Notes="D#4 G#4 C-5 F-5"/>
+		<ChordMapping Name="Fm6" Notes="D-4 G#4 C-5 F-5"/>
+		<ChordMapping Name="E" Notes="E-3 B-3 E-4 G#4 B-4 E-5"/>
+		<ChordMapping Name="E" Notes="E-4 B-4 E-5 G#5"/>
+		<ChordMapping Name="Eadd9" Notes="E-3 B-3 F#4 G#4 B-4 E-5"/>
+		<ChordMapping Name="Emaj7" Notes="E-3 D#4 G#4 B-4"/>
+		<ChordMapping Name="Emaj7" Notes="E-4 B-4 D#5 G#5"/>
+		<ChordMapping Name="Em" Notes="E-3 B-3 E-4 G-4 B-4 E-5"/>
+		<ChordMapping Name="Em7sus4" Notes="E-3 A-3 D-4 G-4 B-4 E-5"/>
+		<ChordMapping Name="Esus4" Notes="E-3 B-3 E-4 A-4 B-4 E-5"/>
+		<ChordMapping Name="Em7" Notes="E-3 B-3 D-4 G-4 B-4 E-5"/>
+		<ChordMapping Name="Em7" Notes="E-3 B-3 E-4 G-4 D-5 G-5"/>
+		<ChordMapping Name="Em7" Notes="E-4 B-4 D-5 G-5"/>
+		<ChordMapping Name="Em6" Notes="E-3 B-3 E-4 G-4 C#5 E-5"/>
+		<ChordMapping Name="Em7M" Notes="E-4 G-4 D#5 G-5"/>
+		<ChordMapping Name="Em9" Notes="E-3 B-3 F#4 G-4 D-5"/>
+		<ChordMapping Name="Em9" Notes="E-3 B-3 D-4 G-4 D-5 F#5"/>
+		<ChordMapping Name="E7sus4" Notes="E-3 B-3 D-4 A-4 B-4 E-5"/>
+		<ChordMapping Name="Em9sus4" Notes="E-3 B-3 G-4 A-4 D-5 F#5"/>
+		<ChordMapping Name="E7" Notes="E-3 B-3 D-4 G#4 B-4 E-5"/>
+		<ChordMapping Name="E7" Notes="E-3 B-3 E-4 G#4 D-5 E-5"/>
+		<ChordMapping Name="E7" Notes="E-4 B-4 D-5 G#5"/>
+		<ChordMapping Name="E7/9" Notes="E-4 G#4 D-5 F#5"/>
+		<ChordMapping Name="E9" Notes="E-4 G#4 D-5 F#5"/>
+		<ChordMapping Name="E13" Notes="E-3 B-3 E-4 G#4 C#5 E-5"/>
+		<ChordMapping Name="E7b9" Notes="E-4 G#4 D-5 F-5"/>
+		<ChordMapping Name="E7#9" Notes="E-3 G#4 D-5 G-5"/>
+		<ChordMapping Name="Em7b5" Notes="E-4 A#4 D-5 G-5"/>
+		<ChordMapping Name="Edim" Notes="E-4 A#4 C#5 G-5"/>
+		<ChordMapping Name="E" Notes="G#3 E-4 B-4 E-5"/>
+		<ChordMapping Name="Emaj7" Notes="G#3 E-4 B-4 D#5"/>
+		<ChordMapping Name="Em6" Notes="G-3 E-4 B-4 C#5"/>
+		<ChordMapping Name="E7" Notes="G#3 E-4 B-4 D-5"/>
+		<ChordMapping Name="E13" Notes="D-4 G#4 C#5 E-5"/>
+		<ChordMapping Name="A" Notes="A-3 E-4 A-4 C#5 E-5"/>
+		<ChordMapping Name="A" Notes="A-3 E-4 A-4 C#5"/>
+		<ChordMapping Name="A" Notes="A-3 C#4 E-4 A-4 C#5"/>
+		<ChordMapping Name="Asus4" Notes="A-3 E-4 A-4 D-5 E-5"/>
+		<ChordMapping Name="Amaj7" Notes="A-3 E-4 G#4 C#5 E-5"/>
+		<ChordMapping Name="Amaj7" Notes="A-3 E-4 A-4 C#5 G#5"/>
+		<ChordMapping Name="Aadd9" Notes="A-3 E-4 B-4 C#5 E-5"/>
+		<ChordMapping Name="Amadd9" Notes="A-3 E-4 B-4 C-5 E-5"/>
+		<ChordMapping Name="Am" Notes="A-3 E-4 A-4 C-5 E-5"/>
+		<ChordMapping Name="Am6" Notes="A-3 F#4 C-5 E-5"/>
+		<ChordMapping Name="Am6" Notes="A-3 E-4 A-4 C-5 F#5"/>
+		<ChordMapping Name="Am7" Notes="A-3 E-4 G-4 C-5 E-5"/>
+		<ChordMapping Name="AmM7" Notes="A-3 E-4 G#4 C-5"/>
+		<ChordMapping Name="Am7#5" Notes="A-3 F-4 G-4 C-5"/>
+		<ChordMapping Name="Am7m6" Notes="A-3 F-4 G-4 C-5 E-5"/>
+		<ChordMapping Name="A7" Notes="A-3 E-4 G-4 C#5 E-5"/>
+		<ChordMapping Name="A7sus4" Notes="A-3 E-4 G-4 D-5 E-5"/>
+		<ChordMapping Name="A13" Notes="A-3 G-4 C#5 F#5"/>
+		<ChordMapping Name="Ab13" Notes="A-3 G-4 C#5 F-5"/>
+		<ChordMapping Name="A9" Notes="A-3 G-4 B-4 C#5"/>
+		<ChordMapping Name="A7b9" Notes="A-3 G-4 A#4 C#5"/>
+		<ChordMapping Name="A" Notes="E-3 E-4 A-4 C#5"/>
+		<ChordMapping Name="Am7" Notes="G-3 E-4 A-4 C-5"/>
+		<ChordMapping Name="A7" Notes="G-3 E-4 A-4 C#5"/>
+		<ChordMapping Name="B" Notes="B-3 F#4 B-4 D#5 F#5"/>
+		<ChordMapping Name="Bmaj7" Notes="B-3 F#4 A#4 D#5 F#5"/>
+		<ChordMapping Name="B6" Notes="B-3 F#4 G#4 D#5"/>
+		<ChordMapping Name="Bm" Notes="B-3 F#4 B-4 D-5 F#5"/>
+		<ChordMapping Name="Bm6" Notes="B-3 G#4 D-5 F#5"/>
+		<ChordMapping Name="Bm7" Notes="B-3 F#4 A-4 D-5 F#5"/>
+		<ChordMapping Name="Bm7b5" Notes="B-3 F-4 A-4 D-5"/>
+		<ChordMapping Name="Bm7b5" Notes="B-3 A-4 D-5 F-5"/>
+		<ChordMapping Name="Bm9" Notes="B-3 D-4 A-4 C#5"/>
+		<ChordMapping Name="B7" Notes="B-3 D#4 A-4 B-4 F#5"/>
+		<ChordMapping Name="B7" Notes="B-3 F#4 A-4 D#5 F#5"/>
+		<ChordMapping Name="B9" Notes="B-3 D#4 A-4 C#5"/>
+		<ChordMapping Name="B7/4/9" Notes="B-3 E-4 A-4 C#5"/>
+		<ChordMapping Name="B7/9/11" Notes="B-3 A-4 C#5 E-5"/>
+		<ChordMapping Name="B7b9" Notes="B-3 D#4 A-4 C-5 F#5"/>
+		<ChordMapping Name="B7b9" Notes="B-3 D#4 A-4 C-5"/>
+		<ChordMapping Name="B7#9" Notes="B-3 D#4 A-4 D-5"/>
+		<ChordMapping Name="B13" Notes="B-3 A-4 D#5 G#5"/>
+		<ChordMapping Name="B7/4/13" Notes="B-3 A-4 E-5 G#5"/>
+		<ChordMapping Name="Bdim" Notes="B-3 F-4 G#4 D-5"/>
+		<ChordMapping Name="B" Notes="F#3 F#4 B-4 D#5"/>
+		<ChordMapping Name="Bmaj7" Notes="F#3 D#4 A#4 B-4"/>
+		<ChordMapping Name="B7" Notes="F#3 D#4 A-4 B-4"/>
+		<ChordMapping Name="B7" Notes="D#4 A-4 B-4 F#5"/>
+		<ChordMapping Name="D" Notes="D-4 A-4 D-5 F#5"/>
+		<ChordMapping Name="D" Notes="D-4 F#4 A-4 D-5 F#5"/>
+		<ChordMapping Name="Dsus4" Notes="D-4 A-4 D-5 G-5"/>
+		<ChordMapping Name="Dmaj7" Notes="D-4 F#4 A-4 C#5 F#5"/>
+		<ChordMapping Name="Dmaj7" Notes="D-4 F#4 A-4 C#5"/>
+		<ChordMapping Name="Dmaj7#5" Notes="D-4 F#4 A#4 C#5"/>
+		<ChordMapping Name="Dm" Notes="D-4 A-4 D-5 F-5"/>
+		<ChordMapping Name="Dm6" Notes="D-4 A-4 B-4 F-5"/>
+		<ChordMapping Name="Dm7" Notes="D-4 A-4 C-5 F-5"/>
+		<ChordMapping Name="Dm7M" Notes="D-4 A-4 C#5 F-5"/>
+		<ChordMapping Name="Dm9" Notes="D-4 F-4 C-5 E-5"/>
+		<ChordMapping Name="D7" Notes="D-4 A-4 C-5 F#5"/>
+		<ChordMapping Name="D7" Notes="D-4 F#4 C-5 D-5"/>
+		<ChordMapping Name="D9" Notes="D-4 F#4 C-5 E-5"/>
+		<ChordMapping Name="D7b9" Notes="D-4 F#4 C-5 D#5"/>
+		<ChordMapping Name="D7sus4" Notes="D-4 A-4 C-5 G-5"/>
+		<ChordMapping Name="D6" Notes="D-4 A-4 B-4 F#5"/>
+		<ChordMapping Name="D" Notes="F#3 D-4 A-4 D-5"/>
+		<ChordMapping Name="Dm6" Notes="F-3 D-4 A-4 B-4"/>
+		<ChordMapping Name="Dm" Notes="F-3 F-4 A-4 D-5"/>
+		<ChordMapping Name="Dm" Notes="A-3 F-4 A-4 D-5"/>
+		<ChordMapping Name="D7" Notes="F#3 D-4 A-4 C-5"/>
+		<ChordMapping Name="D7" Notes="C-4 A-4 D-5 F#5"/>
+		<ChordMapping Name="D13" Notes="C-4 F#4 B-4 D-5"/>
+		<ChordMapping Name="Eb" Notes="D#4 A#4 D#5 G-5"/>
+		<ChordMapping Name="Ebmaj7" Notes="D#4 A#4 D-5 G-5"/>
+		<ChordMapping Name="Eb7" Notes="D#4 A#4 C#5 G-5"/>
+		<ChordMapping Name="Eb6" Notes="D#4 A#4 C-5 G-5"/>
+		<ChordMapping Name="Ebm" Notes="D#4 A#4 D#5 F#5"/>
+		<ChordMapping Name="Ebm7M" Notes="D#4 A#4 D-5 F#5"/>
+		<ChordMapping Name="Ebm7" Notes="D#4 A#4 C#5 F#5"/>
+		<ChordMapping Name="Ebm6" Notes="D#4 A#4 C-5 F#5"/>
+		<ChordMapping Name="Eb" Notes="G-3 D#4 A#4 D#5"/>
+		<ChordMapping Name="Ebmaj7" Notes="G-3 D#4 A#4 D-5"/>
+		<ChordMapping Name="Eb7" Notes="G-3 D#4 A#4 C#5"/>
+		<ChordMapping Name="Bb" Notes="A#3 F-4 A#4 D-5 F-5"/>
+		<ChordMapping Name="Bb" Notes="A#3 F-4 A#4 D-5"/>
+		<ChordMapping Name="Bb6" Notes="A#3 F-4 G-4 D-5"/>
+		<ChordMapping Name="Bbmaj7" Notes="A#3 F-4 A-4 D-5"/>
+		<ChordMapping Name="Bbmaj7" Notes="A#3 F-4 A-4 D-5 F-5"/>
+		<ChordMapping Name="Bbm" Notes="A#3 F-4 A#4 C#5 F-5"/>
+		<ChordMapping Name="Bbm" Notes="A#3 F-4 A#4 C#5"/>
+		<ChordMapping Name="Bbm7" Notes="A#3 F-4 G#4 C#5 F-5"/>
+		<ChordMapping Name="Bbm7" Notes="A#3 F-4 G#4 C#5"/>
+		<ChordMapping Name="Bbm7b5" Notes="A#3 E-4 G#4 C#5"/>
+		<ChordMapping Name="Bbm6" Notes="A#3 F-4 G-4 C#5"/>
+		<ChordMapping Name="Bb7" Notes="A#3 F-4 G#4 D-5"/>
+		<ChordMapping Name="Bb9" Notes="A#3 D-4 G#4 C-5"/>
+		<ChordMapping Name="Bb13" Notes="A#3 G#4 D-5 G-5"/>
+		<ChordMapping Name="Gb" Notes="F#3 C#4 F#4 A#4 C#5 F#5"/>
+		<ChordMapping Name="Gbmaj7" Notes="F#3 F-4 A#4 C#5"/>
+		<ChordMapping Name="Gbmaj7" Notes="F#4 A#4 C#5 F-5"/>
+		<ChordMapping Name="F#m" Notes="F#3 C#4 F#4 A-4 C#5 F#5"/>
+		<ChordMapping Name="F#m7" Notes="F#3 C#4 E-4 A-4 C#5 F#5"/>
+		<ChordMapping Name="F#m7" Notes="F#3 E-4 A-4 C#5"/>
+		<ChordMapping Name="F#m6" Notes="F#3 D#4 A-4 C#5"/>
+		<ChordMapping Name="F#m9" Notes="F#3 C#4 E-4 A-4 E-5 G#5"/>
+		<ChordMapping Name="F#m7b5" Notes="F#3 E-4 A-4 C-5"/>
+		<ChordMapping Name="F#7" Notes="F#3 C#4 E-4 A#4 C#5 F#5"/>
+		<ChordMapping Name="F#7" Notes="F#3 E-4 A#4 C#5"/>
+		<ChordMapping Name="Gbdim" Notes="F#3 D#4 A-4 C-5"/>
+		<ChordMapping Name="Gbdim13b" Notes="F#3 D#4 A-4 D-5"/>
+		<ChordMapping Name="Ab" Notes="G#3 C-4 D#4 G#4 C-5"/>
+		<ChordMapping Name="Ab6" Notes="G#3 F-4 C-5 D#5"/>
+		<ChordMapping Name="Abmaj7" Notes="G#3 G-4 C-5 D#5"/>
+		<ChordMapping Name="Abadd9" Notes="G#3 D#4 A#4 C-5"/>
+		<ChordMapping Name="Abm6" Notes="G#3 F-4 B-4 D#5"/>
+		<ChordMapping Name="Abm7" Notes="G#3 F#4 B-4 D#5"/>
+		<ChordMapping Name="Abm7b5" Notes="G#3 F#4 B-4 D-5"/>
+		<ChordMapping Name="Ab7" Notes="G#3 F#4 C-5 D#5"/>
+		<ChordMapping Name="Ab7#5" Notes="G#3 F#4 C-5 E-5"/>
+		<ChordMapping Name="Ab9" Notes="G#3 F#4 A#4 C-5"/>
+		<ChordMapping Name="Ab7#11" Notes="G#3 F#4 C-5 D-5"/>
+		<ChordMapping Name="AbM7#5" Notes="G#3 G-4 C-5 E-5"/>
+		<ChordMapping Name="C#" Notes="C#4 F-4 G#4 C#5"/>
+		<ChordMapping Name="C#" Notes="C#4 F-4 G#4 C#5 F-5"/>
+		<ChordMapping Name="Dbmaj7" Notes="C#4 F-4 G#4 C-5"/>
+		<ChordMapping Name="C#7" Notes="C#4 F-4 B-4 C#5"/>
+		<ChordMapping Name="C#9" Notes="C#4 F-4 B-4 D#5"/>
+		<ChordMapping Name="C#9b" Notes="C#4 F-4 B-4 D-5"/>
+		<ChordMapping Name="C#9#" Notes="C#4 F-4 B-4 E-5"/>
+		<ChordMapping Name="E" Notes="E-3 B-3"/> 
+		<ChordMapping Name="F" Notes="F-3 C-4"/> 
+		<ChordMapping Name="F#" Notes="F#3 C#4"/> 
+		<ChordMapping Name="G" Notes="G-3 D-4"/> 
+		<ChordMapping Name="A" Notes="A-3 E-4"/> 
+		<ChordMapping Name="Bb" Notes="A#3 F-4"/> 
+		<ChordMapping Name="B" Notes="B-3 F#4"/> 
+		<ChordMapping Name="C" Notes="C-4 G-4"/> 
+		<ChordMapping Name="C" Notes="E-3 C-4"/> 
+		<ChordMapping Name="Db" Notes="F-3 C#4"/> 
+		<ChordMapping Name="D" Notes="F#3 D-4"/> 
+		<ChordMapping Name="F" Notes="A-3 F-4"/> 
+		<ChordMapping Name="Gb" Notes="A#3 F#4"/> 
+		<ChordMapping Name="G" Notes="B-3 G-4"/> 
+		<ChordMapping Name="Em" Notes="E-3 B-3 G-4"/>
+		<ChordMapping Name="F" Notes="F-3 C-4 A-4"/>
+		<ChordMapping Name="G" Notes="G-3 D-4 B-4"/>
+		<ChordMapping Name="Am" Notes="A-3 E-4 C-5"/>
+		<ChordMapping Name="Bdim" Notes="B-3 F-4 D-5"/>
+		<ChordMapping Name="C" Notes="C-4 G-4 E-5"/>
+		<ChordMapping Name="Dm" Notes="D-4 A-4 F-5"/>
+		<ChordMapping Name="Em" Notes="E-4 B-4 G-5"/>
+		<ChordMapping Name="F#dim" Notes="F#3 C-4 A-4"/>
+		<ChordMapping Name="Gm" Notes="G-3 D-4 A#4"/>
+		<ChordMapping Name="Adim" Notes="A-3 D#4 C-5"/>
+		<ChordMapping Name="BbAug" Notes="A#3 F#4 D-5"/>
+		<ChordMapping Name="Cm" Notes="C-4 G-4 D#5"/>
+		<ChordMapping Name="D" Notes="D-4 A-4 F#5"/>
+		<ChordMapping Name="Eb" Notes="D#4 A#4 G-5"/>
+		<ChordMapping Name="F#dim" Notes="F#4 C-5 A-5"/>
+		<ChordMapping Name="E" Notes="B-3 E-4 G#4"/>
+		<ChordMapping Name="F#" Notes="C#4 F#4 A#4"/>
+		<ChordMapping Name="G#dim" Notes="D-4 G#4 B-4"/>
+		<ChordMapping Name="A#dim" Notes="E-4 A#4 C#5"/>
+		<ChordMapping Name="Bm" Notes="F#4 B-4 D-5"/>
+		<ChordMapping Name="C#" Notes="G#4 C#5 E-5"/>
+		<ChordMapping Name="Daug" Notes="A#4 D-5 F#5"/>
+		<ChordMapping Name="E" Notes="B-4 E-5 G#5"/>
+		<ChordMapping Name="G" Notes="B-3 G-4 D-5"/>
+		<ChordMapping Name="D" Notes="A-3 F#4 D-5"/>
+		<ChordMapping Name="F" Notes="A-3 F-4 C-5"/>
+		<ChordMapping Name="C" Notes="G-3 E-4 C-5"/>
+		<ChordMapping Name="Eb" Notes="G-3 D#4 A#4"/>
+		<ChordMapping Name="Bb" Notes="F-3 D-4 A#4"/>
+		<ChordMapping Name="Gb" Notes="A#3 F#4 C#5"/>
+		<ChordMapping Name="Db" Notes="G#3 F-4 C#5"/>
+		<ChordMapping Name="Ab" Notes="C-4 G#4 D#5"/>
+		<ChordMapping Name="Eb" Notes="A#3 G-4 D#5"/>
+		<ChordMapping Name="C" Notes="E-4 C-5 G-5"/>
+		<ChordMapping Name="G" Notes="D-4 B-4 G-5"/>
+		<ChordMapping Name="F#m7b9/11" Notes="F#3 C#4 F#4 G-4 B-4 E-5"/>
+		<ChordMapping Name="B7b9#11" Notes="B-3 D#4 A-4 C-5 F-5"/>
+		<ChordMapping Name="A7/9/#11/13" Notes="A-3 G-4 B-4 D#5 F#5"/>
+		<ChordMapping Name="A7/b9/#11/13" Notes="A-3 G-4 A#4 D#5 F#5"/>
+		<ChordMapping Name="Abm7/9" Notes="G#3 F#4 A#4 B-4 F#5"/>
+		<ChordMapping Name="Eadd9b" Notes="E-3 B-3 F-4 G#4 B-4 E-5"/>
+		<ChordMapping Name="E11#" Notes="E-3 B-3 E-4 A#4 B-4 E-5"/>
+		<ChordMapping Name="Gb7/11" Notes="F#3 C#4 F#4 A#4 B-4 E-5"/>
+		<ChordMapping Name="C/F" Notes="F-3 G-4 C-5 E-5"/>
+		<ChordMapping Name="C/D" Notes="D-4 G-4 C-5 E-5"/>
+		<ChordMapping Name="A/F" Notes="F-3 A-4 C#5 E-5"/>
+		<ChordMapping Name="A/G#" Notes="G#3 E-4 A-4 C#5"/>
+		<ChordMapping Name="E/F#" Notes="F#3 G#4 B-4 E-5"/>
+		<ChordMapping Name="E/F" Notes="F-3 G#4 B-4 E-5"/>
+		<ChordMapping Name="E/C" Notes="C-3 G#4 B-4 E-5"/>
+		<ChordMapping Name="Fourth" Notes="E-3 A-3 D-4 G-4 C-5 F-5"/>
+		<ChordMapping Name="C9sus4" Notes="C-4 F-4 A#4 D-5 G-5"/>
+		<ChordMapping Name="Bm11" Notes="B-3 E-4 A-4 D-5 F#5"/>
+		<ChordMapping Name="Am7sus4" Notes="A-3 D-4 G-4 C-5 E-5"/>
+		<ChordMapping Name="Dm7sus4" Notes="D-4 G-4 C-5 F-5"/>
+		<ChordMapping Name="Em7sus4" Notes="B-3 E-4 A-4 D-5 G-5"/>
+		<ChordMapping Name="Dmadd9" Notes="F-3 A-3 F-4 A-4 D-5 E-5"/>
+		<ChordMapping Name="C9" Notes="C-4 E-4 A#4 D-5 E-5"/>
+		<ChordMapping Name="Bb#11" Notes="A#3 D-4 A#4 D-5 E-5"/>
+		<ChordMapping Name="Aadd9b" Notes="A-3 E-4 A#4 C#5 E-5"/>
+		<ChordMapping Name="Am" Notes="C-5 E-5 A-5"/>
+		<ChordMapping Name="G" Notes="B-4 D-5 G-5"/>
+		<ChordMapping Name="F" Notes="A-4 C-5 F-5"/>
+		<ChordMapping Name="E" Notes="G#4 B-4 E-5"/>
+		<ChordMapping Name="Em9" Notes="E-4 G-4 B-4 F#5"/>
+		<ChordMapping Name="D9" Notes="D-4 A-4 C-5 E-5"/>
+		<ChordMapping Name="C9#11" Notes="C-4 E-4 A#4 F#5"/>
+		<ChordMapping Name="Badd9b" Notes="B-3 F#4 C-5 B-4"/>
+		<ChordMapping Name="B" Notes="B-3 F#4 B-4 B-4"/>
+		<ChordMapping Name="A2" Notes="A-3 E-4 A-4 B-4"/>
+		<ChordMapping Name="G" Notes="G-3 D-4 G-4 B-4 B-4"/>
+		<ChordMapping Name="F#7" Notes="F#3 A#3 E-4 A#4 B-4"/>
+	  </Mappings>
+	</ChordSet>
+  </ChordSets>
+</ChordMappingFile>

@@ -1,0 +1,137 @@
+<ControlTemplate
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:l="clr-namespace:BuzzGUI.ParameterWindow;assembly=BuzzGUI.ParameterWindow"
+  xmlns:bgc="clr-namespace:BuzzGUI.Common;assembly=BuzzGUI.Common"
+  >
+  <ControlTemplate.Resources>
+    <ControlTemplate x:Key="TemplateHorizSlider">
+      <Grid Height="16">
+
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="86"/>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="80"/>
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Grid.Column="0" Text="{Binding Name}"/>
+        <Border Grid.Column="1" Height="14" BorderThickness="0,0,1,1" BorderBrush="White" SnapsToDevicePixels="True">
+          <Border BorderThickness="1,1,0,0" BorderBrush="#5000" SnapsToDevicePixels="True">
+            <bgc:ParameterSlider MinimumThumbWidth="12" Focusable="True" Value="{Binding Value}" Minimum="{Binding MinValue}" Maximum="{Binding MaxValue}"/>
+          </Border>
+        </Border>
+        <TextBlock Grid.Column="2" Margin="4,0,0,0" Text="{Binding ValueDescription}"/>
+
+      </Grid>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="TemplateVertSlider">
+      <Grid Width="16">
+
+        <Grid.RowDefinitions>
+          <RowDefinition Height="60"/>
+          <RowDefinition Height="*"/>
+          <RowDefinition Height="60"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Bottom" Text="{Binding Name}">
+          <TextBlock.LayoutTransform>
+            <RotateTransform Angle="90"/>
+          </TextBlock.LayoutTransform>
+        </TextBlock>
+
+        <!--<Slider Grid.Row="1" Orientation="Vertical" Width="24" MinHeight="200"
+                Minimum="{Binding MinValue}" Maximum="{Binding MaxValue}" Value="{Binding Value}"/>-->
+
+        <l:RibbonSlider Grid.Row="1" Orientation="Vertical" MinHeight="200" ThumbWidth="4"
+                Minimum="{Binding MinValue}" Maximum="{Binding MaxValue}" Value="{Binding Value, Mode=TwoWay}">
+          <!-- NB: when Orientation=Vertical, ThumbWidth is actually the *height* of the thumb. -->
+          <l:RibbonSlider.ThumbStyle>
+            <Style TargetType="Rectangle">
+              <Setter Property="Fill" Value="Black"/>
+            </Style>
+          </l:RibbonSlider.ThumbStyle>
+          <l:RibbonSlider.BarStyle>
+            <Style TargetType="Rectangle">
+              <Setter Property="Fill">
+                <Setter.Value>
+                  <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="Red" Offset="0"/>
+                    <GradientStop Color="Yellow" Offset="0.5"/>
+                    <GradientStop Color="Green" Offset="1"/>
+                  </LinearGradientBrush>
+                </Setter.Value>
+              </Setter>
+            </Style>
+          </l:RibbonSlider.BarStyle>
+        </l:RibbonSlider>
+
+        <TextBlock Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Top" Text="{Binding ValueDescription}">
+          <TextBlock.LayoutTransform>
+            <RotateTransform Angle="90"/>
+          </TextBlock.LayoutTransform>
+        </TextBlock>
+
+      </Grid>
+    </ControlTemplate>
+    
+    <l:ParameterListSlicer x:Key="Slicer"/>
+  </ControlTemplate.Resources>
+
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <Grid Margin="8">
+      
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="8"/>
+        <RowDefinition Height="20"/>
+        <RowDefinition Height="8"/>
+        <RowDefinition Height="16"/>
+        <RowDefinition Height="16"/>
+        <RowDefinition Height="16"/>
+        <RowDefinition Height="*"/>
+      </Grid.RowDefinitions>
+
+      <ItemsControl Grid.Row="0" ItemsSource="{Binding InputParameters}" Focusable="False">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Control Template="{StaticResource TemplateHorizSlider}"/>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+      <ToggleButton Grid.Row="2" IsChecked="{Binding Path=GlobalParameters[0].Value}">
+        <Binding Path="GlobalParameters[0].ValueDescription"/>
+      </ToggleButton>
+
+      <Control Grid.Row="4" Template="{StaticResource TemplateHorizSlider}" DataContext="{Binding GlobalParameters[1]}"/>
+      <Control Grid.Row="5" Template="{StaticResource TemplateHorizSlider}" DataContext="{Binding GlobalParameters[32]}"/>
+      <Control Grid.Row="6" Template="{StaticResource TemplateHorizSlider}" DataContext="{Binding GlobalParameters[33]}"/>
+
+      <GroupBox Grid.Row="7" Header="Bands">
+        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+          <ItemsControl ItemsSource="{Binding GlobalParameters, Converter={StaticResource Slicer}, ConverterParameter=31:2}">
+            <!-- The Converter and ConverterParameter give us a list of the global parameters with indices
+                 31, 30, 29, 28, ..., 3, 2.
+                 If the ConverterParameter was 2:31 instead of 31:2, then we would get parameters
+                 2, 3, 4, 5, ..., 29, 30, 31 instead. -->
+
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <StackPanel Orientation="Horizontal"/>
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Control Template="{StaticResource TemplateVertSlider}"/>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+
+          </ItemsControl>
+        </ScrollViewer>
+      </GroupBox>
+
+    </Grid>
+  </ScrollViewer>
+</ControlTemplate>

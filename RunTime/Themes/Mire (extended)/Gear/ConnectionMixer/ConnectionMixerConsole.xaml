@@ -1,0 +1,29 @@
+﻿<ResourceDictionary
+			xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+			xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"  
+			xmlns:l="clr-namespace:WDE.ConnectionMixer">
+
+<!--        <SolidColorBrush x:Key="MixerControlBackgroundBrush">#333</SolidColorBrush> -->
+<ImageBrush x:Key="MixerControlBackgroundBrush" ImageSource="gfx/bg2.png" po:Freeze="True"
+									Viewport="0,0,1440,900" ViewportUnits="Absolute" TileMode="FlipXY" Stretch="None"/>
+
+
+        <SolidColorBrush x:Key="VUMeterBorderBrush" Color="#222" po:Freeze="True"/>
+        <SolidColorBrush x:Key="TopBGBrush" Color="#FF443C3C" po:Freeze="True"/>
+		<SolidColorBrush x:Key="TopBGBrushSelected" Color="#FF342C2C" po:Freeze="True"/>
+		<SolidColorBrush x:Key="TopBGBrushMouseOver" Color="#FF544C4C" po:Freeze="True"/>
+        <SolidColorBrush x:Key="TopBorderBrush" Color="#222" po:Freeze="True"/>
+		<SolidColorBrush x:Key="MidBorderBrush" Color="#333" po:Freeze="True"/>
+        <SolidColorBrush x:Key="GridLinesBrush" Color="#FF9A8181" po:Freeze="True"/>
+        <Color x:Key="VUMeterBackgroundColor" po:Freeze="True">#333</Color>
+        <SolidColorBrush x:Key="VUMeterBackgroundBrush" po:Freeze="True">#333</SolidColorBrush>
+        <SolidColorBrush x:Key="VUMeterSplitBrush" po:Freeze="True">#292929</SolidColorBrush>
+
+        <LinearGradientBrush x:Key="VUMeterBrush" StartPoint="0,1" EndPoint="0,0" po:Freeze="True">
+            <GradientStop Color="#0F0" Offset="0.0"/>
+            <GradientStop Color="#FF0" Offset="0.75"/>
+            <GradientStop Color="#F00" Offset="1.0"/>
+        </LinearGradientBrush>
+	
+</ResourceDictionary>

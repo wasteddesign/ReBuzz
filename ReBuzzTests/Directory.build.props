@@ -1,0 +1,10 @@
+<Project>
+    <PropertyGroup>
+        <MSBUildProjectExtensionsPath>$(SolutionDir)build\$(Configuration)\$(Platform)\ReBuzzTests\obj</MSBUildProjectExtensionsPath>
+    </PropertyGroup>
+	<ItemDefinitionGroup>
+		<ProjectReference>
+			<Private Condition="'$(OutputType)' == 'library'">false</Private>
+		</ProjectReference>
+	</ItemDefinitionGroup>
+</Project>

@@ -1,0 +1,93 @@
+﻿<ResourceDictionary 
+xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Wpf.Controls"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:shell="clr-namespace:Microsoft.Windows.Shell;assembly=BuzzGUI.Common"
+    >
+	<ResourceDictionary.MergedDictionaries>
+	
+	<ResourceDictionary Source="SimpleStyles/Button.xaml" />
+
+	</ResourceDictionary.MergedDictionaries>
+	
+		<Style TargetType="{x:Type StackPanel}">
+			<Setter Property="Background" Value="#333"/>
+		</Style>
+		
+	<Style x:Key="ButtonFocusVisual">
+		<Setter Property="Control.Template">
+			<Setter.Value>
+				<ControlTemplate>
+					<Rectangle SnapsToDevicePixels="true" Margin="2" Stroke="Black" StrokeDashArray="1 2" StrokeThickness="1"/>
+				</ControlTemplate>
+			</Setter.Value>
+		</Setter>
+	</Style>
+
+	<!-- Outer Border Styles for the various Button States-->
+	<Style x:Key="outerBorderNormal" TargetType="{x:Type Border}">
+		<Setter Property="HorizontalAlignment" Value="Stretch"/>
+		<Setter Property="VerticalAlignment" Value="Stretch"/>
+		<Setter Property="BorderThickness" Value="1"/>
+		<Setter Property="CornerRadius" Value="2"/>
+		<Setter Property="SnapsToDevicePixels" Value="True"/>
+		<Setter Property="BorderBrush" Value="Transparent"/>
+		<Setter Property="Background" Value="Transparent"/>
+	</Style>
+	
+	<Style x:Key="outerBorderHover" TargetType="{x:Type Border}" BasedOn="{StaticResource outerBorderNormal}">
+		<Setter Property="BorderBrush" Value="#66000000"/>
+		<Setter Property="Background" Value="Transparent"/>
+	</Style>
+	
+	<Style x:Key="outerBorderPressed" TargetType="{x:Type Border}" BasedOn="{StaticResource outerBorderNormal}">
+		<Setter Property="BorderThickness" Value="2,2,2,1"/>
+		<Setter Property="BorderBrush" Value="#66000000"/>
+		<Setter Property="Background" Value="#33000000"/>
+	</Style>
+	
+	<Style x:Key="outerBorderDefaulted" TargetType="{x:Type Border}" BasedOn="{StaticResource outerBorderNormal}">
+		<Setter Property="BorderBrush" Value="#33000000"/>
+		<Setter Property="Background" Value="Transparent"/>
+	</Style>
+
+	<!-- inner Border Styles for the various Button States-->
+	<Style x:Key="innerBorderNormal" TargetType="{x:Type Border}">
+		<Setter Property="HorizontalAlignment" Value="Stretch"/>
+		<Setter Property="VerticalAlignment" Value="Stretch"/>
+		<Setter Property="BorderThickness" Value="1"/>
+		<Setter Property="CornerRadius" Value="2"/>
+		<Setter Property="SnapsToDevicePixels" Value="True"/>
+		<Setter Property="BorderBrush" Value="Transparent"/>
+		<Setter Property="Background" Value="Transparent"/>
+	</Style>
+	
+	<Style x:Key="innerBorderHover" TargetType="{x:Type Border}" BasedOn="{StaticResource innerBorderNormal}">
+		<Setter Property="BorderBrush">
+			<Setter.Value>
+				<LinearGradientBrush EndPoint="0,1" StartPoint="0,0">
+					<GradientStop Color="#00FFFFFF" Offset="0"/>
+					<GradientStop Color="#7FFFFFFF" Offset="0.1"/>
+				</LinearGradientBrush>
+			</Setter.Value>
+		</Setter>
+		<Setter Property="Background">
+			<Setter.Value>
+				<LinearGradientBrush EndPoint="0,1" StartPoint="0,0">
+					<GradientStop Color="#66000000" Offset="0"/>
+					<GradientStop Color="#00000000" Offset="1"/>
+				</LinearGradientBrush>
+			</Setter.Value>
+		</Setter>
+	</Style>
+	<Style x:Key="innerBorderPressed" TargetType="{x:Type Border}" BasedOn="{StaticResource innerBorderNormal}">
+		<Setter Property="BorderBrush" Value="{x:Null}"/>
+		<Setter Property="Background" Value="{x:Null}"/>
+	</Style>
+	<Style x:Key="innerBorderDefaulted" TargetType="{x:Type Border}" BasedOn="{StaticResource innerBorderPressed}"/>
+
+
+	
+</ResourceDictionary>

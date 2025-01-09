@@ -4,7 +4,8 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <ImplicitUsings>enable</ImplicitUsings>
-    <BaseOutputPath>..\rel</BaseOutputPath>
+	  <BaseOutputPath>$(SolutionDir)build\$(Configuration)\$(Platform)\BuzzGUI.WaveformControl\bin</BaseOutputPath>
+	  <IntermediateOutputPath>$(SolutionDir)build\$(Configuration)\$(Platform)\BuzzGUI.WaveformControl\obj</IntermediateOutputPath>
     <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
   <PropertyGroup>
@@ -15,10 +16,35 @@
     <Compile Remove="WaveCommandHelpers.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.Reactive.Linq" Version="6.0.1" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\BuzzGUI.Common\BuzzGUI.Common.csproj" />
     <ProjectReference Include="..\BuzzGUI.Interfaces\BuzzGUI.Interfaces.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Reactive">
+      <HintPath>..\..\3rdParty\System.Reactive\System.Reactive.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Reactive.ClientProfile">
+      <HintPath>..\..\3rdParty\System.Reactive\System.Reactive.ClientProfile.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Reactive.Core">
+      <HintPath>..\..\3rdParty\System.Reactive\System.Reactive.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Reactive.Interfaces">
+      <HintPath>..\..\3rdParty\System.Reactive\System.Reactive.Interfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Reactive.Linq">
+      <HintPath>..\..\3rdParty\System.Reactive\System.Reactive.Linq.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <Target Name="ForcePerformRestore" AfterTargets="BeforeBuild">	
+    <Exec Command="IF NOT EXIST  &quot;$(IntermediateOutputPath)..\project.assets.json&quot;  echo restore to $(IntermediateOutputPath)..\project.assets.json &amp;&amp;  dotnet restore &quot;$(ProjectName).csproj&quot; --no-dependencies &amp;&amp; move &quot;build\$(ProjectName)\obj\*&quot; &quot;$(IntermediateOutputPath)..\&quot; &amp;&amp; rmdir /Q /S build	 " /> 
+  </Target>
+  
+  <Target Name="RemoveEmptyObj" AfterTargets="AfterBuild">
+    <Exec Command="IF EXIST obj rmdir obj" />
+  </Target>
+
 </Project>
+
+

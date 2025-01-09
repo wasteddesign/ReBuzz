@@ -1,0 +1,5 @@
+<Project>
+    <PropertyGroup>
+        <MSBUildProjectExtensionsPath>$(SolutionDir)build\$(Configuration)\$(Platform)\ReBuzz\$(Platform)\obj</MSBUildProjectExtensionsPath>
+    </PropertyGroup>
+</Project>

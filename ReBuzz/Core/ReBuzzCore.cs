@@ -834,6 +834,9 @@ namespace ReBuzz.Core
 
         public void AddMachineDLL(string path, MachineType type)
         {
+            // FIXME: Callning AddMachineDLL repeatedly is very slow and does not work properly. Skip for now.
+            // AddMachineDLL is called by MDBTab to add "More Machines" during start
+            /*
             try
             {
                 string libName = Path.GetFileName(path);
@@ -847,12 +850,12 @@ namespace ReBuzz.Core
                         machineDllScanner.AddMachineDllsToDictionary(mdxmlArray, machineDLLsList);
                         PropertyChanged.Raise(this, "MachineDLLs");
                     }
+                    MachineDB = new MachineDatabase(this, buzzPath, dispatcher);
+                    UpdateInstrumentList(MachineDB);
                 }
             }
             catch { }
-
-            MachineDB = new MachineDatabase(this, buzzPath, dispatcher);
-            UpdateInstrumentList(MachineDB);
+            */
         }
 
         public bool CanExecuteCommand(BuzzCommand cmd)

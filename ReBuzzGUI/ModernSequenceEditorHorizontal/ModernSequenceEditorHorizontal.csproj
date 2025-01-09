@@ -1,4 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <TargetFramework>net9.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
@@ -7,16 +8,23 @@
     <Platforms>AnyCPU;x64</Platforms>
     <AssemblyName>ModernSequenceEditorHorizontal GUI</AssemblyName>
     <RootNamespace>WDE.ModernSequenceEditorHorizontal</RootNamespace>
-    <BaseOutputPath>..\rel</BaseOutputPath>
+    <BaseOutputPath>$(SolutionDir)build\$(Configuration)\$(Platform)\ModernSequenceEditorHorizontal\bin</BaseOutputPath>
+		<IntermediateOutputPath>$(SolutionDir)build\$(Configuration)\$(Platform)\ModernSequenceEditorHorizontal\obj</IntermediateOutputPath>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\BuzzGUI.Common\BuzzGUI.Common.csproj" />
     <ProjectReference Include="..\BuzzGUI.Interfaces\BuzzGUI.Interfaces.csproj" />
     <ProjectReference Include="..\BuzzGUI.SequenceEditorExtended Rebuzz\BuzzGUI.SequenceEditorExtended Rebuzz.csproj" />
+    <ProjectReference Include="..\ModernSequenceEditor.Interfaces\ModernSequenceEditor.Interfaces.csproj" />
+    <ProjectReference Include="..\ModernSequenceEditor\ModernSequenceEditor.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Reference Include="ModernSequenceEditor.Interfaces">
-      <HintPath>..\..\..\..\..\..\Program Files\ReBuzz\ModernSequenceEditor.Interfaces.dll</HintPath>
-    </Reference>
-  </ItemGroup>
+  
+  <Target Name="ForcePerformRestore" AfterTargets="BeforeBuild">	
+    <Exec Command="IF NOT EXIST  &quot;$(IntermediateOutputPath)..\project.assets.json&quot;  echo restore to $(IntermediateOutputPath)..\project.assets.json &amp;&amp;  dotnet restore &quot;$(ProjectName).csproj&quot; --no-dependencies &amp;&amp; move &quot;build\$(ProjectName)\obj\*&quot; &quot;$(IntermediateOutputPath)..\&quot; &amp;&amp; rmdir /Q /S build	 " /> 
+  </Target>
+  
+  <Target Name="RemoveEmptyObj" AfterTargets="AfterBuild">
+    <Exec Command="IF EXIST obj rmdir obj" />
+  </Target>
+  
 </Project>

@@ -1,0 +1,78 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<PresetDictionary>
+  <Item Key="Broken circuit">
+    <Preset Machine="Joachims Saturn 1.4">
+      <Parameters>
+        <Parameter Name="Temp. Input" Group="1" Index="0" Track="0" Value="127" />
+        <Parameter Name="Noise type" Group="1" Index="1" Track="0" Value="8" />
+        <Parameter Name="Noise amount" Group="1" Index="2" Track="0" Value="84" />
+        <Parameter Name="Room Level" Group="1" Index="3" Track="0" Value="0" />
+        <Parameter Name="Room Size" Group="1" Index="4" Track="0" Value="30" />
+        <Parameter Name="Bits" Group="1" Index="5" Track="0" Value="0" />
+        <Parameter Name="Samplerate" Group="1" Index="6" Track="0" Value="85" />
+        <Parameter Name="Antique" Group="1" Index="7" Track="0" Value="101" />
+        <Parameter Name="Detune Amount" Group="1" Index="8" Track="0" Value="0" />
+        <Parameter Name="Detune Speed" Group="1" Index="9" Track="0" Value="63" />
+        <Parameter Name="Ring Mod." Group="1" Index="10" Track="0" Value="19767" />
+        <Parameter Name="Ring Mix" Group="1" Index="11" Track="0" Value="127" />
+        <Parameter Name="Tube Drive" Group="1" Index="12" Track="0" Value="0" />
+        <Parameter Name="Tube Shape" Group="1" Index="13" Track="0" Value="127" />
+        <Parameter Name="Temp. Output" Group="1" Index="14" Track="0" Value="127" />
+        <Parameter Name="Highpass" Group="1" Index="15" Track="0" Value="0" />
+      </Parameters>
+      <Attributes>
+        <Attribute Name="Noise always on" Value="0" />
+      </Attributes>
+    </Preset>
+  </Item>
+  <Item Key="Lost radio transmission">
+    <Preset Machine="Joachims Saturn 1.4">
+      <Parameters>
+        <Parameter Name="Temp. Input" Group="1" Index="0" Track="0" Value="127" />
+        <Parameter Name="Noise type" Group="1" Index="1" Track="0" Value="9" />
+        <Parameter Name="Noise amount" Group="1" Index="2" Track="0" Value="80" />
+        <Parameter Name="Room Level" Group="1" Index="3" Track="0" Value="0" />
+        <Parameter Name="Room Size" Group="1" Index="4" Track="0" Value="30" />
+        <Parameter Name="Bits" Group="1" Index="5" Track="0" Value="0" />
+        <Parameter Name="Samplerate" Group="1" Index="6" Track="0" Value="255" />
+        <Parameter Name="Antique" Group="1" Index="7" Track="0" Value="93" />
+        <Parameter Name="Detune Amount" Group="1" Index="8" Track="0" Value="0" />
+        <Parameter Name="Detune Speed" Group="1" Index="9" Track="0" Value="63" />
+        <Parameter Name="Ring Mod." Group="1" Index="10" Track="0" Value="20302" />
+        <Parameter Name="Ring Mix" Group="1" Index="11" Track="0" Value="104" />
+        <Parameter Name="Tube Drive" Group="1" Index="12" Track="0" Value="69" />
+        <Parameter Name="Tube Shape" Group="1" Index="13" Track="0" Value="69" />
+        <Parameter Name="Temp. Output" Group="1" Index="14" Track="0" Value="127" />
+        <Parameter Name="Highpass" Group="1" Index="15" Track="0" Value="39" />
+      </Parameters>
+      <Attributes>
+        <Attribute Name="Noise always on" Value="0" />
+      </Attributes>
+    </Preset>
+  </Item>
+  <Item Key="Old vinyl">
+    <Preset Machine="Joachims Saturn 1.4">
+      <Parameters>
+        <Parameter Name="Temp. Input" Group="1" Index="0" Track="0" Value="127" />
+        <Parameter Name="Noise type" Group="1" Index="1" Track="0" Value="7" />
+        <Parameter Name="Noise amount" Group="1" Index="2" Track="0" Value="40" />
+        <Parameter Name="Room Level" Group="1" Index="3" Track="0" Value="0" />
+        <Parameter Name="Room Size" Group="1" Index="4" Track="0" Value="30" />
+        <Parameter Name="Bits" Group="1" Index="5" Track="0" Value="0" />
+        <Parameter Name="Samplerate" Group="1" Index="6" Track="0" Value="255" />
+        <Parameter Name="Antique" Group="1" Index="7" Track="0" Value="127" />
+        <Parameter Name="Detune Amount" Group="1" Index="8" Track="0" Value="45" />
+        <Parameter Name="Detune Speed" Group="1" Index="9" Track="0" Value="60" />
+        <Parameter Name="Ring Mod." Group="1" Index="10" Track="0" Value="16383" />
+        <Parameter Name="Ring Mix" Group="1" Index="11" Track="0" Value="0" />
+        <Parameter Name="Tube Drive" Group="1" Index="12" Track="0" Value="25" />
+        <Parameter Name="Tube Shape" Group="1" Index="13" Track="0" Value="67" />
+        <Parameter Name="Temp. Output" Group="1" Index="14" Track="0" Value="127" />
+        <Parameter Name="Highpass" Group="1" Index="15" Track="0" Value="104" />
+      </Parameters>
+      <Attributes>
+        <Attribute Name="Noise always on" Value="0" />
+      </Attributes>
+    </Preset>
+  </Item>
+</PresetDictionary>

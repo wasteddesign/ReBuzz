@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+  The installer overwrites this file so do not edit it. You can make a copy to "%UserProfile%\Documents\Buzz". Buzz will try to load that file first.
+
+  Valid Keys: zxcvbnmasdfghjklqwertyuiop1234567890
+  Notes can be either names or offsets from C in semitones.
+
+-->
+
+<KeyboardMappingFile xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Mappings>
+    <KeyboardMapping Name="Chromatic" Notes="C Db D Eb E F Gb G Ab A Bb B" Keys="zsxdcvgbhnjmq2w3er5t6y7ui9o0p" Off="1" Play="4" PlayAll="8"/>
+	<KeyboardMapping Name="Ionian" Notes="C D E F G A B" Keys="zxcvbnmasdfghjqwertyu" Off="1" Play="7" PlayAll="8"/>
+	<KeyboardMapping Name="Dorian" Notes="C D Eb F G A Bb" Keys="zxcvbnmasdfghjqwertyu" Off="1" Play="7" PlayAll="8"/>
+	<KeyboardMapping Name="Phrygian" Notes="C Db Eb F G Ab Bb" Keys="zxcvbnmasdfghjqwertyu" Off="1" Play="7" PlayAll="8"/>
+	<KeyboardMapping Name="Lydian" Notes="C D E F# G A B" Keys="zxcvbnmasdfghjqwertyu" Off="1" Play="7" PlayAll="8"/>
+	<KeyboardMapping Name="Mixolydian" Notes="C D E F G A Bb" Keys="zxcvbnmasdfghjqwertyu" Off="1" Play="7" PlayAll="8"/>
+	<KeyboardMapping Name="Aeolian" Notes="C D Eb F G Ab Bb" Keys="zxcvbnmasdfghjqwertyu" Off="1" Play="7" PlayAll="8"/>
+	<KeyboardMapping Name="Locrian" Notes="C Db Eb F Ab Bb" Keys="zxcvbnasdfghqwerty" Off="1" Play="7" PlayAll="8"/>
+	<KeyboardMapping Name="Major Blues" Notes="C Eb E G A Bb" Keys="zxcvbnasdfghqwerty" Off="1" Play="7" PlayAll="8"/>
+	<KeyboardMapping Name="Minor Blues" Notes="C Eb F Gb G Bb" Keys="zxcvbnasdfghqwerty" Off="1" Play="7" PlayAll="8"/>
+	<KeyboardMapping Name="Diminish" Notes="C D Eb F F# G# A B" Keys="asdfghjkqwertyui" Off="1" Play="7" PlayAll="8"/>
+	<KeyboardMapping Name="Combination Diminish" Notes="C Db Eb E F# G A Bb" Keys="asdfghjkqwertyui" Off="1" Play="7" PlayAll="8"/>
+    <KeyboardMapping Name="Major Pentatonic" Notes="C D E G A" Keys="zxcvbasdfgqwert" Off="1" Play="7" PlayAll="8"/>
+    <KeyboardMapping Name="Minor Pentatonic" Notes="C Eb F G Bb" Keys="zxcvbasdfgqwert" Off="1" Play="7" PlayAll="8"/>
+    <KeyboardMapping Name="Ritusen Scale" Notes="C D F G A" Keys="zxcvbasdfgqwert" Off="1" Play="7" PlayAll="8"/>
+	<KeyboardMapping Name="Raga Bhairav" Notes="C Db E F G Ab B" Keys="zxcvbnmasdfghjqwertyu" Off="1" Play="7" PlayAll="8"/>
+	<KeyboardMapping Name="Raga Gamanasrama" Notes="C Db E F# G A B" Keys="zxcvbnmasdfghjqwertyu" Off="1" Play="7" PlayAll="8"/>
+	<KeyboardMapping Name="Raga Todi" Notes="C Db Eb F# G Ab B" Keys="zxcvbnmasdfghjqwertyu" Off="1" Play="7" PlayAll="8"/>
+	<KeyboardMapping Name="Spanish Scale" Notes="C Db Eb E F G Ab Bb" Keys="asdfghjkqwertyui" Off="1" Play="7" PlayAll="8"/>
+	<KeyboardMapping Name="Gypsy Scale" Notes="C D Eb F# G Ab B" Keys="zxcvbnmasdfghjqwertyu" Off="1" Play="7" PlayAll="8"/>
+	<KeyboardMapping Name="Arabian Scale" Notes="C D E F Gb Ab Bb" Keys="zxcvbnmasdfghjqwertyu" Off="1" Play="7" PlayAll="8"/>
+    <KeyboardMapping Name="Egyptian Scale" Notes="C D F G Bb" Keys="zxcvbasdfgqwert" Off="1" Play="7" PlayAll="8"/>
+	<KeyboardMapping Name="Hawaiian Pentatonic" Notes="C D Eb G A" Keys="zxcvbasdfgqwert" Off="1" Play="7" PlayAll="8"/>
+	<KeyboardMapping Name="Bali Island Pelog" Notes="C Db Eb G Ab" Keys="zxcvbasdfgqwert" Off="1" Play="7" PlayAll="8"/>
+	<KeyboardMapping Name="Japanese Miyakobushi" Notes="C Db F G Ab" Keys="zxcvbasdfgqwert" Off="1" Play="7" PlayAll="8"/>
+	<KeyboardMapping Name="Ryukyu Scale" Notes="C E F G B" Keys="zxcvbasdfgqwert" Off="1" Play="7" PlayAll="8"/>
+	<KeyboardMapping Name="Wholetone" Notes="C D E Gb Ab Bb" Keys="zxcvbnasdfghqwerty" Off="1" Play="7" PlayAll="8"/>
+	<KeyboardMapping Name="Minor 3rd Interval" Notes="C Eb Gb A" Keys="zxcvasdfqwer" Off="1" Play="7" PlayAll="8"/>
+	<KeyboardMapping Name="3rd Interval" Notes="C E Ab" Keys="xcvsdfwer234" Off="1" Play="7" PlayAll="8"/>
+	<KeyboardMapping Name="4rd Interval" Notes="C F Bb" Keys="xcvsdfwer234" Off="1" Play="7" PlayAll="8"/>
+	<KeyboardMapping Name="5rd Interval" Notes="C G" Keys="zxasqw" Off="1" Play="7" PlayAll="8"/>
+	<KeyboardMapping Name="Octave Interval" Notes="C" Keys="zaq" Off="1" Play="7" PlayAll="8"/>
+  </Mappings>
+</KeyboardMappingFile>
