@@ -1,9 +1,11 @@
 using AtmaFileSystem;
+using AtmaFileSystem.IO;
+using FluentAssertions;
 using ReBuzzTests.Automation;
 
 namespace ReBuzzTests
 {
-    internal class SavingAndLoadingEmptySong
+    internal class SavingAndLoadingEmptySongTests
     {
         [Test]
         public void DoesNotChangeStateWhenUserCancelsLoadingProject()
@@ -30,26 +32,44 @@ namespace ReBuzzTests
             driver.LoadSong();
 
             driver.AssertInitialStateAfterNewFile();
-            driver.AssertMessageReportedToUser(
+            driver.AssertErrorReportedToUser(
                 $"Error loading {nonExistentFileName}",
                 $"Could not find file '{AbsoluteDirectoryPath.OfCurrentWorkingDirectory().AddFileName(nonExistentFileName)}'.");
         }
 
-        //bug make more tests for exception scenarios
         [Test]
-        public void MaintainsCleanStateAfterSavingEmptySong() //bug test for backup song
+        public void MaintainsCleanStateAfterSavingEmptySong()
         {
-            var emptySongPath = AbsoluteDirectoryPath.OfThisFile().AddFileName("EmptySongBmx.bmx"); //bug use a unique location
             using var driver = new Driver();
+            var emptySongPath = driver.RandomSongPath();
+
             driver.Start();
 
-            driver.SetupSavedFileChoiceTo(emptySongPath.ToString());
+            driver.SetupSavedFileChoiceTo(emptySongPath);
 
             driver.SaveCurrentSong();
 
             driver.AssertNoErrorsReportedToUser();
             driver.AssertInitialStateAfterSavingEmptySong(emptySongPath);
             driver.AssertRecentFileListHasEntry(0, emptySongPath);
+        }
+        
+        [Test]
+        public void MaintainsCleanStateAfterCancelingSavingEmptySong()
+        {
+            using var driver = new Driver();
+            var emptySongPath = driver.RandomSongPath();
+
+            driver.Start();
+
+            driver.SetupSavedFileChoiceToUserCancel();
+
+            driver.SaveCurrentSong();
+
+            driver.AssertNoErrorsReportedToUser();
+            driver.AssertInitialStateAfterAppStart();
+            driver.AssertRecentFileListHasNoEntryFor(emptySongPath);
+            emptySongPath.Exists().Should().BeFalse();
         }
 
         [Test]
@@ -59,7 +79,7 @@ namespace ReBuzzTests
             var emptySongPath = driver.RandomSongPath();
             driver.Start();
 
-            driver.SetupSavedFileChoiceTo(emptySongPath.ToString());
+            driver.SetupSavedFileChoiceTo(emptySongPath);
 
             driver.SaveCurrentSong();
             driver.SetupSavedFileChoiceTo("????");

@@ -11,6 +11,7 @@ using ReBuzz.AppViews;
 using ReBuzz.Core;
 using ReBuzz.MachineManagement;
 using ReBuzzTests.Automation.Assertions;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace ReBuzzTests.Automation
@@ -236,7 +237,6 @@ namespace ReBuzzTests.Automation
 
         }
 
-
         /// <summary>
         /// Attempts to clean up all the test root directories.
         /// This typically will not be able to delete the machine dlls
@@ -274,20 +274,25 @@ namespace ReBuzzTests.Automation
 
         public void SetupLoadedFileChoiceTo(string fileName)
         {
-            fileNameToLoadChoice.SetTo(fileName.ToString());
+            fileNameToLoadChoice.SetTo(fileName);
         }
 
-        public void SetupSavedFileChoiceTo(AbsoluteFilePath fileName) //bug also user cancel scenario
+        public void SetupSavedFileChoiceTo(AbsoluteFilePath fileName)
         {
             fileNameToSaveChoice.SetTo(fileName.ToString());
         }
 
-        public void SetupSavedFileChoiceTo(string fileName) //bug also user cancel scenario
+        public void SetupSavedFileChoiceTo(string fileName)
         {
             fileNameToSaveChoice.SetTo(fileName);
         }
 
-        public void AssertMessageReportedToUser(string expectedCaption, string expectedMessage) //bug what about caption?
+        public void SetupSavedFileChoiceToUserCancel()
+        {
+            fileNameToSaveChoice.SetToUserCancel();
+        }
+
+        public void AssertErrorReportedToUser(string expectedCaption, string expectedMessage)
         {
             using (new AssertionScope())
             {
@@ -308,8 +313,17 @@ namespace ReBuzzTests.Automation
 
         public void AssertRecentFileListHasEntry(int index, AbsoluteFilePath songPath)
         {
-            fakeRegistry.ReadNumberedList<string>("File", "Recent File List").ElementAt(index)
-                .Should().Be(songPath.ToString());
+            RecentFiles().ElementAt(index).Should().Be(songPath.ToString());
+        }
+
+        public void AssertRecentFileListHasNoEntryFor(AbsoluteFilePath songPath)
+        {
+            RecentFiles().Should().NotContain(songPath.ToString());
+        }
+
+        private IEnumerable<string> RecentFiles()
+        {
+            return fakeRegistry.ReadNumberedList<string>("File", "Recent File List");
         }
     }
 }
