@@ -251,7 +251,7 @@ namespace ReBuzz.Core
                         end = end,
                         looptype = looptype
                     };
-                    realTimeResampler.Reset(Global.Buzz.SelectedAudioDriverSampleRate, wave.Layers[0].SampleRate);
+                    realTimeResampler.Reset(Global.Buzz.SelectedAudioDriverSampleRate, wave.Layers[0].SampleRate <= 0 ? 44100 : wave.Layers[0].SampleRate);
                 }
                 catch (Exception e)
                 {
