@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace ReBuzzTests.Automation.Assertions
 {
-    public class EmptySongStateWhenSongIsNamedAssertions(AbsoluteFilePath emptySongPath) : ISongStateAssertions
+    public class EmptySongStateWhenSongHasANameAssertions(AbsoluteFilePath emptySongPath) : ISongStateAssertions
     {
         public void AssertStateOfSongAndSongCore(
             SongCore songCore, ISong song, ReBuzzCore reBuzzCore, AbsoluteDirectoryPath gearDir,

@@ -109,7 +109,7 @@ namespace ReBuzzTests
         }
 
         [Test]
-        public void MaintainsCleanStateAfterSavingAndLoadingASongTwice()
+        public void MaintainsCleanStateAfterSavingAnEmptySongAndLoadingItTwice()
         {
             using var driver = new Driver();
             var emptySongPath = driver.RandomSongPath();

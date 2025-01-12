@@ -24,6 +24,5 @@ namespace ReBuzzTests
 
             driver.AssertInitialStateAfterNewFile();
         }
-
     }
 }

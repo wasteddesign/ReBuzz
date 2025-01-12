@@ -224,7 +224,7 @@ namespace ReBuzzTests.Automation
                 GearDir,
                 reBuzzCore,
                 new InitialStateAfterLoadingEmptySongAssertions(),
-                new EmptySongStateWhenSongIsNamedAssertions(emptySongPath));
+                new EmptySongStateWhenSongHasANameAssertions(emptySongPath));
         }
 
         public void AssertInitialStateAfterSavingEmptySong(AbsoluteFilePath emptySongPath)
@@ -233,7 +233,7 @@ namespace ReBuzzTests.Automation
                 GearDir,
                 reBuzzCore,
                 new InitialStateAfterAppStartAssertions(),
-                new EmptySongStateWhenSongIsNamedAssertions(emptySongPath));
+                new EmptySongStateWhenSongHasANameAssertions(emptySongPath));
 
         }
 
@@ -262,31 +262,49 @@ namespace ReBuzzTests.Automation
             }
         }
 
+        /// <summary>
+        /// When asked to choose a file name to load, the choice will be canceled
+        /// </summary>
         public void SetupLoadedFileChoiceToUserCancel()
         {
             fileNameToLoadChoice.SetToUserCancel();
         }
 
+        /// <summary>
+        /// When asked to choose a file name to load, the configured path will be returned
+        /// </summary>
         public void SetupLoadedFileChoiceTo(AbsoluteFilePath fileName)
         {
             fileNameToLoadChoice.SetTo(fileName.ToString());
         }
 
+        /// <summary>
+        /// When asked to choose a file name to load, the configured string will be returned
+        /// </summary>
         public void SetupLoadedFileChoiceTo(string fileName)
         {
             fileNameToLoadChoice.SetTo(fileName);
         }
 
+        /// <summary>
+        /// When asked to choose a file name to save, the configured path will be returned
+        /// </summary>
         public void SetupSavedFileChoiceTo(AbsoluteFilePath fileName)
         {
             fileNameToSaveChoice.SetTo(fileName.ToString());
         }
 
+        /// <summary>
+        /// When asked to choose a file name to load, the configured string will be returned
+        /// </summary>
         public void SetupSavedFileChoiceTo(string fileName)
         {
             fileNameToSaveChoice.SetTo(fileName);
         }
 
+        /// <summary>
+        /// When asked to choose a file name to save, the choice will be canceled
+        /// </summary>
         public void SetupSavedFileChoiceToUserCancel()
         {
             fileNameToSaveChoice.SetToUserCancel();
