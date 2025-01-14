@@ -16,12 +16,21 @@ namespace ReBuzzTests.Automation.Assertions
     /// </summary>
     public class InitialStateAfterAppStartAssertions : IAdditionalInitialStateAssertions
     {
-        public void AssertInitialStateOfSongCore(
+        public void AssertStateOfSongCore(
             SongCore songCore, AbsoluteDirectoryPath gearDir, ReBuzzCore reBuzzCore)
+        {
+            StaticAssertStateOfSongCore(songCore, gearDir, reBuzzCore, this);
+        }
+
+        public static void StaticAssertStateOfSongCore(
+            SongCore songCore,
+            AbsoluteDirectoryPath gearDir,
+            ReBuzzCore reBuzzCore,
+            IAdditionalInitialStateAssertions additionalInitialStateAssertions)
         {
             songCore.MachinesList.Should().HaveCount(2);
             AssertMachineCore(reBuzzCore, gearDir, songCore.MachinesList[1],
-                reBuzzCore.MachineManager.ManagedMachines.First().Value);
+                reBuzzCore.MachineManager.ManagedMachines.First().Value, additionalInitialStateAssertions);
         }
 
         public void AssertInitialStateOfPatternEditor(
@@ -34,20 +43,30 @@ namespace ReBuzzTests.Automation.Assertions
         public void AssertInitialStateOfMachineManager(
             ReBuzzCore reBuzzCore, AbsoluteDirectoryPath gearDir, MachineManager machineManager)
         {
+            StaticAssertInitialStateOfMachineManager(reBuzzCore, gearDir, machineManager, this);
+        }
+
+        public static void StaticAssertInitialStateOfMachineManager(
+            ReBuzzCore reBuzzCore,
+            AbsoluteDirectoryPath gearDir,
+            MachineManager machineManager,
+            IAdditionalInitialStateAssertions additionalInitialStateAssertions)
+        {
             machineManager.ManagedMachines.Should().HaveCount(1);
 
             MachineCore? machineCore = machineManager.ManagedMachines.Keys.Single();
             ManagedMachineHost? managedMachineHost = machineManager.ManagedMachines[machineCore];
-            AssertMachineCore(reBuzzCore, gearDir, machineCore, managedMachineHost);
+            AssertMachineCore(reBuzzCore, gearDir, machineCore, managedMachineHost, additionalInitialStateAssertions);
 
             InitialStateAssertions.AssertFakeModernPatternEditorHostInitialState(reBuzzCore, managedMachineHost);
         }
 
-        private void AssertMachineCore(
+        private static void AssertMachineCore(
             ReBuzzCore reBuzzCore,
             AbsoluteDirectoryPath gearDir,
             MachineCore machineCore,
-            ManagedMachineHost managedMachineHost)
+            ManagedMachineHost managedMachineHost, 
+            IAdditionalInitialStateAssertions additionalInitialStateAssertions)
         {
             machineCore.workLock.IsHeldByCurrentThread.Should().BeFalse();
             machineCore.Graph.Should().Be(reBuzzCore.SongCore);
@@ -93,7 +112,7 @@ namespace ReBuzzTests.Automation.Assertions
             machineCore.Outputs[0].Source.Should()
                 .Be(reBuzzCore.MachineManager.ManagedMachines.Keys.Single(machine =>
                     machine.Name == machineCore.Outputs[0].Source.Name));
-            InitialStateAssertions.AssertIsMasterMachine(machineCore.Outputs[0].Destination, reBuzzCore, gearDir, this);
+            InitialStateAssertions.AssertIsMasterMachine(machineCore.Outputs[0].Destination, reBuzzCore, gearDir, additionalInitialStateAssertions);
 
             machineCore.AllOutputs.Should().Equal(machineCore.Outputs);
 

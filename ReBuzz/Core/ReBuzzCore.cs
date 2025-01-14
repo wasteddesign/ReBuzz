@@ -547,14 +547,19 @@ namespace ReBuzz.Core
         readonly Timer timerAutomaticBackups;
 
         internal ReBuzzCore(
-          GeneralSettings generalSettings,
-          EngineSettings engineSettings,
-          string buzzPath,
-          string registryRoot,
-          IMachineDLLScanner machineDllScanner,
-          IUiDispatcher dispatcher,
-          IRegistryEx registryEx)
+            GeneralSettings generalSettings,
+            EngineSettings engineSettings,
+            string buzzPath,
+            string registryRoot,
+            IMachineDLLScanner machineDllScanner,
+            IUiDispatcher dispatcher,
+            IRegistryEx registryEx,
+            IFileNameChoice fileNameToLoadChoice,
+            IFileNameChoice fileNameToSaveChoice,
+            IUserMessages userMessages)
         {
+            this.fileNameToLoadChoice = fileNameToLoadChoice;
+            this.fileNameToSaveChoice = fileNameToSaveChoice;
             this.registryEx = registryEx;
             this.generalSettings = generalSettings;
             this.engineSettings = engineSettings;
@@ -562,6 +567,7 @@ namespace ReBuzz.Core
             this.registryRoot = registryRoot;
             this.machineDllScanner = machineDllScanner;
             this.dispatcher = dispatcher;
+            this.userMessages = userMessages;
 
             // Init process and thread priorities
             ProcessAndThreadProfile.Profile2();
@@ -902,11 +908,11 @@ namespace ReBuzz.Core
             }
             else if (cmd == BuzzCommand.OpenFile)
             {
-                OpenFileDialog openFileDialog = new OpenFileDialog();
-                openFileDialog.Filter = "All songs (*.bmw, *.bmx, *bmxml)|*.bmw;*.bmx;*.bmxml|Songs with waves (*.bmx)|*.bmx|Songs without waves (*.bmw)|*.bmw|ReBuzz XML (*.bmxml)|*.bmxml";
-                if (openFileDialog.ShowDialog() == true)
+                ChosenValue<string> fileName = fileNameToLoadChoice.SelectFileName();
+
+                if (fileName.HasValue)
                 {
-                    OpenSongFile(openFileDialog.FileName);
+                    OpenSongFile(fileName.Value());
                 }
             }
             else if (cmd == BuzzCommand.SaveFile)
@@ -1069,12 +1075,11 @@ namespace ReBuzz.Core
                 }
                 catch (Exception e)
                 {
-
-                        MessageBox.Show(e.InnerException.Message, "Error loading " + filename);
-                        bmxFile.EndFileOperation(false);
-                        NewSong();
-                        SkipAudio = false;
-                        return;
+                    userMessages.Error(e.InnerException == null ? e.Message : e.InnerException.Message, "Error loading " + filename, e);
+                    bmxFile.EndFileOperation(false);
+                    NewSong();
+                    SkipAudio = false;
+                    return;
                 }
 
                 SongCore.SongName = filename;
@@ -1151,11 +1156,11 @@ namespace ReBuzz.Core
             // Check filename
             if (filename == null)
             {
-                SaveFileDialog saveFileDialog = new SaveFileDialog();
-                saveFileDialog.Filter = "Songs with waves (*.bmx)|*.bmx|Songs without waves (*.bmw)|*.bmw|ReBuzz XML (*.bmxml)|*.bmxml";
-                if (saveFileDialog.ShowDialog() == true)
+                ChosenValue<string> saveFileName = fileNameToSaveChoice.SelectFileName();
+
+                if (saveFileName.HasValue)
                 {
-                    filename = saveFileDialog.FileName;
+                    filename = saveFileName.Value();
                     songCore.SongName = filename;
                     UpdateRecentFilesList(filename);
                 }
@@ -1740,6 +1745,9 @@ namespace ReBuzz.Core
         private readonly IMachineDLLScanner machineDllScanner;
         private readonly IUiDispatcher dispatcher;
         private readonly IRegistryEx registryEx;
+        private readonly IFileNameChoice fileNameToLoadChoice;
+        private readonly IFileNameChoice fileNameToSaveChoice;
+        private readonly IUserMessages userMessages;
 
         public string InfoText { get => infoText; internal set { infoText = value; PropertyChanged.Raise(this, "InfoText"); } }
 
