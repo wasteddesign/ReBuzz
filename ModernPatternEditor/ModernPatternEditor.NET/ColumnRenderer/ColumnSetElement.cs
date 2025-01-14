@@ -10,7 +10,7 @@ namespace WDE.ModernPatternEditor.ColumnRenderer
 {
     class ColumnSetElement : FrameworkElement
     {
-        const int ScrollCache = 100;
+        const int ScrollCache = 10;
 
         List<BeatVisual> beatVisuals = new List<BeatVisual>();
 
