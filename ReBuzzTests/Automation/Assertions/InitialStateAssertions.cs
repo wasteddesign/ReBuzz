@@ -76,7 +76,8 @@ namespace ReBuzzTests.Automation.Assertions
 
         public static void AssertInitialState(
             AbsoluteDirectoryPath gearDir, ReBuzzCore reBuzzCore,
-            IAdditionalInitialStateAssertions additionalAssertions)
+            IAdditionalInitialStateAssertions additionalAssertions, 
+            ISongStateAssertions songStateAssertions)
         {
             AssertInitialStateOfGear(reBuzzCore.Gear);
 
@@ -123,7 +124,7 @@ namespace ReBuzzTests.Automation.Assertions
             reBuzzCore.MachineDLLsList.Should().HaveCount(1);
             reBuzzCore.AUTO_CONVERT_WAVES.Should().BeFalse();
 
-            AssertInitialStateOfSongAndSongCore(
+            songStateAssertions.AssertStateOfSongAndSongCore(
                 reBuzzCore.SongCore,
                 reBuzzCore.Song,
                 reBuzzCore,
@@ -171,40 +172,6 @@ namespace ReBuzzTests.Automation.Assertions
             buzzGlobalState.SongClosing.Should().Be(0);
         }
 
-        private static void AssertInitialStateOfSongAndSongCore(
-            SongCore songCore,
-            ISong song,
-            ReBuzzCore reBuzzCore,
-            AbsoluteDirectoryPath gearDir,
-            IAdditionalInitialStateAssertions additionalAssertions)
-        {
-            songCore.BuzzCore.Should().Be(reBuzzCore);
-            songCore.ActionStack.Actions.Should().BeEmpty();
-            songCore.ActionStack.CanRedo.Should().BeFalse();
-            songCore.ActionStack.CanUndo.Should().BeFalse();
-            songCore.ActionStack.MaxNumberOfActions.Should().Be(int.MaxValue);
-            songCore.Associations.Should().BeEmpty();
-            songCore.CanRedo.Should().BeFalse();
-            songCore.CanUndo.Should().BeFalse();
-            songCore.LoopStart.Should().Be(0);
-            songCore.LoopEnd.Should().Be(16);
-            songCore.PlayPosition.Should().Be(0);
-            songCore.Sequences.Should().BeEmpty();
-            songCore.SequencesList.Should().BeEmpty();
-            songCore.SongName.Should().BeNullOrEmpty();
-            songCore.SoloMode.Should().BeFalse();
-            songCore.Wavetable.Song.Should().Be(song);
-            songCore.Wavetable.Volume.Should().Be(0);
-            songCore.Wavetable.Waves.Should().Equal(Enumerable.Range(0, 200).Select(_ => null as IWave).ToArray());
-            songCore.Machines.Should().HaveCount(1);
-
-            AssertIsMasterMachine(songCore.Machines[0], reBuzzCore, gearDir, additionalAssertions);
-            songCore.MachinesList[0].Should().Be(songCore.Machines[0]);
-            additionalAssertions.AssertInitialStateOfSongCore(songCore, gearDir, reBuzzCore);
-
-            song.Should().BeSameAs(songCore);
-        }
-
         private static void AssertInitialStateOfMachineManager(
             MachineManager machineManager, ReBuzzCore reBuzzCore,
             IAdditionalInitialStateAssertions additionalAssertions,
@@ -220,7 +187,7 @@ namespace ReBuzzTests.Automation.Assertions
         private static void AssertFakeModernPatternEditor(
             Dictionary<string, MachineDLL> machineDlLsList, ReBuzzCore reBuzzCore, AbsoluteDirectoryPath gearDir)
         {
-            MachineDLL? modernPatternEditor = machineDlLsList["Modern Pattern Editor"];
+            MachineDLL modernPatternEditor = machineDlLsList["Modern Pattern Editor"];
             AssertFakeModernPatternEditor(reBuzzCore, gearDir, modernPatternEditor);
         }
 
@@ -487,19 +454,31 @@ namespace ReBuzzTests.Automation.Assertions
             managedMachineHost.Machine.Should()
                 .Be(reBuzzCore.MachineManager.ManagedMachines.Keys.Single(machine =>
                     machine.Name == managedMachineHost.Machine.Name));
-            managedMachineHost.MachineState.Should().NotBeEmpty();
+            managedMachineHost.MachineState.Should().NotBeNullOrEmpty();
             managedMachineHost.PatternEditorControl.Should().BeNull();
         }
 
         public static void AssertInitialStateOfGear(Gear gear)
         {
-            gear.Machine.Select(m => m.Name).Should().Equal(new[]
-            {
-                "Jeskola Pianoroll", "Modern Pattern Editor", "Jeskola Pattern XP", "Jeskola Pattern XP mod",
-                "Modern Pianoroll", "Polac VST 1.1", "Polac VSTi 1.1", "Jeskola XS-1", "CyanPhase Buzz OverLoader",
-                "CyanPhase DX Instrument Adapter", "CyanPhase DX Effect Adapter", "CyanPhase DMO Effect Adapter",
-                "11-MidiCCout", "Rymix*", "FireSledge ParamEQ", "BTDSys Pulsar"
-            });
+            gear.Machine.Select(m => m.Name)
+                .Should()
+                .Equal(
+                    "Jeskola Pianoroll",
+                    "Modern Pattern Editor",
+                    "Jeskola Pattern XP",
+                    "Jeskola Pattern XP mod",
+                    "Modern Pianoroll",
+                    "Polac VST 1.1",
+                    "Polac VSTi 1.1",
+                    "Jeskola XS-1",
+                    "CyanPhase Buzz OverLoader",
+                    "CyanPhase DX Instrument Adapter",
+                    "CyanPhase DX Effect Adapter",
+                    "CyanPhase DMO Effect Adapter",
+                    "11-MidiCCout",
+                    "Rymix*",
+                    "FireSledge ParamEQ",
+                    "BTDSys Pulsar");
         }
     }
 }

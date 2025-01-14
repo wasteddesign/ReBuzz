@@ -2,7 +2,7 @@
 
 namespace ReBuzz.Core
 {
-    public interface IRegistryKey //bug
+    public interface IRegistryKey
     {
         void SetValue(string name, object value);
     }

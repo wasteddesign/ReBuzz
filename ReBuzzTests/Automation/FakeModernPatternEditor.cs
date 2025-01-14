@@ -43,17 +43,16 @@ namespace ReBuzzTests.Automation
         public FakeModernPatternEditor(IBuzzMachineHost host)
         {
             this.host = host;
-            Gain = new Interpolator();
         }
 
         [ParameterDecl(ResponseTime = 5, MaxValue = 127, DefValue = 80, Transformation = Transformations.Cubic,
             TransformUnityValue = 80, ValueDescriptor = Descriptors.Decibel)]
         public Interpolator Gain { get; private set; }
-
+        
         [ParameterDecl(ValueDescriptions = ["no", "yes"])]
         public bool Bypass { get; set; }
-
-
+        
+        
         [ParameterDecl(MaxValue = 127, DefValue = 0)]
         public void ATrackParam(int v, int track)
         {
@@ -62,39 +61,18 @@ namespace ReBuzzTests.Automation
 
         public Sample Work(Sample s)
         {
-            return Bypass ? s : s * Gain.Tick();
+            return s;
         }
 
         // actual machine ends here. the stuff below demonstrates some other features of the api.
 
         public class State : INotifyPropertyChanged
         {
-            public State()
-            {
-                text = "here is state";
-            } // NOTE: parameterless constructor is required by the xml serializer
-
-            private string text;
-
-            public string Text
-            {
-                get => text;
-                set
-                {
-                    text = value;
-                    if (PropertyChanged != null)
-                    {
-                        PropertyChanged(this, new PropertyChangedEventArgs("Text"));
-                    }
-                    // NOTE: the INotifyPropertyChanged stuff is only used for data binding in the GUI in this demo. it is not required by the serializer.
-                }
-            }
-
             public event PropertyChangedEventHandler PropertyChanged;
         }
 
         private State machineState = new();
-
+        
         public State MachineState // a property called 'MachineState' gets automatically saved in songs and presets
         {
             get => machineState;

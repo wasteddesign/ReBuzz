@@ -12,7 +12,7 @@ namespace ReBuzzTests.Automation.Assertions
     /// </summary>
     public interface IAdditionalInitialStateAssertions
     {
-        void AssertInitialStateOfSongCore(SongCore songCore, AbsoluteDirectoryPath gearDir, ReBuzzCore reBuzzCore);
+        void AssertStateOfSongCore(SongCore songCore, AbsoluteDirectoryPath gearDir, ReBuzzCore reBuzzCore);
 
         void AssertInitialStateOfPatternEditor(ReBuzzCore reBuzzCore, AbsoluteDirectoryPath gearDir, IMachine machine);
 

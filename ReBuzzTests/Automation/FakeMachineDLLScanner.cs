@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace ReBuzzTests.Automation
 {
     /// <summary>
-    /// The real DLLScanner class starts the ReBuzzEngine processes which are from another solution.
+    /// The real DLLScanner class starts the ReBuzzEngine processes.
     /// For now, this is too much trouble to set up, so we just use a fake class.
     ///
     /// For the future, we may consider to have fake execs of the ReBuzzEngine or even somehow use the real thing,
