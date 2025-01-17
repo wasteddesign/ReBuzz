@@ -82,7 +82,7 @@ namespace BuzzGUI.Common
             }
         }
 
-        public static SortedSet<string> ReadKeys(string path = "BuzzGUI")
+        public static SortedSet<string> ReadValues(string path = "BuzzGUI")
         {
             SortedSet<string> ret = new SortedSet<string>();
             Microsoft.Win32.RegistryKey? regkey = null;

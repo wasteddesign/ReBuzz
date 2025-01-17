@@ -213,7 +213,7 @@ namespace ReBuzz.Common
         {
             Dictionary<string, XElement> ret = new Dictionary<string, XElement>();
 
-            var keys = RegistryEx.ReadKeys("Profiles");
+            var keys = RegistryEx.ReadValues("Profiles");
             if (keys != null)
             {
                 foreach (var k in keys)
