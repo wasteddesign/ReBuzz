@@ -3,6 +3,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Media;
+using System.Xml.Linq;
 
 
 namespace BuzzGUI.Interfaces
@@ -106,5 +107,15 @@ namespace BuzzGUI.Interfaces
 
         // device number, MIDI data
         void SendMIDIOutput(int device, int data);
+
+        //NativeMachineFramework does not have access to System.Windows.Media, 
+        //so this method exists to lookup a theme string and return a System.Drawing.Color
+        System.Drawing.Color GetThemeColour(string name);
+
+        //Get the named profile. Returns empty template if named profile does not exist
+        XElement GetModuleProfile(string modname);
+        XElement GetModuleProfileInts(string modname);
+        XElement GetModuleProfileBinary(string modname);
+        XElement GetModuleProfileStrings(string modname);
     }
 }

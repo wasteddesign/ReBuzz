@@ -13,6 +13,7 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
 using ReBuzz.Core;
+using System.Xml.Linq;
 
 namespace ReBuzz.Common
 {
@@ -199,6 +200,39 @@ namespace ReBuzz.Common
             return themes;
         }
 
+        internal static void SaveProfile(string buzzPath, XElement profileElement)
+        {
+            try
+            {
+                RegistryEx.Write<string>(profileElement.Name.LocalName, profileElement.ToString(), "Profiles");
+            }
+            catch {}
+        }
+
+        internal static Dictionary<string, XElement> GetProfiles(string buzzPath)
+        {
+            Dictionary<string, XElement> ret = new Dictionary<string, XElement>();
+
+            var keys = RegistryEx.ReadKeys("Profiles");
+            if (keys != null)
+            {
+                foreach (var k in keys)
+                {
+                    try
+                    {
+                        var elementXml = RegistryEx.Read<string>(k, "", "Profiles");
+                        if(!string.IsNullOrEmpty(elementXml))
+                        {
+                            var doc = XDocument.Parse(elementXml);
+                            ret.Add(doc.Root.Name.LocalName, doc.Root);
+                        }
+                    }
+                    catch {  }
+                }
+            }
+
+            return ret;
+        }
 
         internal static void SetProcessorAffinityMask(IRegistryEx registryEx, bool ideal)
         {

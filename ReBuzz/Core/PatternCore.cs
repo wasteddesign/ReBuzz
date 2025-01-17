@@ -17,7 +17,30 @@ namespace ReBuzz.Core
         public IMachine Machine { get; set; }
 
         string name;
-        public string Name { get => name; set { name = value; PropertyChanged.Raise(this, "Name"); } }
+
+        private void UpdateSequences()
+        {
+            foreach(var seq in Machine.Graph.Buzz.Song.Sequences)
+            {
+                foreach (var seqEventKeyValue in seq.Events.Where(e => e.Value.Pattern == this))
+                {
+                    var seqCore = seq as SequenceCore;
+                    seqEventKeyValue.Value.Span = length;
+                    seqCore.SequenceEventChanged(seqEventKeyValue.Key, seqEventKeyValue.Value);
+                }
+            }
+        }
+
+        public string Name 
+        { 
+            get => name; 
+            set 
+            { 
+                name = value; 
+                PropertyChanged.Raise(this, "Name");
+                UpdateSequences();
+            } 
+        }
 
         int length;
         public int Length
@@ -25,16 +48,9 @@ namespace ReBuzz.Core
             get => length;
             set
             {
-                length = value; PropertyChanged.Raise(this, "Length");
-                foreach (var seq in Machine.Graph.Buzz.Song.Sequences)
-                {
-                    foreach (var seqEventKeyValue in seq.Events.Where(e => e.Value.Pattern == this))
-                    {
-                        var seqCore = seq as SequenceCore;
-                        seqEventKeyValue.Value.Span = length;
-                        seqCore.SequenceEventChanged(seqEventKeyValue.Key, seqEventKeyValue.Value);
-                    }
-                }
+                length = value; 
+                PropertyChanged.Raise(this, "Length");
+                UpdateSequences();
             }
         }
 
