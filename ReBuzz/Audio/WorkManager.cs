@@ -102,9 +102,6 @@ namespace ReBuzz.Audio
                     // Update SubTick
                     UpdateSubTickLength();
 
-                    // Reset non static parameteres if tick == 0
-                    UpdateNonStaticParametersToDefault();
-
                     // HandleParameterRecord();
 
                     // Ensure we don't go over tick
@@ -139,6 +136,9 @@ namespace ReBuzz.Audio
 
                     // Call work
                     ReadWork(buffer, workBufferOffset, samplesToProcess);
+
+                    // Reset non static parameteres if tick == 0
+                    UpdateNonStaticParametersToDefault();
 
                     // Mix waves playing from wavetable 
                     if (buzzCore.SongCore.WavetableCore.IsPlayingWave())
@@ -242,24 +242,22 @@ namespace ReBuzz.Audio
             {
                 if (ReBuzzCore.masterInfo.PosInTick == 0 || (engineSettings.SubTickTiming && ReBuzzCore.subTickInfo.PosInSubTick == 0 && machine.DLL.Info.Version >= MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_42))
                 {
+                    foreach (var p in machine.ParameterGroups[0].Parameters)
+                    {
+                        // Reset parameters so they wont be triggered next Tick
+                        p.SetValue(noRecord, p.NoValue);
+                    }
                     foreach (var p in machine.ParameterGroups[1].Parameters)
                     {
-                        // Reset non-state parameters so they wont be triggered next Tick
-                        if (!p.Flags.HasFlag(ParameterFlags.State))
-                        {
-                            p.SetValue(noRecord, p.NoValue);
-                        }
+                        // Reset parameters so they wont be triggered next Tick
+                        p.SetValue(noRecord, p.NoValue);
                     }
                     foreach (var p in machine.ParameterGroups[2].Parameters)
                     {
                         for (int i = 0; i < machine.TrackCount; i++)
                         {
-                            // Reset non-state parameters so they wont be triggered next Tick
-                            // Todo: move to end of Work Manager and apply when tick
-                            if (!p.Flags.HasFlag(ParameterFlags.State))
-                            {
-                                p.SetValue(i | noRecord, p.NoValue);
-                            }
+                            // Reset parameters so they wont be triggered next Tick
+                            p.SetValue(i | noRecord, p.NoValue);
                         }
                     }
                 }

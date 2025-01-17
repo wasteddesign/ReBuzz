@@ -62,7 +62,7 @@ namespace ReBuzz.NativeMachine
                 foreach (var p in machine.ParameterGroupsList[1].ParametersList)
                 {
                     int typeSize = p.GetTypeSize();
-                    int pValue = p.GetValue(0);
+                    int pValue = p.GetPValue(0);
                     if (typeSize == 1)
                     {
                         globalVals.Add((byte)pValue);
@@ -79,7 +79,7 @@ namespace ReBuzz.NativeMachine
                     foreach (var p in machine.ParameterGroupsList[2].ParametersList)
                     {
                         int typeSize = p.GetTypeSize();
-                        int pValue = p.GetValue(i);
+                        int pValue = p.GetPValue(i);
                         if (typeSize == 1)
                         {
                             trackVals.Add((byte)pValue);
@@ -244,7 +244,7 @@ namespace ReBuzz.NativeMachine
                         SetMessageData(wave.Name);
                         // Info
                         SetMessageData((int)wave.Flags);
-                        SetMessageData(1.0f /*wave.Volume*/);
+                        SetMessageData(wave.Volume);
 
                         SetMessageData(wave.Layers.Count);
 

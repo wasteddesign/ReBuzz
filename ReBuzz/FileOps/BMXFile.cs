@@ -475,25 +475,6 @@ namespace ReBuzz.FileOps
                     }
                 }
             }
-
-            // Send machine names to native machines before adding Patterns.
-            // Some machines can remap machine names.
-            //foreach (var machine in machines.Where(m => !m.DLL.IsMissing))
-            //{
-            #region Init Machine Section
-            // This region can be moved to the loop end of this method if init needs to be called after every machine has been created.
-            //    if (!machine.DLL.IsManaged)
-            //    {
-            //        var idata = dictInitData[machine];
-            //        FileOpsEvent(FileEventType.StatusUpdate, "Init Machine: " + machine.Name + "...");
-            //        // Call Init
-            //        buzz.MachineManager.CallInit(machine, idata.data, idata.tracks);
-            //    }
-            #endregion
-
-            //    // Call remap machine names
-            //    buzz.MachineManager.RemapMachineNames(machine, importDictionary);
-            //}
         }
 
         private void RemapLoadedMachineParameterIndex(MachineCore machine, MachineCore savedMachine)
@@ -535,14 +516,7 @@ namespace ReBuzz.FileOps
                 // Set the defaul/saved state of parameters. Skip non-state, notes and input group
                 if (paramtersTo[i].Flags.HasFlag(ParameterFlags.State) && paramtersTo[i].Type != ParameterType.Note && group != 0)
                 {
-                    //if (machineTo.DLL.IsManaged)
-                    //{
-                        paramtersTo[i].SetValue(track, paramtersFrom[i].GetValue(track));
-                    //}
-                    //else
-                    //{
-                    //    paramtersTo[i].DirectSetValue(track, paramtersFrom[i].GetValue(track));
-                    //}
+                    paramtersTo[i].SetValue(track, paramtersFrom[i].GetValue(track));
                 }
             }
         }
