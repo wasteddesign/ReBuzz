@@ -31,7 +31,7 @@ namespace ReBuzzTests.Automation.Assertions
             songCore.SongName.Should().BeNullOrEmpty();
             songCore.SoloMode.Should().BeFalse();
             songCore.Wavetable.Song.Should().Be(song);
-            songCore.Wavetable.Volume.Should().Be(0);
+            songCore.Wavetable.Volume.Should().Be(ISongStateAssertions.DefaultInitialVolume);
             songCore.Wavetable.Waves.Should().Equal(Enumerable.Range(0, 200).Select(_ => null as IWave).ToArray());
 
             songCore.Machines.Should().HaveCount(1);

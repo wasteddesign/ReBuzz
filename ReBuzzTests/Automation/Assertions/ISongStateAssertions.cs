@@ -6,6 +6,8 @@ namespace ReBuzzTests.Automation.Assertions
 {
     public interface ISongStateAssertions
     {
+        static float DefaultInitialVolume => 1;
+
         void AssertStateOfSongAndSongCore(
             SongCore songCore,
             ISong song,
