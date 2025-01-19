@@ -102,7 +102,7 @@ namespace ReBuzz.MachineManagement
                     machine.TrackCount = trackCount;
 
                     buzz.AddMachine(machine);
-                    machine.Ready = true;
+                    machine.Ready = false;
                     return machine;
                 }
 

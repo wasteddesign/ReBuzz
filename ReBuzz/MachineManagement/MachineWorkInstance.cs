@@ -22,8 +22,6 @@ namespace ReBuzz.MachineManagement
 
         internal readonly int MAX_MULTI_IO_CHANNELS = 64;
 
-        public bool TickSent { get; private set; }
-
         public MachineWorkInstance(MachineCore machine, ReBuzzCore reBuzz, EngineSettings settings)
         {
             this.Machine = machine;
@@ -52,30 +50,29 @@ namespace ReBuzz.MachineManagement
             Machine.setMachineTrackCountList.Clear();
 
             // Some machines expect Tick() before Work()
-            if (TickSent)
+
+            // Don't call Work() if bypassed
+            if (Machine.IsBypassed || Machine.IsSeqThru || Machine.MachineDLL.IsMissing ||
+                (Machine.IsMuted && !engineSettings.ProcessMutedMachines))
             {
-                // Don't call Work() if bypassed
-                if (Machine.IsBypassed || Machine.IsSeqThru || Machine.MachineDLL.IsMissing ||
-                    (Machine.IsMuted && !engineSettings.ProcessMutedMachines))
-                {
-                    Sample[] samples = Machine.GetStereoSamples(nSamples);
-                    Machine.UpdateOutputs(samples, false);
+                Sample[] samples = Machine.GetStereoSamples(nSamples);
+                Machine.UpdateOutputs(samples, false);
 
-                    foreach (var output in Machine.Outputs)
-                    {
-                        (output as MachineConnectionCore).DoTap(samples, true, buzz.GetSongTime());
-                    }
-                }
-                else if (Machine.Ready && manageMachineHost != null)
+                foreach (var output in Machine.Outputs)
                 {
-                    isActive = WorkMachineManaged(nSamples);
-
-                }
-                else if (Machine.Ready && nativeMachineHost != null)
-                {
-                    isActive = WorkMachineNative(nSamples);
+                    (output as MachineConnectionCore).DoTap(samples, true, buzz.GetSongTime());
                 }
             }
+            else if (Machine.Ready && manageMachineHost != null)
+            {
+                isActive = WorkMachineManaged(nSamples);
+
+            }
+            else if (Machine.Ready && nativeMachineHost != null)
+            {
+                isActive = WorkMachineNative(nSamples);
+            }
+
             DateTime dtEnd = DateTime.Now;
             long timeDelta = dtEnd.Ticks - dtStart.Ticks;
             Machine.PerformanceDataCurrent.PerformanceCount += timeDelta;
@@ -348,7 +345,6 @@ namespace ReBuzz.MachineManagement
                 }
 
                 Machine.parametersChanged.Clear();
-                TickSent = true;
             }
         }
 
@@ -382,6 +378,7 @@ namespace ReBuzz.MachineManagement
                     int noRecord = 1 << 16;
 
                     // Set pvalues to NoValue immediately to avoid sending param value twice
+
                     foreach (var p in Machine.ParameterGroups[0].Parameters)
                     {
                         p.SetValue(noRecord, p.NoValue);
@@ -398,14 +395,14 @@ namespace ReBuzz.MachineManagement
                         }
                     }
                 }
+            }
 
-                Machine.IsActive = WorkMachine(nSamples);
+            Machine.IsActive = WorkMachine(nSamples);
 
-                // Some machines report the active state wrong, double check
-                if (Machine.IsActive)
-                {
-                    Machine.IsActive = Machine.GetActivity();
-                }
+            // Some machines report the active state wrong, double check
+            if (Machine.IsActive)
+            {
+                Machine.IsActive = Machine.GetActivity();
             }
         }
     }

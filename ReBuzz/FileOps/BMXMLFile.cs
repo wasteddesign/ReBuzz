@@ -273,7 +273,6 @@ namespace ReBuzz.FileOps
                         AddGroup(machineData.ParameterGroups[1], machineNew, 1);
                         AddGroup(machineData.ParameterGroups[2], machineNew, 2);
                         machineNew.MachineDLL.MachineInfo.Type = machineData.Type;
-                        machineNew.Ready = true;
                     }
                     if (import && !machineNew.Hidden)
                     {

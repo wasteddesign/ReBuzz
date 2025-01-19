@@ -374,20 +374,17 @@ namespace ReBuzz.Audio
         {
             foreach (var machine in buzzCore.SongCore.MachinesList)
             {
-                if (machine.Ready)
+                // Tick should be inexpensive operation so no tasks?
+                // Some old machines don't support subtick
+                if (ReBuzzCore.masterInfo.PosInTick == 0 ||
+                    (engineSettings.SubTickTiming && ReBuzzCore.subTickInfo.PosInSubTick == 0 && machine.DLL.Info.Version > MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_42))
                 {
-                    // Tick should be inexpensive operation so no tasks?
-                    // Some old machines don't support subtick
-                    if (ReBuzzCore.masterInfo.PosInTick == 0 ||
-                        (engineSettings.SubTickTiming && ReBuzzCore.subTickInfo.PosInSubTick == 0 && machine.DLL.Info.Version > MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_42))
+                    var t = AudioEngine.TaskFactoryAudio.StartNew(() =>
                     {
-                        var t = AudioEngine.TaskFactoryAudio.StartNew(() =>
-                        {
-                            var workInstance = buzzCore.MachineManager.GetMachineWorkInstance(machine);
-                            workInstance.Tick(false, false);
-                        });
-                        tickTasks.Add(t);
-                    }
+                        var workInstance = buzzCore.MachineManager.GetMachineWorkInstance(machine);
+                        workInstance.Tick(false, false);
+                    });
+                    tickTasks.Add(t);
                 }
             }
             Task.WaitAll(tickTasks.ToArray());
@@ -566,11 +563,9 @@ namespace ReBuzz.Audio
                     var machine = workList.Keys.First();
 
                     // Call work and update machine activity flag
-                    if (machine.Ready)
-                    {
-                        var workInstance = buzzCore.MachineManager.GetMachineWorkInstance(machine);
-                        workInstance.TickAndWork(workSamplesCount, true);
-                    }
+
+                    var workInstance = buzzCore.MachineManager.GetMachineWorkInstance(machine);
+                    workInstance.TickAndWork(workSamplesCount, true);
 
                     machine.workDone = true;
                 }
@@ -580,22 +575,19 @@ namespace ReBuzz.Audio
 
                     foreach (var machine in workList.Keys.OrderByDescending(m => m.performanceLastCount))
                     {
-                        if (machine.Ready)
+                        var t = AudioEngine.TaskFactoryAudio.StartNew(() =>
                         {
-                            var t = AudioEngine.TaskFactoryAudio.StartNew(() =>
-                            {
-                                if (machine.workDone)
-                                    return;
+                            if (machine.workDone)
+                                return;
 
-                                // Call work and update machine activity flag
-                                var workInstance = buzzCore.MachineManager.GetMachineWorkInstance(machine);
-                                workInstance.TickAndWork(workSamplesCount, true);
+                            // Call work and update machine activity flag
+                            var workInstance = buzzCore.MachineManager.GetMachineWorkInstance(machine);
+                            workInstance.TickAndWork(workSamplesCount, true);
 
-                                machine.workDone = true;
-                            });
+                            machine.workDone = true;
+                        });
 
-                            workTasks.Add(t);
-                        }
+                        workTasks.Add(t);
                     }
 
                     // Wait all tasks to complete
@@ -626,17 +618,13 @@ namespace ReBuzz.Audio
             workTasks.Clear();
             foreach (var machine in workList.Keys)
             {
-                if (machine.Ready)
+                var t = AudioEngine.TaskFactoryAudio.StartNew(() =>
                 {
-                    var t = AudioEngine.TaskFactoryAudio.StartNew(() =>
-                    {
-                        // Call work and update machine activity flag
-
-                        var workInstance = buzzCore.MachineManager.GetMachineWorkInstance(machine);
-                        workInstance.TickAndWork(numRead, true);
-                    });
-                    workTasks.Add(t);
-                }
+                    // Call work and update machine activity flag
+                    var workInstance = buzzCore.MachineManager.GetMachineWorkInstance(machine);
+                    workInstance.TickAndWork(numRead, true);
+                });
+                workTasks.Add(t);
                 machine.workDone = true;
             }
 
@@ -660,8 +648,8 @@ namespace ReBuzz.Audio
                 {
                     var sourceMachine = input.Source as MachineCore;
 
-                    // Was work called for this machine already?
-                    if (!machine.workDone)
+                    // Was work called for this sourceMachine already?
+                    if (!sourceMachine.workDone)
                     {
                         // Handle inputs
                         var t = AudioEngine.TaskFactoryAudio.StartNew(() =>
@@ -682,11 +670,8 @@ namespace ReBuzz.Audio
                 // All inputs handled (if any)
 
                 // Call work and update machine activity flag
-                if (machine.Ready)
-                {
-                    var workInstance = buzzCore.MachineManager.GetMachineWorkInstance(machine);
-                    workInstance.TickAndWork(numRead, true);
-                }
+                var workInstance = buzzCore.MachineManager.GetMachineWorkInstance(machine);
+                workInstance.TickAndWork(numRead, true);
 
                 // Count overall branch process time
                 machine.performanceBranchCount = machine.performanceLastCount;
@@ -765,12 +750,8 @@ namespace ReBuzz.Audio
 
                 foreach (var machine in workList.Keys)
                 {
-                    if (machine.Ready)
-                    {
-                        var workInstance = buzzCore.MachineManager.GetMachineWorkInstance(machine);
-
-                        workInstance.TickAndWork(workSamplesCount, true);
-                    }
+                    var workInstance = buzzCore.MachineManager.GetMachineWorkInstance(machine);
+                    workInstance.TickAndWork(workSamplesCount, true);
                     machine.workDone = true;
                 }
             }
@@ -784,7 +765,7 @@ namespace ReBuzz.Audio
                 var sourceMachine = input.Source as MachineCore;
 
                 // Was work called for this machine already?
-                if (!sourceMachine.workDone && sourceMachine.Ready)
+                if (!sourceMachine.workDone)
                 {
                     machineCanWork = false;
                     CollectMachinesThatCanWork(sourceMachine);

@@ -458,7 +458,6 @@ namespace ReBuzz.FileOps
                         AddGroup(machineProto, machineNew, 1);
                         AddGroup(machineProto, machineNew, 2);
                         machineNew.MachineDLL.MachineInfo.Type = (MachineType)type;
-                        machineNew.Ready = true;
                     }
                     machines[j] = machineNew;
 
