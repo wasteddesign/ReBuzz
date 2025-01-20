@@ -24,6 +24,8 @@ namespace ReBuzzTests
         public void DoesNotChangeStateWhenUserPicksNonExistentFile()
         {
             var nonExistentFileName = @"sdfsjhdkfjhsdf";
+            var potentialSavedFileLocation =
+                AbsoluteDirectoryPath.OfCurrentWorkingDirectory().AddFileName(nonExistentFileName);
             using var driver = new Driver();
             driver.Start();
 
@@ -34,7 +36,8 @@ namespace ReBuzzTests
             driver.AssertInitialStateAfterNewFile();
             driver.AssertErrorReportedToUser(
                 $"Error loading {nonExistentFileName}",
-                $"Could not find file '{AbsoluteDirectoryPath.OfCurrentWorkingDirectory().AddFileName(nonExistentFileName)}'.");
+                $"Could not find file '{potentialSavedFileLocation}'.");
+            potentialSavedFileLocation.Exists().Should().BeFalse();
         }
 
         [Test]
@@ -52,8 +55,9 @@ namespace ReBuzzTests
             driver.AssertNoErrorsReportedToUser();
             driver.AssertInitialStateAfterSavingEmptySong(emptySongPath);
             driver.AssertRecentFileListHasEntry(0, emptySongPath);
+            emptySongPath.Exists().Should().BeTrue();
         }
-        
+
         [Test]
         public void MaintainsCleanStateAfterCancelingSavingEmptySong()
         {
@@ -98,10 +102,9 @@ namespace ReBuzzTests
             driver.Start();
 
             driver.SetupSavedFileChoiceTo(emptySongPath);
-            driver.SetupLoadedFileChoiceTo(emptySongPath);
 
             driver.SaveCurrentSong();
-            driver.LoadSong();
+            driver.LoadSong(emptySongPath);
 
             driver.AssertNoErrorsReportedToUser();
             driver.AssertStateAfterLoadingAnEmptySong(emptySongPath);
@@ -116,11 +119,10 @@ namespace ReBuzzTests
             driver.Start();
 
             driver.SetupSavedFileChoiceTo(emptySongPath);
-            driver.SetupLoadedFileChoiceTo(emptySongPath);
 
             driver.SaveCurrentSong();
-            driver.LoadSong();
-            driver.LoadSong();
+            driver.LoadSong(emptySongPath);
+            driver.LoadSong(emptySongPath);
 
             driver.AssertNoErrorsReportedToUser();
             driver.AssertStateAfterLoadingAnEmptySong(emptySongPath);

@@ -67,7 +67,6 @@ namespace ReBuzzTests.Automation
         /// </summary>
         private AbsoluteDirectoryPath SongsDir => reBuzzRootDir.AddDirectoryName("Songs");
 
-
         private ReBuzzCore reBuzzCore;
         private readonly FakeFileNameChoice fileNameToLoadChoice = new();
         private readonly FakeUserMessages fakeUserMessages;
@@ -163,9 +162,26 @@ namespace ReBuzzTests.Automation
             reBuzzCore.ExecuteCommand(BuzzCommand.OpenFile);
         }
 
+        public void LoadSong(AbsoluteFilePath path)
+        {
+            SetupLoadedFileChoiceTo(path);
+            LoadSong();
+        }
+
         public void SaveCurrentSong()
         {
             reBuzzCore.ExecuteCommand(BuzzCommand.SaveFile);
+        }
+
+        public void SaveCurrentSongAs()
+        {
+            reBuzzCore.ExecuteCommand(BuzzCommand.SaveFileAs);
+        }
+
+        public void SaveCurrentSongAs(AbsoluteFilePath path)
+        {
+            SetupSavedFileChoiceTo(path);
+            SaveCurrentSongAs();
         }
 
         /// <summary>
