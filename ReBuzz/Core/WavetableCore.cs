@@ -21,7 +21,7 @@ namespace ReBuzz.Core
         public List<WaveCore> WavesList { get => waves; }
         public ReadOnlyCollection<IWave> Waves { get => waves.Cast<IWave>().ToReadOnlyCollection(); }
 
-        private float volume;
+        private float volume = 1f;
         public float Volume { get => volume; set => volume = value; }
 
         public event Action<int> WaveChanged;
@@ -251,7 +251,7 @@ namespace ReBuzz.Core
                         end = end,
                         looptype = looptype
                     };
-                    realTimeResampler.Reset(Global.Buzz.SelectedAudioDriverSampleRate, wave.Layers[0].SampleRate);
+                    realTimeResampler.Reset(Global.Buzz.SelectedAudioDriverSampleRate, wave.Layers[0].SampleRate <= 0 ? 44100 : wave.Layers[0].SampleRate);
                 }
                 catch (Exception e)
                 {

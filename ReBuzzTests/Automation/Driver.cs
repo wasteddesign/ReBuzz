@@ -6,10 +6,13 @@ using BuzzGUI.Common;
 using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
 using FluentAssertions;
+using FluentAssertions.Execution;
 using ReBuzz.AppViews;
 using ReBuzz.Core;
 using ReBuzz.MachineManagement;
 using ReBuzzTests.Automation.Assertions;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace ReBuzzTests.Automation
 {
@@ -59,7 +62,22 @@ namespace ReBuzzTests.Automation
         /// </summary>
         private AbsoluteDirectoryPath GearGeneratorsDir => GearDir.AddDirectoryName("Generators");
 
+        /// <summary>
+        /// ReBuzz songs directory for the current test
+        /// </summary>
+        private AbsoluteDirectoryPath SongsDir => reBuzzRootDir.AddDirectoryName("Songs");
+
+
         private ReBuzzCore reBuzzCore;
+        private readonly FakeFileNameChoice fileNameToLoadChoice = new();
+        private readonly FakeUserMessages fakeUserMessages;
+        private FakeFileNameChoice fileNameToSaveChoice = new();
+        private readonly FakeInMemoryRegistry fakeRegistry = new FakeInMemoryRegistry();
+
+        public Driver()
+        {
+            fakeUserMessages = new FakeUserMessages();
+        }
 
         static Driver()
         {
@@ -80,13 +98,21 @@ namespace ReBuzzTests.Automation
             var registryRoot = Global.RegistryRoot; //Should not matter as the registry is in memory
 
             var dispatcher = new FakeDispatcher();
-            var registryExInstance = new FakeInMemoryRegistry();
             var fakeMachineDllScanner = new FakeMachineDLLScanner(GearDir);
-            reBuzzCore = new ReBuzzCore(generalSettings, engineSettings, buzzPath, registryRoot, fakeMachineDllScanner,
-                dispatcher, registryExInstance);
+            reBuzzCore = new ReBuzzCore(
+                generalSettings,
+                engineSettings,
+                buzzPath,
+                registryRoot,
+                fakeMachineDllScanner,
+                dispatcher,
+                fakeRegistry,
+                fileNameToLoadChoice,
+                fileNameToSaveChoice,
+                fakeUserMessages);
             fakeMachineDllScanner.AddFakeModernPatternEditor(reBuzzCore);
 
-            var initialization = new ReBuzzCoreInitialization(reBuzzCore, buzzPath, dispatcher, registryExInstance);
+            var initialization = new ReBuzzCoreInitialization(reBuzzCore, buzzPath, dispatcher, fakeRegistry);
             initialization.StartReBuzzEngineStep1((sender, args) =>
             {
                 TestContext.Out.WriteLine($"PropertyChanged: {args.PropertyName}");
@@ -105,7 +131,13 @@ namespace ReBuzzTests.Automation
             );
 
             initialization.StartReBuzzEngineStep5(s => { TestContext.Out.WriteLine("OpenFile: " + s); });
+            reBuzzCore.SaveSong += s => { TestContext.Out.WriteLine($"SaveSong: {s}"); };
             initialization.StartReBuzzEngineStep6();
+
+            reBuzzCore.FileEvent += (type, s, arg3) =>
+            {
+                TestContext.Out.WriteLine($"FileEvent: {type}, {s}, {arg3}");
+            };
 
             reBuzzCore.BuzzCommandRaised += command =>
             {
@@ -118,9 +150,22 @@ namespace ReBuzzTests.Automation
             };
         }
 
+        public AbsoluteFilePath RandomSongPath() => 
+            SongsDir.AddFileName($"{Guid.NewGuid():N}.bmx");
+
         public void NewFile()
         {
             reBuzzCore.ExecuteCommand(BuzzCommand.NewFile);
+        }
+
+        public void LoadSong()
+        {
+            reBuzzCore.ExecuteCommand(BuzzCommand.OpenFile);
+        }
+
+        public void SaveCurrentSong()
+        {
+            reBuzzCore.ExecuteCommand(BuzzCommand.SaveFile);
         }
 
         /// <summary>
@@ -133,6 +178,7 @@ namespace ReBuzzTests.Automation
             GearEffectsDir.Create();
             GearGeneratorsDir.Create();
             ThemesDir.Create();
+            SongsDir.Create();
             CopyGearFilesFromSourceCodeToReBuzzTestDir();
         }
 
@@ -158,12 +204,37 @@ namespace ReBuzzTests.Automation
 
         public void AssertInitialStateAfterNewFile()
         {
-            InitialStateAssertions.AssertInitialState(GearDir, reBuzzCore, new InitialStateAfterNewFileAssertions());
+            InitialStateAssertions.AssertInitialState(GearDir,
+                reBuzzCore,
+                new InitialStateAfterNewFileAssertions(),
+                new InitialSongStateAssertions());
         }
 
         public void AssertInitialStateAfterAppStart()
         {
-            InitialStateAssertions.AssertInitialState(GearDir, reBuzzCore, new InitialStateAfterAppStartAssertions());
+            InitialStateAssertions.AssertInitialState(GearDir,
+                reBuzzCore,
+                new InitialStateAfterAppStartAssertions(),
+                new InitialSongStateAssertions());
+        }
+
+        public void AssertStateAfterLoadingAnEmptySong(AbsoluteFilePath emptySongPath)
+        {
+            InitialStateAssertions.AssertInitialState(
+                GearDir,
+                reBuzzCore,
+                new InitialStateAfterLoadingEmptySongAssertions(),
+                new EmptySongStateWhenSongHasANameAssertions(emptySongPath));
+        }
+
+        public void AssertInitialStateAfterSavingEmptySong(AbsoluteFilePath emptySongPath)
+        {
+            InitialStateAssertions.AssertInitialState(
+                GearDir,
+                reBuzzCore,
+                new InitialStateAfterAppStartAssertions(),
+                new EmptySongStateWhenSongHasANameAssertions(emptySongPath));
+
         }
 
         /// <summary>
@@ -189,6 +260,88 @@ namespace ReBuzzTests.Automation
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// When asked to choose a file name to load, the choice will be canceled
+        /// </summary>
+        public void SetupLoadedFileChoiceToUserCancel()
+        {
+            fileNameToLoadChoice.SetToUserCancel();
+        }
+
+        /// <summary>
+        /// When asked to choose a file name to load, the configured path will be returned
+        /// </summary>
+        public void SetupLoadedFileChoiceTo(AbsoluteFilePath fileName)
+        {
+            fileNameToLoadChoice.SetTo(fileName.ToString());
+        }
+
+        /// <summary>
+        /// When asked to choose a file name to load, the configured string will be returned
+        /// </summary>
+        public void SetupLoadedFileChoiceTo(string fileName)
+        {
+            fileNameToLoadChoice.SetTo(fileName);
+        }
+
+        /// <summary>
+        /// When asked to choose a file name to save, the configured path will be returned
+        /// </summary>
+        public void SetupSavedFileChoiceTo(AbsoluteFilePath fileName)
+        {
+            fileNameToSaveChoice.SetTo(fileName.ToString());
+        }
+
+        /// <summary>
+        /// When asked to choose a file name to load, the configured string will be returned
+        /// </summary>
+        public void SetupSavedFileChoiceTo(string fileName)
+        {
+            fileNameToSaveChoice.SetTo(fileName);
+        }
+
+        /// <summary>
+        /// When asked to choose a file name to save, the choice will be canceled
+        /// </summary>
+        public void SetupSavedFileChoiceToUserCancel()
+        {
+            fileNameToSaveChoice.SetToUserCancel();
+        }
+
+        public void AssertErrorReportedToUser(string expectedCaption, string expectedMessage)
+        {
+            using (new AssertionScope())
+            {
+                fakeUserMessages.Caption.Should().Be(expectedCaption);
+                fakeUserMessages.Message.Should().Be(expectedMessage);
+            }
+        }
+
+        public void AssertNoErrorsReportedToUser()
+        {
+            using (new AssertionScope())
+            {
+                fakeUserMessages.Caption.Should().BeEmpty();
+                fakeUserMessages.Message.Should().BeEmpty();
+                fakeUserMessages.StackStrace.Should().BeEmpty();
+            }
+        }
+
+        public void AssertRecentFileListHasEntry(int index, AbsoluteFilePath songPath)
+        {
+            RecentFiles().ElementAt(index).Should().Be(songPath.ToString());
+        }
+
+        public void AssertRecentFileListHasNoEntryFor(AbsoluteFilePath songPath)
+        {
+            RecentFiles().Should().NotContain(songPath.ToString());
+        }
+
+        private IEnumerable<string> RecentFiles()
+        {
+            return fakeRegistry.ReadNumberedList<string>("File", "Recent File List");
         }
     }
 }

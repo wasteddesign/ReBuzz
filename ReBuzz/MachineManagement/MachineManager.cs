@@ -102,7 +102,7 @@ namespace ReBuzz.MachineManagement
                     machine.TrackCount = trackCount;
 
                     buzz.AddMachine(machine);
-                    machine.Ready = true;
+                    machine.Ready = false;
                     return machine;
                 }
 
@@ -121,7 +121,7 @@ namespace ReBuzz.MachineManagement
                 {
                     CreateNativeMachine(machine, instrument, trackCount, data, callInit);
                 }
-                machine.invalidateWaves = true;
+                machine.updateWaveInfo = true;
                 return machine;
             }
         }
@@ -863,9 +863,9 @@ namespace ReBuzz.MachineManagement
                 nativeMachines[machine].UIMessage.UIStop(machine);
             }
 
-            foreach (var pg in machine.ParameterGroupsList)
-                foreach (var p in pg.ParametersList)
-                    p.ClearPVal();
+            //foreach (var pg in machine.ParameterGroupsList)
+            //    foreach (var p in pg.ParametersList)
+            //        p.ClearPVal();
         }
 
         internal void UpdateMasterAndSubTickInfoToHost()
@@ -1151,11 +1151,11 @@ namespace ReBuzz.MachineManagement
             }
         }
 
-        internal void InvalidateWaves()
+        internal void UpdateWaveInfo()
         {
             foreach (var machine in nativeMachines)
             {
-                machine.Key.invalidateWaves = true;
+                machine.Key.updateWaveInfo = true;
             }
         }
 
@@ -1170,6 +1170,28 @@ namespace ReBuzz.MachineManagement
             {
                 var machineHost = NativeMachines[machine];
                 machineHost.UIMessage.UpdateWaveReferences(machine, editorTargetMachine, remappedWaveReferences);
+            }
+        }
+
+        internal void SendWaveChangedEvents(MachineCore machine, int index)
+        {   
+            var eventType = machine.CMachineEventType;
+            for (int i = 0; i < eventType.Count; i++)
+            {
+                if (eventType[i].Type == BEventType.gWaveChanged)
+                {
+                    MachineEvent(machine, eventType[i], index);
+                    return;
+                }
+            }
+        }
+
+        internal void SetWaveChangedEvent(int index)
+        {
+            foreach (var machineKV in nativeMachines)
+            {
+                var machine = machineKV.Key;
+                machine.wavesEventsPending.Add(index);
             }
         }
     }

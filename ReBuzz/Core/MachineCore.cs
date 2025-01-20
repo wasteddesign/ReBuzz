@@ -38,6 +38,7 @@ namespace ReBuzz.Core
         public IMachineDLL DLL { get => machineDLL; }
 
         internal ConcurrentDictionary<ParameterCore, int> parametersChanged = new ConcurrentDictionary<ParameterCore, int>();
+        internal ConcurrentBag<int> wavesEventsPending = new ConcurrentBag<int>();
 
         internal MachineDLL MachineDLL { get => machineDLL; set => machineDLL = value; }
 
@@ -1028,7 +1029,7 @@ namespace ReBuzz.Core
                 {
                     if (p.Flags.HasFlag(ParameterFlags.State))
                     {
-                        p.SetValue(i, p.DefValue);
+                        p.SetValue(i, p.NoValue);
                     }
                     else
                     {
@@ -1290,7 +1291,7 @@ namespace ReBuzz.Core
         internal List<Task> workTasks = new List<Task>(50);
 
         internal List<int> setMachineTrackCountList = new List<int>();
-        internal bool invalidateWaves;
+        internal bool updateWaveInfo;
         internal long performanceLastCount;
         internal long performanceBranchCount;
         internal Dictionary<int, int> remappedLoadedMachineParameterIndexes;

@@ -751,7 +751,7 @@ namespace ReBuzz.NativeMachine
                             {
                                 try
                                 {
-                                    int val = machine.ParameterGroupsList[group].ParametersList[param].GetPValue(track);
+                                    int val = machine.ParameterGroupsList[group].ParametersList[param].GetValue(track);
                                     SetMessageData(val);
                                 }
                                 catch

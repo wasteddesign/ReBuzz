@@ -116,11 +116,17 @@ namespace ReBuzz
 
             InitializeComponent();
 
-            Buzz = new ReBuzzCore(generalSettings,
-              engineSettings,
-              buzzPath,
-              registryRoot,
-              new MachineDLLScanner(windowsGuiDispatcher), windowsGuiDispatcher, registryEx);
+            Buzz = new ReBuzzCore(
+                generalSettings,
+                engineSettings,
+                buzzPath,
+                registryRoot,
+                new MachineDLLScanner(windowsGuiDispatcher),
+                windowsGuiDispatcher,
+                registryEx,
+                new FileNameToLoadChoiceThroughOpenFileDialog(),
+                new FileNameToSaveChoiceThroughSaveFileDialog(),
+                new UserMessagesViaMessageBox());
 
             var reBuzzCoreInitialization = new ReBuzzCoreInitialization(Buzz, buzzPath, windowsGuiDispatcher, registryEx);
             reBuzzCoreInitialization.StartReBuzzEngineStep1(Buzz_PropertyChanged);

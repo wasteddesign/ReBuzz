@@ -20,7 +20,20 @@ namespace ReBuzz.Core
         public string FileName { get; set; }
 
         public WaveFlags Flags { get; set; }
-        public float Volume { get; set; }
+
+        float volume = 1.0f;
+        public float Volume {
+            get
+            {
+                return volume;
+            }
+            set
+            {
+                volume = value;
+                // Update waves info to native machines
+                buzz.MachineManager.UpdateWaveInfo();
+            }
+        }
 
         private readonly ReBuzzCore buzz;
         List<WaveLayerCore> waveLayers;
@@ -64,7 +77,8 @@ namespace ReBuzz.Core
             {
                 WaveChanged.Invoke(Index);
             }
-            buzz.MachineManager.InvalidateWaves();
+            buzz.MachineManager.UpdateWaveInfo();
+            buzz.MachineManager.SetWaveChangedEvent(Index);
             PropertyChanged.Raise(this, "Layers");
         }
 

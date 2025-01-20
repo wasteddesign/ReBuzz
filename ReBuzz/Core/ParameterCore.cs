@@ -126,6 +126,7 @@ namespace ReBuzz.Core
             }
         }
 
+        // Return values between min & max. No NoValue
         public int GetValue(int track)
         {
             if (!values.ContainsKey(track))
@@ -134,10 +135,11 @@ namespace ReBuzz.Core
             return values[track];
         }
 
+        // Return current value. Used to send calue to native machines
         public int GetPValue(int track)
         {
             if (!pvalues.ContainsKey(track))
-                return DefValue;
+                return NoValue;
 
             return pvalues[track];
         }
@@ -151,6 +153,7 @@ namespace ReBuzz.Core
         {
             return true;
         }
+
 
         ConcurrentDictionary<int, int> values = new ConcurrentDictionary<int, int>();
         readonly ConcurrentDictionary<int, int> pvalues = new ConcurrentDictionary<int, int>();
@@ -280,45 +283,48 @@ namespace ReBuzz.Core
                     track &= ~do_not_record_flag;
                 }
 
+                // Do we need this?
+                if (pvalues.ContainsKey(track) && pvalues[track] == value)
+                    return;
+
                 // Check ranges
                 if (value != NoValue)
+                {
                     if (Type == ParameterType.Note && value != BuzzNote.Off)
                         value = Math.Max(MinValue, Math.Min(MaxValue, value));
 
-                // Save changes to be sent to managed machines and as events to listeners.
-                machine.parametersChanged[this] = track;
+                    values[track] = value;
 
-                // Do we need this?
-                if (values.ContainsKey(track) && values[track] == value)
-                    return;
-
-                values[track] = value;
-                if (value != NoValue)
-                    pvalues[track] = value;
-
-                // Update inputs. Should this be moved to tick?
-                if (Group.Type == ParameterGroupType.Input && machine.ParameterGroups.Count != 0)
-                {
-                    if (IndexInGroup < machine.ParameterGroups[0].Parameters.Count
-                        && track < machine.Inputs.Count)
+                    // Update inputs. Should this be moved to tick?
+                    if (Group.Type == ParameterGroupType.Input && machine.ParameterGroups.Count != 0)
                     {
-                        var input = machine.Inputs[track];
-                        if (IndexInGroup == 0)
+                        if (IndexInGroup < machine.ParameterGroups[0].Parameters.Count
+                            && track < machine.Inputs.Count)
                         {
-                            input.Amp = value;
-                        }
-                        else
-                        {
-                            input.Pan = value;
+                            var input = machine.Inputs[track];
+                            if (IndexInGroup == 0)
+                            {
+                                input.Amp = value;
+                            }
+                            else
+                            {
+                                input.Pan = value;
+                            }
                         }
                     }
+                    else if (record && Group != null && Group.Machine.Graph != null)
+                    {
+                        var bc = Group.Machine.Graph.Buzz as ReBuzzCore;
+                        //bc.RecordParametersDictionary.TryAdd(new Tuple<ParameterCore,int>(this, track), value);
+                        bc.RecordControlChange(this, track, value);
+                    }
+
+                    // Save changes to be sent to managed machines and as events to listeners.
+                    machine.parametersChanged[this] = track;
                 }
-                else if (record && Group != null && Group.Machine.Graph != null)
-                {
-                    var bc = Group.Machine.Graph.Buzz as ReBuzzCore;
-                    //bc.RecordParametersDictionary.TryAdd(new Tuple<ParameterCore,int>(this, track), value);
-                    bc.RecordControlChange(this, track, value);
-                }
+
+                // This is sent to native machines
+                pvalues[track] = value;
             }
         }
 

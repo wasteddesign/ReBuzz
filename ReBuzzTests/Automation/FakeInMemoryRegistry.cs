@@ -1,5 +1,6 @@
 using ReBuzz.Core;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 
 namespace ReBuzzTests.Automation
@@ -13,7 +14,7 @@ namespace ReBuzzTests.Automation
     {
         private readonly Lock lockObject = new();
 
-        private readonly Dictionary<(string Path, string Key), object> registryDictionary = new()
+        private Dictionary<(string Path, string Key), object> registryDictionary = new()
         {
             [("ASIO", "SampleRate")] = 44100,
             [("ASIO", "BufferSize")] = 1024,
@@ -86,28 +87,41 @@ namespace ReBuzzTests.Automation
         {
             lock (lockObject)
             {
-                if (registryDictionary.TryGetValue((path, key), out var cachedResult))
+                List<T> results = new();
+                int i = 1;
+                while (i < int.MaxValue)
                 {
-                    IEnumerable<T> numberedList = (IEnumerable<T>)cachedResult;
-                    TestContext.Out.WriteLine($"ReadNumberedList: {path}=>{key}=>[{string.Join(", ", numberedList)}]");
-                    return numberedList;
+                    if (this.registryDictionary.ContainsKey((path, key + i)))
+                    {
+                        results.Add((T)(registryDictionary[(path, key + i)]));
+                        i++;
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
-
-                Assert.Fail($"ReadNumberedList from in-memory registry failed: {path}, {key}");
-
-                return default!;
+                return results;
             }
         }
 
         public void DeleteCurrentUserSubKey(string key)
         {
-            Assert.Fail("Not used in any of the current tests");
+            lock (lockObject)
+            {
+                var path = key.Split('\\').Last();
+                registryDictionary = registryDictionary.Where(kvp => kvp.Key.Path != path).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            }
         }
 
         public IRegistryKey CreateCurrentUserSubKey(string subKey)
         {
-            Assert.Fail("Not used in any of the current tests");
-            return default!;
+            lock (lockObject)
+            {
+                var path = subKey.Split('\\').Last();
+                TestContext.Out.WriteLine($"Create subkey: {subKey} => extracted {path}");
+                return new FakeInMemoryRegistryKey(registryDictionary, path);
+            }
         }
     }
 }

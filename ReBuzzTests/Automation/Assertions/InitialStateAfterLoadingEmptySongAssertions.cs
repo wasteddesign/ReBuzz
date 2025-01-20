@@ -1,38 +1,35 @@
 using AtmaFileSystem;
 using BuzzGUI.Interfaces;
-using FluentAssertions;
 using ReBuzz.Core;
 using ReBuzz.MachineManagement;
-using System.Linq;
 
 namespace ReBuzzTests.Automation.Assertions
 {
     /// <summary>
-    /// Assertions for the initial state of ReBuzz specific to the state after issuing a new file command.
+    /// Assertions for the initial state of ReBuzz specific to the state after loading an empty song.
     /// </summary>
-    public class InitialStateAfterNewFileAssertions : IAdditionalInitialStateAssertions
+    public class InitialStateAfterLoadingEmptySongAssertions : IAdditionalInitialStateAssertions
     {
         public void AssertStateOfSongCore(
             SongCore songCore, AbsoluteDirectoryPath gearDir, ReBuzzCore reBuzzCore)
         {
-            songCore.MachinesList.Should().Equal(songCore.Machines.Cast<MachineCore>());
+            InitialStateAfterAppStartAssertions.StaticAssertStateOfSongCore(songCore, gearDir, reBuzzCore, this);
         }
 
         public void AssertInitialStateOfPatternEditor(
             ReBuzzCore reBuzzCore, AbsoluteDirectoryPath gearDir, IMachine machine)
         {
-            StaticAssertInitialStateOfPatternEditor(machine);
-        }
-
-        public static void StaticAssertInitialStateOfPatternEditor(IMachine machine)
-        {
-            machine.PatternEditorDLL.Should().BeNull();
+            InitialStateAfterNewFileAssertions.StaticAssertInitialStateOfPatternEditor(machine);
         }
 
         public void AssertInitialStateOfMachineManager(
             ReBuzzCore reBuzzCore, AbsoluteDirectoryPath gearDir, MachineManager machineManager)
         {
-            machineManager.ManagedMachines.Should().BeEmpty();
+            InitialStateAfterAppStartAssertions.StaticAssertInitialStateOfMachineManager(
+                reBuzzCore,
+                gearDir,
+                machineManager,
+                this);
         }
     }
 }
