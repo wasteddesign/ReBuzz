@@ -4,21 +4,22 @@ namespace ReBuzzTests.Automation
 {
     public class FakeFileNameChoice : IFileNameChoice
     {
-        private ChosenValue<string> fileName = ChosenValue<string>.Nothing;
+        private static DialogChoices.FileNameSource userCancel = () => ChosenValue<string>.Nothing;
+        private DialogChoices.FileNameSource fileNameSource = userCancel;
 
         public ChosenValue<string> SelectFileName()
         {
-            return fileName;
+            return fileNameSource();
         }
 
         public void SetToUserCancel()
         {
-            fileName = ChosenValue<string>.Nothing;
+            fileNameSource = userCancel;
         }
 
-        public void SetTo(string newFileName)
+        public void SetTo(DialogChoices.FileNameSource newFileNameSource)
         {
-            fileName = ChosenValue<string>.Just(newFileName);
+            fileNameSource = newFileNameSource;
         }
     }
 }

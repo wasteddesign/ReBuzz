@@ -14,8 +14,7 @@ internal class SavingSongAsSpecifiedFileTests
 
         driver.Start();
 
-        driver.SetupSavedFileChoiceToUserCancel();
-        driver.SaveCurrentSongAs();
+        driver.SaveCurrentSongAs(DialogChoices.Cancel());
 
         driver.AssertNoErrorsReportedToUser();
         driver.AssertInitialStateAfterAppStart();
@@ -30,8 +29,8 @@ internal class SavingSongAsSpecifiedFileTests
         var emptySongPath = driver.RandomSongPath();
         driver.Start();
 
-        driver.SaveCurrentSongAs(emptySongPath);
-        driver.LoadSong(emptySongPath);
+        driver.SaveCurrentSongAs(DialogChoices.Select(emptySongPath));
+        driver.LoadSong(DialogChoices.Select(emptySongPath));
 
         driver.AssertNoErrorsReportedToUser();
         driver.AssertStateAfterLoadingAnEmptySong(emptySongPath);
@@ -46,16 +45,13 @@ internal class SavingSongAsSpecifiedFileTests
         var emptySongPath = driver.RandomSongPath();
         driver.Start();
 
-        driver.SetupSavedFileChoiceTo(emptySongPath);
-
-        driver.SaveCurrentSong();
-        driver.SaveCurrentSongAs(emptySongPath);
-        driver.LoadSong(emptySongPath);
+        driver.SaveCurrentSongForTheFirstTime(DialogChoices.Select(emptySongPath));
+        driver.SaveCurrentSongAs(DialogChoices.Select(emptySongPath));
+        driver.LoadSong(DialogChoices.Select(emptySongPath));
 
         driver.AssertNoErrorsReportedToUser();
         driver.AssertStateAfterLoadingAnEmptySong(emptySongPath);
         driver.AssertRecentFileListHasEntry(0, emptySongPath);
-        emptySongPath.Exists().Should().BeTrue();
     }
 
     [Test]
@@ -67,9 +63,9 @@ internal class SavingSongAsSpecifiedFileTests
         var emptySongPath3 = driver.RandomSongPath();
         driver.Start();
 
-        driver.SaveCurrentSongAs(emptySongPath1);
-        driver.SaveCurrentSongAs(emptySongPath2);
-        driver.SaveCurrentSongAs(emptySongPath3);
+        driver.SaveCurrentSongAs(DialogChoices.Select(emptySongPath1));
+        driver.SaveCurrentSongAs(DialogChoices.Select(emptySongPath2));
+        driver.SaveCurrentSongAs(DialogChoices.Select(emptySongPath3));
 
         driver.AssertNoErrorsReportedToUser();
         driver.AssertInitialStateAfterSavingEmptySong(emptySongPath3);

@@ -157,31 +157,28 @@ namespace ReBuzzTests.Automation
             reBuzzCore.ExecuteCommand(BuzzCommand.NewFile);
         }
 
-        public void LoadSong()
+        public void LoadSong(DialogChoices.FileNameSource source)
         {
+            fileNameToLoadChoice.SetTo(source);
             reBuzzCore.ExecuteCommand(BuzzCommand.OpenFile);
         }
 
-        public void LoadSong(AbsoluteFilePath path)
+        public void SaveCurrentSongForTheFirstTime(DialogChoices.FileNameSource source)
         {
-            SetupLoadedFileChoiceTo(path);
-            LoadSong();
+            fileNameToSaveChoice.SetTo(source);
+            reBuzzCore.ExecuteCommand(BuzzCommand.SaveFile);
         }
 
         public void SaveCurrentSong()
         {
+            fileNameToSaveChoice.SetTo(DialogChoices.ThrowIfDialogInvoked());
             reBuzzCore.ExecuteCommand(BuzzCommand.SaveFile);
         }
 
-        public void SaveCurrentSongAs()
+        public void SaveCurrentSongAs(DialogChoices.FileNameSource source)
         {
+            fileNameToSaveChoice.SetTo(source);
             reBuzzCore.ExecuteCommand(BuzzCommand.SaveFileAs);
-        }
-
-        public void SaveCurrentSongAs(AbsoluteFilePath path)
-        {
-            SetupSavedFileChoiceTo(path);
-            SaveCurrentSongAs();
         }
 
         /// <summary>
@@ -276,54 +273,6 @@ namespace ReBuzzTests.Automation
                     }
                 }
             }
-        }
-
-        /// <summary>
-        /// When asked to choose a file name to load, the choice will be canceled
-        /// </summary>
-        public void SetupLoadedFileChoiceToUserCancel()
-        {
-            fileNameToLoadChoice.SetToUserCancel();
-        }
-
-        /// <summary>
-        /// When asked to choose a file name to load, the configured path will be returned
-        /// </summary>
-        public void SetupLoadedFileChoiceTo(AbsoluteFilePath fileName)
-        {
-            fileNameToLoadChoice.SetTo(fileName.ToString());
-        }
-
-        /// <summary>
-        /// When asked to choose a file name to load, the configured string will be returned
-        /// </summary>
-        public void SetupLoadedFileChoiceTo(string fileName)
-        {
-            fileNameToLoadChoice.SetTo(fileName);
-        }
-
-        /// <summary>
-        /// When asked to choose a file name to save, the configured path will be returned
-        /// </summary>
-        public void SetupSavedFileChoiceTo(AbsoluteFilePath fileName)
-        {
-            fileNameToSaveChoice.SetTo(fileName.ToString());
-        }
-
-        /// <summary>
-        /// When asked to choose a file name to load, the configured string will be returned
-        /// </summary>
-        public void SetupSavedFileChoiceTo(string fileName)
-        {
-            fileNameToSaveChoice.SetTo(fileName);
-        }
-
-        /// <summary>
-        /// When asked to choose a file name to save, the choice will be canceled
-        /// </summary>
-        public void SetupSavedFileChoiceToUserCancel()
-        {
-            fileNameToSaveChoice.SetToUserCancel();
         }
 
         public void AssertErrorReportedToUser(string expectedCaption, string expectedMessage)

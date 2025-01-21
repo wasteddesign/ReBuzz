@@ -13,9 +13,7 @@ namespace ReBuzzTests
             using var driver = new Driver();
             driver.Start();
 
-            driver.SetupLoadedFileChoiceToUserCancel();
-
-            driver.LoadSong();
+            driver.LoadSong(DialogChoices.Cancel());
 
             driver.AssertInitialStateAfterAppStart();
         }
@@ -29,9 +27,7 @@ namespace ReBuzzTests
             using var driver = new Driver();
             driver.Start();
 
-            driver.SetupLoadedFileChoiceTo(nonExistentFileName);
-
-            driver.LoadSong();
+            driver.LoadSong(DialogChoices.Select(nonExistentFileName));
 
             driver.AssertInitialStateAfterNewFile();
             driver.AssertErrorReportedToUser(
@@ -48,9 +44,7 @@ namespace ReBuzzTests
 
             driver.Start();
 
-            driver.SetupSavedFileChoiceTo(emptySongPath);
-
-            driver.SaveCurrentSong();
+            driver.SaveCurrentSongForTheFirstTime(DialogChoices.Select(emptySongPath));
 
             driver.AssertNoErrorsReportedToUser();
             driver.AssertInitialStateAfterSavingEmptySong(emptySongPath);
@@ -66,9 +60,7 @@ namespace ReBuzzTests
 
             driver.Start();
 
-            driver.SetupSavedFileChoiceToUserCancel();
-
-            driver.SaveCurrentSong();
+            driver.SaveCurrentSongForTheFirstTime(DialogChoices.Cancel());
 
             driver.AssertNoErrorsReportedToUser();
             driver.AssertInitialStateAfterAppStart();
@@ -83,10 +75,7 @@ namespace ReBuzzTests
             var emptySongPath = driver.RandomSongPath();
             driver.Start();
 
-            driver.SetupSavedFileChoiceTo(emptySongPath);
-
-            driver.SaveCurrentSong();
-            driver.SetupSavedFileChoiceTo("????");
+            driver.SaveCurrentSongForTheFirstTime(DialogChoices.Select(emptySongPath));
             driver.SaveCurrentSong();
 
             driver.AssertNoErrorsReportedToUser();
@@ -101,10 +90,8 @@ namespace ReBuzzTests
             var emptySongPath = driver.RandomSongPath();
             driver.Start();
 
-            driver.SetupSavedFileChoiceTo(emptySongPath);
-
-            driver.SaveCurrentSong();
-            driver.LoadSong(emptySongPath);
+            driver.SaveCurrentSongForTheFirstTime(DialogChoices.Select(emptySongPath));
+            driver.LoadSong(DialogChoices.Select(emptySongPath));
 
             driver.AssertNoErrorsReportedToUser();
             driver.AssertStateAfterLoadingAnEmptySong(emptySongPath);
@@ -118,11 +105,9 @@ namespace ReBuzzTests
             var emptySongPath = driver.RandomSongPath();
             driver.Start();
 
-            driver.SetupSavedFileChoiceTo(emptySongPath);
-
-            driver.SaveCurrentSong();
-            driver.LoadSong(emptySongPath);
-            driver.LoadSong(emptySongPath);
+            driver.SaveCurrentSongForTheFirstTime(DialogChoices.Select(emptySongPath));
+            driver.LoadSong(DialogChoices.Select(emptySongPath));
+            driver.LoadSong(DialogChoices.Select(emptySongPath));
 
             driver.AssertNoErrorsReportedToUser();
             driver.AssertStateAfterLoadingAnEmptySong(emptySongPath);
