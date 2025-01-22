@@ -15,6 +15,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using BuzzGUI.Common;
 using static ReBuzz.FileOps.BMXFile;
+using BuzzGUI.Common.InterfaceExtensions;
 
 namespace ReBuzz.FileOps
 {
@@ -248,6 +249,9 @@ namespace ReBuzz.FileOps
                     var machineNew = buzz.MachineManager.CreateMachine(machineDLL.Name, machineDLL.Path, null, data, tracks, x, y, machineProto.Hidden, name, true);
                     dictInitData[machineNew] = new MachineInitData() { data = data, tracks = tracks };
 
+                    // Saved machine parameter count/indexes might be a different from the machine that is currently available for ReBuzz. Create parameter mappings
+                    RemapLoadedMachineParameterIndex(machineNew, machineProto);
+
                     // Copy stuff from proto to real. ToDo: Clean this up;
                     foreach (var ma in machineNew.AttributesList)
                     {
@@ -273,7 +277,6 @@ namespace ReBuzz.FileOps
                         AddGroup(machineData.ParameterGroups[1], machineNew, 1);
                         AddGroup(machineData.ParameterGroups[2], machineNew, 2);
                         machineNew.MachineDLL.MachineInfo.Type = machineData.Type;
-                        machineNew.Ready = true;
                     }
                     if (import && !machineNew.Hidden)
                     {
@@ -360,7 +363,7 @@ namespace ReBuzz.FileOps
                 {
                     foreach (var p in machineData.Patterns)
                     {
-                        if (!machine.DLL.IsMissing)
+                        //if (!machine.DLL.IsMissing)
                         {
                             machine.CreatePattern(p.Name, p.Length);
                         }
@@ -588,6 +591,36 @@ namespace ReBuzz.FileOps
             }
 
             machineNew.ParameterGroupsList.Add(pgTo);
+        }
+
+        private void RemapLoadedMachineParameterIndex(MachineCore machine, MachineCore savedMachine)
+        {
+            Dictionary<int, int> paramMappings = new Dictionary<int, int>();
+
+            var machineParameters = machine.AllParameters().ToArray();
+            var savedParameters = savedMachine.AllParameters().ToArray();
+
+            for (int i = 0; i < savedParameters.Length; i++)
+            {
+                bool found = false;
+                for (int j = 0; j < machineParameters.Length; j++)
+                {
+                    if (savedParameters[i].Name == machineParameters[j].Name)
+                    {
+                        paramMappings[i] = j;
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found)
+                {
+                    // Machine loaded into ReBuzz does not have the same param
+                    paramMappings[i] = -1;
+                }
+            }
+
+            machine.remappedLoadedMachineParameterIndexes = paramMappings;
         }
 
         public void Save(string path, object obj)

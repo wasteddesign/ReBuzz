@@ -98,24 +98,23 @@ namespace WDE.ModernPatternEditor
             ReleaseColumnSets();
             columnSets = new List<ParameterColumnSet>();
 
-            foreach (var pSet in Editor.MPEPatternsDB.GetMPEPattern(pattern).GetParameterSets())
-            {
-                //CreateColumnSet(pSet.parameters.ToArray(), pSet.track, pSet.name);
+            // Don't show anythign if machine has 0 parameters
+            //if (pattern.Machine.ParameterGroups[1].Parameters.Count + pattern.Machine.ParameterGroups[2].Parameters.Count == 0)
+            //    return;
 
+            var parameterSets = Editor.MPEPatternsDB.GetMPEPattern(pattern).GetParameterSets();
+            foreach (var pSet in parameterSets)
+            {
                 CreateColumnSet(pSet);
             }
 
-            /*
-			CreateColumnSet(pattern.Machine.ParameterGroups[1].Parameters, 0, pattern.Machine.Name + "\nGlobal");
-			for (int track = 0; track < pattern.Machine.ParameterGroups[2].TrackCount; track++)
-			{
-				CreateColumnSet(pattern.Machine.ParameterGroups[2].Parameters, track, pattern.Machine.Name + string.Format("\nTrack {0}", track));
-			}
-			*/
-
-            CursorPosition = CursorPosition.Constrained;
-            Selection = Selection.Constrained;
             PropertyChanged.Raise(this, "ColumnSets");
+
+            if (parameterSets.Count() > 0)
+            {
+                CursorPosition = CursorPosition.Constrained;
+                Selection = Selection.Constrained;
+            }
         }
 
         void CreateColumnSet(MPEParameterSet pSet)

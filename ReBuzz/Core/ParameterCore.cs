@@ -318,10 +318,10 @@ namespace ReBuzz.Core
                         //bc.RecordParametersDictionary.TryAdd(new Tuple<ParameterCore,int>(this, track), value);
                         bc.RecordControlChange(this, track, value);
                     }
-                }
 
-                // Save changes to be sent to managed machines and as events to listeners.
-                machine.parametersChanged[this] = track;
+                    // Save changes to be sent to managed machines and as events to listeners.
+                    machine.parametersChanged[this] = track;
+                }
 
                 // This is sent to native machines
                 pvalues[track] = value;
