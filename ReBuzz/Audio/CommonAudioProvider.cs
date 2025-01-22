@@ -237,6 +237,7 @@ namespace ReBuzz.Audio
             {
                 multimediaTimer.Stop();
                 multimediaTimer.Dispose();
+                multimediaTimer = null;
             }
         }
 
