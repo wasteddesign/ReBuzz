@@ -1,18 +1,14 @@
 ﻿using BuzzGUI.Common;
 using BuzzGUI.Common.InterfaceExtensions;
-using BuzzGUI.Common.Templates;
 using BuzzGUI.Interfaces;
 using ReBuzz.Core;
 using ReBuzz.Core.Actions.GraphActions;
 using ReBuzz.MachineManagement;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Metrics;
 using System.IO;
 using System.Linq;
-using System.Security.AccessControl;
 using System.Text;
-using System.Windows.Controls;
 
 namespace ReBuzz.FileOps
 {
@@ -743,14 +739,6 @@ namespace ReBuzz.FileOps
                         }
                     }
 
-                    // Does machine use built in editor?
-                    if (builtInPeDictionary.ContainsKey(machine.Name) && patterns > 0)
-                    {
-                        byte[] data = msConvertToPXP.ToArray();
-                        // Create PXP compatible editor and input converted data
-                        buzz.CreateEditor(machine, buzz.DefaultPatternEditor, data);
-                    }
-
                     // Create patterns
                     foreach (var nameRow in patternsAndRows)
                     {
@@ -758,6 +746,14 @@ namespace ReBuzz.FileOps
                         {
                             machine.CreatePattern(nameRow.Item1, nameRow.Item2);
                         }
+                    }
+
+                    // Does machine use built in editor?
+                    if (builtInPeDictionary.ContainsKey(machine.Name) && patterns > 0)
+                    {
+                        byte[] data = msConvertToPXP.ToArray();
+                        // Create PXP compatible editor and input converted data
+                        buzz.CreateEditor(machine, buzz.DefaultPatternEditor, data);
                     }
                 }
             }
@@ -919,7 +915,7 @@ namespace ReBuzz.FileOps
                             IParameter targetParameter = null;
                             if (targetMachine != null)
                             {
-                                if (!targetMachine.DLL.IsMissing)
+                                //if (!targetMachine.DLL.IsMissing)
                                 {
                                     // Negative group is Buzz midi column invisible to editors. Used by Note Matrix.
                                     targetParameter = (group != -1 && indexInGroup != -1) ? targetMachine.ParameterGroups[group].Parameters[indexInGroup] : ParameterCore.GetMidiParameter(targetMachine, dispatcher);

@@ -192,8 +192,12 @@ namespace ReBuzz
                       EditorView.editorBorder.Child.Visibility = Visibility.Collapsed;
 
                   EditorView.editorBorder.Child = control;
+
                   if (control != null)
+                  {
                       control.Visibility = Visibility.Visible;
+                      EditorView.editorBorder.InvalidateMeasure();
+                  }
               },
               onFullScreenChanged: (fullScreen) =>
               {

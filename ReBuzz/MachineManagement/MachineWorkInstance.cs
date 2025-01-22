@@ -49,8 +49,6 @@ namespace ReBuzz.MachineManagement
             }
             Machine.setMachineTrackCountList.Clear();
 
-            // Some machines expect Tick() before Work()
-
             // Don't call Work() if bypassed
             if (Machine.IsBypassed || Machine.IsSeqThru || Machine.MachineDLL.IsMissing ||
                 (Machine.IsMuted && !engineSettings.ProcessMutedMachines))
@@ -378,7 +376,6 @@ namespace ReBuzz.MachineManagement
                     int noRecord = 1 << 16;
 
                     // Set pvalues to NoValue immediately to avoid sending param value twice
-
                     foreach (var p in Machine.ParameterGroups[0].Parameters)
                     {
                         p.SetValue(noRecord, p.NoValue);
@@ -395,14 +392,14 @@ namespace ReBuzz.MachineManagement
                         }
                     }
                 }
-            }
 
-            Machine.IsActive = WorkMachine(nSamples);
+                Machine.IsActive = WorkMachine(nSamples);
 
-            // Some machines report the active state wrong, double check
-            if (Machine.IsActive)
-            {
-                Machine.IsActive = Machine.GetActivity();
+                // Some machines report the active state wrong, double check
+                if (Machine.IsActive)
+                {
+                    Machine.IsActive = Machine.GetActivity();
+                }
             }
         }
     }
