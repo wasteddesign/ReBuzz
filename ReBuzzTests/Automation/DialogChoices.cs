@@ -1,12 +1,14 @@
 using AtmaFileSystem;
+using FluentAssertions;
+using FluentAssertions.Execution;
 using ReBuzz.Core;
 
 namespace ReBuzzTests.Automation
 {
 
-    public static class DialogChoices //bug this is probably redundant
+    public static class DialogChoices
     {
-        public delegate ChosenValue<string> FileNameSource(); //bug move?
+        public delegate ChosenValue<string> FileNameSource();
 
         internal static FileNameSource Select(AbsoluteFilePath fileName) => () => ChosenValue<string>.Just(fileName.ToString());
         internal static FileNameSource Select(string fileName) => () => ChosenValue<string>.Just(fileName);
@@ -15,7 +17,7 @@ namespace ReBuzzTests.Automation
         {
             return () =>
             {
-                Assert.Fail("Did not expect to invoke the dialog here.");
+                Execute.Assertion.FailWith("Did not expect to invoke the dialog here.");
                 return ChosenValue<string>.Nothing;
             };
         }

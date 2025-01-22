@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using FluentAssertions.Execution;
 using ReBuzz.Core;
 using ReBuzz.FileOps;
 
@@ -24,7 +25,7 @@ namespace ReBuzzTests.Automation
 
         public string GetLibName(int id)
         {
-            Assert.Fail("Not called anywhere yet in the current tests");
+            Execute.Assertion.FailWith("Not called anywhere yet in the current tests");
             return null!;
         }
 

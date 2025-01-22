@@ -71,7 +71,7 @@ namespace ReBuzzTests.Automation
         private readonly FakeFileNameChoice fileNameToLoadChoice = new();
         private readonly FakeUserMessages fakeUserMessages;
         private FakeFileNameChoice fileNameToSaveChoice = new();
-        private readonly FakeInMemoryRegistry fakeRegistry = new FakeInMemoryRegistry();
+        private readonly FakeInMemoryRegistry fakeRegistry = new();
 
         public Driver()
         {

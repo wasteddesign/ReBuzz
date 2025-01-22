@@ -121,7 +121,7 @@ namespace ReBuzzTests.Automation.Assertions
             reBuzzCore.SelectedAudioDriver.Should().BeNullOrEmpty();
             reBuzzCore.SelectedAudioDriverSampleRate.Should().Be(44100);
             reBuzzCore.ActiveView.Should().Be(BuzzView.MachineView);
-            reBuzzCore.MachineDLLsList.Should().HaveCount(1);
+            reBuzzCore.MachineDLLsList.Should().ContainSingle();
             reBuzzCore.AUTO_CONVERT_WAVES.Should().BeFalse();
 
             songStateAssertions.AssertStateOfSongAndSongCore(
