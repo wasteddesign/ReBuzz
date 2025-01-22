@@ -14,6 +14,7 @@ using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using BuzzGUI.Common.Settings;
 using BuzzGUI.ParameterWindow;
+using System.Threading;
 
 namespace ReBuzz.MachineManagement
 {
@@ -96,13 +97,15 @@ namespace ReBuzz.MachineManagement
                     machineDLL.IsMissing = true;
                     machineDLL.Name = libName;
                     machineDLL.Path = path;
+                    machineDLL.MachineInfo.MinTracks = machineDLL.MachineInfo.MaxTracks = trackCount;
                     machine.MachineDLL = machineDLL;
                     machine.MachineDLL.Buzz = buzz;
                     machine.Name = GetNewMachineName(machineName);
                     machine.TrackCount = trackCount;
-
+                    machine.Data = data;
+                    
                     buzz.AddMachine(machine);
-                    machine.Ready = false;
+                    machine.Ready = true;
                     return machine;
                 }
 

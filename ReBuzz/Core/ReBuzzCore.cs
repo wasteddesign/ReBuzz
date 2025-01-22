@@ -1334,8 +1334,6 @@ namespace ReBuzz.Core
                 mc = Song.Machines.Last() as MachineCore;
             }
 
-            if (mc.DLL.IsMissing)
-                return;
 
             var em = mc.EditorMachine;
             patternEditorControl = MachineManager.GetPatternEditorControl(em);
@@ -1358,8 +1356,6 @@ namespace ReBuzz.Core
             {
                 var mc = p.Machine as MachineCore;
 
-                if (mc.DLL.IsMissing)
-                    return;
 
                 var em = mc.EditorMachine;
                 if (em == null)
@@ -1368,7 +1364,9 @@ namespace ReBuzz.Core
                     CreateEditor(mc, null, null);
                     em = mc.EditorMachine;
                 }
+
                 UserControl patternEditorControl = MachineManager.GetPatternEditorControl(em);
+
                 // Calling this first time will link editor machine to machine owning pattern p.
                 // Make "AssingEditorToMachineMethod"?
                 MachineManager.SetPatternEditorPattern(em, p);

@@ -349,11 +349,25 @@ namespace ReBuzz.Core
         int baseOctave = 4;
         public int BaseOctave { get => baseOctave; set => baseOctave = value; }
 
+        byte[] data = null; 
+
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         public byte[] Data
         {
-            get => (graph.Buzz as ReBuzzCore).MachineManager.GetMachineData(this);
-            set => (graph.Buzz as ReBuzzCore).MachineManager.SetMachineData(this, value);
+            get
+            {
+                if (DLL.IsMissing)
+                    return data;
+                else
+                    return (graph.Buzz as ReBuzzCore).MachineManager.GetMachineData(this);
+            }
+            set
+            {
+                if (DLL.IsMissing)
+                    data = value;
+                else
+                    (graph.Buzz as ReBuzzCore).MachineManager.SetMachineData(this, value);
+            }
         }
 
         public byte[] PatternEditorData
@@ -505,8 +519,8 @@ namespace ReBuzz.Core
         public void CreatePattern(string name, int length)
         {
             // Modern Pattern Editor needs at least one Global or Track parameter
-            if (ParameterGroups[1].Parameters.Count + ParameterGroups[2].Parameters.Count == 0)
-                return;
+            //if (ParameterGroups[1].Parameters.Count + ParameterGroups[2].Parameters.Count == 0)
+            //    return;
 
             // Don't call these from "Work()"
             lock (ReBuzzCore.AudioLock)
@@ -1029,7 +1043,7 @@ namespace ReBuzz.Core
                 {
                     if (p.Flags.HasFlag(ParameterFlags.State))
                     {
-                        p.SetValue(i, p.NoValue);
+                        p.SetValue(i, p.DefValue);
                     }
                     else
                     {

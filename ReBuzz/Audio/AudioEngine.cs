@@ -160,20 +160,15 @@ namespace ReBuzz.Audio
             AudioProvider = new AudioProvider(buzzCore, engineSettings, wasapiDeviceSamplerate,
               wasapiOut.OutputWaveFormat.Channels, bufferSize, true, registryEx);
 
-            try
+            bool success = InitWasapiOut(wasapiOut);
+            if (!success)
             {
-                wasapiOut.Init(AudioProvider);
-            }
-            catch (Exception ex)
-            {
-                wasapiOut.Dispose();
-                AudioProvider.Stop();
-                buzzCore.DCWriteLine("Wasap error: " + ex);
-                wasapiOut = new WasapiOut();
-
+                wasapiOut = new WasapiOut(); // System defaults
                 AudioProvider = new AudioProvider(buzzCore, engineSettings, wasapiDeviceSamplerate, 2, bufferSize, true, registryEx);
-                wasapiOut.Init(AudioProvider);
+                success = InitWasapiOut(wasapiOut);
             }
+            if (!success)
+                return;
 
             wasapiOut.PlaybackStopped += (s, e) =>
             {
@@ -212,6 +207,26 @@ namespace ReBuzz.Audio
             }
 
             SelectedOutDevice = new AudioOutDevice() { Name = deviceName, Type = AudioOutType.Wasapi, WavePlayer = wasapiOut };
+        }
+
+        bool InitWasapiOut(WasapiOut wasapiOut)
+        {
+            bool success = false;
+            if (wasapiOut != null)
+            {
+                try
+                {
+                    wasapiOut.Init(AudioProvider);
+                    success = true;
+                }
+                catch (Exception ex)
+                {
+                    wasapiOut.Dispose();
+                    AudioProvider.Stop();
+                    buzzCore.DCWriteLine("Wasap error: " + ex);
+                }
+            }
+            return success;
         }
 
         public void CreateDirectSoundOut(string deviceName)
@@ -307,6 +322,8 @@ namespace ReBuzz.Audio
 
                 SelectedOutDevice.WavePlayer.Dispose();
             }
+
+            SelectedOutDevice = null;
         }
 
         public List<AudioOutDevice> AudioDevices()
