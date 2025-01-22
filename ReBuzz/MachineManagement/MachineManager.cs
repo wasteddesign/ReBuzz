@@ -105,7 +105,7 @@ namespace ReBuzz.MachineManagement
                     machine.Data = data;
                     
                     buzz.AddMachine(machine);
-                    machine.Ready = false;
+                    machine.Ready = true;
                     return machine;
                 }
 
