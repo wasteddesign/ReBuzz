@@ -55,7 +55,7 @@ namespace WDE.ModernPatternEditor.MPEStructures
                 metadata = new Dictionary<string, string>();
         }
 
-        // Returns the events from PAtternColumn object. Not from pattern editor machine.
+        // Returns the events from PatternColumn object. Not from pattern editor machine.
         public IEnumerable<PatternEvent> GetEvents(int tbegin, int tend)
         {
             return patternEvents.Where(pe => pe.Time >= tbegin && pe.Time < tend).ToArray();

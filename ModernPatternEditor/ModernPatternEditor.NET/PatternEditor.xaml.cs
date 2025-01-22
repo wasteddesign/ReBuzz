@@ -1065,6 +1065,9 @@ namespace WDE.ModernPatternEditor
             if (EditContext == null)
                 return false;
 
+            if (patternControl.Pattern.ColumnSets.Count == 0)
+                return false;
+
             if (cmd == BuzzCommand.Undo)
             {
                 return EditContext.ActionStack.CanUndo;

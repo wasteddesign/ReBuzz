@@ -386,6 +386,9 @@ namespace WDE.ModernPatternEditor
 
             patternSV.PreviewMouseWheel += (sender, e) =>
             {
+                if (pattern?.ColumnSets.Count == 0)
+                    return;
+
                 if (PatternEditor.Settings.CursorScrollMode != CursorScrollMode.Standard)
                 {
                     mouseWheelAcc += e.Delta;
@@ -419,6 +422,17 @@ namespace WDE.ModernPatternEditor
 
             this.PreviewKeyDown += (sender, e) =>
             {
+                if (Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    switch (e.Key)
+                    {
+                        case Key.Left: e.Handled = true; break;
+                        case Key.Right: e.Handled = true; break;
+                    }
+                }
+                if (pattern?.ColumnSets.Count == 0)
+                return;
+
                 if (Keyboard.Modifiers == ModifierKeys.None)
                 {
                     switch (e.Key)
@@ -652,58 +666,52 @@ namespace WDE.ModernPatternEditor
                 }
             };
 
-            RandomizeCommand = new SimpleCommand
-            {
-                CanExecuteDelegate = x => true,
-                ExecuteDelegate = x => { RamdomizeSelection(); }
-            };
-
             DecreaseCommand = new SimpleCommand
             {
-                CanExecuteDelegate = x => true,
+                CanExecuteDelegate = x => pattern.ColumnSets.Count > 0,
                 ExecuteDelegate = x => { ShiftValues(-1); }
             };
 
             IncreaseCommand = new SimpleCommand
             {
-                CanExecuteDelegate = x => true,
+                CanExecuteDelegate = x => pattern.ColumnSets.Count > 0,
                 ExecuteDelegate = x => { ShiftValues(1); }
             };
 
             WriteStateCommand = new SimpleCommand
             {
-                CanExecuteDelegate = x => true,
+                CanExecuteDelegate = x => pattern.ColumnSets.Count > 0,
                 ExecuteDelegate = x => { WriteState(); }
             };
 
             InterpolateLinearCommand = new SimpleCommand
             {
-                CanExecuteDelegate = x => true,
+                CanExecuteDelegate = x => pattern.ColumnSets.Count > 0,
                 ExecuteDelegate = x => { InterpolateSelection(InterpolationMethod.Linear); }
             };
 
             InterpolateExpCommand = new SimpleCommand
             {
-                CanExecuteDelegate = x => true,
+                CanExecuteDelegate = x => pattern.ColumnSets.Count > 0,
                 ExecuteDelegate = x => { InterpolateSelection(InterpolationMethod.ExpIntp); }
             };
 
             RotateCommandDown = new SimpleCommand
             {
-                CanExecuteDelegate = x => true,
+                CanExecuteDelegate = x => pattern.ColumnSets.Count > 0,
                 ExecuteDelegate = x => { RollSelection(true); }
             };
 
 
             RotateCommandUp = new SimpleCommand
             {
-                CanExecuteDelegate = x => true,
+                CanExecuteDelegate = x => pattern.ColumnSets.Count > 0,
                 ExecuteDelegate = x => { RollSelection(true); }
             };
 
             RandomizeCommand = new SimpleCommand
             {
-                CanExecuteDelegate = x => true,
+                CanExecuteDelegate = x => pattern.ColumnSets.Count > 0,
                 ExecuteDelegate = x => { RamdomizeSelection(); }
             };
 
@@ -789,6 +797,9 @@ namespace WDE.ModernPatternEditor
                 CanExecuteDelegate = x => true,
                 ExecuteDelegate = x =>
                 {
+                    if (pattern?.ColumnSets.Count == 0)
+                        return;
+
                     if (!pattern.Selection.Equals(Selection.ColumnSet(pattern.CursorPosition)))
                         pattern.Selection = Selection.ColumnSet(pattern.CursorPosition);
                     else
@@ -819,6 +830,9 @@ namespace WDE.ModernPatternEditor
                 Mode = DraggerMode.Absolute,
                 BeginDrag = (p, alt, cc) =>
                 {
+                    if (pattern?.ColumnSets.Count == 0)
+                        return;
+
                     this.Focus();
                     enableDragSel = true;
 
@@ -869,6 +883,9 @@ namespace WDE.ModernPatternEditor
                 Mode = DraggerMode.Absolute,
                 BeginDrag = (p, alt, cc) =>
                 {
+                    if (pattern?.ColumnSets.Count == 0)
+                        return;
+
                     this.Focus();
 
                     var d = GetDigitAtPoint(p);
