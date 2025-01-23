@@ -683,11 +683,15 @@ namespace BuzzGUI.SequenceEditor
 				CanExecuteDelegate = x => SelectedSequence != null,
 				ExecuteDelegate = noswitch =>
 				{
-					var p = CursorPattern;
-					if (p != null)
-						song.Buzz.SetPatternEditorPattern(p);
-					else if (SelectedSequence != null)
-						song.Buzz.SetPatternEditorMachine(SelectedSequence.Machine);
+                    //Don't change the pattern editor if the setting is turned off
+                    if (Settings.AutoSelectPattern)
+                    {
+                        var p = CursorPattern;
+                        if (p != null)
+                            song.Buzz.SetPatternEditorPattern(p);
+                        else if (SelectedSequence != null)
+                            song.Buzz.SetPatternEditorMachine(SelectedSequence.Machine);
+                    }
 
 					if (noswitch == null || !(bool)noswitch)
 						song.Buzz.ActivatePatternEditor();
