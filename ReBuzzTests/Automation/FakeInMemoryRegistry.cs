@@ -1,3 +1,4 @@
+using FluentAssertions.Execution;
 using ReBuzz.Core;
 using System.Collections.Generic;
 using System.Linq;
@@ -78,7 +79,7 @@ namespace ReBuzzTests.Automation
                     return (T)cachedResult;
                 }
 
-                Assert.Fail($"Read from in-memory registry failed: {path}, {key}");
+                Execute.Assertion.FailWith($"Read from in-memory registry failed: {path}, {key}");
                 return default!;
             }
         }
@@ -87,7 +88,7 @@ namespace ReBuzzTests.Automation
         {
             lock (lockObject)
             {
-                List<T> results = new();
+                List<T> results = [];
                 int i = 1;
                 while (i < int.MaxValue)
                 {

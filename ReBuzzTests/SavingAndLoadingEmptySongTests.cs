@@ -13,9 +13,7 @@ namespace ReBuzzTests
             using var driver = new Driver();
             driver.Start();
 
-            driver.SetupLoadedFileChoiceToUserCancel();
-
-            driver.LoadSong();
+            driver.LoadSong(DialogChoices.Cancel());
 
             driver.AssertInitialStateAfterAppStart();
         }
@@ -24,17 +22,18 @@ namespace ReBuzzTests
         public void DoesNotChangeStateWhenUserPicksNonExistentFile()
         {
             var nonExistentFileName = @"sdfsjhdkfjhsdf";
+            var potentialSavedFileLocation =
+                AbsoluteDirectoryPath.OfCurrentWorkingDirectory().AddFileName(nonExistentFileName);
             using var driver = new Driver();
             driver.Start();
 
-            driver.SetupLoadedFileChoiceTo(nonExistentFileName);
-
-            driver.LoadSong();
+            driver.LoadSong(DialogChoices.Select(nonExistentFileName));
 
             driver.AssertInitialStateAfterNewFile();
             driver.AssertErrorReportedToUser(
                 $"Error loading {nonExistentFileName}",
-                $"Could not find file '{AbsoluteDirectoryPath.OfCurrentWorkingDirectory().AddFileName(nonExistentFileName)}'.");
+                $"Could not find file '{potentialSavedFileLocation}'.");
+            potentialSavedFileLocation.Exists().Should().BeFalse();
         }
 
         [Test]
@@ -45,15 +44,14 @@ namespace ReBuzzTests
 
             driver.Start();
 
-            driver.SetupSavedFileChoiceTo(emptySongPath);
-
-            driver.SaveCurrentSong();
+            driver.SaveCurrentSongForTheFirstTime(DialogChoices.Select(emptySongPath));
 
             driver.AssertNoErrorsReportedToUser();
             driver.AssertInitialStateAfterSavingEmptySong(emptySongPath);
             driver.AssertRecentFileListHasEntry(0, emptySongPath);
+            emptySongPath.Exists().Should().BeTrue();
         }
-        
+
         [Test]
         public void MaintainsCleanStateAfterCancelingSavingEmptySong()
         {
@@ -62,9 +60,7 @@ namespace ReBuzzTests
 
             driver.Start();
 
-            driver.SetupSavedFileChoiceToUserCancel();
-
-            driver.SaveCurrentSong();
+            driver.SaveCurrentSongForTheFirstTime(DialogChoices.Cancel());
 
             driver.AssertNoErrorsReportedToUser();
             driver.AssertInitialStateAfterAppStart();
@@ -79,10 +75,7 @@ namespace ReBuzzTests
             var emptySongPath = driver.RandomSongPath();
             driver.Start();
 
-            driver.SetupSavedFileChoiceTo(emptySongPath);
-
-            driver.SaveCurrentSong();
-            driver.SetupSavedFileChoiceTo("????");
+            driver.SaveCurrentSongForTheFirstTime(DialogChoices.Select(emptySongPath));
             driver.SaveCurrentSong();
 
             driver.AssertNoErrorsReportedToUser();
@@ -97,11 +90,8 @@ namespace ReBuzzTests
             var emptySongPath = driver.RandomSongPath();
             driver.Start();
 
-            driver.SetupSavedFileChoiceTo(emptySongPath);
-            driver.SetupLoadedFileChoiceTo(emptySongPath);
-
-            driver.SaveCurrentSong();
-            driver.LoadSong();
+            driver.SaveCurrentSongForTheFirstTime(DialogChoices.Select(emptySongPath));
+            driver.LoadSong(DialogChoices.Select(emptySongPath));
 
             driver.AssertNoErrorsReportedToUser();
             driver.AssertStateAfterLoadingAnEmptySong(emptySongPath);
@@ -115,12 +105,9 @@ namespace ReBuzzTests
             var emptySongPath = driver.RandomSongPath();
             driver.Start();
 
-            driver.SetupSavedFileChoiceTo(emptySongPath);
-            driver.SetupLoadedFileChoiceTo(emptySongPath);
-
-            driver.SaveCurrentSong();
-            driver.LoadSong();
-            driver.LoadSong();
+            driver.SaveCurrentSongForTheFirstTime(DialogChoices.Select(emptySongPath));
+            driver.LoadSong(DialogChoices.Select(emptySongPath));
+            driver.LoadSong(DialogChoices.Select(emptySongPath));
 
             driver.AssertNoErrorsReportedToUser();
             driver.AssertStateAfterLoadingAnEmptySong(emptySongPath);

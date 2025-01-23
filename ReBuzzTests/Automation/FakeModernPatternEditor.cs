@@ -22,9 +22,9 @@ namespace ReBuzzTests.Automation
     /// </summary>
     [MachineDecl(Name = "Modern Pattern Editor", ShortName = "MPE", Author = "WDE", MaxTracks = 1, InputCount = 0,
         OutputCount = 0)]
-    public class FakeModernPatternEditor : IBuzzMachine, INotifyPropertyChanged
+    public class FakeModernPatternEditor(IBuzzMachineHost host) : IBuzzMachine, INotifyPropertyChanged
     {
-        private IBuzzMachineHost host;
+        private readonly IBuzzMachineHost host = host;
 
         /// <summary>
         /// Gets the source code of this file for compilation into a dll.
@@ -38,11 +38,6 @@ namespace ReBuzzTests.Automation
         {
             return typeof(FakeModernPatternEditor).GetCustomAttributes(false)
                 .OfType<MachineDecl>().Single();
-        }
-
-        public FakeModernPatternEditor(IBuzzMachineHost host)
-        {
-            this.host = host;
         }
 
         [ParameterDecl(ResponseTime = 5, MaxValue = 127, DefValue = 80, Transformation = Transformations.Cubic,
@@ -79,10 +74,7 @@ namespace ReBuzzTests.Automation
             set
             {
                 machineState = value;
-                if (PropertyChanged != null)
-                {
-                    PropertyChanged(this, new PropertyChangedEventArgs("MachineState"));
-                }
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MachineState)));
             }
         }
 
