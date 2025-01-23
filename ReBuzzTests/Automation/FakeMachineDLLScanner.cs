@@ -1,4 +1,5 @@
 using AtmaFileSystem;
+using FluentAssertions.Execution;
 using ReBuzz.Core;
 using ReBuzz.FileOps;
 using System.Collections.Generic;
@@ -37,12 +38,12 @@ namespace ReBuzzTests.Automation
 
         public void AddMachineDllsToDictionary(XMLMachineDLL[] xMLMachineDLLs, Dictionary<string, MachineDLL> md)
         {
-            Assert.Fail("Not called anywhere yet in the current tests");
+            Execute.Assertion.FailWith("Not called anywhere yet in the current tests");
         }
 
         public XMLMachineDLL ValidateDll(ReBuzzCore buzz, string libName, string path, string buzzPath)
         {
-            Assert.Fail("Not called anywhere yet in the current tests");
+            Execute.Assertion.FailWith("Not called anywhere yet in the current tests");
             return null!;
         }
     }
