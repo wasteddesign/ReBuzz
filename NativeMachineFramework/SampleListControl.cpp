@@ -17,8 +17,7 @@ namespace ReBuzz
     namespace NativeMachineFramework
     {
 
-        SampleListControl::SampleListControl(MachineWrapper^ machWrapper, 
-                                             OnSampleListChange^ onListChangeCallback)
+        SampleListControl::SampleListControl(MachineWrapper^ machWrapper)
         {
             m_machineWrapper = machWrapper;
             m_waves = gcnew Dictionary<int, IWave^>();
@@ -34,7 +33,6 @@ namespace ReBuzz
             m_labelControl = nullptr;
             m_comboControl = nullptr;
             m_newFont = nullptr;
-            m_onListChangeCallback = onListChangeCallback;
         }
 
         SampleListControl::~SampleListControl()
@@ -260,10 +258,6 @@ namespace ReBuzz
                 if ((selectedWav->Index + 1) != currentWav)
                 {   
                     m_machineWrapper->SetSelectedWaveIndex(selectedWav->Index + 1); //+1 because the first wave is expected to be at index 1
-                    if (m_onListChangeCallback != nullptr)
-                    {
-                        m_onListChangeCallback(selectedWav->Index + 1);
-                    }
                 }
             }
         }

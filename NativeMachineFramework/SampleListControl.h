@@ -13,8 +13,7 @@ namespace ReBuzz
         public ref class SampleListControl : System::IDisposable
         {
         public:
-            SampleListControl(MachineWrapper^ machWrapper,
-                              OnSampleListChange^ onListChangeCallback);
+            SampleListControl(MachineWrapper^ machWrapper);
             !SampleListControl();
             ~SampleListControl();
 
@@ -50,7 +49,6 @@ namespace ReBuzz
             ComboBox^ m_comboControl;
             System::Drawing::Font^ m_newFont;
             Dictionary<int, BuzzGUI::Interfaces::IWave^>^ m_waves;
-            OnSampleListChange^ m_onListChangeCallback;
             NativeMachineFramework::OnSelectedWaveChange^ m_onSelectedWaveChangeCallback;
         };
     }

@@ -337,7 +337,7 @@ UserControl^ ReBuzzPatternXpMachine::PatternEditorControl()
     m_machineWrapper->OverridePatternEditorWindowsMessage(WM_CONTEXTMENU, IntPtr(OnMouseRightClick), m_callbackdata);
 
     //Add sample list control
-    SampleListControl^ smpcontrol = gcnew SampleListControl(m_machineWrapper, nullptr);
+    SampleListControl^ smpcontrol = gcnew SampleListControl(m_machineWrapper);
     m_sampleListControl = smpcontrol; 
     callbackData->sampleListCtrl.Assign(smpcontrol);
 
