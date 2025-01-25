@@ -306,31 +306,16 @@ namespace ReBuzz
 
                 int parentwidth = m_parentControl->Width;
                 int parentheight = m_parentControl->Height;
-                int labelheight = labelTextSize.Height;
-
+                
                 m_labelControl->Left = 0;
-                m_labelControl->Height = labelheight;
-                if (labelheight < parentheight)
-                {
-                    m_labelControl->Top = (parentheight - labelheight) / 2;
-                }
-                else
-                {
-                    m_labelControl->Top = 0;
-                }
-
-                int comboHieght = m_comboControl->Height;
-                if (comboHieght < parentheight)
-                {
-                    m_comboControl->Top = (parentheight - comboHieght) / 2;
-                }
-                else
-                {
-                    m_comboControl->Top = 0;
-                }
-
+                m_labelControl->Height = labelTextSize.Height;
+                m_labelControl->Width = labelTextSize.Width;
+                m_labelControl->Top = 0;
+                
+                
                 m_comboControl->Left = m_labelControl->Right;
-                m_comboControl->Top = m_labelControl->Top;
+                m_comboControl->Top = 0;
+                m_comboControl->Height = parentheight;
                 m_comboControl->Width = parentwidth - m_comboControl->Left;
             }
         }

@@ -75,10 +75,13 @@ static void PositionSampleListControl(CMachineInterface * machInterface, SampleL
         RECT crect = { 0 };
         GetClientRect(pmi->patEd->dlgBar.m_hWnd, &crect);
         int listPosLeft = (rt2.right > rt1.right) ? rt2.right : rt1.right;
+        int listPosTop = (rt2.top > rt1.top) ? rt2.top : rt1.top;
+        int listPosBottom = (rt2.bottom > rt1.bottom) ? rt2.bottom : rt1.bottom;
+
         sampleListCtrl->GetControl()->Left = listPosLeft;
-        sampleListCtrl->GetControl()->Top = 0;
+        sampleListCtrl->GetControl()->Top = listPosTop;
         sampleListCtrl->GetControl()->Width = preferredWidth;
-        sampleListCtrl->GetControl()->Height = crect.bottom - crect.top;
+        sampleListCtrl->GetControl()->Height = listPosBottom - listPosTop;
         sampleListCtrl->GetControl()->Visible = true;
     }
 }
@@ -346,9 +349,8 @@ UserControl^ ReBuzzPatternXpMachine::PatternEditorControl()
     smpcontrol->SetNewParent( pmi->patEd->dlgBar.m_hWnd);
     PositionSampleListControl(m_interface, smpcontrol);
 
-    //Allow list to be repositioned if window size changes
+    //Allow sample list to be repositioned if window size changes
     m_machineWrapper->OverridePatternEditorWindowsMessage(WM_SIZE, IntPtr(OnSizeChanged), m_callbackdata);
-
 
     //Return pattern editor
     return m_patternEditor->GetRef();
