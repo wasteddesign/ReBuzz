@@ -238,25 +238,27 @@ namespace ReBuzz
             OnPatternEditorRedrawCallback redrawcallback,
             OnNewPatternCallback newPatternCallback,
             OnPlayingPatternCallback onPlayPatternCallback) :
-            m_thisref(new RefClassWrapper<MachineWrapper>(this)),
-            m_machine((CMachineInterface*)machine),
-            m_thisCMachine(NULL),
-            m_host(host),
-            m_hwndEditor(NULL),
-            m_initialised(false),
-            m_buzzmachine(buzzmachine),
-            m_patternEditorPattern(NULL),
-            m_patternEditorMachine(NULL),
-            m_control(nullptr),
-            m_editorCreateCallback(editorCreateCallback),
-            m_kbFocusWndcallback(kbcallback),
-            m_onPlayPatternCallback(onPlayPatternCallback),
-            m_externalCallbackParam(callbackparam),
-            m_onKeyDownHandler(nullptr),
-            m_onKeyupHandler(nullptr),
-            m_editorMessageMap(new std::unordered_map<UINT, OnWindowsMessage>()),
-            m_editorMessageParamMap(new std::unordered_map<UINT, void*>()),
-            m_targetEditorMachine(NULL)
+                                                                m_thisref(new RefClassWrapper<MachineWrapper>(this)),
+                                                                m_machine((CMachineInterface*)machine),
+                                                                m_thisCMachine(NULL),
+                                                                m_host(host),
+                                                                m_hwndEditor(NULL),
+                                                                m_initialised(false),
+                                                                m_buzzmachine(buzzmachine),
+                                                                m_patternEditorPattern(NULL),
+                                                                m_patternEditorMachine(NULL),
+                                                                m_control(nullptr),
+                                                                m_editorCreateCallback(editorCreateCallback),
+                                                                m_kbFocusWndcallback(kbcallback),
+                                                                m_onPlayPatternCallback(onPlayPatternCallback),
+                                                                m_externalCallbackParam(callbackparam),
+                                                                m_onKeyDownHandler(nullptr),
+                                                                m_onKeyupHandler(nullptr),
+                                                                m_editorMessageMap(new std::unordered_map<UINT, OnWindowsMessage>()),
+                                                                m_editorMessageParamMap(new std::unordered_map<UINT, void*>()),
+                                                                m_targetEditorMachine(NULL),
+                                                                m_selectedWaveIndex(0),
+                                                                m_onSelectedWaveChange(gcnew System::Collections::Generic::List<OnSelectedWaveChange^>())
         {
             //Create callback data
             MachineWrapperCallbackData* internalCallbackData = new MachineWrapperCallbackData();
@@ -349,6 +351,12 @@ namespace ReBuzz
                 MachineWrapperCallbackData* cbdata = reinterpret_cast<MachineWrapperCallbackData*>(m_internalCallbackData);
                 delete cbdata;
                 m_internalCallbackData = NULL;
+            }
+
+            if (m_onSelectedWaveChange != nullptr)
+            {
+                delete m_onSelectedWaveChange;
+                m_onSelectedWaveChange = nullptr;   
             }
         }
 
@@ -1045,6 +1053,51 @@ namespace ReBuzz
                 //Tell the machine to tick
                 m_machine->Tick();
             }
+        }
+
+        int MachineWrapper::GetSelectedWaveIndex()
+        {   
+            return m_selectedWaveIndex;
+        }
+
+        void MachineWrapper::SetSelectedWaveIndex(int x)
+        {
+            if (x == m_selectedWaveIndex)
+            {
+                return;
+            }
+
+            m_selectedWaveIndex = x;
+
+            if (m_onSelectedWaveChange == nullptr)
+            {
+                return;
+            }
+
+            CMachineInterfaceEx* exInterface = m_callbackWrapper->GetExInterface();
+            exInterface->SelectWave(x);
+            for each (OnSelectedWaveChange^ cb in m_onSelectedWaveChange)
+            {
+                try
+                {
+                    if (cb != nullptr)
+                    {
+                        cb(x);
+                    }
+                }
+                catch(...)
+                {}
+            }
+        }
+
+        void MachineWrapper::AddSelectedWaveChangeCallback(OnSelectedWaveChange^ callback)
+        {
+            m_onSelectedWaveChange->Add(callback);
+        }
+
+        void MachineWrapper::RemoveSelectedWaveChangeCallback(OnSelectedWaveChange^ callback)
+        {
+            m_onSelectedWaveChange->Remove(callback);
         }
 
         void MachineWrapper::NotifyOfPlayingPattern()

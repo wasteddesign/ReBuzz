@@ -16,9 +16,6 @@
     <Filter Include="Source Files\Tree">
       <UniqueIdentifier>{078197ee-2720-4db3-9307-fd44ec5b69ab}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\ReBuzz">
-      <UniqueIdentifier>{9d5e57bc-410c-4cef-9c58-6ae63a7a2902}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PatternXPRE\patternxp\PatEd.cpp">
@@ -123,7 +120,7 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ReBuzzPatternXP.h">
-      <Filter>Header Files\ReBuzz</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

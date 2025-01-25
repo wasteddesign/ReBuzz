@@ -21,6 +21,7 @@ using System::Collections::Generic::IEnumerable;
 
 using ReBuzz::NativeMachineFramework::ContextMenu;
 using ReBuzz::NativeMachineFramework::MachineWrapper;
+using ReBuzz::NativeMachineFramework::SampleListControl;
 
 
 #include <MachineInterface.h>
@@ -131,6 +132,7 @@ public:
 
 
 private:
+    
     IBuzzMachineHost^ m_host;
     CMachineInterface* m_interface;
     bool m_dummyParam;
@@ -139,4 +141,5 @@ private:
     void* m_callbackdata;
     ReBuzz::NativeMachineFramework::RefClassWrapper<UserControl> * m_patternEditor;
     ContextMenu^ m_contextmenu;
+    SampleListControl^ m_sampleListControl;
 };

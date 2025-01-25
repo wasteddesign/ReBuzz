@@ -279,5 +279,21 @@ namespace ReBuzz
             int btnHeight = HIWORD(btnSize) * scalingFactor;
             SendMessage(toolbar->m_hWnd, TB_SETBUTTONSIZE, 0, MAKELPARAM(btnWidth, btnHeight) );
         }
+
+        __declspec(dllexport) void WindowUtils::GetWindowRectToParent(HWND hwnd, HWND parent, RECT* lpOutRect)
+        {
+            RECT rt2;
+
+            GetWindowRect(hwnd, &rt2);
+            POINT pt = { rt2.left, rt2.top };
+            ScreenToClient(parent, &pt);
+
+            rt2.right = rt2.right - rt2.left + pt.x;
+            rt2.bottom = rt2.bottom - rt2.top + pt.y;
+            rt2.left = pt.x;
+            rt2.top = pt.y;
+
+            memcpy(lpOutRect, &rt2, sizeof(RECT));
+        }
     }
 }

@@ -40,6 +40,8 @@ namespace ReBuzz
 
         typedef LRESULT(*OnWindowsMessage)(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam, void * callbackParam, bool* pbBlock);
 
+        public delegate void OnSelectedWaveChange(int newWav);
+
         #pragma make_public(OnWindowsMessage) ;
 
         public ref class MachineWrapper : System::IDisposable
@@ -133,6 +135,13 @@ namespace ReBuzz
 
             void Tick();
 
+            int GetSelectedWaveIndex();
+
+            void SetSelectedWaveIndex(int x);
+
+            void AddSelectedWaveChangeCallback(OnSelectedWaveChange^ callback);
+            void RemoveSelectedWaveChangeCallback(OnSelectedWaveChange^ callback);
+
         private:
             static IntPtr RebuzzWindowAttachCallback(IntPtr hwnd, void* callbackParam);
             static void RebuzzWindowDettachCallback(IntPtr cwnd, void* callbackParam);
@@ -187,6 +196,8 @@ namespace ReBuzz
             std::unordered_map<UINT, void *> * m_editorMessageParamMap;
             PropertyChangedEventHandler^ m_buzzSongPropChangeHandler;
             CMachine* m_targetEditorMachine;
+            int m_selectedWaveIndex;
+            System::Collections::Generic::List< OnSelectedWaveChange^>^ m_onSelectedWaveChange;
         };
     }
 }

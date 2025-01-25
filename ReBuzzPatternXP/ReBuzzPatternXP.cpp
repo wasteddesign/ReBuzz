@@ -12,6 +12,7 @@
 #include <NativeMachineReader.h>
 #include <NativeMachineWriter.h>
 #include <Utils.h>
+#include <WindowUtils.h>
 
 
 #include "ReBuzzPatternXP.h"
@@ -36,7 +37,7 @@ using System::IntPtr;
 using System::Collections::Generic::IEnumerable;
 using System::Collections::Generic::List;
 
-
+using ReBuzz::NativeMachineFramework::SampleListControl;
 
 //Callback data
 struct ReBuzzPatternXpCallbackData
@@ -45,9 +46,44 @@ struct ReBuzzPatternXpCallbackData
     CMachineInterfaceEx* machineInterfaceEx;
     RefClassWrapper<MachineWrapper> machineWrapper;
     RefClassWrapper<ReBuzzPatternXpMachine> parent;
+    RefClassWrapper<SampleListControl> sampleListCtrl;
     std::mutex datalock;
     bool busy;
 };
+
+static void PositionSampleListControl(CMachineInterface * machInterface, SampleListControl^ sampleListCtrl)
+{
+    const mi* pmi = reinterpret_cast<const mi*>(machInterface);
+    if (pmi->patEd != NULL)
+    {
+        RECT rt1 = { 0 }, rt2 = { 0 };
+
+        CButton* pc = (CButton*)pmi->patEd->dlgBar.GetDlgItem(IDC_FOLLOW_PLAY_POS);
+        if (pc != NULL)
+        {
+            WindowUtils::GetWindowRectToParent(pc->m_hWnd, pmi->patEd->dlgBar.m_hWnd, &rt1);
+        }
+
+        pc = (CButton*)pmi->patEd->dlgBar.GetDlgItem(IDC_FOLLOW_PLAYING_PATTERN);
+        if (pc != NULL)
+        {
+            WindowUtils::GetWindowRectToParent(pc->m_hWnd, pmi->patEd->dlgBar.m_hWnd, &rt2);
+        }
+
+        int preferredWidth = sampleListCtrl->GetPreferredWidth();
+
+        RECT crect = { 0 };
+        GetClientRect(pmi->patEd->dlgBar.m_hWnd, &crect);
+        int listPosLeft = (rt2.right > rt1.right) ? rt2.right : rt1.right;
+        sampleListCtrl->GetControl()->Left = listPosLeft;
+        sampleListCtrl->GetControl()->Top = 0;
+        sampleListCtrl->GetControl()->Width = preferredWidth;
+        sampleListCtrl->GetControl()->Height = crect.bottom - crect.top;
+        sampleListCtrl->GetControl()->Visible = true;
+    }
+}
+
+
 
 //Callbacks
 
@@ -182,12 +218,22 @@ static LRESULT OnMouseRightClick(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
     return 0;
 }
 
+static LRESULT OnSizeChanged(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam, void* callbackParam, bool* pbBlock)
+{
+    ReBuzzPatternXpCallbackData* cbdata = reinterpret_cast<ReBuzzPatternXpCallbackData*>(callbackParam);
+    PositionSampleListControl(cbdata->machineInterface, cbdata->sampleListCtrl.GetRef());
+
+    *pbBlock = false;
+    return 0;
+}
+
 //=====================================================
 ReBuzzPatternXpMachine::ReBuzzPatternXpMachine(IBuzzMachineHost^ host) : m_host(host),
                                                                          m_dummyParam(false),
                                                                          m_initialised(false),
                                                                          m_patternEditor(NULL),
-                                                                         m_contextmenu(nullptr)
+                                                                         m_contextmenu(nullptr),
+                                                                         m_sampleListControl(nullptr)
 {
     m_interface = CreateMachine();
     
@@ -218,6 +264,7 @@ ReBuzzPatternXpMachine::~ReBuzzPatternXpMachine()
     delete m_contextmenu;
     delete m_interface;
 }
+
 
 void ReBuzzPatternXpMachine::Work()
 {
@@ -285,6 +332,23 @@ UserControl^ ReBuzzPatternXpMachine::PatternEditorControl()
     
     //Override the mouse right-click
     m_machineWrapper->OverridePatternEditorWindowsMessage(WM_CONTEXTMENU, IntPtr(OnMouseRightClick), m_callbackdata);
+
+    //Add sample list control
+    SampleListControl^ smpcontrol = gcnew SampleListControl(m_machineWrapper, nullptr);
+    m_sampleListControl = smpcontrol; 
+    callbackData->sampleListCtrl.Assign(smpcontrol);
+
+    //Set the font to match the rest of pattern editor
+    const mi* pmi = reinterpret_cast<const mi*>(m_interface);
+    smpcontrol->SetFont(pmi->patEd->dlgBar.GetFont()->m_hObject);
+    
+    //Add control to the pattern editor    
+    smpcontrol->SetNewParent( pmi->patEd->dlgBar.m_hWnd);
+    PositionSampleListControl(m_interface, smpcontrol);
+
+    //Allow list to be repositioned if window size changes
+    m_machineWrapper->OverridePatternEditorWindowsMessage(WM_SIZE, IntPtr(OnSizeChanged), m_callbackdata);
+
 
     //Return pattern editor
     return m_patternEditor->GetRef();
@@ -569,6 +633,13 @@ void ReBuzzPatternXpMachine::Release()
         ReBuzzPatternXpCallbackData* callbackData = reinterpret_cast<ReBuzzPatternXpCallbackData*>(m_callbackdata);
         delete callbackData;
         m_callbackdata = NULL;
+    }
+
+    if (m_sampleListControl != nullptr)
+    {
+        m_sampleListControl->Release();
+        delete m_sampleListControl;
+        m_sampleListControl = nullptr;
     }
 
     m_initialised = false;

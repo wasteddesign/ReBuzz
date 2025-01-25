@@ -78,6 +78,9 @@ namespace ReBuzz
             bool GetPlayNotesState() override;
             
             int GetBaseOctave() override;
+            int GetSelectedWave() override;
+            void SelectWave(int i) override;
+            CWaveInfo const* GetWave(int const i) override;
             void SetPatternEditorMachine(CMachine* pmac, bool gotoeditor) override;
 
             //Profile stuff
@@ -122,6 +125,9 @@ namespace ReBuzz
 
             std::string m_statusBarText0;
             std::string m_statusBarText1;
+
+            std::mutex m_lock;
+            std::unordered_map<int, std::shared_ptr<CWaveInfo>> m_waveinfo;
         };
 
     }

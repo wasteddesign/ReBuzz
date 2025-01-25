@@ -14,6 +14,8 @@ namespace ReBuzz
             static __declspec(dllexport) void RepositionAndResizeChildControls(HWND parent, double scalingFactor);
 
             static __declspec(dllexport) void ResizeImageListForCurrentDPI(void * toolbar);
+
+            static __declspec(dllexport) void GetWindowRectToParent(HWND hwnd, HWND parent, RECT* lpOutRect);
         };
     }
 }
