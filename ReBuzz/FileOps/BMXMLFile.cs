@@ -231,8 +231,10 @@ namespace ReBuzz.FileOps
                         machineProto.Position = new Tuple<float, float>(x, y);
 
                         // Update tpb & bpm immediately if machines read these during creation
-                        buzz.BPM = machineProto.ParameterGroups[1].Parameters[1].GetValue(0);
-                        buzz.TPB = machineProto.ParameterGroups[1].Parameters[2].GetValue(0);
+                        var masterGlobals = machineProto.ParameterGroups[1];
+                        buzz.MasterVolume = 1.0 - (masterGlobals.Parameters[0].GetValue(0) / (double)masterGlobals.Parameters[0].MaxValue);
+                        buzz.BPM = masterGlobals.Parameters[1].GetValue(0);
+                        buzz.TPB = masterGlobals.Parameters[2].GetValue(0);
 
                         // Copy parametervalues
                         CopyParameters(machineData.ParameterGroups[0], machineProto, 0, 0);

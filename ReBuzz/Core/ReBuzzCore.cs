@@ -132,8 +132,6 @@ namespace ReBuzz.Core
         }
 
         public BuzzView ActiveView { get { return activeView; } set { activeView = value; PropertyChanged.Raise(this, "ActiveView"); } }
-        double masterVolume = 1;
-        public double MasterVolume { get => masterVolume; set { masterVolume = value; PropertyChanged.Raise(this, "MasterVolume"); SetModifiedFlag(); } }
 
         public Tuple<double, double> VUMeterLevel { get; set; }
 
@@ -146,6 +144,39 @@ namespace ReBuzz.Core
         bool recording;
         bool looping;
         bool audioDeviceDisabled;
+
+        double masterVolume = 1;
+        public double MasterVolume
+        {
+            get => masterVolume;
+            set
+            {
+                if (value >= 0 && value <= 1 && masterVolume != value)
+                {
+                    masterVolume = value;
+                    if (songCore != null)
+                    {
+                        var master = songCore.MachinesList.FirstOrDefault(m => m.DLL.Info.Type == MachineType.Master);
+                        int volumeVal = (int)((1 - masterVolume) * 0x4000);
+                        master.ParameterGroups[1].Parameters[0].SetValue(0, volumeVal);
+                    }
+
+                    dispatcher.BeginInvoke(() =>
+                    {
+                        try
+                        {
+                            if (PropertyChanged != null)
+                                PropertyChanged?.Raise(this, "MasterVolume");
+                            SetModifiedFlag();
+                        }
+                        catch (Exception ex)
+                        {
+                            DCWriteLine(ex.Message);
+                        }
+                    });
+                }
+            }
+        }
 
         int bpm = 126;
         public int BPM
@@ -1164,6 +1195,11 @@ namespace ReBuzz.Core
                 SkipAudio = false;
                 Modified = false;
                 AudioEngine.Play();
+
+                dispatcher.BeginInvoke(() =>
+                {
+                    masterLoading = false;
+                });
                 //Playing = playing;
             }
             
@@ -1594,9 +1630,6 @@ namespace ReBuzz.Core
         private void MasterVolumeChanged(IParameter parameter, int track)
         {
             MasterVolume = (parameter.MaxValue - parameter.GetValue(track)) / (double)parameter.MaxValue;
-
-            // Modified flag active.
-            masterLoading = false;
         }
 
         public MachineCore GetMachineFromHostID(long id)
