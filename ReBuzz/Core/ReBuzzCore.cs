@@ -348,9 +348,9 @@ namespace ReBuzz.Core
             get => midiFocusMachine;
             set
             {
-                lock (AudioLock)
+                //lock (AudioLock)
                 {
-                    if (midiFocusMachine != value)
+                    if (midiFocusMachine != value && !MIDIFocusLocked)
                     {
                         if (midiFocusMachine != null)
                         {

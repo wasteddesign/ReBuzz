@@ -273,6 +273,9 @@ namespace ReBuzz.MachineManagement
 
         internal void CallInit(MachineCore machine, byte[] data, int trackCount)
         {
+            if (machine.DLL.IsMissing)
+                return;
+
             var nativeMachineHost = nativeMachines[machine];
             var uiMessage = nativeMachineHost.UIMessage;
             var audioMessage = nativeMachineHost.AudioMessage;
