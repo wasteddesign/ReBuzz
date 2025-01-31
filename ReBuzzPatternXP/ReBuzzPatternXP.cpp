@@ -39,18 +39,6 @@ using System::Collections::Generic::List;
 
 using ReBuzz::NativeMachineFramework::SampleListControl;
 
-//Callback data
-struct ReBuzzPatternXpCallbackData
-{
-    CMachineInterface* machineInterface;
-    CMachineInterfaceEx* machineInterfaceEx;
-    RefClassWrapper<MachineWrapper> machineWrapper;
-    RefClassWrapper<ReBuzzPatternXpMachine> parent;
-    RefClassWrapper<SampleListControl> sampleListCtrl;
-    std::mutex datalock;
-    bool busy;
-};
-
 static void PositionSampleListControl(CMachineInterface * machInterface, SampleListControl^ sampleListCtrl)
 {
     const mi* pmi = reinterpret_cast<const mi*>(machInterface);
@@ -88,133 +76,11 @@ static void PositionSampleListControl(CMachineInterface * machInterface, SampleL
 
 
 
-//Callbacks
-
-static void * GetKeyboardFocusWindow(void* param)
-{
-    ReBuzzPatternXpCallbackData* callbackData = reinterpret_cast<ReBuzzPatternXpCallbackData*>(param);
-
-    mi* pmi = reinterpret_cast<mi*>(callbackData->machineInterface);
-    return pmi->patEd->pe.GetSafeHwnd();
-}
-
-static void RedrawEditorWindow(void* param)
-{
-    ReBuzzPatternXpCallbackData* callbackData = reinterpret_cast<ReBuzzPatternXpCallbackData*>(param);
-
-    mi* pmi = reinterpret_cast<mi*>(callbackData->machineInterface);
-    pmi->patEd->RedrawWindow();
-}
-
-
-static void PatternCreated(void* buzzmach, void* buzzpat, const char * patname, void* param)
-{
-    ReBuzzPatternXpCallbackData* callbackData = reinterpret_cast<ReBuzzPatternXpCallbackData*>(param);
-    mi* pmi = reinterpret_cast<mi*>(callbackData->machineInterface);
-
-    if (pmi != NULL)
-    {
-        //Find the loaded pattern by name - 
-        auto & foundLoadedPat = pmi->loadedPatterns.find(patname);
-        if (foundLoadedPat != pmi->loadedPatterns.end())
-        {
-            //Set the CPattern value
-            if((*foundLoadedPat).second->pPattern == NULL)
-                (*foundLoadedPat).second->pPattern = reinterpret_cast<CPattern*>(buzzpat);
-        }
-        
-        //Check pattern editor current pattern as well
-        if((pmi->patEd->pPattern != NULL) && (pmi->patEd->pPattern->name == patname))
-        {   
-            //Pattern exists in the editor class
-            if (pmi->patEd->pPattern->pPattern == NULL)
-                pmi->patEd->pPattern->pPattern = reinterpret_cast<CPattern*>(buzzpat);
-        }
-
-        //find the pattern by name
-        auto& foundpat = pmi->patterns.find(reinterpret_cast<CPattern*>(buzzpat));
-        if(foundpat != pmi->patterns.end())
-        {
-            //Make sure the found pattern has a CPattern assigned to it
-            if ((*foundpat).second->pPattern == NULL)
-                (*foundpat).second->pPattern = reinterpret_cast<CPattern*>(buzzpat);
-        }
-    }
-}
-
-static bool PatternPlaying(void* buzzmach, void* buzzpat, const char* patname, void* param)
-{
-    ReBuzzPatternXpCallbackData* callbackData = reinterpret_cast<ReBuzzPatternXpCallbackData*>(param);
-    mi* pmi = reinterpret_cast<mi*>(callbackData->machineInterface);
-
-    //If the playing pattern is not for us, then return false to prevent the exInterface from being called
-    if (pmi->targetMachine != buzzmach)
-    {
-        return false;
-    }
-
-    return true;
-}
-
-static void OnEditorCreated(void* param)
-{
-    //Editor has been created, so we can allow Tick() to run as normal again
-    ReBuzzPatternXpCallbackData* callbackData = reinterpret_cast<ReBuzzPatternXpCallbackData*>(param);
-    callbackData->busy = false;
-}
-
-static void OnMenuItem_CreatePattern(int menuid, void* param)
-{
-    ReBuzzPatternXpCallbackData* callbackData = reinterpret_cast<ReBuzzPatternXpCallbackData*>(param);
-    mi* pmi = reinterpret_cast<mi*>(callbackData->machineInterface);
-    
-    //Get the current machine from PatternXP, and then convert that into a ReBuzz machine
-    IMachine^ rebuzzMach =  callbackData->machineWrapper.GetRef()->GetReBuzzMachine(pmi->targetMachine);
-    if (rebuzzMach != nullptr)
-    {
-        //For the pattern name, count the current patters and use that as a 2 digit name
-        int patcount  = rebuzzMach->Patterns->Count;
-        char namebuf[64] = { 0 };
-        sprintf_s(namebuf, "%02d", patcount);
-        String^ patName = gcnew String(namebuf);
-
-        //Create new pattern. 
-        rebuzzMach->CreatePattern(patName, 16);
-    }
-}
-
-static void OnMenuItem_DeletePattern(int menuid, void* param)
-{
-    ReBuzzPatternXpCallbackData* callbackData = reinterpret_cast<ReBuzzPatternXpCallbackData*>(param);
-    mi* pmi = reinterpret_cast<mi*>(callbackData->machineInterface);
-    
-    CMachinePattern* machpat = pmi->patEd->pPattern;
-    if (machpat != NULL)
-    {
-        CPattern* pat = machpat->pPattern;
-        if (pat != NULL)
-        {
-            IPattern^ rebuzzPat = callbackData->machineWrapper.GetRef()->GetReBuzzPattern(pat);
-            if (rebuzzPat != nullptr)
-            {
-                rebuzzPat->Machine->DeletePattern(rebuzzPat);
-            }
-        }
-    }
-}
-
-static void OnMenuItem_PatternProperties(int id, void* param)
-{
-    ReBuzzPatternXpCallbackData* callbackData = reinterpret_cast<ReBuzzPatternXpCallbackData*>(param);
-    mi* pmi = reinterpret_cast<mi*>(callbackData->machineInterface);
-
-    pmi->patEd->OnColumns();
-}
-
 static LRESULT OnMouseRightClick(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam, void* callbackParam, bool* pbBlock)
 {
-    ReBuzzPatternXpCallbackData* cbdata = reinterpret_cast<ReBuzzPatternXpCallbackData*>(callbackParam);
-    cbdata->parent.GetRef()->ShowContextMenu();
+    RefClassWrapper<ReBuzzPatternXpMachine> * reBuzzPatternXp = reinterpret_cast<RefClassWrapper<ReBuzzPatternXpMachine> *>(callbackParam);
+   
+    reBuzzPatternXp->GetRef()->ShowContextMenu();
     
     //Prevent context menu message being processed further
     *pbBlock = true;
@@ -223,8 +89,9 @@ static LRESULT OnMouseRightClick(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpar
 
 static LRESULT OnSizeChanged(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam, void* callbackParam, bool* pbBlock)
 {
-    ReBuzzPatternXpCallbackData* cbdata = reinterpret_cast<ReBuzzPatternXpCallbackData*>(callbackParam);
-    PositionSampleListControl(cbdata->machineInterface, cbdata->sampleListCtrl.GetRef());
+    RefClassWrapper<ReBuzzPatternXpMachine>* reBuzzPatternXp = reinterpret_cast<RefClassWrapper<ReBuzzPatternXpMachine> *>(callbackParam);
+    PositionSampleListControl(reBuzzPatternXp->GetRef()->GetInterface(),
+                              reBuzzPatternXp->GetRef()->GetSampleListControl());
 
     *pbBlock = false;
     return 0;
@@ -234,30 +101,38 @@ static LRESULT OnSizeChanged(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam, 
 ReBuzzPatternXpMachine::ReBuzzPatternXpMachine(IBuzzMachineHost^ host) : m_host(host),
                                                                          m_dummyParam(false),
                                                                          m_initialised(false),
-                                                                         m_patternEditor(NULL),
+                                                                         m_patternEditor(nullptr),
                                                                          m_contextmenu(nullptr),
-                                                                         m_sampleListControl(nullptr)
+                                                                         m_sampleListControl(nullptr),
+                                                                         m_onCreatePatternMenuCallback(nullptr),
+                                                                         m_onDeletePatternMenuCallback(nullptr),
+                                                                         m_PatternPropertiesMenuCallback(nullptr)
 {
     m_interface = CreateMachine();
     
-    //Set up callback data
-    ReBuzzPatternXpCallbackData* cbdata = new ReBuzzPatternXpCallbackData();
-    cbdata->machineInterface = m_interface;
     
     mi* pmi = reinterpret_cast<mi*>(m_interface);
-    cbdata->machineInterfaceEx = &pmi->ex;
-    cbdata->parent = this;
-    m_callbackdata = cbdata;
+    
+    m_self = new RefClassWrapper< ReBuzzPatternXpMachine>(this);
 
     //Create machine wrapper
-    m_machineWrapper = gcnew MachineWrapper(m_interface, host, (IBuzzMachine^)this, cbdata, 
-                                            OnEditorCreated,
-                                            GetKeyboardFocusWindow, 
-                                            RedrawEditorWindow,
-                                            PatternCreated,
-                                            PatternPlaying);
+    m_machineWrapper = gcnew MachineWrapper(m_interface, host, (IBuzzMachine^)this);
 
-    cbdata->machineWrapper.Assign(m_machineWrapper);
+    //Add callbacks
+    m_onPatternEditorCreatedCallback = gcnew MachineWrapper::OnPatternEditorCreatedDelegate(this, &ReBuzzPatternXpMachine::OnEditorCreated);
+    m_machineWrapper->AddPatternEditorCreaetdCallback(m_onPatternEditorCreatedCallback);
+
+    m_onKbFocusCallback = gcnew MachineWrapper::KeyboardFocusWindowHandleDelegate(this, &ReBuzzPatternXpMachine::OnKeyboardFocusWindow);
+    m_machineWrapper->AddPatternEditorKeyboardFocusCallback(m_onKbFocusCallback);
+
+    m_onEditorRedrawCallback = gcnew MachineWrapper::OnPatternEditorRedrawDelegate(this, &ReBuzzPatternXpMachine::OnRedrawEditorWindow);
+    m_machineWrapper->AddPatternEditorRedrawCallback(m_onEditorRedrawCallback);
+
+    m_onNewPatternCallback = gcnew MachineWrapper::OnNewPatternDelegate(this, &ReBuzzPatternXpMachine::OnPatternCreated);
+    m_machineWrapper->AddNewPatternCallback(m_onNewPatternCallback);
+
+    m_onPatterPlayCallback = gcnew MachineWrapper::OnPatternPlayDelegate(this, &ReBuzzPatternXpMachine::OnPatternPlaying);
+    m_machineWrapper->AddPatternPlayCallback(m_onPatterPlayCallback);
 }
 
 ReBuzzPatternXpMachine::~ReBuzzPatternXpMachine()
@@ -268,14 +143,220 @@ ReBuzzPatternXpMachine::~ReBuzzPatternXpMachine()
     delete m_interface;
 }
 
+void ReBuzzPatternXpMachine::Release()
+{
+    if (m_patternEditor != nullptr)
+    {
+        delete m_patternEditor;
+        m_patternEditor = nullptr;
+    }
+
+    if (m_machineWrapper != nullptr)
+    {
+        m_machineWrapper->Release();
+        delete m_machineWrapper;
+        m_machineWrapper = nullptr;
+    }
+
+    if (m_onPatternEditorCreatedCallback != nullptr)
+    {
+        delete m_onPatternEditorCreatedCallback;
+        m_onPatternEditorCreatedCallback = nullptr;
+    }
+
+    if (m_onEditorRedrawCallback != nullptr)
+    {
+        delete m_onEditorRedrawCallback;
+        m_onEditorRedrawCallback = nullptr;
+    }
+
+    if (m_onKbFocusCallback != nullptr)
+    {
+        delete m_onKbFocusCallback;
+        m_onKbFocusCallback = nullptr;
+    }
+
+    if (m_onNewPatternCallback != nullptr)
+    {
+        delete m_onNewPatternCallback;
+        m_onNewPatternCallback = nullptr;
+    }
+
+    if (m_onPatterPlayCallback != nullptr)
+    {
+        delete m_onPatterPlayCallback;
+        m_onPatterPlayCallback = nullptr;
+    }
+
+    if (m_sampleListControl != nullptr)
+    {
+        m_sampleListControl->Release();
+        delete m_sampleListControl;
+        m_sampleListControl = nullptr;
+    }
+
+    if (m_onCreatePatternMenuCallback != nullptr)
+    {
+        delete m_onCreatePatternMenuCallback;
+        m_onCreatePatternMenuCallback = nullptr;
+    }
+
+    if (m_onDeletePatternMenuCallback != nullptr)
+    {
+        delete m_onDeletePatternMenuCallback;
+        m_onDeletePatternMenuCallback = nullptr;
+    }
+
+    if (m_PatternPropertiesMenuCallback != nullptr)
+    {
+        delete m_PatternPropertiesMenuCallback;
+        m_PatternPropertiesMenuCallback = nullptr;
+    }
+
+    if (m_self != NULL)
+    {
+        m_self->Free();
+        delete m_self;
+        m_self = NULL;
+    }
+
+    m_initialised = false;
+}
+
+
+
+void ReBuzzPatternXpMachine::OnEditorCreated()
+{
+    //Editor has been created, so we can allow Tick() to run as normal again
+    m_busy = false;
+}
+
+IntPtr ReBuzzPatternXpMachine::OnKeyboardFocusWindow()
+{
+    mi* pmi = reinterpret_cast<mi*>(m_interface);
+    return IntPtr(pmi->patEd->pe.GetSafeHwnd());
+}
+
+
+void ReBuzzPatternXpMachine::OnRedrawEditorWindow()
+{
+    mi* pmi = reinterpret_cast<mi*>(m_interface);
+    pmi->patEd->RedrawWindow();
+}
+
+void ReBuzzPatternXpMachine::OnPatternCreated(IMachine^ rebuzzMachine, void * buzzMachine,
+                                            IPattern^ rebuzzPattern, void * buzzPattern, String^ patternName)
+{
+    mi* pmi = reinterpret_cast<mi*>(m_interface);
+
+    if (pmi != NULL)
+    {
+        const char* chars = (const char*)(Marshal::StringToHGlobalAnsi(patternName)).ToPointer();
+        std::string patname = chars;
+        Marshal::FreeHGlobal(IntPtr((void*)chars));
+
+        //Find the loaded pattern by name - 
+        auto& foundLoadedPat = pmi->loadedPatterns.find(patname.c_str());
+        if (foundLoadedPat != pmi->loadedPatterns.end())
+        {
+            //Set the CPattern value
+            if ((*foundLoadedPat).second->pPattern == NULL)
+                (*foundLoadedPat).second->pPattern = reinterpret_cast<CPattern *>( buzzPattern);
+        }
+
+        //Check pattern editor current pattern as well
+        if ((pmi->patEd->pPattern != NULL) && (pmi->patEd->pPattern->name == patname.c_str()))
+        {
+            //Pattern exists in the editor class
+            if (pmi->patEd->pPattern->pPattern == NULL)
+                pmi->patEd->pPattern->pPattern = reinterpret_cast<CPattern*>(buzzPattern);
+        }
+
+        //find the pattern by name
+        auto& foundpat = pmi->patterns.find(reinterpret_cast<CPattern*>(buzzPattern));
+        if (foundpat != pmi->patterns.end())
+        {
+            //Make sure the found pattern has a CPattern assigned to it
+            if ((*foundpat).second->pPattern == NULL)
+                (*foundpat).second->pPattern = reinterpret_cast<CPattern*>(buzzPattern);
+        }
+    }
+}
+
+bool ReBuzzPatternXpMachine::OnPatternPlaying(IMachine^ rebuzzMachine, void * buzzMachine,
+                                            IPattern^ rebuzzPattern, void * buzzPattern, String^ patternName)
+
+{
+    mi* pmi = reinterpret_cast<mi*>(m_interface);
+
+    //If the playing pattern is not for us, then return false to prevent the exInterface from being called
+    if (pmi->targetMachine != buzzMachine)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+void ReBuzzPatternXpMachine::OnMenuItem_CreatePattern(int menuid)
+{
+    mi* pmi = reinterpret_cast<mi*>(m_interface);
+
+    //Get the current machine from PatternXP, and then convert that into a ReBuzz machine
+    IMachine^ rebuzzMach = m_machineWrapper ->GetReBuzzMachine(pmi->targetMachine);
+    if (rebuzzMach != nullptr)
+    {
+        //For the pattern name, count the current patters and use that as a 2 digit name
+        int patcount = rebuzzMach->Patterns->Count;
+        char namebuf[64] = { 0 };
+        sprintf_s(namebuf, "%02d", patcount);
+        String^ patName = gcnew String(namebuf);
+
+        //Create new pattern. 
+        rebuzzMach->CreatePattern(patName, 16);
+    }
+}
+
+void ReBuzzPatternXpMachine::OnMenuItem_DeletePattern(int menuid)
+{
+    mi* pmi = reinterpret_cast<mi*>(m_interface);
+
+    CMachinePattern* machpat = pmi->patEd->pPattern;
+    if (machpat != NULL)
+    {
+        CPattern* pat = machpat->pPattern;
+        if (pat != NULL)
+        {
+            IPattern^ rebuzzPat = m_machineWrapper->GetReBuzzPattern(pat);
+            if (rebuzzPat != nullptr)
+            {
+                rebuzzPat->Machine->DeletePattern(rebuzzPat);
+            }
+        }
+    }
+}
+
+void ReBuzzPatternXpMachine::OnMenuItem_PatternProperties(int id)
+{
+    mi* pmi = reinterpret_cast<mi*>(m_interface);
+    pmi->patEd->OnColumns();
+}
+
+CMachineInterface* ReBuzzPatternXpMachine::GetInterface()
+{
+    return m_interface;
+}
+
+SampleListControl^ ReBuzzPatternXpMachine::GetSampleListControl()
+{
+    return m_sampleListControl;
+}
+
 
 void ReBuzzPatternXpMachine::Work()
 {
-    ReBuzzPatternXpCallbackData* callbackData = reinterpret_cast<ReBuzzPatternXpCallbackData*>(m_callbackdata);
-    std::lock_guard<std::mutex> lg(callbackData->datalock);
-
     //Make sure we're initialised or busy before working...
-    if(m_initialised && !callbackData->busy &&  (m_patternEditor != NULL) && (m_interface != NULL))
+    if(m_initialised && !m_busy &&  (m_patternEditor != nullptr) && (m_interface != NULL))
     {  
         //Tick the machine / native buzz machine wrapper
         m_machineWrapper->Tick();
@@ -313,34 +394,37 @@ UserControl^ ReBuzzPatternXpMachine::PatternEditorControl()
         m_initialised = true;
     }
 
-    if (m_patternEditor != NULL)
+    if (m_patternEditor != nullptr)
     {
-        return m_patternEditor->GetRef();
+        return m_patternEditor;
     }
 
-    ReBuzzPatternXpCallbackData* callbackData = reinterpret_cast<ReBuzzPatternXpCallbackData*>(m_callbackdata);
-    std::lock_guard<std::mutex> lg(callbackData->datalock);
+    //std::lock_guard<std::mutex> lg(callbackData->datalock);
 
     //Set 'busy' to avoid conflicts with other actions
-    callbackData->busy = true;
+    m_busy = true;
 
     //Construct control
-    m_patternEditor = new RefClassWrapper<UserControl>(m_machineWrapper->PatternEditorControl());
+    m_patternEditor = m_machineWrapper->PatternEditorControl();
 
     //Create and build right click menu
     m_contextmenu = gcnew ContextMenu();
-    m_contextmenu->AddMenuItem(ContextMenuId::CreatePattern, "Create Pattern", OnMenuItem_CreatePattern, m_callbackdata);
-    m_contextmenu->AddMenuItem(ContextMenuId::DeletePattern, "Delete Pattern", OnMenuItem_DeletePattern, m_callbackdata);
-    m_contextmenu->AddMenuItem(ContextMenuId::PatternProperties, "Pattern Properties", OnMenuItem_PatternProperties, m_callbackdata);
+    m_onCreatePatternMenuCallback = gcnew ContextMenu::OnMenuItemClickDelegate(this, &ReBuzzPatternXpMachine::OnMenuItem_CreatePattern);
+    m_contextmenu->AddMenuItem(ContextMenuId::CreatePattern, "Create Pattern", m_onCreatePatternMenuCallback);
+
+    m_onDeletePatternMenuCallback = gcnew ContextMenu::OnMenuItemClickDelegate(this, &ReBuzzPatternXpMachine::OnMenuItem_DeletePattern);
+    m_contextmenu->AddMenuItem(ContextMenuId::DeletePattern, "Delete Pattern", m_onDeletePatternMenuCallback);
+
+    m_PatternPropertiesMenuCallback = gcnew ContextMenu::OnMenuItemClickDelegate(this, &ReBuzzPatternXpMachine::OnMenuItem_PatternProperties);
+    m_contextmenu->AddMenuItem(ContextMenuId::PatternProperties, "Pattern Properties", m_PatternPropertiesMenuCallback);
     
     //Override the mouse right-click
-    m_machineWrapper->OverridePatternEditorWindowsMessage(WM_CONTEXTMENU, IntPtr(OnMouseRightClick), m_callbackdata);
+    m_machineWrapper->OverridePatternEditorWindowsMessage(WM_CONTEXTMENU, IntPtr(OnMouseRightClick), m_self);
 
     //Add sample list control
-    SampleListControl^ smpcontrol = gcnew SampleListControl(m_machineWrapper);
+    SampleListControl^ smpcontrol = m_machineWrapper->CreateSampleListControl();
     m_sampleListControl = smpcontrol; 
-    callbackData->sampleListCtrl.Assign(smpcontrol);
-
+    
     //Set the font to match the rest of pattern editor
     const mi* pmi = reinterpret_cast<const mi*>(m_interface);
     smpcontrol->SetFont(pmi->patEd->dlgBar.GetFont()->m_hObject);
@@ -350,10 +434,10 @@ UserControl^ ReBuzzPatternXpMachine::PatternEditorControl()
     PositionSampleListControl(m_interface, smpcontrol);
 
     //Allow sample list to be repositioned if window size changes
-    m_machineWrapper->OverridePatternEditorWindowsMessage(WM_SIZE, IntPtr(OnSizeChanged), m_callbackdata);
+    m_machineWrapper->OverridePatternEditorWindowsMessage(WM_SIZE, IntPtr(OnSizeChanged), m_self);
 
     //Return pattern editor
-    return m_patternEditor->GetRef();
+    return m_patternEditor;
 }
 
 void ReBuzzPatternXpMachine::ShowContextMenu()
@@ -611,41 +695,9 @@ void ReBuzzPatternXpMachine::SetPatternEditorMachineMIDIEvents(IPattern^ pattern
 
 void ReBuzzPatternXpMachine::Activate()
 {
-    m_machineWrapper->Activate();
+    m_machineWrapper->ActivatePatternEditor();
 }
 
-void ReBuzzPatternXpMachine::Release()
-{
-    if (m_patternEditor != NULL)
-    {
-        m_patternEditor->Free();
-        delete m_patternEditor;
-        m_patternEditor = NULL;
-    }
-
-    if (m_machineWrapper != nullptr)
-    {
-        m_machineWrapper->Release();
-        delete m_machineWrapper;
-        m_machineWrapper = nullptr;
-    }
-
-    if (m_callbackdata != NULL)
-    {
-        ReBuzzPatternXpCallbackData* callbackData = reinterpret_cast<ReBuzzPatternXpCallbackData*>(m_callbackdata);
-        delete callbackData;
-        m_callbackdata = NULL;
-    }
-
-    if (m_sampleListControl != nullptr)
-    {
-        m_sampleListControl->Release();
-        delete m_sampleListControl;
-        m_sampleListControl = nullptr;
-    }
-
-    m_initialised = false;
-}
 
 void ReBuzzPatternXpMachine::CreatePatternCopy(IPattern^ pnew, IPattern^ p)
 {

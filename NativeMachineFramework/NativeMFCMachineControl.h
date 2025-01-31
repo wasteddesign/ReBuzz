@@ -8,13 +8,15 @@ namespace ReBuzz
 {
     namespace NativeMachineFramework
     {
-        public delegate IntPtr AttachCallback(IntPtr hwnd, void * param);
-        public delegate void DetatchCallback(IntPtr hwnd, void* param);
-        public delegate void SizeChangedCallback(IntPtr hwnd, void* param, int left, int top, int width, int height);
-
+        
         public ref class NativeMFCMachineControl  : public  UserControl, System::IDisposable
         {
         public:
+            delegate IntPtr AttachCallback(IntPtr hwnd, void* param);
+            delegate void DetatchCallback(IntPtr hwnd, void* param);
+            delegate void SizeChangedCallback(IntPtr hwnd, void* param, int left, int top, int width, int height);
+
+            
             NativeMFCMachineControl(AttachCallback^ onAttach, 
                                     DetatchCallback^ onDetatch, 
                                     SizeChangedCallback^ onSizeChanged,

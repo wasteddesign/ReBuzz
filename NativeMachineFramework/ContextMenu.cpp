@@ -55,7 +55,13 @@ namespace ReBuzz
 
         void  ContextMenu::MenuItem::OnMenuItemClick()
         {
-            m_callback(m_id, m_param);
+            try
+            {
+                m_callback(m_id);
+            }
+            catch (...)
+            {
+            }
         }
 
         //====================================================================
@@ -150,9 +156,9 @@ namespace ReBuzz
             }
         }
 
-        void ContextMenu::AddMenuItem(int id, const char * text, OnMenuItemClickCallback clickCallback, void* callbackParam)
+        void ContextMenu::AddMenuItem(int id, const char * text, OnMenuItemClickDelegate^ clickCallback)
         {
-            m_menuItems->push_back(gcnew MenuItem(id, text, clickCallback, callbackParam));
+            m_menuItems->push_back(gcnew MenuItem(id, text, clickCallback));
         }
 
         void ContextMenu::ShowAtCursor()

@@ -167,6 +167,7 @@
     <ClCompile Include="PatternManager.cpp" />
     <ClCompile Include="SampleListControl.cpp" />
     <ClCompile Include="Utils.cpp" />
+    <ClCompile Include="WaveManager.cpp" />
     <ClCompile Include="WindowUtils.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</CompileAsManaged>
@@ -187,6 +188,7 @@
     <ClInclude Include="RefClassWrapper.h" />
     <ClInclude Include="SampleListControl.h" />
     <ClInclude Include="Utils.h" />
+    <ClInclude Include="WaveManager.h" />
     <ClInclude Include="WindowUtils.h" />
   </ItemGroup>
   <ItemGroup>

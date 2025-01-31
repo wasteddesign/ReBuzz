@@ -23,7 +23,7 @@ using BuzzGUI::Interfaces::IWave;
 using BuzzGUI::Interfaces::IWaveLayer;
 using BuzzGUI::Interfaces::ISequence;
 using BuzzGUI::Interfaces::IParameterGroup;
-using BuzzGUI::Interfaces::WaveFlags;
+
 using Buzz::MachineInterface::IBuzzMachineHost;
 
 using Buzz::MachineInterface::SubTickInfo;
@@ -548,56 +548,29 @@ namespace ReBuzz
 
         int MachineCallbackWrapper::GetSelectedWave()
         {
-            return m_machineWrapper.GetRef()->GetSelectedWaveIndex();
+            IWave^ wave = m_machineWrapper.GetRef()->GetSelectedWave();
+            if (wave == nullptr)
+                return 0;
+
+            return wave->Index + 1;
         }
 
         CWaveInfo const* MachineCallbackWrapper::GetWave(int const i)
         {
-          
-            if ((Global::Buzz->Song == nullptr) || 
-                (Global::Buzz->Song->Wavetable == nullptr) ||
-                (Global::Buzz->Song->Wavetable->Waves == nullptr))
+            IWave^ wave = m_machineWrapper.GetRef()->FindWaveByOneIndex(i);
+            if (wave != nullptr)
             {
-                return NULL;
+                return m_machineWrapper.GetRef()->GetWaveInfo(wave);
             }
-
-            //Find the wave with this index value
-            //Index passed to us will be offset by 1
-            IWave^ foundWav = nullptr;
-            for each (IWave^ w  in Global::Buzz->Song->Wavetable->Waves)
-            {
-                if ((w != nullptr) && ((w->Index + 1) == i)) 
-                {
-                    foundWav = w;
-                    break;
-                }
-            }
-
-            if (foundWav == nullptr)
-            {
-                return NULL;
-            }
-
-            std::lock_guard<std::mutex> lg(m_lock);
-
-            std::shared_ptr<CWaveInfo> wavinfo = m_waveinfo[foundWav->Index + 1];
-            if (wavinfo.get() == NULL)
-            {
-                wavinfo.reset(new CWaveInfo());
-            }
-
-            wavinfo->Flags = ((foundWav->Flags & WaveFlags::Loop) == WaveFlags::Loop) ? WF_LOOP : 0;
-            wavinfo->Flags |= ((foundWav->Flags & WaveFlags::BidirectionalLoop) == WaveFlags::BidirectionalLoop) ? WF_BIDIR_LOOP : 0;
-            wavinfo->Flags |= ((foundWav->Flags & WaveFlags::Not16Bit) == WaveFlags::Not16Bit) ? WF_NOT16BIT : 0;
-            wavinfo->Flags |= ((foundWav->Flags & WaveFlags::Stereo) == WaveFlags::Stereo) ? WF_STEREO : 0;
-            wavinfo->Volume = foundWav->Volume;
-
-            return wavinfo.get();
         }
 
         void MachineCallbackWrapper::SelectWave(int i)
         {
-            m_machineWrapper.GetRef()->SetSelectedWaveIndex(i);
+            IWave^ wave = m_machineWrapper.GetRef()->FindWaveByOneIndex(i);
+            if (wave != nullptr)
+            {
+                m_machineWrapper.GetRef()->SetSelectedWave(wave);
+            }
         }
 
         void MachineCallbackWrapper::SetPatternEditorMachine(CMachine* pmac, bool gotoeditor)

@@ -270,9 +270,8 @@ namespace ReBuzz
 
         //===============================================================================================
 
-        MachineManager::MachineManager(OnMachineEventCallback onMachineAddedCallback,
-                                        OnMachineEventCallback onMachineRemovedCallback,
-                                        void* callbackParam)
+        MachineManager::MachineManager(OnMachineEventDelegate^ onMachineAddedCallback,
+                                        OnMachineEventDelegate^ onMachineRemovedCallback)
         {
             m_lock = new std::mutex();
             MachineCreateCallbackData* machCallbackData = new MachineCreateCallbackData();
@@ -282,7 +281,6 @@ namespace ReBuzz
             //Store callback info for MachineWrapper
             m_onMachineAddedCallback = onMachineAddedCallback;
             m_onMachineRemovedCallback = onMachineRemovedCallback;
-            m_onMachineEventCallbackParam = callbackParam;
 
             //Set up callback data
             machCallbackData->machineMap = m_machineMap;
@@ -391,9 +389,9 @@ namespace ReBuzz
             }
 
             //If an item was created in the map, then call the machine added callback
-            if (itemCreated && (m_onMachineAddedCallback != NULL))
+            if (itemCreated && (m_onMachineAddedCallback != nullptr))
             {
-                m_onMachineAddedCallback(machid, m, pmach, m_onMachineEventCallbackParam);
+                m_onMachineAddedCallback(machid, m, pmach);
             }
 
             return pmach;
@@ -455,9 +453,9 @@ namespace ReBuzz
                 }
             }
 
-            if (itemCreated && (m_onMachineAddedCallback != NULL))
+            if (itemCreated && (m_onMachineAddedCallback != nullptr))
             {
-                m_onMachineAddedCallback(machid, rebuzzMachine, ret, m_onMachineEventCallbackParam);
+                m_onMachineAddedCallback(machid, rebuzzMachine, ret);
             }
 
             return ret;
@@ -482,16 +480,16 @@ namespace ReBuzz
             }
 
             //If an item was created in the map, then call the machine added callback
-            if (itemCreated && (m_onMachineAddedCallback != NULL))
+            if (itemCreated && (m_onMachineAddedCallback != nullptr))
             {
-                m_onMachineAddedCallback(id, machine, pmach, m_onMachineEventCallbackParam);
+                m_onMachineAddedCallback(id, machine, pmach);
             }
         }
 
         void MachineManager::OnMachineRemovedByReBuzz(IMachine^ machine)
         {
             //Call the removed callback first
-            if (m_onMachineRemovedCallback != NULL)
+            if (m_onMachineRemovedCallback != nullptr)
             {
                 int64_t id = Utils::ObjectToInt64(machine);
                 CMachine* buzzMachine = NULL;
@@ -501,7 +499,7 @@ namespace ReBuzz
                 }
 
                 if(buzzMachine != NULL)
-                    m_onMachineRemovedCallback(id, machine, buzzMachine, m_onMachineEventCallbackParam);
+                    m_onMachineRemovedCallback(id, machine, buzzMachine);
             }
 
             std::lock_guard<std::mutex> lg(*m_lock);

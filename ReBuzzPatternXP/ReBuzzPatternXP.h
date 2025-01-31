@@ -22,7 +22,7 @@ using System::Collections::Generic::IEnumerable;
 using ReBuzz::NativeMachineFramework::ContextMenu;
 using ReBuzz::NativeMachineFramework::MachineWrapper;
 using ReBuzz::NativeMachineFramework::SampleListControl;
-
+using ReBuzz::NativeMachineFramework::RefClassWrapper;
 
 #include <MachineInterface.h>
 #include <MachineCallbackWrapper.h>
@@ -39,6 +39,10 @@ public:
 
     //Destructor - only called if we are IDisposable!
     ~ReBuzzPatternXpMachine();
+
+    CMachineInterface* GetInterface();
+
+    SampleListControl^ GetSampleListControl();
 
     void Work();
 
@@ -58,7 +62,6 @@ public:
 
     int GetTicksPerBeatDelegate(IPattern^ pattern, int playPosition);
    
-
     void SetModifiedFlag();
 
     property Object^ MachineState
@@ -133,13 +136,37 @@ public:
 
 private:
     
+    void OnEditorCreated();
+    System::IntPtr OnKeyboardFocusWindow();
+    void OnRedrawEditorWindow();
+    void OnPatternCreated(IMachine^ rebuzzMachine, void* buzzMachine,
+                            IPattern^ rebuzzPattern, void* buzzPattern, String^ patternName);
+
+    bool OnPatternPlaying(IMachine^ rebuzzMachine, void* buzzMachine,
+                          IPattern^ rebuzzPattern, void* buzzPattern, String^ patternName);
+
+
+    void OnMenuItem_CreatePattern(int menuid);
+    void OnMenuItem_DeletePattern(int menuid);
+    void OnMenuItem_PatternProperties(int id);
+
     IBuzzMachineHost^ m_host;
     CMachineInterface* m_interface;
     bool m_dummyParam;
     MachineWrapper^ m_machineWrapper;
     bool m_initialised;
-    void* m_callbackdata;
-    ReBuzz::NativeMachineFramework::RefClassWrapper<UserControl> * m_patternEditor;
+    UserControl^  m_patternEditor;
     ContextMenu^ m_contextmenu;
     SampleListControl^ m_sampleListControl;
+    bool m_busy;
+    RefClassWrapper<ReBuzzPatternXpMachine> * m_self;
+    
+    MachineWrapper::OnPatternEditorCreatedDelegate^ m_onPatternEditorCreatedCallback;
+    MachineWrapper::KeyboardFocusWindowHandleDelegate^ m_onKbFocusCallback;
+    MachineWrapper::OnPatternEditorRedrawDelegate^ m_onEditorRedrawCallback;
+    MachineWrapper::OnNewPatternDelegate^ m_onNewPatternCallback;
+    MachineWrapper::OnPatternPlayDelegate^ m_onPatterPlayCallback;
+    ContextMenu::OnMenuItemClickDelegate^ m_onCreatePatternMenuCallback;
+    ContextMenu::OnMenuItemClickDelegate^ m_onDeletePatternMenuCallback;
+    ContextMenu::OnMenuItemClickDelegate^ m_PatternPropertiesMenuCallback;
 };

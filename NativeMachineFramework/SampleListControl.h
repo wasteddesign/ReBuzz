@@ -1,19 +1,22 @@
 #pragma once
 
+#include "WaveManager.h"
+#include "NativeMFCMachineControl.h"
 
 using namespace System::Windows::Forms;
 using namespace System::Collections::Generic;
+
 
 namespace ReBuzz
 {
     namespace NativeMachineFramework
     {   
-        public delegate void OnSampleListChange(int newWaveIndex);
-
         public ref class SampleListControl : System::IDisposable
         {
         public:
-            SampleListControl(MachineWrapper^ machWrapper);
+            delegate void OnSampleListChange(int newWaveIndex);
+
+            SampleListControl(WaveManager^ waveManager);
             !SampleListControl();
             ~SampleListControl();
 
@@ -32,24 +35,24 @@ namespace ReBuzz
             void OnDetach(IntPtr hwnd, void* param);
             void OnSizeChanged(IntPtr hwnd, void* param, int left, int top, int width, int height);
             void OnSelectChanged(Object^ sender, System::EventArgs^ args);
-            void OnSelectedWaveChange(int x);
+            void OnSelectedWaveChange(IWave^ oldSelected , IWave^ newSelected);
 
             void PositionControls();
 
             void PopulateControl();
 
-            AttachCallback^ m_onAttachCallback;
-            DetatchCallback^ m_onDetachCallback;
-            SizeChangedCallback^ m_onSizeChangedCallback;
+            NativeMFCMachineControl::AttachCallback^ m_onAttachCallback;
+            NativeMFCMachineControl::DetatchCallback^ m_onDetachCallback;
+            NativeMFCMachineControl::SizeChangedCallback^ m_onSizeChangedCallback;
             System::EventHandler^ m_onSelectChangeCallback;
             NativeMFCMachineControl^ m_parentControl;
 
-            MachineWrapper^ m_machineWrapper;
+            WaveManager^ m_waveManager;
             Label^ m_labelControl;
             ComboBox^ m_comboControl;
             System::Drawing::Font^ m_newFont;
             Dictionary<int, BuzzGUI::Interfaces::IWave^>^ m_waves;
-            NativeMachineFramework::OnSelectedWaveChange^ m_onSelectedWaveChangeCallback;
+            WaveManager::OnSelectedWaveChange^ m_onSelectedWaveChangeCallback;
         };
     }
 }

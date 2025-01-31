@@ -8,22 +8,24 @@
 #include "MachineWrapper.h"
 #include "NativeMFCMachineControl.h"
 #include "SampleListControl.h"
+#include "WaveManager.h"
 
 using BuzzGUI::Common::Global;
 using BuzzGUI::Interfaces::IWave;
+using System::Collections::Generic::KeyValuePair;
 
 namespace ReBuzz
 {
     namespace NativeMachineFramework
     {
 
-        SampleListControl::SampleListControl(MachineWrapper^ machWrapper)
+        SampleListControl::SampleListControl(WaveManager ^ wavMgr)
         {
-            m_machineWrapper = machWrapper;
-            m_waves = gcnew Dictionary<int, IWave^>();
-            m_onAttachCallback = gcnew AttachCallback(this, &SampleListControl::OnAttach);
-            m_onDetachCallback = gcnew DetatchCallback(this, &SampleListControl::OnDetach);
-            m_onSizeChangedCallback = gcnew SizeChangedCallback(this, &SampleListControl::OnSizeChanged);
+            m_waveManager = wavMgr;
+            m_waves = gcnew Dictionary<int, BuzzGUI::Interfaces::IWave^>();
+            m_onAttachCallback = gcnew NativeMFCMachineControl::AttachCallback(this, &SampleListControl::OnAttach);
+            m_onDetachCallback = gcnew NativeMFCMachineControl::DetatchCallback(this, &SampleListControl::OnDetach);
+            m_onSizeChangedCallback = gcnew NativeMFCMachineControl::SizeChangedCallback(this, &SampleListControl::OnSizeChanged);
             m_parentControl = gcnew NativeMFCMachineControl(m_onAttachCallback, m_onDetachCallback, m_onSizeChangedCallback, NULL);
             
             m_onSelectChangeCallback = gcnew System::EventHandler(this, &SampleListControl::OnSelectChanged);
@@ -76,7 +78,7 @@ namespace ReBuzz
             
             if (m_onSelectedWaveChangeCallback != nullptr)
             {
-                m_machineWrapper->RemoveSelectedWaveChangeCallback(m_onSelectedWaveChangeCallback);
+                m_waveManager->RemoveSelectedWaveChangeCallback(m_onSelectedWaveChangeCallback);
                 delete m_onSelectedWaveChangeCallback;
                 m_onSelectedWaveChangeCallback = nullptr;
             }
@@ -199,8 +201,8 @@ namespace ReBuzz
             PositionControls();
 
             //Get notified of wave selection changes
-            m_onSelectedWaveChangeCallback = gcnew NativeMachineFramework::OnSelectedWaveChange(this, &SampleListControl::OnSelectedWaveChange);
-            m_machineWrapper->AddSelectedWaveChangeCallback(m_onSelectedWaveChangeCallback);
+            m_onSelectedWaveChangeCallback = gcnew WaveManager::OnSelectedWaveChange(this, &SampleListControl::OnSelectedWaveChange);
+            m_waveManager->AddSelectedWaveChangeCallback(m_onSelectedWaveChangeCallback);
 
             return m_comboControl->Handle;
         }
@@ -231,7 +233,7 @@ namespace ReBuzz
 
             if (m_onSelectedWaveChangeCallback != nullptr)
             {
-                m_machineWrapper->RemoveSelectedWaveChangeCallback(m_onSelectedWaveChangeCallback);
+                m_waveManager->RemoveSelectedWaveChangeCallback(m_onSelectedWaveChangeCallback);
                 delete m_onSelectedWaveChangeCallback;
                 m_onSelectedWaveChangeCallback = nullptr;
             }
@@ -244,51 +246,37 @@ namespace ReBuzz
 
         void SampleListControl::OnSelectChanged(Object^ sender, System::EventArgs^ args)
         {
-            if ((m_machineWrapper == nullptr) || (m_comboControl == nullptr))
+            if ((m_waveManager == nullptr) || (m_comboControl == nullptr) || (m_waves == nullptr))
             {
                 return;
             }
 
-            int currentWav = m_machineWrapper->GetSelectedWaveIndex();
+            IWave^ currentWav = m_waveManager->GetSelectedWave();
             int selectedWavIndex = m_comboControl->SelectedIndex;
-            if((m_waves != nullptr) && (m_waves->ContainsKey(selectedWavIndex)))
+            if (!m_waves->ContainsKey(selectedWavIndex))
             {
-                //Native machines use 1 based wave index value
-                IWave^ selectedWav = m_waves[selectedWavIndex];
-                if ((selectedWav->Index + 1) != currentWav)
-                {   
-                    m_machineWrapper->SetSelectedWaveIndex(selectedWav->Index + 1); //+1 because the first wave is expected to be at index 1
-                }
+                return;
+            }
+            
+            IWave^ newSelectedWav = m_waves[selectedWavIndex];
+            if(currentWav != newSelectedWav)
+            {
+                m_waveManager->SetSelectedWave(newSelectedWav);
             }
         }
 
-        void SampleListControl::OnSelectedWaveChange(int x)
+        void SampleListControl::OnSelectedWaveChange(IWave^ oldSelected, IWave^ newSelected)
         {
-            if (m_waves == nullptr)
+            if((newSelected != nullptr) && (m_waves != nullptr))
             {
-                return;
-            }
-
-            IWave^ foundWav = nullptr;
-            int foundIndex = -1;
-            for each (auto w in m_waves)
-            {
-                if ((w.Value->Index + 1) == x) //We pass index + 1 to native machines
+                for each (KeyValuePair<int, IWave^>^ x in m_waves)
                 {
-                    foundIndex = w.Key;
-                    foundWav = w.Value;
-                    break;
+                    if (x->Value == newSelected)
+                    {
+                        m_comboControl->SelectedIndex = x->Key;
+                        return;
+                    }
                 }
-            }
-
-            if (foundWav == nullptr)
-            {
-                return;
-            }
-
-            if (m_comboControl->SelectedIndex != foundIndex)
-            {
-                m_comboControl->SelectedIndex = foundIndex;
             }
         }
 
@@ -316,7 +304,7 @@ namespace ReBuzz
 
         void SampleListControl::PopulateControl()
         {
-            if (m_comboControl == nullptr)
+            if((m_comboControl == nullptr) || (m_waves == nullptr))
             {
                 return;
             }
