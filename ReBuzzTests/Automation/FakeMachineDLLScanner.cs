@@ -1,7 +1,9 @@
 using AtmaFileSystem;
+using BuzzGUI.Interfaces;
 using FluentAssertions.Execution;
 using ReBuzz.Core;
 using ReBuzz.FileOps;
+using ReBuzzTests.Automation.TestMachines;
 using System.Collections.Generic;
 
 namespace ReBuzzTests.Automation
@@ -15,7 +17,7 @@ namespace ReBuzzTests.Automation
     ///
     /// This test-only implementation compiles C# files into assemblies and places them in the supplied path
     /// </summary>
-    internal class FakeMachineDLLScanner(AbsoluteDirectoryPath gearPath) : IMachineDLLScanner
+    internal class FakeMachineDLLScanner(AbsoluteDirectoryPath gearPath, AbsoluteDirectoryPath gearGeneratorsDir) : IMachineDLLScanner
     {
         private readonly Dictionary<string, MachineDLL> machineDllsByName = new();
 
@@ -24,16 +26,31 @@ namespace ReBuzzTests.Automation
         /// </summary>
         public void AddFakeModernPatternEditor(ReBuzzCore buzz)
         {
-            AbsoluteFilePath? assemblyLocation = gearPath.AddFileName(FakeModernPatternEditorInfo.DllName);
+            AbsoluteFilePath assemblyLocation = gearPath.AddFileName(FakeModernPatternEditorInfo.DllName);
             DynamicCompiler.CompileAndSave(FakeModernPatternEditor.GetSourceCode(), assemblyLocation);
 
-            MachineDLL? modernPatternEditorDll = FakeModernPatternEditorInfo.GetMachineDll(buzz, assemblyLocation);
+            MachineDLL modernPatternEditorDll = FakeModernPatternEditorInfo.GetMachineDll(buzz, assemblyLocation);
             machineDllsByName[modernPatternEditorDll.Name] = modernPatternEditorDll;
         }
+
+        public void AddDynamicGenerator(ReBuzzCore buzz, string dllName, string sourceCode)
+        {
+            AbsoluteFilePath assemblyLocation = gearGeneratorsDir.AddFileName(dllName);
+            MachineDLL machineDll = SynthInfo.GetMachineDll(buzz, assemblyLocation);
+            DynamicCompiler.CompileAndSave(sourceCode, assemblyLocation);
+
+            machineDllsByName[machineDll.Name] = machineDll;
+        }
+
 
         public Dictionary<string, MachineDLL> GetMachineDLLs(ReBuzzCore buzz, string buzzPath)
         {
             return machineDllsByName;
+        }
+
+        public IMachineDLL GetMachineDLL(string name)
+        {
+            return machineDllsByName[name];
         }
 
         public void AddMachineDllsToDictionary(XMLMachineDLL[] xMLMachineDLLs, Dictionary<string, MachineDLL> md)

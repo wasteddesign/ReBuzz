@@ -7,6 +7,7 @@ using ReBuzz.Core;
 using ReBuzz.FileOps;
 using ReBuzz.MachineManagement;
 using ReBuzz.ManagedMachine;
+using ReBuzzTests.Automation.TestMachines;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;

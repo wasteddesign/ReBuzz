@@ -2,7 +2,7 @@ using AtmaFileSystem;
 using BuzzGUI.Interfaces;
 using ReBuzz.Core;
 
-namespace ReBuzzTests.Automation
+namespace ReBuzzTests.Automation.TestMachines
 {
     /// <summary>
     /// Contains additional information about the fake Modern Pattern Editor machine.
@@ -27,7 +27,7 @@ namespace ReBuzzTests.Automation
                 IsMissing = false,
                 IsOutOfProcess = false,
                 ManagedDLL = null,
-                MachineInfo = new MachineInfo()
+                MachineInfo = new MachineInfo
                 {
                     Flags =
                         MachineInfoFlags.NO_OUTPUT | MachineInfoFlags.CONTROL_MACHINE |
@@ -45,9 +45,11 @@ namespace ReBuzzTests.Automation
                 SHA1Hash = "258A3DE5BA33E71D69271E36557EA8E4E582298E",
                 GUIFactoryDecl =
                     new MachineGUIFactoryDecl
-                        {
-                            IsGUIResizable = true, PreferWindowedGUI = true, UseThemeStyles = false
-                        },
+                    {
+                        IsGUIResizable = true,
+                        PreferWindowedGUI = true,
+                        UseThemeStyles = false
+                    },
                 ModuleHandle = 0
             };
         }

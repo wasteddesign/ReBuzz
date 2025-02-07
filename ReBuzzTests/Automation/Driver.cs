@@ -2,15 +2,18 @@ using System;
 using System.IO;
 using AtmaFileSystem;
 using AtmaFileSystem.IO;
+using Buzz.MachineInterface;
 using BuzzGUI.Common;
 using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using ReBuzz.AppViews;
+using ReBuzz.Audio;
 using ReBuzz.Core;
 using ReBuzz.MachineManagement;
 using ReBuzzTests.Automation.Assertions;
+using ReBuzzTests.Automation.TestMachines;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -72,10 +75,16 @@ namespace ReBuzzTests.Automation
         private readonly FakeUserMessages fakeUserMessages;
         private FakeFileNameChoice fileNameToSaveChoice = new();
         private readonly FakeInMemoryRegistry fakeRegistry = new();
+        private readonly FakeDispatcher dispatcher = new();
+        private readonly FakeMachineDLLScanner fakeMachineDllScanner;
+        private List<Action<FakeMachineDLLScanner, ReBuzzCore>> addMachineActions = [];
+        private Dictionary<string, MachineCore> addedGeneratorInstances = new();
 
         public Driver()
         {
+            ResetGlobalState();
             fakeUserMessages = new FakeUserMessages();
+            fakeMachineDllScanner = new FakeMachineDLLScanner(GearDir, GearGeneratorsDir);
         }
 
         static Driver()
@@ -96,8 +105,6 @@ namespace ReBuzzTests.Automation
             GeneralSettings generalSettings = Global.GeneralSettings;
             var registryRoot = Global.RegistryRoot; //Should not matter as the registry is in memory
 
-            var dispatcher = new FakeDispatcher();
-            var fakeMachineDllScanner = new FakeMachineDLLScanner(GearDir);
             reBuzzCore = new ReBuzzCore(
                 generalSettings,
                 engineSettings,
@@ -110,6 +117,7 @@ namespace ReBuzzTests.Automation
                 fileNameToSaveChoice,
                 fakeUserMessages);
             fakeMachineDllScanner.AddFakeModernPatternEditor(reBuzzCore);
+            addMachineActions.ForEach(addMachine => addMachine(fakeMachineDllScanner, reBuzzCore));
 
             var initialization = new ReBuzzCoreInitialization(reBuzzCore, buzzPath, dispatcher, fakeRegistry);
             initialization.StartReBuzzEngineStep1((sender, args) =>
@@ -307,6 +315,64 @@ namespace ReBuzzTests.Automation
         private IEnumerable<string> RecentFiles()
         {
             return fakeRegistry.ReadNumberedList<string>("File", "Recent File List");
+        }
+
+        public void InsertGeneratorInstance(DynamicGeneratorDefinition definition, string instanceSuffix = "")
+        {
+            var name = definition.Name;
+            IMachineDLL machineDll = fakeMachineDllScanner.GetMachineDLL(definition.Name);
+            var instanceName = name + instanceSuffix;
+            var instrument = (MachineCore)reBuzzCore.CreateInstrument(new Instrument
+            {
+                MachineDLL = machineDll, Name = instanceName, Type = InstrumentType.Generator, Path = machineDll.Path
+            }, 0, 0);
+
+            addedGeneratorInstances[instrument.InstrumentName] = instrument;
+        }
+
+        public void SetupConstantReturnedStereoSampleValue(DynamicGeneratorDefinition definition, Sample s, string instanceSuffix = "")
+        {
+            var instrumentName = definition.Name + instanceSuffix;
+            addedGeneratorInstances.Should().ContainKey(instrumentName);
+            addedGeneratorInstances[instrumentName].Should().NotBeNull();
+
+            var instrument = addedGeneratorInstances[instrumentName];
+            definition.Command(instrument, "SetLeftSample", reBuzzCore).Execute(s.L);
+            definition.Command(instrument, "SetRightSample", reBuzzCore).Execute(s.R);
+        }
+
+        public void AddDynamicGenerator(DynamicGeneratorDefinition generatorDefinition)
+        {
+            addMachineActions.Add((scanner, rebuzz) =>
+                scanner.AddDynamicGenerator(rebuzz, generatorDefinition.DllName, generatorDefinition.SourceCode));
+        }
+
+        public TestReadBuffer ReadStereoSamples(int count)
+        {
+            var workManager = new WorkManager(reBuzzCore, new WorkThreadEngine(1), 0, new EngineSettings
+            {
+                AccurateBPM = true,
+                EqualPowerPanning = true,
+                LowLatencyGC = true,
+                MachineDelayCompensation = false,
+                Multithreading = false,
+                ProcessMutedMachines = false,
+                SubTickTiming = true,
+            });
+            var readSamplesCount = count * 2;
+            var buffer = new float[readSamplesCount];
+            var result = workManager.ThreadRead(buffer, 0, readSamplesCount);
+            return new TestReadBuffer(result, buffer);
+        }
+
+        /// <summary>
+        /// Resets the global state before each test
+        /// </summary>
+        private static void ResetGlobalState()
+        {
+            ReBuzzCore.GlobalState = new BuzzGlobalState();
+            ReBuzzCore.subTickInfo = new SubTickInfoExtended();
+            ReBuzzCore.masterInfo = new MasterInfoExtended();
         }
     }
 }
