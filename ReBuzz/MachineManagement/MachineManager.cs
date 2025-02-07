@@ -665,7 +665,7 @@ namespace ReBuzz.MachineManagement
                         else
                             mmh.MidiControlChange(commandCode, channel, val);
                     }
-                    else if (commandCode == 208) // Aftertouch
+                    else if (commandCode == MIDI.ChannelAftertouch) // Aftertouch
                     {
                         if (polacConversion)
                             mmh.MidiControlChange(0xfc, channel, data1);
