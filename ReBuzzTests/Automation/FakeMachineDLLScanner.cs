@@ -36,7 +36,7 @@ namespace ReBuzzTests.Automation
             return machineDllsByName;
         }
 
-        public void AddMachineDllsToDictionary(XMLMachineDLL[] xMLMachineDLLs, Dictionary<string, MachineDLL> md)
+        public void AddMachineDllsToDictionary(ReBuzzCore buzz, XMLMachineDLL[] xMLMachineDLLs, Dictionary<string, MachineDLL> md)
         {
             Execute.Assertion.FailWith("Not called anywhere yet in the current tests");
         }

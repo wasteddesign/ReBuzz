@@ -228,12 +228,11 @@ namespace ReBuzz.Core
             }
         }
 
-
         public IBuzz Buzz { get => reBuzzCore; }
 
         List<MachineCore> machinesList = new List<MachineCore>();
         public List<MachineCore> MachinesList { get => machinesList; set => machinesList = value; }
-        public ReadOnlyCollection<IMachine> Machines { get => machinesList.Where(m => !m.Hidden).Cast<IMachine>().ToReadOnlyCollection(); }
+        public ReadOnlyCollection<IMachine> Machines { get => machinesList.Where(m => !m.Hidden && m.Ready).Cast<IMachine>().ToReadOnlyCollection(); }
 
         public bool CanUndo { get => ActionStack.CanUndo; }
 

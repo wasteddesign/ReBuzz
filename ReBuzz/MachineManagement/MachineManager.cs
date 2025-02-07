@@ -83,6 +83,7 @@ namespace ReBuzz.MachineManagement
         // instrumentPath == null or "" if instruments are not supported
         public MachineCore CreateMachine(string libName, string path, string instrument, byte[] data, int trackCount, float x, float y, bool hidden, string machineName = null, bool callInit = true)
         {
+            // Removed this lock. Uncomment if ReBuzz goes weird
             //lock (ReBuzzCore.AudioLock)
             {
                 MachineCore machine = new MachineCore(song, buzzPath, dispatcher);
@@ -124,6 +125,9 @@ namespace ReBuzz.MachineManagement
                 {
                     CreateNativeMachine(machine, instrument, trackCount, data, callInit);
                 }
+
+                buzz.AddMachine(machine);
+
                 machine.updateWaveInfo = true;
                 return machine;
             }
@@ -176,10 +180,10 @@ namespace ReBuzz.MachineManagement
                 machine.Data = data;
             }
 
-            buzz.AddMachine(machine);
 
             // Set default values
             managedMachineHost.SetParameterDefaults(machine);
+
             machine.Ready = true;
         }
 
@@ -248,8 +252,6 @@ namespace ReBuzz.MachineManagement
 
             uiMessage.UINewMISync(machine, machine.DLL.Name);
 
-            buzz.AddMachine(machine);
-
             // Machine Skin
             uiMessage.UIGetResources(machine, out BitmapSource skin, out BitmapSource led, out Point ledPosition);
 
@@ -263,8 +265,10 @@ namespace ReBuzz.MachineManagement
             machine.IsControlMachine = machine.MachineDLL.Info.Flags.HasFlag(MachineInfoFlags.CONTROL_MACHINE);
             machine.MachineDLL.SkinLEDPosition = ledPosition;
 
+            // Add machine here so that it is visible when machine does callbacks
             nativeMachines.Add(machine, nativeMachineHost);
-
+            buzz.SongCore.MachinesList.Add(machine);
+            
             if (callInit)
             {
                 CallInit(machine, data, trackCount);
@@ -480,6 +484,8 @@ namespace ReBuzz.MachineManagement
             pgTracks.TrackCount = 0;
 
             machine.ParameterGroupsList.Add(pgTracks);
+
+            machine.Ready = true;
             return machine;
         }
 

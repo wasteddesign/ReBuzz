@@ -323,6 +323,9 @@ namespace ReBuzz.Core
 
         private bool midiActivity;
 
+        // Timer to set MIDIActivity to false afeter 0.5 seconds
+        DispatcherTimer midiActivityTimer;
+        
         public bool MIDIActivity
         {
             get => midiActivity;
@@ -332,17 +335,6 @@ namespace ReBuzz.Core
 
                 if (midiActivity)
                 {
-                    Timer midiActivityTimer = new Timer();
-                    midiActivityTimer.Interval = 500;
-                    midiActivityTimer.AutoReset = false;
-
-                    midiActivityTimer.Elapsed += (sender, e) =>
-                    {
-                        MIDIActivity = false;
-                        PropertyChanged.Raise(this, "MIDIActivity");
-                        midiActivityTimer.Stop();
-
-                    };
                     midiActivityTimer.Start();
                 }
                 PropertyChanged.Raise(this, "MIDIActivity");
@@ -605,6 +597,13 @@ namespace ReBuzz.Core
 
             DefaultPatternEditor = "Modern Pattern Editor";
 
+            midiActivityTimer = new DispatcherTimer() { Interval = TimeSpan.FromSeconds(0.5) };
+            midiActivityTimer.Tick += (sender, e) =>
+            {
+                MIDIActivity = false;
+                PropertyChanged.Raise(this, "MIDIActivity");
+                midiActivityTimer.Stop();
+            };
 
             generalSettings.PropertyChanged += GeneralSettings_PropertyChanged;
             engineSettings.PropertyChanged += EngineSettings_PropertyChanged;
@@ -638,7 +637,7 @@ namespace ReBuzz.Core
             Gear = Gear.LoadGearFile(buzzPath + "\\Gear\\gear_defaults.xml");
             var moreGear = Gear.LoadGearFile(buzzPath + "\\Gear\\gear.xml");
             Gear.Merge(moreGear);
-
+            
             Theme = ReBuzzTheme.LoadCurrentTheme(this, buzzPath);
 
             DCWriteLine(BuildString);
@@ -810,6 +809,13 @@ namespace ReBuzz.Core
             PropertyChanged.Raise(this, "Instruments");
         }
 
+        internal void AddInstrument(MachineDLL mDll)
+        {
+            Instrument inst = InstrumentManager.CreateFromMoreMachines(mDll);
+            InstrumentList.Add(inst);
+            PropertyChanged.Raise(this, "Instruments");
+        }
+
         public void StartTimer()
         {
             dtVUMeter = new DispatcherTimer();
@@ -865,28 +871,35 @@ namespace ReBuzz.Core
 
         public void AddMachineDLL(string path, MachineType type)
         {
-            // FIXME: Callning AddMachineDLL repeatedly is very slow and does not work properly. Skip for now.
             // AddMachineDLL is called by MDBTab to add "More Machines" during start
-            /*
             try
             {
-                string libName = Path.GetFileName(path);
-                string libPath = Path.GetDirectoryName(path);
-                var mDll = machineDllScanner.ValidateDll(this, libName, libPath, buzzPath);
-                if (mDll != null)
+                string libName = Path.GetFileNameWithoutExtension(path);
+                string libPath = path;
+
+                if (!machineDLLsList.ContainsKey(libName))
                 {
-                    if (!machineDLLsList.ContainsKey(mDll.Name))
+                    XMLMachineDLL mDll = new XMLMachineDLL();
+                    mDll.Name = libName;
+                    mDll.Path = libPath;
+                    mDll.MachineInfo = new XMLMachineInfo();
+                    mDll.MachineInfo.Name = libName;
+                    mDll.MachineInfo.ShortName = libName;
+                    mDll.MachineInfo.Type = type;
+
+                    XMLMachineDLL[] mdxmlArray = [mDll];
+                    machineDllScanner.AddMachineDllsToDictionary(this, mdxmlArray, machineDLLsList);
+
+                    if (machineDLLsList.ContainsKey(libName))
                     {
-                        XMLMachineDLL[] mdxmlArray = [mDll];
-                        machineDllScanner.AddMachineDllsToDictionary(mdxmlArray, machineDLLsList);
-                        PropertyChanged.Raise(this, "MachineDLLs");
+                        var dll = machineDLLsList[libName];
+                        dll.Buzz = this;
+                        AddInstrument(machineDLLsList[libName]);
+                        //PropertyChanged.Raise(this, "MachineDLLs");
                     }
-                    MachineDB = new MachineDatabase(this, buzzPath, dispatcher);
-                    UpdateInstrumentList(MachineDB);
                 }
             }
             catch { }
-            */
         }
 
         public bool CanExecuteCommand(BuzzCommand cmd)
@@ -1139,7 +1152,6 @@ namespace ReBuzz.Core
                 });
                 //Playing = playing;
             }
-            
         }
 
         internal void ImportSong(float x, float y)
@@ -1154,20 +1166,6 @@ namespace ReBuzz.Core
                 var impotAction = new ImportSongAction(this, rebuzzFile, filename, x, y, this.dispatcher);
                 songCore.ActionStack.Do(impotAction);
             }
-        }
-
-        IReBuzzFile GetReBuzzFile(int filterIndex)
-        {
-            IReBuzzFile file;
-            if (filterIndex == 1 || filterIndex == 2)
-            {
-                file = new BMXFile(this, buzzPath, dispatcher);
-            }
-            else
-            {
-                file = new BMXMLFile(this, buzzPath, dispatcher);
-            }
-            return file;
         }
 
         IReBuzzFile GetReBuzzFile(string path)
@@ -1260,13 +1258,13 @@ namespace ReBuzz.Core
                     MachineManager.SendMidiInput(editor, data, polacConversion);
                 }
             }
-            MIDIActivity = true;
-
-            //MIDIInput?.Invoke(data);
 
             // Some UI components require MIDIInput.Invoke to be called from UI thread (Midi Keyboard)
             dispatcher.BeginInvoke(new Action(() =>
-                MIDIInput?.Invoke(data)
+            {
+                MIDIActivity = true;
+                MIDIInput?.Invoke(data);
+                }
             ));
         }
 
@@ -1517,7 +1515,7 @@ namespace ReBuzz.Core
             new ConnectMachinesAction(this, peMachine, master, 0, 0, 0x4000, 0x4000, dispatcher).Do();
 
             // Link machine to editor. Maybe specific call?
-            MachineManager.SetPatternEditorPattern(machineToUseEditor, machineToUseEditor.Patterns.FirstOrDefault());
+            MachineManager.SetPatternEditorPattern(peMachine, machineToUseEditor.Patterns.FirstOrDefault());
             machineToUseEditor.EditorMachine = peMachine;
         }
 
@@ -1542,7 +1540,6 @@ namespace ReBuzz.Core
 
             // Create editor for Master
             CreateEditor(machine, DefaultPatternEditor, null);
-            machine.Ready = true;
 
             var masterGlobalParameters = machine.ParameterGroups[1].Parameters;
             masterGlobalParameters[0].SubscribeEvents(0, MasterVolumeChanged, null);
@@ -1598,12 +1595,25 @@ namespace ReBuzz.Core
         {
             lock (AudioLock)
             {
-                SongCore.MachinesList.Add(machine);
+                if (!SongCore.MachinesList.Contains(machine))
+                {
+                    SongCore.MachinesList.Add(machine);
+                }
+
                 if (!machine.Hidden)
                 {
                     // Make visible in UI
                     SongCore.InvokeMachineAdded(machine);
                 }
+            }
+        }
+
+        internal void InvokeMachineAdded(MachineCore machine)
+        {
+            if (!machine.Hidden)
+            {
+                // Make visible in UI
+                SongCore.InvokeMachineAdded(machine);
             }
         }
 
