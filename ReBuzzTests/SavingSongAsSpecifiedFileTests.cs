@@ -1,5 +1,4 @@
 using AtmaFileSystem.IO;
-using Buzz.MachineInterface;
 using FluentAssertions;
 using ReBuzzTests.Automation;
 using ReBuzzTests.Automation.TestMachines;
@@ -83,42 +82,5 @@ internal class SavingSongAsSpecifiedFileTests
         emptySongPath3.Exists().Should().BeTrue();
         emptySongPath3.ReadAllBytes().Should().Equal(emptySongPath1.ReadAllBytes());
         emptySongPath2.ReadAllBytes().Should().Equal(emptySongPath1.ReadAllBytes());
-    }
-}
-
-public class AddMachineTests //bug
-{
-    [Test]
-    public void ShouldOutputSilenceWhenNoNotesOnTheSong()
-    {
-        using var driver = new Driver();
-        driver.AddDynamicGenerator(DynamicGeneratorDefinition.Synth);
-        driver.Start();
-
-        driver.InsertGeneratorInstance(DynamicGeneratorDefinition.Synth);
-
-        var samples = driver.ReadStereoSamples(100000);
-
-        samples.AssertContainStereoSilence(100000);
-    }
-
-    [Test]
-    public void ShouldXXXX()
-    {
-        var synth1Sample = new Sample(5,10);
-        var synth2Sample = new Sample(2,5);
-        using var driver = new Driver();
-        driver.AddDynamicGenerator(DynamicGeneratorDefinition.Synth);
-        driver.AddDynamicGenerator(DynamicGeneratorDefinition.Synth);
-        driver.Start();
-
-        driver.InsertGeneratorInstance(DynamicGeneratorDefinition.Synth, "s1");
-        driver.InsertGeneratorInstance(DynamicGeneratorDefinition.Synth, "s2");
-        driver.SetupConstantReturnedStereoSampleValue(DynamicGeneratorDefinition.Synth, synth1Sample, "s1");
-        driver.SetupConstantReturnedStereoSampleValue(DynamicGeneratorDefinition.Synth, synth2Sample, "s2");
-
-        var samples = driver.ReadStereoSamples(1);
-
-        samples.AssertSamples([ExpectedSampleValue.From(synth1Sample + synth2Sample)]);
     }
 }

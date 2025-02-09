@@ -15,7 +15,7 @@ namespace ReBuzzTests.Automation
             buffer.Should().Equal(Enumerable.Repeat(0, count * 2), (f, f1) => Math.Abs(f - f1) <= 0.00000000001);
         }
 
-        public void AssertSamples(ImmutableArray<Sample> expectation)
+        public void AssertAreEqualTo(ImmutableArray<Sample> expectation)
         {
             (countRead % 2).Should().Be(0);
             IEnumerable<Sample> samplesFromBuffer = buffer

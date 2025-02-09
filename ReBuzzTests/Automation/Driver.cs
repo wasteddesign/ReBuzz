@@ -19,6 +19,22 @@ using System.Linq;
 
 namespace ReBuzzTests.Automation
 {
+    public class SetStereoSampleValueCommand(DynamicGeneratorController controller, Sample s)
+    {
+        public void Execute(
+            ReBuzzCore buzzCore,
+            Dictionary<string, MachineCore> machineCores)
+        {
+            machineCores.Should().ContainKey(controller.InstrumentName);
+            machineCores[controller.InstrumentName].Should().NotBeNull();
+
+            var instrument = machineCores[controller.InstrumentName];
+            controller.Command(instrument, "SetLeftSample", buzzCore).Execute(s.L);
+            controller.Command(instrument, "SetRightSample", buzzCore).Execute(s.R);
+            controller.Command(instrument, "SetRightSample", buzzCore).Execute(s.R); //bug
+        }
+    }
+
     /// <summary>
     /// The driver class for the ReBuzz automation tests.
     /// It is an "intention layer" between the production code and the tests.
@@ -118,7 +134,6 @@ namespace ReBuzzTests.Automation
                 fakeUserMessages);
             fakeMachineDllScanner.AddFakeModernPatternEditor(reBuzzCore);
             addMachineActions.ForEach(addMachine => addMachine(fakeMachineDllScanner, reBuzzCore));
-
             var initialization = new ReBuzzCoreInitialization(reBuzzCore, buzzPath, dispatcher, fakeRegistry);
             initialization.StartReBuzzEngineStep1((sender, args) =>
             {
@@ -317,34 +332,24 @@ namespace ReBuzzTests.Automation
             return fakeRegistry.ReadNumberedList<string>("File", "Recent File List");
         }
 
-        public void InsertGeneratorInstance(DynamicGeneratorDefinition definition, string instanceSuffix = "")
+        public void InsertGeneratorInstanceFor(DynamicGeneratorController controller)
         {
-            var name = definition.Name;
-            IMachineDLL machineDll = fakeMachineDllScanner.GetMachineDLL(definition.Name);
-            var instanceName = name + instanceSuffix;
-            var instrument = (MachineCore)reBuzzCore.CreateInstrument(new Instrument
-            {
-                MachineDLL = machineDll, Name = instanceName, Type = InstrumentType.Generator, Path = machineDll.Path
-            }, 0, 0);
-
-            addedGeneratorInstances[instrument.InstrumentName] = instrument;
+            var machineDll = fakeMachineDllScanner.GetMachineDLL(controller.Name);
+            CreateInstrument(machineDll, controller.InstrumentName);
+            var addedInstance = reBuzzCore.SongCore.MachinesList.Last();
+            ConnectToMaster(addedInstance);
+            addedGeneratorInstances[controller.InstrumentName] = addedInstance;
         }
 
-        public void SetupConstantReturnedStereoSampleValue(DynamicGeneratorDefinition definition, Sample s, string instanceSuffix = "")
+        public void ExecuteMachineCommand(SetStereoSampleValueCommand command)
         {
-            var instrumentName = definition.Name + instanceSuffix;
-            addedGeneratorInstances.Should().ContainKey(instrumentName);
-            addedGeneratorInstances[instrumentName].Should().NotBeNull();
-
-            var instrument = addedGeneratorInstances[instrumentName];
-            definition.Command(instrument, "SetLeftSample", reBuzzCore).Execute(s.L);
-            definition.Command(instrument, "SetRightSample", reBuzzCore).Execute(s.R);
+            command.Execute(reBuzzCore, addedGeneratorInstances);
         }
 
-        public void AddDynamicGenerator(DynamicGeneratorDefinition generatorDefinition)
+        public void AddDynamicGeneratorToGear(DynamicGeneratorDefinition definition)
         {
             addMachineActions.Add((scanner, rebuzz) =>
-                scanner.AddDynamicGenerator(rebuzz, generatorDefinition.DllName, generatorDefinition.SourceCode));
+                scanner.AddDynamicGenerator(rebuzz, definition.DllName, definition.SourceCode));
         }
 
         public TestReadBuffer ReadStereoSamples(int count)
@@ -373,6 +378,21 @@ namespace ReBuzzTests.Automation
             ReBuzzCore.GlobalState = new BuzzGlobalState();
             ReBuzzCore.subTickInfo = new SubTickInfoExtended();
             ReBuzzCore.masterInfo = new MasterInfoExtended();
+        }
+
+        private void CreateInstrument(IMachineDLL machineDll, string instanceName)
+        {
+            reBuzzCore.SongCore.CreateMachine(machineDll.Name, instanceName, null!, null!, null!, null!, -1, 0, 0);
+        }
+
+        private void ConnectToMaster(MachineCore addedInstance)
+        {
+            reBuzzCore.SongCore.ConnectMachines(addedInstance, reBuzzCore.SongCore.Machines.Single(m => m.Name == "Master"), 0, 0, 0x4000, 0x4000);
+        }
+
+        public void SetMasterVolumeTo(double newVolume)
+        {
+            reBuzzCore.MasterVolume = newVolume;
         }
     }
 }
