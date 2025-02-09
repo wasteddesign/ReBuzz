@@ -3,10 +3,11 @@ using AtmaFileSystem.IO;
 using Buzz.MachineInterface;
 using BuzzGUI.Common;
 using BuzzGUI.Interfaces;
+// ReSharper disable once RedundantUsingDirective
+using NUnit;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
 using SimpleCommand = AttachedCommandBehavior.SimpleCommand;
 
@@ -38,9 +39,9 @@ namespace ReBuzzTests.Automation.TestMachines
 
         public Sample Work()
         {
-            Debugger.Break();
-            Console.WriteLine($"=== Sample: {leftSample}, {rightSample}"); //bug
-            return new Sample(leftSample, rightSample);
+            var nextSample = sampleSource();
+            Console.WriteLine($"Returning next sample: {nextSample.L}, {nextSample.R}");
+            return new Sample(nextSample.Item1, nextSample.Item2);
         }
 
         // actual machine ends here. the stuff below demonstrates some other features of the api.
@@ -51,8 +52,7 @@ namespace ReBuzzTests.Automation.TestMachines
         }
 
         private State machineState = new();
-        private float leftSample = 0;
-        private float rightSample = 0;
+        private Func<(float L, float R)> sampleSource = () => (0,0);
 
         public State MachineState // a property called 'MachineState' gets automatically saved in songs and presets
         {
@@ -66,21 +66,16 @@ namespace ReBuzzTests.Automation.TestMachines
 
         public IEnumerable<IMenuItem> Commands =>
         [
-            CommandItem<float>("SetLeftSample", o => leftSample = o),
-            CommandItem<float>("SetRightSample", o => rightSample = o),
-        ];
-
-        private MenuItemVM CommandItem<T>(string text, Action<T> executeDelegate)
-        {
-            return new MenuItemVM
+            new MenuItemVM
             {
-                Text = text,
-                Command = new BuzzGUI.Common.SimpleCommand
+                Text = "ConfigureSampleSource",
+                Command = new SimpleCommand
                 {
-                    CanExecuteDelegate = _ => true, ExecuteDelegate = o => executeDelegate((T)o)
+                    CanExecuteDelegate = _ => true,
+                    ExecuteDelegate = o => sampleSource = (Func<(float L, float R)>)o
                 }
-            };
-        }
+            }
+        ];
 
         public event PropertyChangedEventHandler PropertyChanged;
     }

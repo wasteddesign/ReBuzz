@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using AtmaFileSystem;
 using AtmaFileSystem.IO;
-using Buzz.MachineInterface;
 using BuzzGUI.Common;
 using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
@@ -13,28 +12,11 @@ using ReBuzz.Audio;
 using ReBuzz.Core;
 using ReBuzz.MachineManagement;
 using ReBuzzTests.Automation.Assertions;
-using ReBuzzTests.Automation.TestMachines;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace ReBuzzTests.Automation
 {
-    public class SetStereoSampleValueCommand(DynamicGeneratorController controller, Sample s)
-    {
-        public void Execute(
-            ReBuzzCore buzzCore,
-            Dictionary<string, MachineCore> machineCores)
-        {
-            machineCores.Should().ContainKey(controller.InstrumentName);
-            machineCores[controller.InstrumentName].Should().NotBeNull();
-
-            var instrument = machineCores[controller.InstrumentName];
-            controller.Command(instrument, "SetLeftSample", buzzCore).Execute(s.L);
-            controller.Command(instrument, "SetRightSample", buzzCore).Execute(s.R);
-            controller.Command(instrument, "SetRightSample", buzzCore).Execute(s.R); //bug
-        }
-    }
-
     /// <summary>
     /// The driver class for the ReBuzz automation tests.
     /// It is an "intention layer" between the production code and the tests.
