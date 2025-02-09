@@ -1,11 +1,10 @@
-using Buzz.MachineInterface;
 using FluentAssertions;
 using ReBuzz.Core;
 using System.Collections.Generic;
 
 namespace ReBuzzTests.Automation
 {
-    public class SetStereoSampleValueCommand(DynamicGeneratorController controller, Sample s)
+    public class InstrumentCommand(DynamicGeneratorController controller, string commandName, object parameter)
     {
         public void Execute(
             ReBuzzCore buzzCore,
@@ -15,7 +14,7 @@ namespace ReBuzzTests.Automation
             machineCores[controller.InstrumentName].Should().NotBeNull();
 
             var instrument = machineCores[controller.InstrumentName];
-            controller.Command(instrument, "ConfigureSampleSource", buzzCore).Execute(() => (s.L, s.R)); //bug
+            controller.Command(instrument, commandName, buzzCore).Execute(parameter);
         }
     }
 }

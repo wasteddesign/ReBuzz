@@ -12,7 +12,7 @@ namespace ReBuzzTests.Automation
             TestMachines.SynthInfo.DllName,
             TestMachines.Synth.GetSourceCode());
 
-        public SetStereoSampleValueCommand SetStereoSampleValueTo(Sample sampleToReturn) //bug needed?
-            => new(this, sampleToReturn);
+        public InstrumentCommand SetStereoSampleValueTo(Sample sampleToReturn)
+            => new(this, "ConfigureSampleSource", () => (sampleToReturn.L, sampleToReturn.R));
     }
 }

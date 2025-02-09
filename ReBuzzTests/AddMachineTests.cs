@@ -76,5 +76,11 @@ namespace ReBuzzTests
 
             samples.AssertAreEqualTo([ExpectedSampleValue.From(synth1Sample + synth2Sample, masterVolume)]);
         }
+
+        //bug two reads one after another
+        //bug connecting additional machine
+        //bug disconnecting a machine
+        //bug removing a machine
+        //bug connecting through an effect
     }
 }

@@ -323,7 +323,7 @@ namespace ReBuzzTests.Automation
             addedGeneratorInstances[controller.InstrumentName] = addedInstance;
         }
 
-        public void ExecuteMachineCommand(SetStereoSampleValueCommand command)
+        public void ExecuteMachineCommand(InstrumentCommand command)
         {
             command.Execute(reBuzzCore, addedGeneratorInstances);
         }
