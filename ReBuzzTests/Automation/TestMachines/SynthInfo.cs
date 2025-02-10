@@ -10,9 +10,11 @@ namespace ReBuzzTests.Automation.TestMachines
     /// This information is awkward to put in the <see cref="Synth"/>
     /// class because it would require a reference to the types defined in this project.
     /// </summary>
-    public static class SynthInfo
+    public class SynthInfo : ITestMachineInfo
     {
-        internal static MachineDLL GetMachineDll(ReBuzzCore buzz, AbsoluteFilePath location)
+        public static ITestMachineInfo Instance { get; } = new SynthInfo();
+
+        MachineDLL ITestMachineInfo.GetMachineDll(ReBuzzCore buzz, AbsoluteFilePath location)
         {
             var decl = Synth.GetMachineDecl();
             return new MachineDLL
@@ -52,6 +54,7 @@ namespace ReBuzzTests.Automation.TestMachines
             }; //bug clean this up
         }
 
-        public static string DllName => "Synth.dll";
+        public string DllName => Synth.GetMachineDecl().Name + ".dll";
+        public string SourceCode => Synth.GetSourceCode();
     }
 }

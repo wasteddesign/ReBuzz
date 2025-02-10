@@ -17,7 +17,7 @@ namespace ReBuzzTests.Automation
     ///
     /// This test-only implementation compiles C# files into assemblies and places them in the supplied path
     /// </summary>
-    internal class FakeMachineDLLScanner(AbsoluteDirectoryPath gearPath, AbsoluteDirectoryPath gearGeneratorsDir) : IMachineDLLScanner
+    internal class FakeMachineDLLScanner(AbsoluteDirectoryPath gearPath) : IMachineDLLScanner
     {
         private readonly Dictionary<string, MachineDLL> machineDllsByName = new();
 
@@ -26,22 +26,24 @@ namespace ReBuzzTests.Automation
         /// </summary>
         public void AddFakeModernPatternEditor(ReBuzzCore buzz)
         {
-            AbsoluteFilePath assemblyLocation = gearPath.AddFileName(FakeModernPatternEditorInfo.DllName);
+            var assemblyLocation = gearPath.AddFileName(FakeModernPatternEditorInfo.Instance.DllName);
             DynamicCompiler.CompileAndSave(FakeModernPatternEditor.GetSourceCode(), assemblyLocation);
 
-            MachineDLL modernPatternEditorDll = FakeModernPatternEditorInfo.GetMachineDll(buzz, assemblyLocation);
+            var modernPatternEditorDll = FakeModernPatternEditorInfo.Instance.GetMachineDll(buzz, assemblyLocation);
             machineDllsByName[modernPatternEditorDll.Name] = modernPatternEditorDll;
         }
 
-        public void AddDynamicGenerator(ReBuzzCore buzz, string dllName, string sourceCode)
+        public void AddDynamicMachine(
+            ReBuzzCore buzz,
+            ITestMachineInfo machineInfo,
+            AbsoluteDirectoryPath targetDir)
         {
-            AbsoluteFilePath assemblyLocation = gearGeneratorsDir.AddFileName(dllName);
-            MachineDLL machineDll = SynthInfo.GetMachineDll(buzz, assemblyLocation);
-            DynamicCompiler.CompileAndSave(sourceCode, assemblyLocation);
+            var assemblyLocation = targetDir.AddFileName(machineInfo.DllName);
+            var machineDll = machineInfo.GetMachineDll(buzz, assemblyLocation);
+            DynamicCompiler.CompileAndSave(machineInfo.SourceCode, assemblyLocation);
 
             machineDllsByName[machineDll.Name] = machineDll;
         }
-
 
         public Dictionary<string, MachineDLL> GetMachineDLLs(ReBuzzCore buzz, string buzzPath)
         {

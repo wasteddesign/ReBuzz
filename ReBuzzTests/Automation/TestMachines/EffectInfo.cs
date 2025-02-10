@@ -5,18 +5,17 @@ using ReBuzz.Core;
 namespace ReBuzzTests.Automation.TestMachines
 {
     /// <summary>
-    /// Contains additional information about the fake Modern Pattern Editor machine.
+    /// Contains additional information about the fake Effect machine.
     ///
-    /// This information is awkward to put in the <see cref="FakeModernPatternEditor"/>
+    /// This information is awkward to put in the <see cref="Effect"/>
     /// class because it would require a reference to the types defined in this project.
     /// </summary>
-    internal class FakeModernPatternEditorInfo : ITestMachineInfo
+    public class EffectInfo : ITestMachineInfo
     {
-        public static ITestMachineInfo Instance { get; } = new FakeModernPatternEditorInfo();
-
+        public static ITestMachineInfo Instance { get; } = new EffectInfo();
         MachineDLL ITestMachineInfo.GetMachineDll(ReBuzzCore buzz, AbsoluteFilePath location)
         {
-            var decl = FakeModernPatternEditor.GetMachineDecl();
+            var decl = Effect.GetMachineDecl();
             return new MachineDLL
             {
                 Name = decl.Name,
@@ -31,9 +30,7 @@ namespace ReBuzzTests.Automation.TestMachines
                 ManagedDLL = null,
                 MachineInfo = new MachineInfo
                 {
-                    Flags =
-                        MachineInfoFlags.NO_OUTPUT | MachineInfoFlags.CONTROL_MACHINE |
-                        MachineInfoFlags.PATTERN_EDITOR | MachineInfoFlags.LOAD_DATA_RUNTIME,
+                    Flags = MachineInfoFlags.LOAD_DATA_RUNTIME,
                     Author = decl.Author,
                     InternalVersion = 0,
                     MaxTracks = decl.MaxTracks,
@@ -53,10 +50,10 @@ namespace ReBuzzTests.Automation.TestMachines
                         UseThemeStyles = false
                     },
                 ModuleHandle = 0
-            };
+            }; //bug clean this up
         }
 
-        public string DllName => "FakeModernPatternEditor.dll";
-        public string SourceCode => FakeModernPatternEditor.GetSourceCode();
+        public string DllName => Effect.GetMachineDecl().Name + ".dll";
+        public string SourceCode => Effect.GetSourceCode();
     }
 }

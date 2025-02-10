@@ -12,8 +12,10 @@ using ReBuzz.Audio;
 using ReBuzz.Core;
 using ReBuzz.MachineManagement;
 using ReBuzzTests.Automation.Assertions;
+using ReBuzzTests.Automation.TestMachines;
 using System.Collections.Generic;
 using System.Linq;
+using ReBuzzTests.Automation.TestMachinesControllers;
 
 namespace ReBuzzTests.Automation
 {
@@ -82,7 +84,7 @@ namespace ReBuzzTests.Automation
         {
             ResetGlobalState();
             fakeUserMessages = new FakeUserMessages();
-            fakeMachineDllScanner = new FakeMachineDLLScanner(GearDir, GearGeneratorsDir);
+            fakeMachineDllScanner = new FakeMachineDLLScanner(GearDir);
         }
 
         static Driver()
@@ -314,24 +316,43 @@ namespace ReBuzzTests.Automation
             return fakeRegistry.ReadNumberedList<string>("File", "Recent File List");
         }
 
-        public void InsertGeneratorInstanceFor(DynamicGeneratorController controller)
+        public void InsertMachineInstanceConnectedToMasterFor(DynamicGeneratorController controller)
         {
-            var machineDll = fakeMachineDllScanner.GetMachineDLL(controller.Name);
-            CreateInstrument(machineDll, controller.InstrumentName);
-            var addedInstance = reBuzzCore.SongCore.MachinesList.Last();
+            var addedInstance = InsertMachineInstanceFor(controller);
             ConnectToMaster(addedInstance);
-            addedGeneratorInstances[controller.InstrumentName] = addedInstance;
         }
 
-        public void ExecuteMachineCommand(InstrumentCommand command)
+        public MachineCore InsertMachineInstanceFor(DynamicGeneratorController controller)
+        {
+            var machineDll = fakeMachineDllScanner.GetMachineDLL(controller.Name);
+            CreateInstrument(machineDll, controller.InstanceName);
+            var addedInstance = reBuzzCore.SongCore.MachinesList.Last();
+            addedGeneratorInstances[controller.InstanceName] = addedInstance;
+            return addedInstance;
+        }
+
+        public void Connect(
+            DynamicGeneratorController sourceController, 
+            DynamicGeneratorController destinationController)
+        {
+            var source = reBuzzCore.SongCore.Machines.Single(m => m.Name == sourceController.InstanceName);
+            var destination = reBuzzCore.SongCore.Machines.Single(m => m.Name == destinationController.InstanceName);
+            reBuzzCore.SongCore.ConnectMachines(source, destination, 0, 0, 0x4000, 0x4000);
+        }
+
+        public void ExecuteMachineCommand(TestMachineInstanceCommand command)
         {
             command.Execute(reBuzzCore, addedGeneratorInstances);
         }
 
-        public void AddDynamicGeneratorToGear(DynamicGeneratorDefinition definition)
+        public void AddDynamicGeneratorToGear(ITestMachineInfo info)
         {
-            addMachineActions.Add((scanner, rebuzz) =>
-                scanner.AddDynamicGenerator(rebuzz, definition.DllName, definition.SourceCode));
+            AddDynamicMachineToGear(info, GearGeneratorsDir);
+        }
+
+        public void AddDynamicEffectToGear(ITestMachineInfo info)
+        {
+            AddDynamicMachineToGear(info, GearEffectsDir);
         }
 
         public TestReadBuffer ReadStereoSamples(int count)
@@ -375,6 +396,11 @@ namespace ReBuzzTests.Automation
         public void SetMasterVolumeTo(double newVolume)
         {
             reBuzzCore.MasterVolume = newVolume;
+        }
+
+        private void AddDynamicMachineToGear(ITestMachineInfo info, AbsoluteDirectoryPath targetPath)
+        {
+            addMachineActions.Add((scanner, reBuzz) => scanner.AddDynamicMachine(reBuzz, info, targetPath));
         }
     }
 }
