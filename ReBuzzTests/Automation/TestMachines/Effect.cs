@@ -39,7 +39,7 @@ namespace ReBuzzTests.Automation.TestMachines
 
         public Sample Work(Sample input)
         {
-            var nextSample = sampleSource(input.L, input.R);
+            var nextSample = sampleTransform(input.L, input.R);
             Console.WriteLine($"Returning next sample: {nextSample.L}, {nextSample.R} based on {input.L}, {input.R}");
             return new Sample(nextSample.Item1, nextSample.Item2);
         }
@@ -52,7 +52,7 @@ namespace ReBuzzTests.Automation.TestMachines
         }
 
         private State machineState = new();
-        private Func<float, float, (float L, float R)> sampleSource = (l, r) => (l,r);
+        private Func<float, float, (float L, float R)> sampleTransform = (l, r) => (l,r);
 
         public State MachineState // a property called 'MachineState' gets automatically saved in songs and presets
         {
@@ -68,11 +68,11 @@ namespace ReBuzzTests.Automation.TestMachines
         [
             new MenuItemVM
             {
-                Text = "ConfigureSampleSource",
+                Text = "ConfigureSampleTransform",
                 Command = new SimpleCommand
                 {
                     CanExecuteDelegate = _ => true,
-                    ExecuteDelegate = o => sampleSource = (Func<float , float, (float L, float R)>)o //bug make this a delegate
+                    ExecuteDelegate = o => sampleTransform = (Func<float , float, (float L, float R)>)o
                 }
             }
         ];

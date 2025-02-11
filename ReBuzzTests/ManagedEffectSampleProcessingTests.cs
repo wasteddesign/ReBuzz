@@ -61,7 +61,7 @@ namespace ReBuzzTests
             driver.Connect(synthController, effectController);
 
             driver.ExecuteMachineCommand(synthController.SetStereoSampleValueTo(sampleToReturn));
-            driver.ExecuteMachineCommand(effectController.SetStereoSampleValueToInputValueMultipliedBy(2));
+            driver.ExecuteMachineCommand(effectController.SetStereoSampleValueToInputValueMultipliedBy((float l, float r) => (l * 2, r * 2)));
 
             var samples = driver.ReadStereoSamples(1);
 

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace ReBuzzTests.Automation.TestMachinesControllers
 {
-    public class TestMachineInstanceCommand(DynamicGeneratorController controller, string commandName, object parameter)
+    public class TestMachineInstanceCommand(DynamicMachineController controller, string commandName, object parameter)
     {
         public void Execute(
             ReBuzzCore buzzCore,

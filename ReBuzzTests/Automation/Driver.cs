@@ -316,13 +316,13 @@ namespace ReBuzzTests.Automation
             return fakeRegistry.ReadNumberedList<string>("File", "Recent File List");
         }
 
-        public void InsertMachineInstanceConnectedToMasterFor(DynamicGeneratorController controller)
+        public void InsertMachineInstanceConnectedToMasterFor(DynamicMachineController controller)
         {
             var addedInstance = InsertMachineInstanceFor(controller);
             ConnectToMaster(addedInstance);
         }
 
-        public MachineCore InsertMachineInstanceFor(DynamicGeneratorController controller)
+        public MachineCore InsertMachineInstanceFor(DynamicMachineController controller)
         {
             var machineDll = fakeMachineDllScanner.GetMachineDLL(controller.Name);
             CreateInstrument(machineDll, controller.InstanceName);
@@ -332,12 +332,12 @@ namespace ReBuzzTests.Automation
         }
 
         public void Connect(
-            DynamicGeneratorController sourceController, 
-            DynamicGeneratorController destinationController)
+            DynamicMachineController sourceController, 
+            DynamicMachineController destinationController)
         {
             var source = reBuzzCore.SongCore.Machines.Single(m => m.Name == sourceController.InstanceName);
             var destination = reBuzzCore.SongCore.Machines.Single(m => m.Name == destinationController.InstanceName);
-            reBuzzCore.SongCore.ConnectMachines(source, destination, 0, 0, 0x4000, 0x4000);
+            ConnectMachineInstances(source, destination);
         }
 
         public void ExecuteMachineCommand(TestMachineInstanceCommand command)
@@ -388,9 +388,9 @@ namespace ReBuzzTests.Automation
             reBuzzCore.SongCore.CreateMachine(machineDll.Name, instanceName, null!, null!, null!, null!, -1, 0, 0);
         }
 
-        private void ConnectToMaster(MachineCore addedInstance)
+        private void ConnectToMaster(MachineCore instance)
         {
-            reBuzzCore.SongCore.ConnectMachines(addedInstance, reBuzzCore.SongCore.Machines.Single(m => m.Name == "Master"), 0, 0, 0x4000, 0x4000);
+            ConnectMachineInstances(instance, reBuzzCore.SongCore.Machines.Single(m => m.Name == "Master"));
         }
 
         public void SetMasterVolumeTo(double newVolume)
@@ -401,6 +401,11 @@ namespace ReBuzzTests.Automation
         private void AddDynamicMachineToGear(ITestMachineInfo info, AbsoluteDirectoryPath targetPath)
         {
             addMachineActions.Add((scanner, reBuzz) => scanner.AddDynamicMachine(reBuzz, info, targetPath));
+        }
+
+        private void ConnectMachineInstances(IMachine source, IMachine destination)
+        {
+            reBuzzCore.SongCore.ConnectMachines(source, destination, 0, 0, 0x4000, 0x4000);
         }
     }
 }

@@ -24,7 +24,7 @@ namespace ReBuzzTests.Automation
                    && AreCloseEnough(sample1.R, sample2.R);
         }
 
-        private static bool AreCloseEnough(float sample1L, float sample2L)
+        public static bool AreCloseEnough(float sample1L, float sample2L)
         {
             return Math.Abs(sample1L - sample2L) < DenormalizationPrevention;
         }

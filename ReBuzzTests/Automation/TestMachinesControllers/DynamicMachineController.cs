@@ -4,9 +4,7 @@ using System.Windows.Input;
 
 namespace ReBuzzTests.Automation.TestMachinesControllers
 {
-    public class DynamicGeneratorController( //bug rename
-        string name,
-        string instanceName)
+    public class DynamicMachineController(string name, string instanceName)
     {
         public string Name { get; } = name;
         public string InstanceName { get; } = instanceName;

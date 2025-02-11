@@ -50,7 +50,7 @@ namespace ReBuzzTests.Automation.TestMachines
                         UseThemeStyles = false
                     },
                 ModuleHandle = 0
-            }; //bug clean this up
+            };
         }
 
         public string DllName => Effect.GetMachineDecl().Name + ".dll";

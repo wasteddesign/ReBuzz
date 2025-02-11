@@ -1,23 +1,25 @@
-using Buzz.MachineInterface;
 using ReBuzzTests.Automation.TestMachines;
+using System;
 
 namespace ReBuzzTests.Automation.TestMachinesControllers
 {
-    public class EffectController(string effectName) //bug move
-        : DynamicGeneratorController("Effect", effectName) //bug clean up the literal strings
+    public class EffectController(string effectName)
+        : DynamicMachineController(MachineName, effectName)
     {
-        public static EffectController NewInstance(string effectName = "Effect") =>
+        private const string MachineName = "Effect";
+
+        public static EffectController NewInstance(string effectName = MachineName) =>
             new(effectName);
 
         public static ITestMachineInfo Info => EffectInfo.Instance;
 
-        public TestMachineInstanceCommand SetStereoSampleValueTo(Sample sampleToReturn)
-            => new(this, "ConfigureSampleSource", (float l, float r) => (sampleToReturn.L, sampleToReturn.R));
-
         public TestMachineInstanceCommand SetStereoSampleValueToInputValue()
-            => new(this, "ConfigureSampleSource", (float l, float r) => (l, r));
+            => ConfigureSampleTransformCommand();
 
-        public TestMachineInstanceCommand SetStereoSampleValueToInputValueMultipliedBy(float multiplier)
-            => new(this, "ConfigureSampleSource", (float l, float r) => (l * multiplier, r * multiplier));
+        public TestMachineInstanceCommand SetStereoSampleValueToInputValueMultipliedBy(Func<float, float, (float L, float R)> transform)
+            => new(this, "ConfigureSampleTransform", transform);
+
+        private TestMachineInstanceCommand ConfigureSampleTransformCommand() 
+            => new(this, "ConfigureSampleTransform", (float l, float r) => (l, r));
     }
 }

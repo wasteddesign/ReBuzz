@@ -56,7 +56,7 @@ namespace ReBuzzTests
         [Test]
         public void OutputsASampleWhichIsASumFromAllMachinesTimesMasterVolume()
         {
-            var masterVolume = 100;
+            const int masterVolume = 100;
             var synth1Sample = new Sample(5,10);
             var synth2Sample = new Sample(2,5);
             using var driver = new Driver();

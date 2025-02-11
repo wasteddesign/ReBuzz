@@ -4,9 +4,11 @@ using ReBuzzTests.Automation.TestMachines;
 namespace ReBuzzTests.Automation.TestMachinesControllers
 {
     public class SynthController(string instanceName)
-        : DynamicGeneratorController("Synth", instanceName)
+        : DynamicMachineController(MachineName, instanceName)
     {
-        public static SynthController NewInstance(string instrumentName = "Synth") =>
+        private const string MachineName = "Synth";
+
+        public static SynthController NewInstance(string instrumentName = MachineName) =>
             new(instrumentName);
 
         public static ITestMachineInfo Info => SynthInfo.Instance;
