@@ -36,6 +36,7 @@ namespace ReBuzz
             void OnSizeChanged(IntPtr hwnd, void* param, int left, int top, int width, int height);
             void OnSelectChanged(Object^ sender, System::EventArgs^ args);
             void OnSelectedWaveChange(IWave^ oldSelected , IWave^ newSelected);
+            void OnWaveTableChange(int x);
 
             void PositionControls();
 
@@ -45,6 +46,7 @@ namespace ReBuzz
             NativeMFCMachineControl::DetatchCallback^ m_onDetachCallback;
             NativeMFCMachineControl::SizeChangedCallback^ m_onSizeChangedCallback;
             System::EventHandler^ m_onSelectChangeCallback;
+            System::Action<int> ^ m_onWaveChangedCallback;
             NativeMFCMachineControl^ m_parentControl;
 
             WaveManager^ m_waveManager;

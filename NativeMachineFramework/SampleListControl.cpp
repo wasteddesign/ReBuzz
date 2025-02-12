@@ -32,6 +32,9 @@ namespace ReBuzz
 
             m_onSelectedWaveChangeCallback = nullptr;
 
+            m_onWaveChangedCallback = gcnew System::Action<int>(this, &SampleListControl::OnWaveTableChange);
+            Global::Buzz->Song->Wavetable->WaveChanged += m_onWaveChangedCallback;
+
             m_labelControl = nullptr;
             m_comboControl = nullptr;
             m_newFont = nullptr;
@@ -49,6 +52,13 @@ namespace ReBuzz
 
         void SampleListControl::Release()
         {
+            if (m_onWaveChangedCallback != nullptr)
+            {
+                Global::Buzz->Song->Wavetable->WaveChanged -= m_onWaveChangedCallback;
+                delete m_onWaveChangedCallback;
+                m_onWaveChangedCallback = nullptr;
+            }
+
             if (m_labelControl != nullptr)
             {
                 if (m_parentControl != nullptr)
@@ -348,5 +358,13 @@ namespace ReBuzz
                 m_comboControl->SelectedIndex = selectedWavIdx;
             }
         }
+
+        void SampleListControl::OnWaveTableChange(int x)
+        {
+            //Repopulate control
+            PopulateControl();
+        }
+
+        
     }
 }
