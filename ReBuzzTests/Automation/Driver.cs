@@ -30,6 +30,9 @@ namespace ReBuzzTests.Automation
     /// </summary>
     public class Driver : IDisposable, IInitializationObserver
     {
+        private const int DefaultAmp = 0x4000;
+        private const int DefaultPan = 0x4000;
+
         /// <summary>
         /// This is a temp dir where each test has its own ReBuzz root directory
         /// </summary>
@@ -322,6 +325,11 @@ namespace ReBuzzTests.Automation
             ConnectToMaster(addedInstance);
         }
 
+        public void DisconnectFromMaster(DynamicMachineController controller)
+        {
+            DisconnectFromMaster(SongCoreMachine(controller.InstanceName));
+        }
+
         public MachineCore InsertMachineInstanceFor(DynamicMachineController controller)
         {
             var machineDll = fakeMachineDllScanner.GetMachineDLL(controller.Name);
@@ -335,9 +343,9 @@ namespace ReBuzzTests.Automation
             DynamicMachineController sourceController, 
             DynamicMachineController destinationController)
         {
-            var source = reBuzzCore.SongCore.Machines.Single(m => m.Name == sourceController.InstanceName);
-            var destination = reBuzzCore.SongCore.Machines.Single(m => m.Name == destinationController.InstanceName);
-            ConnectMachineInstances(source, destination);
+            ConnectMachineInstances(
+                SongCoreMachine(sourceController.InstanceName),
+                SongCoreMachine(destinationController.InstanceName));
         }
 
         public void ExecuteMachineCommand(TestMachineInstanceCommand command)
@@ -390,7 +398,12 @@ namespace ReBuzzTests.Automation
 
         private void ConnectToMaster(MachineCore instance)
         {
-            ConnectMachineInstances(instance, reBuzzCore.SongCore.Machines.Single(m => m.Name == "Master"));
+            ConnectMachineInstances(instance, SongCoreMachine("Master"));
+        }
+
+        private void DisconnectFromMaster(MachineCore instance)
+        {
+            DisconnectMachineInstances(instance, SongCoreMachine("Master"));
         }
 
         public void SetMasterVolumeTo(double newVolume)
@@ -405,7 +418,19 @@ namespace ReBuzzTests.Automation
 
         private void ConnectMachineInstances(IMachine source, IMachine destination)
         {
-            reBuzzCore.SongCore.ConnectMachines(source, destination, 0, 0, 0x4000, 0x4000);
+            reBuzzCore.SongCore.ConnectMachines(source, destination, 0, 0, DefaultAmp, DefaultPan);
         }
+
+        private void DisconnectMachineInstances(MachineCore source, MachineCore destination)
+        {
+            reBuzzCore.SongCore.DisconnectMachines(new MachineConnectionCore(source, 0, destination, 0, DefaultAmp,
+                DefaultPan, dispatcher));
+        }
+
+        private MachineCore SongCoreMachine(string name)
+        {
+            return reBuzzCore.SongCore.MachinesList.Single(m => m.Name == name);
+        }
+
     }
 }

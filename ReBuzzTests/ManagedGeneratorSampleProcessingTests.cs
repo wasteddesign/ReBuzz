@@ -56,7 +56,8 @@ namespace ReBuzzTests
         [Test]
         public void OutputsASampleWhichIsASumFromAllMachinesTimesMasterVolume()
         {
-            const int masterVolume = 100;
+            const int masterVolume1 = 100;
+            const int masterVolume2 = 50;
             var synth1Sample = new Sample(5,10);
             var synth2Sample = new Sample(2,5);
             using var driver = new Driver();
@@ -66,22 +67,18 @@ namespace ReBuzzTests
         
             driver.Start();
 
-            driver.SetMasterVolumeTo(masterVolume);
-
             driver.InsertMachineInstanceConnectedToMasterFor(synth1Controller);
             driver.InsertMachineInstanceConnectedToMasterFor(synth2Controller);
             driver.ExecuteMachineCommand(synth1Controller.SetStereoSampleValueTo(synth1Sample));
             driver.ExecuteMachineCommand(synth2Controller.SetStereoSampleValueTo(synth2Sample));
+            
+            driver.SetMasterVolumeTo(masterVolume1);
+            var samples1 = driver.ReadStereoSamples(1);
+            samples1.AssertAreEqualTo([ExpectedSampleValue.From(synth1Sample + synth2Sample, masterVolume1)]);
 
-            var samples = driver.ReadStereoSamples(1);
-
-            samples.AssertAreEqualTo([ExpectedSampleValue.From(synth1Sample + synth2Sample, masterVolume)]);
+            driver.SetMasterVolumeTo(masterVolume2);
+            var samples2 = driver.ReadStereoSamples(1);
+            samples2.AssertAreEqualTo([ExpectedSampleValue.From(synth1Sample + synth2Sample, masterVolume2)]);
         }
-
-        //bug two reads one after another
-        //bug connecting additional machine
-        //bug disconnecting a machine
-        //bug removing a machine
-        //bug connecting through an effect
     }
 }

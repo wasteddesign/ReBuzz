@@ -16,8 +16,8 @@ namespace ReBuzzTests.Automation.TestMachinesControllers
         public TestMachineInstanceCommand SetStereoSampleValueToInputValue()
             => ConfigureSampleTransformCommand();
 
-        public TestMachineInstanceCommand SetStereoSampleValueToInputValueMultipliedBy(Func<float, float, (float L, float R)> transform)
-            => new(this, "ConfigureSampleTransform", transform);
+        public TestMachineInstanceCommand SetStereoSampleValueToInputValueMultipliedBy(int multiplier)
+            => new(this, "ConfigureSampleTransform", (float l, float r) => (l * multiplier, r * multiplier));
 
         private TestMachineInstanceCommand ConfigureSampleTransformCommand() 
             => new(this, "ConfigureSampleTransform", (float l, float r) => (l, r));
