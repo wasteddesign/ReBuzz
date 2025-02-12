@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Xml.Linq;
 
 namespace ReBuzz.FileOps
 {
@@ -41,7 +42,8 @@ namespace ReBuzz.FileOps
         Dictionary<SectionType, Section> sections;
         Dictionary<string, SubSection> subSections;
         readonly List<MachineConnectionCore> connections;
-        readonly Dictionary<string, string> importDictionary = new Dictionary<string, string>();
+        readonly Dictionary<string, string> importDictionaryAll = new Dictionary<string, string>();
+        readonly Dictionary<string, string> importDictionaryNonHidden = new Dictionary<string, string>();
         readonly Dictionary<string, bool> builtInPeDictionary = new Dictionary<string, bool>();
 
         public event Action<FileEventType, string, object> FileEvent;
@@ -135,7 +137,7 @@ namespace ReBuzz.FileOps
                     }
 
                     // Notify import finished and machine name changes
-                    buzz.MachineManager.ImportFinished(machine, importDictionary);
+                    buzz.MachineManager.ImportFinished(machine, importDictionaryNonHidden);
                 }
 
                 EndFileOperation(import);
@@ -420,21 +422,27 @@ namespace ReBuzz.FileOps
                     {
                         // Update Position
                         machineProto.Position = new Tuple<float, float>(x, y);
+
                         // Update tpb & bpm immediately if machines read these during creation
-                        buzz.BPM = machineProto.ParameterGroups[1].Parameters[1].GetValue(0);
-                        buzz.TPB = machineProto.ParameterGroups[1].Parameters[2].GetValue(0);
+                        var masterGlobals = machineProto.ParameterGroups[1];
+                        buzz.MasterVolume = 1.0 - (masterGlobals.Parameters[0].GetValue(0) / (double)masterGlobals.Parameters[0].MaxValue);
+                        buzz.BPM = masterGlobals.Parameters[1].GetValue(0);
+                        buzz.TPB = masterGlobals.Parameters[2].GetValue(0);
                     }
                     machines[j] = machineProto;
                 }
                 else
                 {
                     // Ignore?: Don't call Init for native machines yet. Wait until all machines are loaded and then call init. Control machines might need machine info.
-                    var machineNew = buzz.MachineManager.CreateMachine(machineDLL.Name, machineDLL.Path, null, data, tracks, x, y, machineProto.Hidden, name, true);
+                    var machineNew = buzz.MachineManager.CreateMachine(machineDLL.Name, machineDLL.Path, null, data, tracks, x, y, machineProto.Hidden, name, false);
 
                     // Saved machine parameter count/indexes might be a different from the machine that is currently available for ReBuzz. Create parameter mappings
                     RemapLoadedMachineParameterIndex(machineNew, machineProto);
 
-                    dictInitData[machineNew] = new MachineInitData() { data = data, tracks = tracks };
+                    if (!machineNew.DLL.IsManaged)
+                    {
+                        dictInitData[machineNew] = new MachineInitData() { data = data, tracks = tracks };
+                    }
 
                     // Copy stuff from proto to real. ToDo: Clean this up;
                     machineNew.AttributesList = machineProto.AttributesList;
@@ -457,18 +465,34 @@ namespace ReBuzz.FileOps
                     }
                     machines[j] = machineNew;
 
-                    // Imported machines might get new names, so machines need to update their data
-                    importDictionary[name] = machineNew.Name;
-
                     if (import)
                     {
+                        // Imported machines might get new names, so machines need to update their data
+                        importDictionaryAll[name] = machineNew.Name;
+
                         if (!machineNew.Hidden)
                         {
                             // Keep track of machines imported, so we can undo them
                             importAction.AddMachine(machineNew);
+
+                            importDictionaryNonHidden[name] = machineNew.Name;
                         }
                     }
                 }
+            }
+
+            // Native control machines need to have all machines "visible" before calling init
+            foreach (var kvMachine in dictInitData)
+            {
+                var machine = kvMachine.Key;
+
+                FileOpsEvent(FileEventType.StatusUpdate, "Init Machine: " + machine.Name + "...");
+
+                // Update machine names in ReBuzzEngine
+                buzz.MachineManager.RemapMachineNames(machine, importDictionaryNonHidden);
+
+                var val = kvMachine.Value;
+                buzz.MachineManager.CallInit(machine, val.data, val.tracks);
             }
         }
 
@@ -1382,7 +1406,7 @@ namespace ReBuzz.FileOps
                             break;
                         }
 
-                        name = importDictionary.ContainsKey(name) ? importDictionary[name] : name;
+                        name = importDictionaryAll.ContainsKey(name) ? importDictionaryAll[name] : name;
 
                         int flags = ReadInt(fs);
                         int value2 = ReadInt(fs);

@@ -19,6 +19,7 @@ namespace BuzzGUI.PianoKeyboard
 
         bool sendPitchWheel = true;
         bool sendModWheel = true;
+        bool sendAftertouch = true;
 
         public KeyboardWindow(IBuzz buzz)
         {
@@ -55,6 +56,11 @@ namespace BuzzGUI.PianoKeyboard
             Grid.SetRow(pianoKeyboard, 1);
             Grid.SetColumn(pianoKeyboard, 2);
             grid.Children.Add(pianoKeyboard);
+
+            pianoKeyboard.OnAftertouch += (val) =>
+            {
+                channelAftertouchSlider.Value = val;
+            };
 
             pianoKeyboard.OnPianoKeyDown += (key) =>
             {
@@ -158,6 +164,15 @@ namespace BuzzGUI.PianoKeyboard
 
             velocitySlider.ValueChanged += (sender, e) => { velocity = (int)velocitySlider.Value; };
 
+            channelAftertouchSlider.ValueChanged += (sender, e) =>
+            {
+                if (sendAftertouch)
+                {
+                    int v = (int)channelAftertouchSlider.Value;
+                    buzz.SendMIDIInput(MIDI.Encode(MIDI.ChannelAftertouch, v, 0));
+                }
+            };
+
             allSoundOff.Click += (sender, e) => { buzz.SendMIDIInput(MIDI.Encode(MIDI.ControlChange, MIDI.CMMAllSoundOff, 0)); };
             allNotesOff.Click += (sender, e) => { buzz.SendMIDIInput(MIDI.Encode(MIDI.ControlChange, MIDI.CMMAllNotesOff, 0)); };
 
@@ -215,7 +230,6 @@ namespace BuzzGUI.PianoKeyboard
 
         int velocity = 100;
 
-
         void MIDIInput(int mididata)
         {
             int status = mididata & 0xff;
@@ -256,7 +270,6 @@ namespace BuzzGUI.PianoKeyboard
             }
             else if (status == MIDI.PitchWheel)
             {
-
                 if (!pitchWheel.IsMouseCaptureWithin)
                 {
                     int v = (data1 | (data2 << 7)) - 8192;
@@ -269,8 +282,15 @@ namespace BuzzGUI.PianoKeyboard
                 }
 
             }
-
+            else if (status == MIDI.ChannelAftertouch)
+            {
+                if (data1 != channelAftertouchSlider.Value)
+                {
+                    sendPitchWheel = false;
+                    channelAftertouchSlider.Value = data1;
+                    sendPitchWheel = true;
+                }
+            }
         }
-
     }
 }

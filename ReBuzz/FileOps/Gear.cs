@@ -89,6 +89,12 @@ namespace ReBuzz.FileOps
 
             Machine = thisMachineList.ToArray();
         }
+
+        internal bool IsBlacklisted(string libName)
+        {
+            var m = Machine.FirstOrDefault(m => m.Name == libName && m.Blacklist=="True");
+            return m != null ? true : false;
+        }
     }
 
 

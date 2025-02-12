@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Channels;
 
 namespace BuzzGUI.Common
 {
@@ -9,6 +10,7 @@ namespace BuzzGUI.Common
         public const int NoteOff = 0x80;
         public const int ControlChange = 0xB0;
         public const int PitchWheel = 0xE0;
+        public const int ChannelAftertouch = 0xD0;
 
         public const int CCBankSelect = 0;
         public const int CCModWheel = 1;
