@@ -29,7 +29,6 @@ namespace ReBuzz.Core
     {
         public static long machineHostId = 1;
         public readonly Lock workLock = new();
-        //internal int level;
 
         IMachineGraph graph;
         public IMachineGraph Graph { get => graph; set => graph = value; }
@@ -56,7 +55,6 @@ namespace ReBuzz.Core
                             connections.Add(input);
                 }
                 return connections.AsReadOnly();
-                //return inputs.Where(x => x.Source.OutputChannelCount > 0 && !(x.Source as MachineCore).Hidden).ToReadOnlyCollection();
             }
         }
 
@@ -74,7 +72,6 @@ namespace ReBuzz.Core
                         connections.Add(output);
                 }
                 return connections.AsReadOnly();
-                //return outputs.Where(x => x.Destination.InputChannelCount > 0 && !(x.Destination as MachineCore).Hidden).ToReadOnlyCollection();
             }
         }
 
@@ -89,36 +86,32 @@ namespace ReBuzz.Core
             get => inputChannelCount;
             set
             {
-                //if (inputChannelCount != value)
-                //lock (ReBuzzCore.AudioLock)
+                inputChannelNames.Clear();
+                if (graph != null)
                 {
-                    inputChannelNames.Clear();
-                    if (graph != null)
-                    {
-                        var bc = graph.Buzz as ReBuzzCore;
+                    var bc = graph.Buzz as ReBuzzCore;
 
-                        inputChannelCount = value;
+                    inputChannelCount = value;
 
-                        for (int i = 0; i < inputChannelCount; i++)
-                        {
-                            // Get channel name
-                            string name = bc.MachineManager.GetChannelName(this, true, i);
-                            inputChannelNames[i] = name;
-                        }
-                    }
-                    else
+                    for (int i = 0; i < inputChannelCount; i++)
                     {
-                        inputChannelCount = value;
+                        // Get channel name
+                        string name = bc.MachineManager.GetChannelName(this, true, i);
+                        inputChannelNames[i] = name;
                     }
-
-                    // Update inputs
-                    foreach (var input in inputs)
-                    {
-                        if (input.DestinationChannel >= inputChannelCount)
-                            (input as MachineConnectionCore).DestinationChannel = 0;
-                    }
-                    PropertyChanged.Raise(this, "InputChannelCount");
                 }
+                else
+                {
+                    inputChannelCount = value;
+                }
+
+                // Update inputs
+                foreach (var input in inputs)
+                {
+                    if (input.DestinationChannel >= inputChannelCount)
+                        (input as MachineConnectionCore).DestinationChannel = 0;
+                }
+                PropertyChanged.Raise(this, "InputChannelCount");
             }
         }
 
@@ -172,12 +165,6 @@ namespace ReBuzz.Core
             {
                 string oldName = name;
                 name = value;
-                /*
-                dispatcher.BeginInvoke((Action)(() =>
-                {
-                    PropertyChanged?.Raise(this, "Name");
-                }));
-                */
                 PropertyChanged.Raise(this, "Name");
                 var bc = graph.Buzz as ReBuzzCore;
                 foreach (var o in outputs)
@@ -310,11 +297,7 @@ namespace ReBuzz.Core
                 if (MachineView.StaticSettings.ShowEngineThreads)
                 {
                     if (newValue != oldValue)
-                        //dispatcher.BeginInvoke((Action)(() =>
-                        //{
-
-                        PropertyChanged?.Raise(this, "LastEngineThread");
-                    //}));
+                    PropertyChanged?.Raise(this, "LastEngineThread");
                 }
             }
         }
@@ -347,7 +330,15 @@ namespace ReBuzz.Core
         }
 
         int baseOctave = 4;
-        public int BaseOctave { get => baseOctave; set => baseOctave = value; }
+        public int BaseOctave { get => baseOctave;
+            set
+            {
+                baseOctave = value;
+                baseOctave = baseOctave < 0 ? 0 : baseOctave;
+                baseOctave = baseOctave > 9 ? 9 : baseOctave;
+                PropertyChanged.Raise(this, "BaseOctave");
+            }
+        }
 
         byte[] data = null; 
 
@@ -412,9 +403,6 @@ namespace ReBuzz.Core
                 }
                 if (trackCount != value)
                 {
-                    //var bc = graph.Buzz as ReBuzzCore;
-                    //SetMachineTrackCount(value);
-
                     trackCount = value;
                     if (parameterGroups.Count == 3)
                     {
@@ -518,10 +506,6 @@ namespace ReBuzz.Core
 
         public void CreatePattern(string name, int length)
         {
-            // Modern Pattern Editor needs at least one Global or Track parameter
-            //if (ParameterGroups[1].Parameters.Count + ParameterGroups[2].Parameters.Count == 0)
-            //    return;
-
             // Don't call these from "Work()"
             lock (ReBuzzCore.AudioLock)
             {
@@ -564,19 +548,16 @@ namespace ReBuzz.Core
 
         public void RenamePattern(IPattern p, string newName)
         {
-            //lock (ReBuzzCore.AudioLock)
+            if (p != null)
             {
-                if (p != null)
-                {
-                    (p as PatternCore).Name = newName;
-                    PropertyChanged?.Raise(this, "Patterns");
+                (p as PatternCore).Name = newName;
+                PropertyChanged?.Raise(this, "Patterns");
 
-                    foreach (var sequence in Global.Buzz.Song.Sequences)
+                foreach (var sequence in Global.Buzz.Song.Sequences)
+                {
+                    if (sequence.Events.Values.FirstOrDefault(e => e.Pattern == p) != null)
                     {
-                        if (sequence.Events.Values.FirstOrDefault(e => e.Pattern == p) != null)
-                        {
-                            (sequence as SequenceCore).InvokeEvents();
-                        }
+                        (sequence as SequenceCore).InvokeEvents();
                     }
                 }
             }
@@ -1156,19 +1137,10 @@ namespace ReBuzz.Core
                 string name = stringMenuCommandPath.Last().Trim();
 
                 MenuItemCore finalMenuCommand = null;
-                /*
-                var di = buzz.MachineDB.DictLibRef.FirstOrDefault(x => x.Value.InstrumentFullName == comnds[i]);
-                if (di.Value.InstrumentFullName != null)
-                {
-                    int id = di.Key;
-                    finalMenuCommand = new MenuItemCore() { Command = MachineMenuPluginCommand, CommandParameter = id, Text = name, IsEnabled = true };
-                }
-                else
-                */
-                {
-                    // Is the CommandParameter correct?
-                    finalMenuCommand = new MenuItemCore() { Command = MachineMenuCommand, CommandParameter = index, Text = name, IsEnabled = true };
-                }
+
+                // Is the CommandParameter correct?
+                finalMenuCommand = new MenuItemCore() { Command = MachineMenuCommand, CommandParameter = index, Text = name, IsEnabled = true };
+
                 index++;
                 subMenuItem.ChildrenList.Add(finalMenuCommand);
             }

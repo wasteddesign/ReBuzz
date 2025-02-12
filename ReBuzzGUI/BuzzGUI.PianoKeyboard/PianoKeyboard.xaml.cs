@@ -186,6 +186,7 @@ namespace BuzzGUI.PianoKeyboard
 
             public event PianoKeyDelegate OnPianoKeyDown;
             public event PianoKeyDelegate OnPianoKeyUp;
+            public event Action<int> OnAftertouch;
 
             int GetKeyAtPoint(Point p)
             {
@@ -218,10 +219,12 @@ namespace BuzzGUI.PianoKeyboard
             }
 
             bool dragging = false;
+            private Point mouseInitialPosition;
             int lastKey = -1;
 
             protected override void OnMouseLeftButtonDown(System.Windows.Input.MouseButtonEventArgs e)
             {
+                mouseInitialPosition = e.GetPosition(this);
                 lastKey = GetKeyAtPoint(e.GetPosition(this));
                 if (lastKey == -1)
                     return;
@@ -237,8 +240,16 @@ namespace BuzzGUI.PianoKeyboard
             {
                 if (dragging)
                 {
+                    // Aftertouch
+                    var newPos = e.GetPosition(this);
+                    var y = -(newPos.Y - mouseInitialPosition.Y) - 30;
+                    if (y < 0) y = 0;
+                    if (y > 127) y = 127;
+                    OnAftertouch?.Invoke((int)y);
+
                     int key = GetKeyAtPoint(e.GetPosition(this));
-                    if (key != lastKey)
+                    // Control key pressed keeps current presend piano key
+                    if (key != lastKey && Keyboard.Modifiers != ModifierKeys.Control)
                     {
                         if (lastKey != -1) OnPianoKeyUp(lastKey);
 
@@ -257,10 +268,9 @@ namespace BuzzGUI.PianoKeyboard
                     if (lastKey != -1) OnPianoKeyUp(lastKey);
                     dragging = false;
                     ReleaseMouseCapture();
+                    OnAftertouch.Invoke(0);
                 }
-
             }
-
 
             int baseOctave;
 
@@ -343,6 +353,7 @@ namespace BuzzGUI.PianoKeyboard
 
         public event PianoKeyDelegate OnPianoKeyDown;
         public event PianoKeyDelegate OnPianoKeyUp;
+        public event Action<int> OnAftertouch;
 
         public PianoKeyboard(KeyboardWindow ped)
         {
@@ -354,6 +365,11 @@ namespace BuzzGUI.PianoKeyboard
             kbv = new KeyboardVisual(ped, dim);
             kbv.OnPianoKeyDown += new PianoKeyDelegate(kbv_OnKeyDown);
             kbv.OnPianoKeyUp += new PianoKeyDelegate(kbv_OnKeyUp);
+            kbv.OnAftertouch += (val) =>
+            {
+                OnAftertouch?.Invoke(val);
+            };
+
             grid.Children.Add(kbv);
 
             activeNotes = new ActiveNotePanel(dim);

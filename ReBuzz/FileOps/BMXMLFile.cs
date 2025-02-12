@@ -309,6 +309,8 @@ namespace ReBuzz.FileOps
             {
                 var machine = kvMachine.Key;
 
+                FileOpsEvent(FileEventType.StatusUpdate, "Init Machine: " + machine.Name + "...");
+
                 // Update machine names in ReBuzzEngine
                 buzz.MachineManager.RemapMachineNames(machine, importDictionaryNonHidden);
 

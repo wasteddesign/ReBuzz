@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Xml.Linq;
 
 namespace ReBuzz.FileOps
 {
@@ -484,6 +485,8 @@ namespace ReBuzz.FileOps
             foreach (var kvMachine in dictInitData)
             {
                 var machine = kvMachine.Key;
+
+                FileOpsEvent(FileEventType.StatusUpdate, "Init Machine: " + machine.Name + "...");
 
                 // Update machine names in ReBuzzEngine
                 buzz.MachineManager.RemapMachineNames(machine, importDictionaryNonHidden);

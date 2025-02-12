@@ -56,7 +56,20 @@ In order to prevent pollution of the source tree(s), **all** intermediate files 
    <Target Name="RemoveEmptyObj" AfterTargets="AfterBuild">
          <Exec Command="IF EXIST obj rmdir obj" />
    </Target>
-     ```
+
+## Notes
+
+* To speed up debugging in Visual Studio, set Data Binding Off under Tools -> Options -> Debugging -> Output Window -> WPF Trace Settings
+* Set an exception for ReBuzz.exe process in Windows Defender if starting up ReBuzz takes too long.
+
+ReBuzz uses multi-process architecture. To debug a native machine that is loaded by ReBuzzEngine in Visual Studio you can for example:
+1. Add a break point in MachineManager.CreateNativeMachine
+https://github.com/wasteddesign/ReBuzz/blob/1243cc9ef40e4c25804c462d290d511c02b37054/ReBuzz/MachineManagement/MachineManager.cs#L236
+3. Add a break point to ReBuzzEngine.cpp IPC::UILoadLibrary
+https://github.com/wasteddesign/ReBuzz/blob/1243cc9ef40e4c25804c462d290d511c02b37054/ReBuzzEngine/rebe/ReBuzzEngine.cpp#L144
+4. Start ReBuzz debug session
+5. When break point is hit, do _Attach to Process..._ and find _ReBuzzEngine_
+6. Continue debugging
 
 ## How can I help?
 All the basic functionality is implemented but there many areas to improve. In general, contributions are needed in every part of the software, but here are few items to look into:
@@ -65,7 +78,7 @@ All the basic functionality is implemented but there many areas to improve. In g
 - [ ] Improve stability, fix bugs and issues
 - [ ] Cleanup code and architecture
 - [ ] Add comments and documentation
-- [ ] Improve Audio wave handling (Wavetable)
+- [x] Improve Audio wave handling (Wavetable)
 - [ ] Improve file handling to support older songs
 - [ ] Reduce latency, optimize code
 

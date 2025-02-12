@@ -18,7 +18,7 @@ namespace ReBuzz.FileOps
     internal interface IMachineDLLScanner
     {
         Dictionary<string, MachineDLL> GetMachineDLLs(ReBuzzCore buzz, string buzzPath);
-        void AddMachineDllsToDictionary(XMLMachineDLL[] xMLMachineDLLs, Dictionary<string, MachineDLL> md);
+        void AddMachineDllsToDictionary(ReBuzzCore buzz, XMLMachineDLL[] xMLMachineDLLs, Dictionary<string, MachineDLL> md);
         XMLMachineDLL ValidateDll(ReBuzzCore buzz, string libName, string path, string buzzPath);
     }
 
@@ -80,55 +80,58 @@ namespace ReBuzz.FileOps
             Dictionary<string, MachineDLL> md = new Dictionary<string, MachineDLL>();
             try
             {
-                AddMachineDllsToDictionary(xmlMachines.EffectMachineDLLs, md);
-                AddMachineDllsToDictionary(xmlMachines.GeneratorMachineDLLs, md);
+                AddMachineDllsToDictionary(buzz, xmlMachines.EffectMachineDLLs, md);
+                AddMachineDllsToDictionary(buzz, xmlMachines.GeneratorMachineDLLs, md);
             }
             catch (Exception)
             {
                 //MessageBox.Show("AddMachineDllsToDictionary error:\n\n" + e.ToString(), "Machine DLL Cache Load Error", MessageBoxButton.OK);
                 xmlMachines = RescanMachineDLLs(buzz, buzzPath, dispatcher);
                 md.Clear();
-                AddMachineDllsToDictionary(xmlMachines.EffectMachineDLLs, md);
-                AddMachineDllsToDictionary(xmlMachines.GeneratorMachineDLLs, md);
+                AddMachineDllsToDictionary(buzz, xmlMachines.EffectMachineDLLs, md);
+                AddMachineDllsToDictionary(buzz, xmlMachines.GeneratorMachineDLLs, md);
             }
             return md;
         }
 
-        public void AddMachineDllsToDictionary(XMLMachineDLL[] xMLMachineDLLs, Dictionary<string, MachineDLL> md)
+        public void AddMachineDllsToDictionary(ReBuzzCore buzz, XMLMachineDLL[] xMLMachineDLLs, Dictionary<string, MachineDLL> md)
         {
             foreach (var xmac in xMLMachineDLLs)
             {
-                MachineDLL mDll = new MachineDLL();
-
-                mDll.Name = xmac.Name;
-                mDll.Path = xmac.Path;
-                mDll.IsManaged = xmac.IsManaged;
-                mDll.Is64Bit = xmac.Is64Bit;
-                mDll.IsOutOfProcess = (IntPtr.Size == 4 && xmac.Is64Bit) || (IntPtr.Size == 8 && !xmac.Is64Bit);
-
-                using (var fs = File.OpenRead(mDll.Path))
+                if (!buzz.Gear.IsBlacklisted(xmac.Name))
                 {
-                    mDll.SHA1Hash = string.Join("", new SHA1CryptoServiceProvider().ComputeHash(fs).Select(b => b.ToString("X2")));
-                }
+                    MachineDLL mDll = new MachineDLL();
 
-                var mi = new MachineInfo();
-                var xmi = xmac.MachineInfo;
+                    mDll.Name = xmac.Name;
+                    mDll.Path = xmac.Path;
+                    mDll.IsManaged = xmac.IsManaged;
+                    mDll.Is64Bit = xmac.Is64Bit;
+                    mDll.IsOutOfProcess = (IntPtr.Size == 4 && xmac.Is64Bit) || (IntPtr.Size == 8 && !xmac.Is64Bit);
 
-                mi.Type = xmi.Type;
-                mi.Version = xmi.Version;
-                mi.InternalVersion = xmi.InternalVersion;
-                mi.Flags = xmi.Flags;
-                mi.MinTracks = xmi.MinTracks;
-                mi.MaxTracks = xmi.MaxTracks;
-                mi.Name = xmi.Name;
-                mi.ShortName = xmi.ShortName;
-                mi.Author = xmi.Author;
-                mDll.MachineInfo = mi;
+                    using (var fs = File.OpenRead(mDll.Path))
+                    {
+                        mDll.SHA1Hash = string.Join("", new SHA1CryptoServiceProvider().ComputeHash(fs).Select(b => b.ToString("X2")));
+                    }
 
-                if (!(mi.Flags.HasFlag(MachineInfoFlags.PATTERN_EDITOR) && !mDll.IsManaged))
-                {
-                    // 64bit machines overwrite 32bits...
-                    md[mDll.Name] = mDll;
+                    var mi = new MachineInfo();
+                    var xmi = xmac.MachineInfo;
+
+                    mi.Type = xmi.Type;
+                    mi.Version = xmi.Version;
+                    mi.InternalVersion = xmi.InternalVersion;
+                    mi.Flags = xmi.Flags;
+                    mi.MinTracks = xmi.MinTracks;
+                    mi.MaxTracks = xmi.MaxTracks;
+                    mi.Name = xmi.Name;
+                    mi.ShortName = xmi.ShortName;
+                    mi.Author = xmi.Author;
+                    mDll.MachineInfo = mi;
+
+                    // Ignore native editors
+                    if (!(mi.Flags.HasFlag(MachineInfoFlags.PATTERN_EDITOR) && !mDll.IsManaged))
+                    {
+                        md[mDll.Name] = mDll;
+                    }
                 }
             }
         }
@@ -321,7 +324,6 @@ namespace ReBuzz.FileOps
                     machineInfo.Author = mi.Author;
                     mDll.MachineInfo = machineInfo;
 
-                    //if (!(machineInfo.Flags.HasFlag(MachineInfoFlags.PATTERN_EDITOR) && !mDll.IsManaged))
                     return mDll;
                 }
             }
@@ -352,7 +354,6 @@ namespace ReBuzz.FileOps
                     machineInfo.Author = mi.Author;
                     mDll.MachineInfo = machineInfo;
 
-                    //if (!(machineInfo.Flags.HasFlag(MachineInfoFlags.PATTERN_EDITOR) && !mDll.IsManaged))
                     return mDll;
                 }
             }
@@ -367,7 +368,11 @@ namespace ReBuzz.FileOps
             NativeMachine.NativeMachineHost nativeMachineHost64 = new NativeMachine.NativeMachineHost("ScanDLLs64", buzzPath, dispatcher);
             nativeMachineHost64.InitHost(buzz, true);
 
-            return ValidateDll(buzz, libName, path, nativeMachineHost, nativeMachineHost64, buzzPath, dispatcher);
+            var ret = ValidateDll(buzz, libName, path, nativeMachineHost, nativeMachineHost64, buzzPath, dispatcher);
+            nativeMachineHost.Dispose();
+            nativeMachineHost64.Dispose();
+
+            return ret;
         }
 
         public static List<FileInfo> GetDllList(string filepath)
