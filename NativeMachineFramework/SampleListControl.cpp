@@ -309,6 +309,9 @@ namespace ReBuzz
                 return;
             }
 
+            IWave^ currentWav = m_waveManager->GetSelectedWave();
+            int selectedWavIdx = m_comboControl->SelectedIndex;
+
             m_comboControl->Items->Clear();
             m_waves->Clear();
 
@@ -324,10 +327,26 @@ namespace ReBuzz
                     System::String^ text = (wave->Index + 1).ToString();
                     text += " : " + wave->Name;
 
+                    if ((currentWav != nullptr) && (wave == currentWav))
+                    {
+                        selectedWavIdx = m_comboControl->Items->Count;
+                    }
+
                     int index = m_comboControl->Items->Add(text);
                     m_waves->Add(index, wave);
                 }
-            } 
+            }
+
+            if (selectedWavIdx < 0)
+            {
+                //Just pick the first one
+                selectedWavIdx = 0;
+            }
+
+            if ((selectedWavIdx >= 0) && (selectedWavIdx < m_comboControl->Items->Count))
+            {
+                m_comboControl->SelectedIndex = selectedWavIdx;
+            }
         }
     }
 }
