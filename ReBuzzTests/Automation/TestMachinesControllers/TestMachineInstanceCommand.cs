@@ -4,6 +4,10 @@ using System.Collections.Generic;
 
 namespace ReBuzzTests.Automation.TestMachinesControllers
 {
+    /// <summary>
+    /// A test command that is passed to the driver
+    /// and driver executes it within the context it holds.
+    /// </summary>
     public class TestMachineInstanceCommand(DynamicMachineController controller, string commandName, object parameter)
     {
         public void Execute(

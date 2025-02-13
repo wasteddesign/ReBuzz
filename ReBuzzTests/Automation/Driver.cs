@@ -30,7 +30,14 @@ namespace ReBuzzTests.Automation
     /// </summary>
     public class Driver : IDisposable, IInitializationObserver
     {
+        /// <summary>
+        /// Taken from the production code
+        /// </summary>
         private const int DefaultAmp = 0x4000;
+
+        /// <summary>
+        /// Taken from the production code
+        /// </summary>
         private const int DefaultPan = 0x4000;
 
         /// <summary>
@@ -80,7 +87,16 @@ namespace ReBuzzTests.Automation
         private readonly FakeInMemoryRegistry fakeRegistry = new();
         private readonly FakeDispatcher dispatcher = new();
         private readonly FakeMachineDLLScanner fakeMachineDllScanner;
+
+        /// <summary>
+        /// Actions to add machines to the fake machine DLL scanner.
+        /// It is done this way because the machine DLL scanner requires the ReBuzzCore instance
+        /// to add machines and ReBuzzCore is available only after the driver is started.
+        /// So instead of adding machines directly, we add actions that will add them
+        /// when the driver is started.
+        /// </summary>
         private List<Action<FakeMachineDLLScanner, ReBuzzCore>> addMachineActions = [];
+        
         private Dictionary<string, MachineCore> addedGeneratorInstances = new();
 
         public Driver()

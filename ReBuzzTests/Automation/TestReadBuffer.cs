@@ -7,6 +7,11 @@ using System.Linq;
 
 namespace ReBuzzTests.Automation
 {
+    /// <summary>
+    /// An implementation of Assertion Object pattern.
+    /// represents buffer values read from machines and
+    /// allows for assertions on them.
+    /// </summary>
     public class TestReadBuffer(int countRead, float[] buffer)
     {
         public void AssertContainStereoSilence(int count)

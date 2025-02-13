@@ -3,6 +3,9 @@ using ReBuzzTests.Automation.TestMachines;
 
 namespace ReBuzzTests.Automation.TestMachinesControllers
 {
+    /// <summary>
+    /// Controller for the fake Synth machine.
+    /// </summary>
     public class SynthController(string instanceName)
         : DynamicMachineController(MachineName, instanceName)
     {
@@ -13,6 +16,9 @@ namespace ReBuzzTests.Automation.TestMachinesControllers
 
         public static ITestMachineInfo Info => SynthInfo.Instance;
 
+        /// <summary>
+        /// Command to set the returned stereo sample value to the passes constant value.
+        /// </summary>
         public TestMachineInstanceCommand SetStereoSampleValueTo(Sample sampleToReturn)
             => new(this, "ConfigureSampleSource", () => (sampleToReturn.L, sampleToReturn.R));
     }

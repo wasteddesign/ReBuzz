@@ -13,7 +13,12 @@ using SimpleCommand = AttachedCommandBehavior.SimpleCommand;
 
 namespace ReBuzzTests.Automation.TestMachines
 {
-
+    /// <summary>
+    /// This is a stub generator that could be set up from the tests
+    /// using its menu item. During the test this file is compiled
+    /// using the DynamicCompiler into a DLL which is loaded
+    /// by the ReBuzz code.
+    /// </summary>
     [MachineDecl(Name = "Synth", ShortName = "Synth", Author = "WDE", MaxTracks = 1, InputCount = 0,
         OutputCount = 1)]
     public class Synth(IBuzzMachineHost host) : IBuzzMachine, INotifyPropertyChanged
