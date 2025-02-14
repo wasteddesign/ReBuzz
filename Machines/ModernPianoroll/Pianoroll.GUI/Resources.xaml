@@ -1,0 +1,130 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"                    
+    xmlns:pr="clr-namespace:Pianoroll.GUI">
+
+  <LinearGradientBrush x:Key="BackgroundBrush" StartPoint="0,0" EndPoint="1,0" po:Freeze="True">
+    <GradientStop Color="#E5E5D7" Offset="0.0" />
+    <GradientStop Color="#F7F7F3" Offset="1.0" />
+  </LinearGradientBrush>
+
+
+  <ImageBrush x:Key="PatternEditorBackgroundBrush" pr:Parallax.ScrollSpeed="0.75" ImageSource="gfx/grey104.png" Viewport="0,0,1,1" ViewportUnits="Absolute" TileMode="Tile"/>
+
+  <!--
+  
+  <LinearGradientBrush x:Key="PatternEditorBackgroundBrush" StartPoint="0,0" EndPoint="0.05,1">
+    <GradientStop Color="#BA9" Offset="0.0"/>
+    <GradientStop Color="#765" Offset="1.0"/>
+  </LinearGradientBrush>
+-->
+
+  <SolidColorBrush x:Key="NoteBrush" Color="#E6EDF4" po:Freeze="True"/>
+  <SolidColorBrush x:Key="NoteBorderBrush" Color="#000000" po:Freeze="True"/>
+  <SolidColorBrush x:Key="NoteHighlightBrush" Color="#FFFFFF" po:Freeze="True"/>
+  <SolidColorBrush x:Key="NoteShadowBrush" Color="#A5AAAF" po:Freeze="True"/>
+
+  <SolidColorBrush x:Key="SelNoteBrush" Color="#FFBABD" po:Freeze="True"/>
+  <SolidColorBrush x:Key="SelNoteBorderBrush" Color="#000000" po:Freeze="True"/>
+  <SolidColorBrush x:Key="SelNoteHighlightBrush" Color="#FFFFFF" po:Freeze="True"/>
+  <SolidColorBrush x:Key="SelNoteShadowBrush" Color="#C68595" po:Freeze="True"/>
+
+  <SolidColorBrush x:Key="NewNoteBrush" Color="#FFEEDB" po:Freeze="True"/>
+  <SolidColorBrush x:Key="NewNoteBorderBrush" Color="#000000" po:Freeze="True"/>
+  <SolidColorBrush x:Key="NewNoteHighlightBrush" Color="#FFFFFF" po:Freeze="True"/>
+  <SolidColorBrush x:Key="NewNoteShadowBrush" Color="#B7AA9D" po:Freeze="True"/>
+
+  <LinearGradientBrush x:Key="WhiteKeyBrush" StartPoint="0,0" EndPoint="0,1" po:Freeze="True">
+    <GradientStop Color="White" Offset="0.0"/>
+    <GradientStop Color="#DDD" Offset="1.0"/>
+  </LinearGradientBrush>
+
+  <LinearGradientBrush x:Key="BlackKeyBrush" StartPoint="0,0" EndPoint="0.5,1" po:Freeze="True">
+    <GradientStop Color="White" Offset="0.0"/>
+    <GradientStop Color="#333"  Offset="1.0"/>
+  </LinearGradientBrush>
+
+  <!--
+  <SolidColorBrush x:Key="PatternBackgroundWhiteKeyBrush" Color="#A2C9D3" po:Freeze="True"/>
+  <SolidColorBrush x:Key="PatternBackgroundBlackKeyBrush" Color="#91B4BC" po:Freeze="True"/>
+  <SolidColorBrush x:Key="PatternBackgroundLineBrush" Color="#698187" po:Freeze="True"/>
+  -->
+
+  <!--
+  
+  <SolidColorBrush x:Key="PatternBackgroundWhiteKeyBrush" Color="#ADB7C6" po:Freeze="True"/>
+  <SolidColorBrush x:Key="PatternBackgroundBlackKeyBrush" Color="#9DA6B2" po:Freeze="True"/>
+  <SolidColorBrush x:Key="PatternBackgroundLineBrush" Color="#6E747F" po:Freeze="True"/>
+-->
+
+
+  <SolidColorBrush x:Key="PatternBackgroundWhiteKeyBrush" Color="#ADB7C6" Opacity="0.85" po:Freeze="True"/>
+  <SolidColorBrush x:Key="PatternBackgroundBlackKeyBrush" Color="#9DA6B2" Opacity="0.85" po:Freeze="True"/>
+  <SolidColorBrush x:Key="PatternBackgroundLineBrush" Color="#6E747F" Opacity="0.85" po:Freeze="True"/>
+
+  <Style x:Key="CursorStyle" TargetType="{x:Type Rectangle}">
+    <Setter Property="Height" Value="1"/>
+    <Setter Property="Fill">
+      <Setter.Value>
+        <SolidColorBrush Color="White" Opacity="0.9"/>
+      </Setter.Value>
+    </Setter>
+    
+    <Style.Triggers>
+      <DataTrigger Binding="{Binding Path=EditorMode}" Value="Play">
+        <Setter Property="Fill">
+          <Setter.Value>
+            <SolidColorBrush Color="Yellow" Opacity="0.9"/>
+          </Setter.Value>
+        </Setter>
+      </DataTrigger>
+
+      <DataTrigger Binding="{Binding Path=EditorMode}" Value="Record">
+        <Setter Property="Fill">
+          <Setter.Value>
+            <SolidColorBrush Color="Red" Opacity="0.9"/>
+          </Setter.Value>
+        </Setter>
+      </DataTrigger>
+    </Style.Triggers>
+    
+  </Style>
+
+  <SolidColorBrush x:Key="BeatNumberBackgroundBrush" Color="#9DA6B2" po:Freeze="True"/>
+  <SolidColorBrush x:Key="BeatNumberLineBrush" Color="Black" po:Freeze="True"/>
+  <SolidColorBrush x:Key="BeatNumberTextBrush" Color="Black" po:Freeze="True"/>
+  <!--
+  <SolidColorBrush x:Key="BeatNumberWindowBackgroundBrush" Color="#698187"/>
+  
+  <LinearGradientBrush x:Key="BeatNumberWindowBackgroundBrush" StartPoint="0,0" EndPoint="0.05,1" po:Freeze="True">
+    <GradientStop Color="#BA9" Offset="0.0"/>
+    <GradientStop Color="#BA9" Offset="1.0"/>
+  </LinearGradientBrush>
+-->
+
+  <SolidColorBrush x:Key="BeatNumberWindowBackgroundBrush" Color="#4A5159"/>
+
+
+  <!--
+  <SolidColorBrush x:Key="ToolbarBackgroundBrush" Color="{DynamicResource {x:Static SystemColors.ControlColorKey}}"/>
+-->
+  <LinearGradientBrush x:Key="ToolbarBackgroundBrush" StartPoint="0,0" EndPoint="1,0" po:Freeze="True">
+    <GradientStop Color="{DynamicResource {x:Static SystemColors.ControlColorKey}}" Offset="0.0"/>
+    <GradientStop Color="White" Offset="1.0"/>
+  </LinearGradientBrush>
+
+  <Style x:Key="SelectionRectangleStyle" TargetType="{x:Type Rectangle}">
+    <Setter Property="StrokeThickness" Value="1"/>
+    <Setter Property="Stroke">
+      <Setter.Value>
+        <SolidColorBrush Color="Black" Opacity="0.5" po:Freeze="True"/>
+      </Setter.Value>
+    </Setter>
+    <Setter Property="Fill">
+      <Setter.Value>
+        <SolidColorBrush Color="Blue" Opacity="0.1" po:Freeze="True"/>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+</ResourceDictionary>

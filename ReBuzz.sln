@@ -100,6 +100,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Native", "Native", "{ECA3A3
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MatildeTracker", "3rdParty\Gear\MatildeTracker.vcxproj", "{34A84216-9B9E-4372-AE1E-5B95C986B1DB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModernPianoroll", "Machines\ModernPianoroll\ModernPianoroll.csproj", "{96BBD442-E1F4-4262-AB89-8B7FEC863110}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -234,6 +236,10 @@ Global
 		{34A84216-9B9E-4372-AE1E-5B95C986B1DB}.Debug|x64.Build.0 = Debug|Win32
 		{34A84216-9B9E-4372-AE1E-5B95C986B1DB}.Release|x64.ActiveCfg = Release|Win32
 		{34A84216-9B9E-4372-AE1E-5B95C986B1DB}.Release|x64.Build.0 = Release|Win32
+		{96BBD442-E1F4-4262-AB89-8B7FEC863110}.Debug|x64.ActiveCfg = Debug|x64
+		{96BBD442-E1F4-4262-AB89-8B7FEC863110}.Debug|x64.Build.0 = Debug|x64
+		{96BBD442-E1F4-4262-AB89-8B7FEC863110}.Release|x64.ActiveCfg = Release|x64
+		{96BBD442-E1F4-4262-AB89-8B7FEC863110}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -268,6 +274,7 @@ Global
 		{831D6655-9471-48AE-AC1B-C48D92C24795} = {B94F61CC-F76C-4E3C-A94F-BB9CDF0393D3}
 		{8EDA2AAB-8F43-4956-A0C1-DDFB7281262F} = {3E0FA0F6-F319-4976-8FC2-E02A57DFF2FE}
 		{34A84216-9B9E-4372-AE1E-5B95C986B1DB} = {47576D10-8B3E-4382-B16D-B9B0A7FE477D}
+		{96BBD442-E1F4-4262-AB89-8B7FEC863110} = {47576D10-8B3E-4382-B16D-B9B0A7FE477D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A1E0287A-2CF1-4075-82E6-66EF95D320F5}
