@@ -19,7 +19,7 @@
             <Label Name="patternBoxLabel" Target="patternBox" VerticalAlignment="Center" Margin="4,0,0,0">Pattern:</Label>
             <ComboBox Name="patternBox" Margin="4,4,0,4" Height="22" Width="100" SelectedItem="{Binding SelectedMachine.SelectedPattern}" ItemsSource="{Binding SelectedMachine.Machine.Patterns}" DisplayMemberPath="Name" ToolTip="Pattern (Alt+P)"/>
             <Label Target="kbPatternEditorBox" VerticalAlignment="Center" Margin="4,0,0,0">Editor:</Label>
-            <ComboBox Name="kbPatternEditorBox" Margin="4,4,0,4" Height="22" Width="180" SelectedItem="{Binding EditorMachine}" ItemsSource="{Binding EditorMachines}" DisplayMemberPath="Name" ToolTip="Pattern Editor"/>
+            <ComboBox Name="kbPatternEditorBox" Margin="4,4,0,4" Height="22" Width="180" SelectedItem="{Binding EditorMachine}" ItemsSource="{Binding EditorMachines}" DisplayMemberPath="Info.Name" ToolTip="Pattern Editor"/>
             <Button Name="btDefThis" Margin="4,4,0,4" Padding="4,0,4,0" ToolTip="Make default for this machine" Content="Def This"></Button>
             <Button Name="btDefAll" Margin="4,4,0,4" Padding="4,0,4,0" ToolTip="Make default" Content="Def All"></Button>
         </WrapPanel>

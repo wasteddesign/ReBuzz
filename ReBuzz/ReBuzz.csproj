@@ -23,8 +23,8 @@
     <Platforms>AnyCPU;x64</Platforms>
     <UseWindowsThreadPool>true</UseWindowsThreadPool>
 	<CETCompat>false</CETCompat>
-	<IntermediateOutputPath>$(SolutionDir)build\$(Configuration)\$(Platform)\ReBuzz\$(Platform)\obj\</IntermediateOutputPath>
-	<OutputPath>$(SolutionDir)bin\$(Configuration)\$(Platform)\</OutputPath>
+	<IntermediateOutputPath>$(SolutionDir)build\$(Configuration)\$(Platform)\ReBuzz\obj</IntermediateOutputPath>
+	<OutputPath>$(SolutionDir)bin\$(Configuration)\$(Platform)</OutputPath>
   </PropertyGroup>
   
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -134,6 +134,7 @@
     <ProjectReference Include="..\ReBuzzGUI\ModernSequenceEditor.Interfaces\ModernSequenceEditor.Interfaces.csproj" />
     <ProjectReference Include="..\ReBuzzGUI\ModernSequenceEditorHorizontal\ModernSequenceEditorHorizontal.csproj" />
     <ProjectReference Include="..\ReBuzzGUI\ModernSequenceEditor\ModernSequenceEditor.csproj" />
+    <ProjectReference Include="..\ReBuzzGUI\NativeMachineFrameworkUI\NativeMachineFrameworkUI.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="NAudio">

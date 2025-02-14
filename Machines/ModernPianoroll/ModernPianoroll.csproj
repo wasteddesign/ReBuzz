@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows</TargetFramework>
+	  <Platforms>AnyCPU;x64</Platforms>
+	  <Nullable>enable</Nullable>
+		<UseWPF>true</UseWPF>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<RootNamespace>WDE.Pianoroll</RootNamespace>
+		<AssemblyName>Modern Pianoroll.NET</AssemblyName>
+	  <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+	  <OutputPath>$(SolutionDir)bin\$(Configuration)\$(Platform)\$(TargetFramework)\Gear\Generators</OutputPath>
+	  <IntermediateOutputPath>$(SolutionDir)build\$(Configuration)\$(Platform)\ModernPianoroll\obj</IntermediateOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+	  <ProjectReference Include="..\..\ReBuzzGUI\BuzzGUI.Common\BuzzGUI.Common.csproj" />
+	  <ProjectReference Include="..\..\ReBuzzGUI\BuzzGUI.Interfaces\BuzzGUI.Interfaces.csproj" />
+
+  </ItemGroup>
+
+  <Target Name="ForcePerformRestore" AfterTargets="BeforeBuild">
+	  <Exec Command="IF NOT EXIST  &quot;$(IntermediateOutputPath)project.assets.json&quot;  echo restore to $(IntermediateOutputPath)project.assets.json &amp;&amp;  dotnet restore &quot;$(ProjectName).csproj&quot;  --no-dependencies &amp;&amp; move &quot;build\$(ProjectName)\obj\*&quot; &quot;$(IntermediateOutputPath)&quot; &amp;&amp; rmdir /Q /S build	 " />
+  </Target>
+
+  <Target Name="RemoveEmptyObj" AfterTargets="AfterBuild">
+	  <Exec Command="IF EXIST obj rmdir obj" />
+  </Target>
+
+</Project>

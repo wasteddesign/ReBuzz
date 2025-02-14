@@ -1,0 +1,69 @@
+﻿<UserControl x:Class="Pianoroll.GUI.Editor"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:l="clr-namespace:Pianoroll.GUI"
+     VerticalAlignment="Stretch" HorizontalAlignment="Stretch" SnapsToDevicePixels="True" Focusable="True"
+    UseLayoutRounding="True" TextOptions.TextFormattingMode="Display">
+	
+  <Grid Name="grid" Background="{DynamicResource BackgroundBrush}" SnapsToDevicePixels="True">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="32"/>
+      <RowDefinition Height="80"/>
+      <RowDefinition Height="*"/>
+    </Grid.RowDefinitions>
+    
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="48"/>
+      <ColumnDefinition Width="*"/>
+      <ColumnDefinition Width="0"/>
+    </Grid.ColumnDefinitions>
+
+    <!--
+    <StackPanel Grid.Row="0">
+      <Rectangle HorizontalAlignment="Stretch" Fill="{StaticResource {x:Static SystemColors.ControlDarkBrushKey}}"/>
+    </StackPanel>
+    -->
+
+    <Border Grid.ColumnSpan="3" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}">
+      <Border BorderThickness="0,1,0,0" BorderBrush="{DynamicResource {x:Static SystemColors.ControlLightLightBrushKey}}">
+        <Border Background="{DynamicResource ToolbarBackgroundBrush}" BorderBrush="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" BorderThickness="0,0,0,1">
+          <StackPanel Orientation="Horizontal" Margin="4,4,4,4">
+            <TextBlock VerticalAlignment="Center">Grid</TextBlock>
+            <ComboBox Name="gridBox" Margin="8,0,0,0" Width="40" SelectedIndex="4">
+              <ComboBoxItem>off</ComboBoxItem>
+              <ComboBoxItem>1</ComboBoxItem>
+              <ComboBoxItem>2</ComboBoxItem>
+              <ComboBoxItem>3</ComboBoxItem>
+              <ComboBoxItem>4</ComboBoxItem>
+              <ComboBoxItem>5</ComboBoxItem>
+              <ComboBoxItem>6</ComboBoxItem>
+              <ComboBoxItem>7</ComboBoxItem>
+              <ComboBoxItem>8</ComboBoxItem>
+              <ComboBoxItem>9</ComboBoxItem>
+              <ComboBoxItem>10</ComboBoxItem>
+              <ComboBoxItem>11</ComboBoxItem>
+              <ComboBoxItem>12</ComboBoxItem>
+              <ComboBoxItem>13</ComboBoxItem>
+              <ComboBoxItem>14</ComboBoxItem>
+              <ComboBoxItem>15</ComboBoxItem>
+              <ComboBoxItem>16</ComboBoxItem>
+              <ComboBoxItem>17</ComboBoxItem>
+              <ComboBoxItem>18</ComboBoxItem>
+              <ComboBoxItem>19</ComboBoxItem>
+            </ComboBox>
+            <Button Margin="8,0,0,0" Width="60" Click="Import" >Import...</Button>
+            <Button Margin="8,0,0,0" Width="60" Click="ShowHelp" >Help</Button>
+            <TextBlock Name="errorText" Margin="8,0,0,0" VerticalAlignment="Center" Foreground="Red"/>
+          </StackPanel>
+          
+        </Border>
+      </Border>        
+    </Border>
+
+    <l:PianorollCtrl x:Name="pianoroll" Grid.Row="2" Grid.Column="1" SnapsToDevicePixels="True"/>
+    
+    <GridSplitter Grid.Column="1" Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Height="4" Background="Transparent" SnapsToDevicePixels="True" IsTabStop="False" />
+    <GridSplitter Grid.Column="1" Grid.RowSpan="3" VerticalAlignment="Stretch" HorizontalAlignment="Right" Width="4" Background="Transparent" SnapsToDevicePixels="True" IsTabStop="False"/>
+    
+  </Grid>
+</UserControl>

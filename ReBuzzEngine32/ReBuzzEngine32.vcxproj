@@ -67,7 +67,7 @@
     <NMakeOutput>ReBuzzEngine32.exe</NMakeOutput>
     <NMakePreprocessorDefinitions>_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
     <NMakeReBuildCommandLine>msbuild "$(SolutionDir)\ReBuzzEngine\rebe\ReBuzzEngine.vcxproj" /property:Configuration=$(Configuration) /property:Platform=Win32</NMakeReBuildCommandLine>
-    <NMakeCleanCommandLine>del "$(SolutionDir)bin\$(Configuration)\$(Platform)\net9.0-windows\bin32\$(MSBuildProjectName).*"</NMakeCleanCommandLine>
+    <NMakeCleanCommandLine>IF EXIST "$(SolutionDir)bin\$(Configuration)\$(Platform)\net9.0-windows\bin32" del "$(SolutionDir)bin\$(Configuration)\$(Platform)\net9.0-windows\bin32\$(MSBuildProjectName).*"</NMakeCleanCommandLine>
     <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\net9.0-windows</OutDir>
     <IntDir>$(SolutionDir)build\$(Configuration)\$(PlatformName)\$(ProjectName)\obj</IntDir>
   </PropertyGroup>
@@ -94,7 +94,7 @@
     <NMakeOutput>ReBuzzEngine32.exe</NMakeOutput>
     <NMakePreprocessorDefinitions>NDEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
     <NMakeReBuildCommandLine>msbuild "$(SolutionDir)\ReBuzzEngine\rebe\ReBuzzEngine.vcxproj" /property:Configuration=$(Configuration) /property:Platform=Win32</NMakeReBuildCommandLine>
-    <NMakeCleanCommandLine>del "$(SolutionDir)bin\$(Configuration)\$(Platform)\net9.0-windows\bin32\$(MSBuildProjectName).*"</NMakeCleanCommandLine>
+    <NMakeCleanCommandLine>IF EXIST "$(SolutionDir)bin\$(Configuration)\$(Platform)\net9.0-windows\bin32" del "$(SolutionDir)bin\$(Configuration)\$(Platform)\net9.0-windows\bin32\$(MSBuildProjectName).*"</NMakeCleanCommandLine>
     <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\net9.0-windows</OutDir>
     <IntDir>$(SolutionDir)build\$(Configuration)\$(PlatformName)\$(ProjectName)\obj</IntDir>
   </PropertyGroup>

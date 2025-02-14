@@ -1,0 +1,41 @@
+﻿<Window x:Class="Pianoroll.GUI.HelpWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Height="400" Width="600" ShowInTaskbar="False" WindowStyle="None" ResizeMode="NoResize"
+    UseLayoutRounding="True" TextOptions.TextFormattingMode="Display"
+        
+        >
+
+  <FlowDocumentScrollViewer BorderBrush="Black" BorderThickness="1" VerticalScrollBarVisibility="Hidden">
+    <FlowDocument FontSize="12" FontFamily="Segoe UI" Background="White" PagePadding="4">
+      <Paragraph>
+        <Bold>Editing</Bold>
+        <LineBreak/>
+        - Hold down a note key and press cursor up/down to add notes.<LineBreak/>
+        - Press 1 to edit velocities of selected notes<LineBreak/>
+        - Delete-key or middle mouse button deletes selected notes<LineBreak/>
+        - Click and drag the lower edge of a note to set duration, hold down ctrl to snap to grid
+      </Paragraph>
+      <Paragraph>
+        <Bold>Selecting</Bold>
+        <LineBreak/>
+        - Click note to select, ctrl+click to add to selection. (Ctrl+)click and drag on background to select many notes.<LineBreak/>
+        - Cursor left/right selects previous/next note<LineBreak/>
+        - Shift + cursor left/right extends selection to previous/next note<LineBreak/> 
+        - Ctrl+A selects all
+      </Paragraph>
+      <Paragraph>
+        <Bold>Other</Bold>
+        <LineBreak/>
+        - Ctrl+Alt+Left/Right/Up/Down zooms<LineBreak/>
+        - (Shift+)Ctrl+0..9 sets grid
+      </Paragraph>
+
+      <Paragraph FontSize="10" Foreground="Red">
+        Target machine must be set to accept MIDI on channel 1 (set Polac VSTi
+        <Italic>MIDI In Mode</Italic> to <Italic>All</Italic>). The following options should be enabled: Master Keyboard Mode, MIDI Filtering, SubTick Timing.
+      </Paragraph>
+
+    </FlowDocument>
+  </FlowDocumentScrollViewer>
+</Window>

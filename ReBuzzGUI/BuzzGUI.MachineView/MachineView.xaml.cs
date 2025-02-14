@@ -651,6 +651,8 @@ namespace BuzzGUI.MachineView
             };
 
             loaded = true;
+
+            UpdateCanvasSize(new Size(ActualWidth, ActualHeight));
         }
 
         public void OnBuzzInitComplete()

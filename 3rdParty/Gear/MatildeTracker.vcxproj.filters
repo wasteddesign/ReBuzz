@@ -1,0 +1,139 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Docs">
+      <UniqueIdentifier>{de976014-6b04-4b0f-9410-30f61905b5e8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources">
+      <UniqueIdentifier>{a9887d47-f073-4596-873b-e76b8d97655d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header">
+      <UniqueIdentifier>{84736ba2-9369-41f7-bbf4-b8466640cf81}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header\Surfs DSP Lib">
+      <UniqueIdentifier>{da8abb68-fdac-4df7-b116-4f9877633ea2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source">
+      <UniqueIdentifier>{064084ac-d4d8-4534-95f2-6a149225856a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Surfs DSP Lib">
+      <UniqueIdentifier>{62ac7841-3af2-47c0-8a2f-114a9e7cc394}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="matilde\Surfs DSP Lib\SRF_2PFilter.cpp">
+      <Filter>Source\Surfs DSP Lib</Filter>
+    </ClCompile>
+    <ClCompile Include="matilde\Surfs DSP Lib\SRF_Amp.cpp">
+      <Filter>Source\Surfs DSP Lib</Filter>
+    </ClCompile>
+    <ClCompile Include="matilde\Surfs DSP Lib\SRF_AutoGain.cpp">
+      <Filter>Source\Surfs DSP Lib</Filter>
+    </ClCompile>
+    <ClCompile Include="matilde\Surfs DSP Lib\SRF_DSP.cpp">
+      <Filter>Source\Surfs DSP Lib</Filter>
+    </ClCompile>
+    <ClCompile Include="matilde\Surfs DSP Lib\SRF_Resampler.cpp">
+      <Filter>Source\Surfs DSP Lib</Filter>
+    </ClCompile>
+    <ClCompile Include="matilde\BuzzInstrument.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="matilde\BuzzSample.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="matilde\Channel.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="matilde\Envelope.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="matilde\IInstrument.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="matilde\ISample.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="matilde\machinelist.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="matilde\Track.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="matilde\Tracker.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="matilde\WavetableManager.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="matilde\Surfs DSP Lib\SRF_2PFilter.h">
+      <Filter>Header\Surfs DSP Lib</Filter>
+    </ClInclude>
+    <ClInclude Include="matilde\Surfs DSP Lib\SRF_Amp.h">
+      <Filter>Header\Surfs DSP Lib</Filter>
+    </ClInclude>
+    <ClInclude Include="matilde\Surfs DSP Lib\SRF_DSP.h">
+      <Filter>Header\Surfs DSP Lib</Filter>
+    </ClInclude>
+    <ClInclude Include="matilde\Surfs DSP Lib\SRF_Resampler.h">
+      <Filter>Header\Surfs DSP Lib</Filter>
+    </ClInclude>
+    <ClInclude Include="matilde\Surfs DSP Lib\SRF_Types.h">
+      <Filter>Header\Surfs DSP Lib</Filter>
+    </ClInclude>
+    <ClInclude Include="matilde\BuzzInstrument.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="matilde\BuzzSample.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="matilde\Channel.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="matilde\Envelope.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="matilde\ExtResampler.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="matilde\IInstrument.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="matilde\ISample.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="matilde\MachineInterface.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="matilde\machinelist.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="matilde\outmachine.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="matilde\resource.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="matilde\Track.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="matilde\Tracker.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="matilde\WavetableManager.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="matilde\Matilde Tracker2.html">
+      <Filter>Docs</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="matilde\Script1.rc">
+      <Filter>Resources</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>
