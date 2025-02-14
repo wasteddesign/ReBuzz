@@ -47,7 +47,6 @@ namespace ReBuzzTests.Automation.TestMachines
         [ParameterDecl(ValueDescriptions = ["no", "yes"])]
         public bool Bypass { get; set; }
 
-
         [ParameterDecl(MaxValue = 127, DefValue = 0)]
         public void ATrackParam(int v, int track)
         {
