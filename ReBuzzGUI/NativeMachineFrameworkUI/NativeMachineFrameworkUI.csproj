@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+	<UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+	<BaseOutputPath>$(SolutionDir)build\$(Configuration)\$(Platform)\NativeMachineFrameworkUI\bin</BaseOutputPath>
+	<IntermediateOutputPath>$(SolutionDir)build\$(Configuration)\$(Platform)\NativeMachineFrameworkUI\obj</IntermediateOutputPath>
+  </PropertyGroup>
+  
+  <Target Name="ForcePerformRestore" AfterTargets="BeforeBuild">	
+    <Exec Command="IF NOT EXIST  &quot;$(IntermediateOutputPath)..\project.assets.json&quot;  echo restore to $(IntermediateOutputPath)..\project.assets.json &amp;&amp;  dotnet restore &quot;$(ProjectName).csproj&quot; --no-dependencies &amp;&amp; move &quot;build\$(ProjectName)\obj\*&quot; &quot;$(IntermediateOutputPath)..\&quot; &amp;&amp; rmdir /Q /S build	 " /> 
+  </Target>
+  
+  <Target Name="RemoveEmptyObj" AfterTargets="AfterBuild">
+    <Exec Command="IF EXIST obj rmdir obj" />
+  </Target>
+
+</Project>

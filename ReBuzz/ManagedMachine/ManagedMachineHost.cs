@@ -47,7 +47,12 @@ namespace ReBuzz.ManagedMachine
         private delegate string GetChannelNameDelegate(bool input, int index);
 
         #region Pattern Editor
-        private delegate UserControl PatternEditorControlDelegate();
+        private delegate System.Windows.Controls.UserControl PatternEditorControlDelegate();
+
+
+        //For machines that do not support .NET 9.0 WPF (such as CLR), and will return
+        //a .NET Framework 4.x WinForms UserControl instead.
+        private delegate System.Windows.Forms.UserControl OldPatternEditorControlDelegate();
 
         private delegate void SetEditorPatternDelegate(IPattern pattern);
 
@@ -205,7 +210,32 @@ namespace ReBuzz.ManagedMachine
             MidiNoteFunction = (MidiNoteDelegate)GetMethod(typeof(MidiNoteDelegate), "MidiNote");
             MidiControlChangeFunction = (MidiControlChangeDelegate)GetMethod(typeof(MidiControlChangeDelegate), "MidiControlChange");
             GetLatencyFunction = (GetLatencyDelegate)GetMethod(typeof(GetLatencyDelegate), "GetLatency");
-            PatternEditorControlFunction = (PatternEditorControlDelegate)GetMethod(typeof(PatternEditorControlDelegate), "PatternEditorControl");
+            //Take into consideration that some more native machines may want to return System.Windows.Forms.UserControl.
+            //In this situation, we can use NativeMachineFrameworkUI to wrap around the System.Windows.Forms.UserControl
+            try
+            {
+                PatternEditorControlFunction = (PatternEditorControlDelegate)GetMethod(typeof(PatternEditorControlDelegate), "PatternEditorControl");
+            }
+            catch(System.ArgumentException) //This is thrown because the return types are not the same
+            {
+                //Try the System.Windows.Forms.UserControl delegate instead
+                OldPatternEditorControlDelegate oldDelegate = (OldPatternEditorControlDelegate)GetMethod(typeof(OldPatternEditorControlDelegate), "PatternEditorControl");
+                if(oldDelegate != null)
+                {
+                    //Create an inline delegate to wrap around the old System.Windows.Forms.UserControl
+                    PatternEditorControlFunction = () =>
+                    {
+                        var control = oldDelegate();
+                        return new NativeMachineFrameworkUI.WinFormsControl(control);
+                    };
+                }
+                else
+                {
+                    //Also not found - throw the original exception
+                    throw;
+                }
+            }
+            
             SetEditorPatternFunction = (SetEditorPatternDelegate)GetMethod(typeof(SetEditorPatternDelegate), "SetEditorPattern");
             RecordControlChangeFunction = (RecordControlChangeDelegate)GetMethod(typeof(RecordControlChangeDelegate), "RecordControlChange");
             CreatePatternCopyFunction = (CreatePatternCopyDelegate)GetMethod(typeof(CreatePatternCopyDelegate), "CreatePatternCopy");
@@ -688,6 +718,13 @@ namespace ReBuzz.ManagedMachine
                 ReleaseFunction();
             }
 
+            //For CLR machines, or machines that are Disposable, 
+            //the Dispose() method must be called to properlly free up resources
+            //used by that machine (such as native resources)
+            if(machine is IDisposable)
+            {
+                (machine as IDisposable).Dispose();
+            }
             machine = null;
             dll = null;
         }

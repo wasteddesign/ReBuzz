@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <ProjectGuid>{B1D5248C-B2B6-49FE-B1E7-F77B93FA3531}</ProjectGuid>
+    <Keyword>ManagedCProj</Keyword>
+    <RootNamespace>NativeMachineFramework</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <TargetFramework>net9.0</TargetFramework>
+    <WindowsTargetPlatformMinVersion>7.0</WindowsTargetPlatformMinVersion>
+    <ManagedAssembly>true</ManagedAssembly>
+    <UseWindowsForms>true</UseWindowsForms>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CLRSupport>NetCore</CLRSupport>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CLRSupport>NetCore</CLRSupport>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CLRSupport>NetCore</CLRSupport>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CLRSupport>NetCore</CLRSupport>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\$(TargetFramework)-$(TargetPlatformIdentifier)\</OutDir>
+    <IntDir>$(SolutionDir)build\$(Configuration)\$(Platform)\$(ProjectName)\</IntDir>
+    <ManagedAssembly>true</ManagedAssembly>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\$(TargetFramework)-$(TargetPlatformIdentifier)\</OutDir>
+    <IntDir>$(SolutionDir)build\$(Configuration)\$(Platform)\$(ProjectName)\</IntDir>
+    <ManagedAssembly>true</ManagedAssembly>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\$(TargetFramework)-$(TargetPlatformIdentifier)\</OutDir>
+    <IntDir>$(SolutionDir)build\$(Configuration)\$(Platform)\$(ProjectName)\</IntDir>
+    <ManagedAssembly>true</ManagedAssembly>
+    <IgnoreImportLibrary>false</IgnoreImportLibrary>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\$(TargetFramework)-$(TargetPlatformIdentifier)\</OutDir>
+    <IntDir>$(SolutionDir)build\$(Configuration)\$(Platform)\$(ProjectName)\</IntDir>
+    <ManagedAssembly>true</ManagedAssembly>
+    <IgnoreImportLibrary>false</IgnoreImportLibrary>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>_DEBUG;_USRDLL;_BUILD_NATIVEFW_DLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)3rdparty\Buzz</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4642</DisableSpecificWarnings>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>User32.lib</AdditionalDependencies>
+      <ModuleDefinitionFile>NativeMachineFramework.def</ModuleDefinitionFile>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)3rdparty\Buzz</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4642</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>User32.lib</AdditionalDependencies>
+      <ModuleDefinitionFile>NativeMachineFramework.def</ModuleDefinitionFile>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)3rdparty\Buzz</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4642</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>User32.lib</AdditionalDependencies>
+      <ModuleDefinitionFile>NativeMachineFramework.def</ModuleDefinitionFile>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>NDEBUG;_USRDLL;_BUILD_NATIVEFW_DLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)3rdparty\Buzz</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4642</DisableSpecificWarnings>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>User32.lib</AdditionalDependencies>
+      <ModuleDefinitionFile>NativeMachineFramework.def</ModuleDefinitionFile>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="CMachineDataInputOutput.cpp" />
+    <ClCompile Include="CMICallbacksStubs.cpp">
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</CompileAsManaged>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</CompileAsManaged>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</CompileAsManaged>
+    </ClCompile>
+    <ClCompile Include="ContextMenu.cpp" />
+    <ClCompile Include="MachineCallbackWrapper.cpp" />
+    <ClCompile Include="MachineEventWrapper.cpp" />
+    <ClCompile Include="MachineManager.cpp" />
+    <ClCompile Include="MachineWrapper.cpp" />
+    <ClCompile Include="NativeMFCMachineControl.cpp" />
+    <ClCompile Include="PatternManager.cpp" />
+    <ClCompile Include="SampleListControl.cpp" />
+    <ClCompile Include="Utils.cpp" />
+    <ClCompile Include="WaveManager.cpp" />
+    <ClCompile Include="WindowUtils.cpp">
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</CompileAsManaged>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</CompileAsManaged>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="BuzzDataTypes.h" />
+    <ClInclude Include="MachineCallbackWrapper.h" />
+    <ClInclude Include="MachineEventWrapper.h" />
+    <ClInclude Include="MachineManager.h" />
+    <ClInclude Include="MachineWrapper.h" />
+    <ClInclude Include="ContextMenu.h" />
+    <ClInclude Include="NativeMachineReader.h" />
+    <ClInclude Include="NativeMachineWriter.h" />
+    <ClInclude Include="NativeMFCMachineControl.h" />
+    <ClInclude Include="PatternManager.h" />
+    <ClInclude Include="RebuzzBuzzLookup.h" />
+    <ClInclude Include="RefClassWrapper.h" />
+    <ClInclude Include="SampleListControl.h" />
+    <ClInclude Include="Utils.h" />
+    <ClInclude Include="WaveManager.h" />
+    <ClInclude Include="WindowUtils.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.WindowsDesktop.App.WindowsForms" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="NativeMachineFramework.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ReBuzzGUI\BuzzGUI.Common\BuzzGUI.Common.csproj">
+      <Project>{d6e23307-d10e-4932-be55-0e6641125a9d}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\ReBuzzGUI\BuzzGUI.Interfaces\BuzzGUI.Interfaces.csproj">
+      <Project>{883a6cd2-b96a-4a52-9671-b6915786c260}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

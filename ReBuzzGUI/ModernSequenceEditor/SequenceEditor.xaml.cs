@@ -1010,11 +1010,15 @@ namespace WDE.ModernSequenceEditor
                 CanExecuteDelegate = x => SelectedSequence != null,
                 ExecuteDelegate = noswitch =>
                 {
-                    var p = CursorPattern;
-                    if (p != null)
-                        song.Buzz.SetPatternEditorPattern(p);
-                    else if (SelectedSequence != null)
-                        song.Buzz.SetPatternEditorMachine(SelectedSequence.Machine);
+                    //Don't change the pattern editor if the setting is turned off
+                    if (Settings.AutoSelectPattern)
+                    {
+                        var p = CursorPattern;
+                        if (p != null)
+                            song.Buzz.SetPatternEditorPattern(p);
+                        else if (SelectedSequence != null)
+                            song.Buzz.SetPatternEditorMachine(SelectedSequence.Machine);
+                    }
 
                     if (noswitch == null || !(bool)noswitch)
                         song.Buzz.ActivatePatternEditor();
@@ -1319,7 +1323,20 @@ namespace WDE.ModernSequenceEditor
                     }
                     else if (!Settings.AutoSelectPattern)
                     {
-                        if (SelectPatternCommand.CanExecute(null)) SelectPatternCommand.Execute(null);
+                        //If 'Settings.AutoSelectPattern' is true, then
+                        //a single click will change the selected pattern.
+                        //
+                        //If 'Settings.AutoSelectPattern' is false, then 
+                        //allow double click to change the selected pattern.
+                        //Don't use 'SelectPatternCommand' to do that though, since
+                        //that will also check 'Settings.AutoSelectPattern' is true.
+
+                        //Change the pattern to the one selected in the sequence editor 
+                        var p = CursorPattern;
+                        if (p != null)
+                            song.Buzz.SetPatternEditorPattern(p);
+                        else if (SelectedSequence != null)
+                            song.Buzz.SetPatternEditorMachine(SelectedSequence.Machine);
                     }
 
                     e.Handled = true;

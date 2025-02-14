@@ -14,6 +14,7 @@ using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
+using System.Xml.Linq;
 using Buzz.MachineInterface;
 using BuzzGUI.Common;
 using BuzzGUI.Common.Settings;
@@ -78,6 +79,57 @@ namespace ReBuzz.Core
 
         BuzzView activeView = BuzzView.MachineView;
         public ReBuzzTheme Theme { get; set; }
+
+        private void RegisterProfileSaveCallback(XElement element)
+        {
+            element.Changed += (sender, evtargs) =>
+            {
+                Utils.SaveProfile(buzzPath, element);
+            };
+        }
+
+        public XElement GetModuleProfile(string modname)
+        {
+            if (!profiles.ContainsKey(modname))
+            {
+                XElement modElement = new XElement(modname);
+                modElement.Add(new XElement("Int"));
+                modElement.Add(new XElement("Binary"));
+                modElement.Add(new XElement("String"));
+                
+                profiles.Add(modname, modElement);
+                RegisterProfileSaveCallback(modElement);
+                return modElement;
+            }
+
+            return profiles[modname];
+        }
+
+        public XElement GetModuleProfileInts(string modname)
+        {
+            XElement modElement = GetModuleProfile(modname);
+            return modElement.Element("Int");
+        }
+
+        public XElement GetModuleProfileBinary(string modname)
+        {
+            XElement modElement = GetModuleProfile(modname);
+            return modElement.Element("Binary");
+        }
+
+        public XElement GetModuleProfileStrings(string modname)
+        {
+            XElement modElement = GetModuleProfile(modname);
+            return modElement.Element("String");
+        }
+
+        public System.Drawing.Color GetThemeColour(string name)
+        {
+            var wpfColour = ThemeColors[name];
+
+            //Convert to System.Drawing.Color
+            return System.Drawing.Color.FromArgb(wpfColour.A, wpfColour.R, wpfColour.G, wpfColour.B);
+        }
 
         public BuzzView ActiveView { get { return activeView; } set { activeView = value; PropertyChanged.Raise(this, "ActiveView"); } }
 
@@ -505,7 +557,11 @@ namespace ReBuzz.Core
 
         public event Action<string> ThemeChanged;
         readonly List<string> themes;
+        readonly Dictionary<string, XElement> profiles;
+
         public ReadOnlyCollection<string> Themes { get => themes.ToReadOnlyCollection(); }
+
+        public System.Collections.ObjectModel.ReadOnlyDictionary<string, XElement> ModuleProfiles { get => System.Collections.Generic.CollectionExtensions.AsReadOnly<string, XElement>(profiles); }
 
         public string SelectedTheme
         {
@@ -650,6 +706,13 @@ namespace ReBuzz.Core
             MIDIControllers = MidiControllerAssignments.GetMidiControllerNames().ToReadOnlyCollection();
 
             themes = Utils.GetThemes(buzzPath);
+            profiles = Utils.GetProfiles(buzzPath);
+
+            //Register change callback on all profiles
+            foreach(var p in profiles)
+            {
+                RegisterProfileSaveCallback(p.Value);
+            }
 
             AppDomain currentDomain = AppDomain.CurrentDomain;
             currentDomain.AssemblyResolve += MyResolveEventHandler;
@@ -1290,6 +1353,7 @@ namespace ReBuzz.Core
         public event Action<IPattern> SetPatternEditorPatternChanged;
         public event Action<IMachine> SelectedMachineChanged;
 
+
         public void SetPatternEditorMachine(IMachine m)
         {
             PatternEditorMachine = m;
@@ -1617,7 +1681,7 @@ namespace ReBuzz.Core
             }
         }
 
-        internal void RemoveMachine(MachineCore machine)
+        internal void RemoveAndDeleteMachine(MachineCore machine)
         {
             if (machine.DLL.Info.Type == MachineType.Master)
                 return;
@@ -1653,8 +1717,39 @@ namespace ReBuzz.Core
             MachineManager.DeleteMachine(machine.EditorMachine);
             MachineManager.DeleteMachine(machine);
             machine.EditorMachine = null;
-            SetPatternEditorMachine(SongCore.Machines.Last());
+        }
 
+        internal void RemoveMachine(MachineCore machine)
+        {
+            if (machine.DLL.Info.Type == MachineType.Master)
+                return;
+
+            RemoveAndDeleteMachine(machine);
+
+            //If this is a pattern editor machine, then make sure the current pattern editor
+            //isn't the machine being removed.
+            if (machine.DLL.Info.Flags.HasFlag(MachineInfoFlags.PATTERN_EDITOR))
+            {
+                SetPatternEditorMachine(SongCore.Machines.Last());
+            }
+        }
+
+        internal void RemovePatternEditorMachine(MachineCore patEdMach, MachineCore newEditorMachine)
+        {
+            if (patEdMach.DLL.Info.Type == MachineType.Master)
+                return;
+
+            RemoveAndDeleteMachine(patEdMach);
+
+            //If this is a pattern editor machine, then make sure the current pattern editor
+            //isn't the machine being removed.
+            if (patEdMach.DLL.Info.Flags.HasFlag(MachineInfoFlags.PATTERN_EDITOR))
+            {
+                if (newEditorMachine == null)
+                    SetPatternEditorMachine(SongCore.Machines.Last());
+                else
+                    SetPatternEditorMachine(newEditorMachine);
+            }
         }
 
         public void SetModifiedFlag()
@@ -1844,7 +1939,7 @@ namespace ReBuzz.Core
                 byte[] data = null;
                 var currentEditorMachine = machine.EditorMachine;
                 // Change it
-                if (Gear.HasSameDataFormat(machine.EditorMachine.DLL.Name, editorMachine.Name))
+                if (Gear.HasSameDataFormat(machine.EditorMachine.DLL.Info.Name, editorMachine.Info.Name))
                     data = machine.EditorMachine.Data;
 
                 lock (AudioLock)
@@ -1863,7 +1958,9 @@ namespace ReBuzz.Core
                         {
                             new DisconnectMachinesAction(this, output, dispatcher).Do();
                         }
-                        RemoveMachine(currentEditorMachine);
+
+                        //Remove and delete old pattern editor, and replace it with the new one
+                        RemovePatternEditorMachine(currentEditorMachine, machine);
                     }
                     catch (Exception)
                     {

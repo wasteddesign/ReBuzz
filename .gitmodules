@@ -7,3 +7,12 @@
 [submodule "3rdParty/serilog/serilog-sinks-richtextbox"]
 	path = 3rdParty/serilog/serilog-sinks-richtextbox
 	url = https://github.com/serilog-contrib/serilog-sinks-richtextbox
+[submodule "3rdParty/Gear/matilde"]
+	path = 3rdParty/Gear/matilde
+	url = https://github.com/clvn/matilde/
+[submodule "ReBuzzPatternXP/--force"]
+	path = ReBuzzPatternXP/--force
+	url = https://github.com/wasteddesign/PatternXPRE
+[submodule "ReBuzzPatternXP/PatternXPRE"]
+	path = ReBuzzPatternXP/PatternXPRE
+	url = https://github.com/wasteddesign/PatternXPRE

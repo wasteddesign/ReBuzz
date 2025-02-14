@@ -8,7 +8,7 @@ namespace BuzzGUI.Interfaces
     public interface IPattern : INotifyPropertyChanged
     {
         IMachine Machine { get; }
-        string Name { get; }
+        string Name { get; set;  }
         int Length { get; set; }                                        // length in buzz ticks
 
         ReadOnlyCollection<IPatternColumn> Columns { get; }
