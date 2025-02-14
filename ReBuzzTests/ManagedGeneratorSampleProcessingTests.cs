@@ -7,7 +7,7 @@ namespace ReBuzzTests
     public class ManagedGeneratorSampleProcessingTests
     {
         [Test]
-        public void OutputsSilenceWhenMachinePlays()
+        public void OutputsSilenceWhenNoMachineConnectedToMaster()
         {
             using var driver = new Driver();
             driver.Start();
@@ -21,10 +21,12 @@ namespace ReBuzzTests
         public void OutputsSilenceWhenMachineOutputsSilence()
         {
             using var driver = new Driver();
+            var synth = SynthController.NewInstance();
             driver.AddDynamicGeneratorToGear(SynthController.Info);
             driver.Start();
 
-            driver.InsertMachineInstanceConnectedToMasterFor(SynthController.NewInstance());
+            driver.InsertMachineInstanceConnectedToMasterFor(synth);
+            driver.ExecuteMachineCommand(synth.SetStereoSampleValueTo(new Sample(0,0)));
 
             var samples = driver.ReadStereoSamples(1);
 
@@ -56,9 +58,9 @@ namespace ReBuzzTests
         [Test]
         public void OutputsASampleWhichIsASumFromAllMachinesTimesMasterVolume()
         {
-            const int masterVolume1 = 100;
-            const int masterVolume2 = 50;
-            var synth1Sample = new Sample(5,10);
+            const double masterVolume1 = 0.5;
+            const double masterVolume2 = 0.25;
+            var synth1Sample = new Sample(5,1);
             var synth2Sample = new Sample(2,5);
             using var driver = new Driver();
             var synth1Controller = SynthController.NewInstance("s1");

@@ -17,8 +17,8 @@ namespace ReBuzzTests.Automation
         public void AssertContainStereoSilence(int count)
         {
             countRead.Should().Be(count * 2);
-            buffer.Should().Equal(Enumerable.Repeat(0, count * 2),
-                (actual, expected) => Math.Abs(actual - expected) <= 0.00000000001);
+            buffer.Take(countRead).Should().Equal(Enumerable.Repeat(ExpectedSampleValue.From(new Sample(0,0)).L, count * 2),
+                (actual, expected) => Math.Abs(Math.Abs(actual) - Math.Abs(expected)) <= 0.00000000001);
         }
 
         public void AssertAreEqualTo(ImmutableArray<Sample> expectation)
