@@ -8,11 +8,14 @@ using BuzzGUI.Interfaces;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using ReBuzz.AppViews;
+using ReBuzz.Audio;
 using ReBuzz.Core;
 using ReBuzz.MachineManagement;
 using ReBuzzTests.Automation.Assertions;
+using ReBuzzTests.Automation.TestMachines;
 using System.Collections.Generic;
 using System.Linq;
+using ReBuzzTests.Automation.TestMachinesControllers;
 
 namespace ReBuzzTests.Automation
 {
@@ -27,6 +30,16 @@ namespace ReBuzzTests.Automation
     /// </summary>
     public class Driver : IDisposable, IInitializationObserver
     {
+        /// <summary>
+        /// Taken from the production code
+        /// </summary>
+        private const int DefaultAmp = 0x4000;
+
+        /// <summary>
+        /// Taken from the production code
+        /// </summary>
+        private const int DefaultPan = 0x4000;
+
         /// <summary>
         /// This is a temp dir where each test has its own ReBuzz root directory
         /// </summary>
@@ -72,10 +85,25 @@ namespace ReBuzzTests.Automation
         private readonly FakeUserMessages fakeUserMessages;
         private FakeFileNameChoice fileNameToSaveChoice = new();
         private readonly FakeInMemoryRegistry fakeRegistry = new();
+        private readonly FakeDispatcher dispatcher = new();
+        private readonly FakeMachineDLLScanner fakeMachineDllScanner;
+
+        /// <summary>
+        /// Actions to add machines to the fake machine DLL scanner.
+        /// It is done this way because the machine DLL scanner requires the ReBuzzCore instance
+        /// to add machines and ReBuzzCore is available only after the driver is started.
+        /// So instead of adding machines directly, we add actions that will add them
+        /// when the driver is started.
+        /// </summary>
+        private List<Action<FakeMachineDLLScanner, ReBuzzCore>> addMachineActions = [];
+        
+        private Dictionary<string, MachineCore> addedGeneratorInstances = new();
 
         public Driver()
         {
+            ResetGlobalState();
             fakeUserMessages = new FakeUserMessages();
+            fakeMachineDllScanner = new FakeMachineDLLScanner(GearDir);
         }
 
         static Driver()
@@ -96,8 +124,6 @@ namespace ReBuzzTests.Automation
             GeneralSettings generalSettings = Global.GeneralSettings;
             var registryRoot = Global.RegistryRoot; //Should not matter as the registry is in memory
 
-            var dispatcher = new FakeDispatcher();
-            var fakeMachineDllScanner = new FakeMachineDLLScanner(GearDir);
             reBuzzCore = new ReBuzzCore(
                 generalSettings,
                 engineSettings,
@@ -110,7 +136,7 @@ namespace ReBuzzTests.Automation
                 fileNameToSaveChoice,
                 fakeUserMessages);
             fakeMachineDllScanner.AddFakeModernPatternEditor(reBuzzCore);
-
+            addMachineActions.ForEach(addMachine => addMachine(fakeMachineDllScanner, reBuzzCore));
             var initialization = new ReBuzzCoreInitialization(reBuzzCore, buzzPath, dispatcher, fakeRegistry);
             initialization.StartReBuzzEngineStep1((sender, args) =>
             {
@@ -308,5 +334,119 @@ namespace ReBuzzTests.Automation
         {
             return fakeRegistry.ReadNumberedList<string>("File", "Recent File List");
         }
+
+        public void InsertMachineInstanceConnectedToMasterFor(DynamicMachineController controller)
+        {
+            var addedInstance = InsertMachineInstanceFor(controller);
+            ConnectToMaster(addedInstance);
+        }
+
+        public void DisconnectFromMaster(DynamicMachineController controller)
+        {
+            DisconnectFromMaster(SongCoreMachine(controller.InstanceName));
+        }
+
+        public MachineCore InsertMachineInstanceFor(DynamicMachineController controller)
+        {
+            var machineDll = fakeMachineDllScanner.GetMachineDLL(controller.Name);
+            CreateInstrument(machineDll, controller.InstanceName);
+            var addedInstance = reBuzzCore.SongCore.MachinesList.Last();
+            addedGeneratorInstances[controller.InstanceName] = addedInstance;
+            return addedInstance;
+        }
+
+        public void Connect(
+            DynamicMachineController sourceController, 
+            DynamicMachineController destinationController)
+        {
+            ConnectMachineInstances(
+                SongCoreMachine(sourceController.InstanceName),
+                SongCoreMachine(destinationController.InstanceName));
+        }
+
+        public void ExecuteMachineCommand(TestMachineInstanceCommand command)
+        {
+            command.Execute(reBuzzCore, addedGeneratorInstances);
+        }
+
+        public void AddDynamicGeneratorToGear(ITestMachineInfo info)
+        {
+            AddDynamicMachineToGear(info, GearGeneratorsDir);
+        }
+
+        public void AddDynamicEffectToGear(ITestMachineInfo info)
+        {
+            AddDynamicMachineToGear(info, GearEffectsDir);
+        }
+
+        public TestReadBuffer ReadStereoSamples(int count)
+        {
+            var workManager = new WorkManager(reBuzzCore, new WorkThreadEngine(1), 0, new EngineSettings
+            {
+                AccurateBPM = true,
+                EqualPowerPanning = true,
+                LowLatencyGC = true,
+                MachineDelayCompensation = false,
+                Multithreading = false,
+                ProcessMutedMachines = false,
+                SubTickTiming = true,
+            });
+            var readSamplesCount = count * 2;
+            var buffer = new float[readSamplesCount];
+            var result = workManager.ThreadRead(buffer, 0, readSamplesCount);
+            return new TestReadBuffer(result, buffer);
+        }
+
+        /// <summary>
+        /// Resets the global state before each test
+        /// </summary>
+        private static void ResetGlobalState()
+        {
+            ReBuzzCore.GlobalState = new BuzzGlobalState();
+            ReBuzzCore.subTickInfo = new SubTickInfoExtended();
+            ReBuzzCore.masterInfo = new MasterInfoExtended();
+        }
+
+        private void CreateInstrument(IMachineDLL machineDll, string instanceName)
+        {
+            reBuzzCore.SongCore.CreateMachine(machineDll.Name, instanceName, null!, null!, null!, null!, -1, 0, 0);
+        }
+
+        private void ConnectToMaster(MachineCore instance)
+        {
+            ConnectMachineInstances(instance, SongCoreMachine("Master"));
+        }
+
+        private void DisconnectFromMaster(MachineCore instance)
+        {
+            DisconnectMachineInstances(instance, SongCoreMachine("Master"));
+        }
+
+        public void SetMasterVolumeTo(double newVolume)
+        {
+            reBuzzCore.MasterVolume = newVolume;
+        }
+
+        private void AddDynamicMachineToGear(ITestMachineInfo info, AbsoluteDirectoryPath targetPath)
+        {
+            addMachineActions.Add((scanner, reBuzz) => scanner.AddDynamicMachine(reBuzz, info, targetPath));
+        }
+
+        private void ConnectMachineInstances(IMachine source, IMachine destination)
+        {
+            reBuzzCore.SongCore.ConnectMachines(source, destination, 0, 0, DefaultAmp, DefaultPan);
+        }
+
+        private void DisconnectMachineInstances(MachineCore source, MachineCore destination)
+        {
+            reBuzzCore.SongCore.DisconnectMachines(new MachineConnectionCore(source, 0, destination, 0, DefaultAmp,
+                DefaultPan, dispatcher));
+        }
+
+        private MachineCore SongCoreMachine(string name)
+        {
+            return reBuzzCore.SongCore.MachinesList.Single(m => m.Name == name);
+        }
+
     }
 }

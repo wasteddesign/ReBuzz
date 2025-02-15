@@ -1074,7 +1074,6 @@ namespace BuzzGUI.MachineView
 
         }
 
-
         // NOTE: this is used to create both instruments and machines
         IMachine CreateInstrument(IInstrument instrument, float x, float y)
         {

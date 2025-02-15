@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 
-namespace ReBuzzTests.Automation
+namespace ReBuzzTests.Automation.TestMachines
 {
     /// <summary>
     /// Without a Modern Pattern Editor machine, ReBuzz will not start.
@@ -43,11 +43,10 @@ namespace ReBuzzTests.Automation
         [ParameterDecl(ResponseTime = 5, MaxValue = 127, DefValue = 80, Transformation = Transformations.Cubic,
             TransformUnityValue = 80, ValueDescriptor = Descriptors.Decibel)]
         public Interpolator Gain { get; private set; }
-        
+
         [ParameterDecl(ValueDescriptions = ["no", "yes"])]
         public bool Bypass { get; set; }
-        
-        
+
         [ParameterDecl(MaxValue = 127, DefValue = 0)]
         public void ATrackParam(int v, int track)
         {
@@ -67,7 +66,7 @@ namespace ReBuzzTests.Automation
         }
 
         private State machineState = new();
-        
+
         public State MachineState // a property called 'MachineState' gets automatically saved in songs and presets
         {
             get => machineState;
@@ -84,35 +83,35 @@ namespace ReBuzzTests.Automation
         {
             get
             {
-                yield return new MenuItemVM() { Text = "Hello" };
-                yield return new MenuItemVM() { IsSeparator = true };
-                yield return new MenuItemVM()
+                yield return new MenuItemVM { Text = "Hello" };
+                yield return new MenuItemVM { IsSeparator = true };
+                yield return new MenuItemVM
                 {
                     Text = "Submenu",
                     Children =
                     [
-                        new MenuItemVM() { Text = "Child 1" },
-                        new MenuItemVM() { Text = "Child 2" }
+                        new MenuItemVM { Text = "Child 1" },
+                        new MenuItemVM { Text = "Child 2" }
                     ]
                 };
-                yield return new MenuItemVM() { Text = "Label", IsLabel = true };
-                yield return new MenuItemVM()
+                yield return new MenuItemVM { Text = "Label", IsLabel = true };
+                yield return new MenuItemVM
                 {
                     Text = "Checkable",
                     Children =
                     [
-                        new MenuItemVM() { Text = "Child 1", IsCheckable = true, StaysOpenOnClick = true },
-                        new MenuItemVM() { Text = "Child 2", IsCheckable = true, StaysOpenOnClick = true },
-                        new MenuItemVM() { Text = "Child 3", IsCheckable = true, StaysOpenOnClick = true }
+                        new MenuItemVM { Text = "Child 1", IsCheckable = true, StaysOpenOnClick = true },
+                        new MenuItemVM { Text = "Child 2", IsCheckable = true, StaysOpenOnClick = true },
+                        new MenuItemVM { Text = "Child 3", IsCheckable = true, StaysOpenOnClick = true }
                     ]
                 };
 
                 var g = new MenuItemVM.Group();
 
-                yield return new MenuItemVM()
+                yield return new MenuItemVM
                 {
                     Text = "CheckGroup",
-                    Children = Enumerable.Range(1, 5).Select(i => new MenuItemVM()
+                    Children = Enumerable.Range(1, 5).Select(i => new MenuItemVM
                     {
                         Text = "Child " + i,
                         IsCheckable = true,
@@ -120,9 +119,10 @@ namespace ReBuzzTests.Automation
                         StaysOpenOnClick = true,
                         IsChecked = i == checkedItem,
                         CommandParameter = i,
-                        Command = new SimpleCommand()
+                        Command = new SimpleCommand
                         {
-                            CanExecuteDelegate = p => true, ExecuteDelegate = p => checkedItem = (int)p
+                            CanExecuteDelegate = p => true,
+                            ExecuteDelegate = p => checkedItem = (int)p
                         }
                     })
                 };

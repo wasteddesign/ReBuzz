@@ -7,6 +7,7 @@ using ReBuzz.Core;
 using ReBuzz.FileOps;
 using ReBuzz.MachineManagement;
 using ReBuzz.ManagedMachine;
+using ReBuzzTests.Automation.TestMachines;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -194,8 +195,8 @@ namespace ReBuzzTests.Automation.Assertions
         internal static void AssertFakeModernPatternEditor(
             ReBuzzCore reBuzzCore, AbsoluteDirectoryPath gearDir, MachineDLL modernPatternEditor)
         {
-            MachineDLL? modernPatternEditorDll = FakeModernPatternEditorInfo.GetMachineDll(reBuzzCore,
-                gearDir.AddFileName(FakeModernPatternEditorInfo.DllName));
+            MachineDLL modernPatternEditorDll = FakeModernPatternEditorInfo.Instance.GetMachineDll(reBuzzCore,
+                gearDir.AddFileName(FakeModernPatternEditorInfo.Instance.DllName));
             modernPatternEditor.Buzz.Should().Be(reBuzzCore);
             modernPatternEditor.Path.Should().Be(modernPatternEditorDll.Path);
             modernPatternEditor.Name.Should().Be(modernPatternEditorDll.Name);

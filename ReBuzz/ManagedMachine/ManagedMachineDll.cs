@@ -139,7 +139,6 @@ namespace ReBuzz.ManagedMachine
             if (parameters.Length == 0 && method.ReturnType == typeof(Sample))
             {
                 return WorkFunctionTypes.Generator;
-
             }
             if (parameters.Length == 1 && method.ReturnType == typeof(Sample) && parameters[0].ParameterType == typeof(Sample))
             {

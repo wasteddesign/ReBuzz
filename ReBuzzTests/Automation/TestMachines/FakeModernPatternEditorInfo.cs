@@ -2,7 +2,7 @@ using AtmaFileSystem;
 using BuzzGUI.Interfaces;
 using ReBuzz.Core;
 
-namespace ReBuzzTests.Automation
+namespace ReBuzzTests.Automation.TestMachines
 {
     /// <summary>
     /// Contains additional information about the fake Modern Pattern Editor machine.
@@ -10,9 +10,11 @@ namespace ReBuzzTests.Automation
     /// This information is awkward to put in the <see cref="FakeModernPatternEditor"/>
     /// class because it would require a reference to the types defined in this project.
     /// </summary>
-    public static class FakeModernPatternEditorInfo
+    internal class FakeModernPatternEditorInfo : ITestMachineInfo
     {
-        internal static MachineDLL GetMachineDll(ReBuzzCore buzz, AbsoluteFilePath location)
+        public static ITestMachineInfo Instance { get; } = new FakeModernPatternEditorInfo();
+
+        MachineDLL ITestMachineInfo.GetMachineDll(ReBuzzCore buzz, AbsoluteFilePath location)
         {
             var decl = FakeModernPatternEditor.GetMachineDecl();
             return new MachineDLL
@@ -27,7 +29,7 @@ namespace ReBuzzTests.Automation
                 IsMissing = false,
                 IsOutOfProcess = false,
                 ManagedDLL = null,
-                MachineInfo = new MachineInfo()
+                MachineInfo = new MachineInfo
                 {
                     Flags =
                         MachineInfoFlags.NO_OUTPUT | MachineInfoFlags.CONTROL_MACHINE |
@@ -45,13 +47,16 @@ namespace ReBuzzTests.Automation
                 SHA1Hash = "258A3DE5BA33E71D69271E36557EA8E4E582298E",
                 GUIFactoryDecl =
                     new MachineGUIFactoryDecl
-                        {
-                            IsGUIResizable = true, PreferWindowedGUI = true, UseThemeStyles = false
-                        },
+                    {
+                        IsGUIResizable = true,
+                        PreferWindowedGUI = true,
+                        UseThemeStyles = false
+                    },
                 ModuleHandle = 0
             };
         }
 
-        public static string DllName => "FakeModernPatternEditor.dll";
+        public string DllName => "FakeModernPatternEditor.dll";
+        public string SourceCode => FakeModernPatternEditor.GetSourceCode();
     }
 }

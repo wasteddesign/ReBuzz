@@ -1,7 +1,9 @@
 using AtmaFileSystem;
+using BuzzGUI.Interfaces;
 using FluentAssertions.Execution;
 using ReBuzz.Core;
 using ReBuzz.FileOps;
+using ReBuzzTests.Automation.TestMachines;
 using System.Collections.Generic;
 
 namespace ReBuzzTests.Automation
@@ -24,11 +26,23 @@ namespace ReBuzzTests.Automation
         /// </summary>
         public void AddFakeModernPatternEditor(ReBuzzCore buzz)
         {
-            AbsoluteFilePath? assemblyLocation = gearPath.AddFileName(FakeModernPatternEditorInfo.DllName);
+            var assemblyLocation = gearPath.AddFileName(FakeModernPatternEditorInfo.Instance.DllName);
             DynamicCompiler.CompileAndSave(FakeModernPatternEditor.GetSourceCode(), assemblyLocation);
 
-            MachineDLL? modernPatternEditorDll = FakeModernPatternEditorInfo.GetMachineDll(buzz, assemblyLocation);
+            var modernPatternEditorDll = FakeModernPatternEditorInfo.Instance.GetMachineDll(buzz, assemblyLocation);
             machineDllsByName[modernPatternEditorDll.Name] = modernPatternEditorDll;
+        }
+
+        public void AddDynamicMachine(
+            ReBuzzCore buzz,
+            ITestMachineInfo machineInfo,
+            AbsoluteDirectoryPath targetDir)
+        {
+            var assemblyLocation = targetDir.AddFileName(machineInfo.DllName);
+            var machineDll = machineInfo.GetMachineDll(buzz, assemblyLocation);
+            DynamicCompiler.CompileAndSave(machineInfo.SourceCode, assemblyLocation);
+
+            machineDllsByName[machineDll.Name] = machineDll;
         }
 
         public Dictionary<string, MachineDLL> GetMachineDLLs(ReBuzzCore buzz, string buzzPath)
@@ -36,7 +50,12 @@ namespace ReBuzzTests.Automation
             return machineDllsByName;
         }
 
-        public void AddMachineDllsToDictionary(ReBuzzCore buzz, XMLMachineDLL[] xMLMachineDLLs, Dictionary<string, MachineDLL> md)
+        public IMachineDLL GetMachineDLL(string name)
+        {
+            return machineDllsByName[name];
+        }
+
+        public void AddMachineDllsToDictionary(ReBuzzCore buzz, XMLMachineDLL[] xmlMachineDLLs, Dictionary<string, MachineDLL> md)
         {
             Execute.Assertion.FailWith("Not called anywhere yet in the current tests");
         }
