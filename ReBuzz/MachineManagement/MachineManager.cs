@@ -502,7 +502,7 @@ namespace ReBuzz.MachineManagement
         internal void Tick(MachineCore machine)
         {
             var wi = GetMachineWorkInstance(machine);
-            wi.Tick(true);
+            wi.Tick(true, true);
         }
 
         internal void AudioBeginFrame(MachineCore machine)

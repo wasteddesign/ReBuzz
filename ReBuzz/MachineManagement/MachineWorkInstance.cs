@@ -349,6 +349,25 @@ namespace ReBuzz.MachineManagement
 
                 Machine.parametersChanged.Clear();
                 TickSent = true;
+
+                int noRecord = 1 << 16;
+
+                // Set pvalues to NoValue immediately to avoid sending param value twice
+                foreach (var p in Machine.ParameterGroups[0].Parameters)
+                {
+                    p.SetValue(noRecord, p.NoValue);
+                }
+                foreach (var p in Machine.ParameterGroups[1].Parameters)
+                {
+                    p.SetValue(noRecord, p.NoValue);
+                }
+                foreach (var p in Machine.ParameterGroups[2].Parameters)
+                {
+                    for (int i = 0; i < Machine.TrackCount; i++)
+                    {
+                        p.SetValue(i | noRecord, p.NoValue);
+                    }
+                }
             }
         }
 
@@ -378,25 +397,6 @@ namespace ReBuzz.MachineManagement
                 {
                     Tick(true, true);
                     Machine.sendControlChangesFlag = false;
-
-                    int noRecord = 1 << 16;
-
-                    // Set pvalues to NoValue immediately to avoid sending param value twice
-                    foreach (var p in Machine.ParameterGroups[0].Parameters)
-                    {
-                        p.SetValue(noRecord, p.NoValue);
-                    }
-                    foreach (var p in Machine.ParameterGroups[1].Parameters)
-                    {
-                        p.SetValue(noRecord, p.NoValue);
-                    }
-                    foreach (var p in Machine.ParameterGroups[2].Parameters)
-                    {
-                        for (int i = 0; i < Machine.TrackCount; i++)
-                        {
-                            p.SetValue(i | noRecord, p.NoValue);
-                        }
-                    }
                 }
 
                 Machine.IsActive = WorkMachine(nSamples);

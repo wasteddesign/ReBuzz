@@ -170,11 +170,7 @@ namespace ReBuzz.Audio
                         masterInfo.PosInTick = 0;
                         subTickInfo.CurrentSubTick = 0;
 
-                        if (buzzCore.StartPlaying())
-                        {
-
-                        }
-                        else
+                        if (!buzzCore.StartPlaying())
                         {
                             // Update song play position
                             if (buzzCore.Playing && buzzCore.SoloPattern == null)
@@ -183,7 +179,6 @@ namespace ReBuzz.Audio
                             }
                         }
                     }
-
 
                     // Update frame count
                     unchecked { ReBuzzCore.GlobalState.AudioFrame++; }
@@ -415,8 +410,8 @@ namespace ReBuzz.Audio
             {
                 // Tick should be inexpensive operation so no tasks?
                 // Some old machines don't support subtick
-                if (machine.IsControlMachine && ReBuzzCore.masterInfo.PosInTick == 0 ||
-                    (engineSettings.SubTickTiming && ReBuzzCore.subTickInfo.PosInSubTick == 0 && machine.DLL.Info.Version > MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_42))
+                if (machine.IsControlMachine && (ReBuzzCore.masterInfo.PosInTick == 0 ||
+                    (engineSettings.SubTickTiming && ReBuzzCore.subTickInfo.PosInSubTick == 0 && machine.DLL.Info.Version > MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_42)))
                 {
                     var workInstance = buzzCore.MachineManager.GetMachineWorkInstance(machine);
                     workInstance.Tick(false, false);
@@ -427,8 +422,8 @@ namespace ReBuzz.Audio
             {
                 // Tick should be inexpensive operation so no tasks?
                 // Some old machines don't support subtick
-                if (!machine.IsControlMachine && ReBuzzCore.masterInfo.PosInTick == 0 ||
-                    (engineSettings.SubTickTiming && ReBuzzCore.subTickInfo.PosInSubTick == 0 && machine.DLL.Info.Version > MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_42))
+                if (!machine.IsControlMachine && (ReBuzzCore.masterInfo.PosInTick == 0 ||
+                    (engineSettings.SubTickTiming && ReBuzzCore.subTickInfo.PosInSubTick == 0 && machine.DLL.Info.Version > MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_42)))
                 {
                     var workInstance = buzzCore.MachineManager.GetMachineWorkInstance(machine);
                     workInstance.Tick(false, false);
