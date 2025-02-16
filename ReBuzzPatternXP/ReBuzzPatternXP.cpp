@@ -358,15 +358,15 @@ void ReBuzzPatternXpMachine::Work()
     //Make sure we're initialised or busy before working...
     if(m_initialised && !m_busy &&  (m_patternEditor != nullptr) && (m_interface != NULL))
     {  
-        //Tick the machine / native buzz machine wrapper
-        m_machineWrapper->Tick();
-
         //If we're currently playing, Make sure the machine is told to play a pattern
         if (Global::Buzz->Playing && (m_host->MasterInfo->PosInTick == 0))
         {   
             //Tell native wrapper to tell the pattern editor about the playing pattern
             m_machineWrapper->NotifyOfPlayingPattern();
         }
+
+        //Tick the machine / native buzz machine wrapper
+        m_machineWrapper->Tick();
 
         //The parameters are not used by 'Work', so just put anything in....
         m_interface->Work(NULL, 0, 0);

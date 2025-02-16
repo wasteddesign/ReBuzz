@@ -840,13 +840,13 @@ namespace ReBuzz.Core
 
         public void SendControlChanges()
         {
-            var machineManager = (graph.Buzz as ReBuzzCore).MachineManager;
+            //var machineManager = (graph.Buzz as ReBuzzCore).MachineManager;
 
             // Control machines !MUST! send the changes immediately before Work() so that events get triggered correctly
-            machineManager.Tick(this);
+            //machineManager.Tick(this);
 
             // Below does not work because the parameter changes might slip to next tick.
-            //sendControlChangesFlag = true;
+            sendControlChangesFlag = true;
         }
 
         public byte[] SendGUIMessage(byte[] message)
