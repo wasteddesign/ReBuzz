@@ -822,9 +822,13 @@ namespace ReBuzz
                 }
                 else if (e.Key == Key.Space)
                 {
-                    if (Buzz.ActiveView == BuzzView.PatternView && Buzz.NewSequenceEditorActivate)
+                    if (Buzz.ActiveView == BuzzView.PatternView)
                     {
-                        //e.Handled = true;
+                        if (Buzz.PatternEditorPattern != null)
+                        {
+                            Buzz.PatternEditorPattern.IsPlayingSolo ^= true;
+                        }
+                        e.Handled = true;
                     }
                 }
 

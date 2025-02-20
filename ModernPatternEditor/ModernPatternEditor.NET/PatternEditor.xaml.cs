@@ -559,9 +559,9 @@ namespace WDE.ModernPatternEditor
                     }
                     else if (e.Key == Key.Space)
                     {
-                        if (SelectedMachine != null && SelectedMachine.SelectedPattern != null)
-                            SelectedMachine.SelectedPattern.Pattern.IsPlayingSolo ^= true;
-                        e.Handled = true;
+                        //if (SelectedMachine != null && SelectedMachine.SelectedPattern != null)
+                        //    SelectedMachine.SelectedPattern.Pattern.IsPlayingSolo ^= true;
+                        //e.Handled = true;
                     }
                     else if (e.Key == Key.Divide)
                     {
