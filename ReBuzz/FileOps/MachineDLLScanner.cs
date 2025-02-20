@@ -1,6 +1,5 @@
 ﻿using BuzzGUI.Common;
 using BuzzGUI.Interfaces;
-//using BuzzGUI.MachineView.MDBTab.MDB;
 using ReBuzz.Core;
 using ReBuzz.ManagedMachine;
 using System;
@@ -164,6 +163,15 @@ namespace ReBuzz.FileOps
         public static string GetFullFileName()
         {
             var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ReBuzzCore.AppDataPath);
+
+            // Check if the directory exists
+            if (!Directory.Exists(dir))
+            {
+                // Create the directory
+                Directory.CreateDirectory(dir);
+                Console.WriteLine("Directory created successfully.");
+            }
+
             return Path.Combine(dir, dllDataFileName);
         }
 
