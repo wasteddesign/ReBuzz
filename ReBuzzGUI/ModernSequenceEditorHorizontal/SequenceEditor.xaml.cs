@@ -1482,14 +1482,14 @@ namespace WDE.ModernSequenceEditorHorizontal
                     Point location = Win32Mouse.GetScreenPosition();
                     location.X /= WPFExtensions.PixelsPerDip;
                     location.Y /= WPFExtensions.PixelsPerDip;
-                    patternWnd.Left = location.X - 50;
-                    patternWnd.Top = location.Y + 30;
+                    patternWnd.Left = location.X - pli.Pattern.Length * ViewSettings.TickWidth - 10;
+                    patternWnd.Top = location.Y;
 
                     if (patternWndCurrentPli != pli)
                     {
                         patternWndCurrentPli = pli;
-                        patternWnd.Width = ViewSettings.TrackHeight;
-                        patternWnd.Height = pli.Pattern.Length * ViewSettings.TickWidth;
+                        patternWnd.Height = ViewSettings.TrackHeight;
+                        patternWnd.Width = pli.Pattern.Length * ViewSettings.TickWidth;
 
                         PatternElement pe = new PatternElement((TrackControl)trackStack.Children[CursorRow], 0, new SequenceEvent(SequenceEventType.PlayPattern, pli.Pattern, pli.Pattern.Length), viewSettings);
                         patternWnd.Content = pe;
