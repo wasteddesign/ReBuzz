@@ -22,6 +22,7 @@ using BuzzGUI::Interfaces::MachineType;
 using BuzzGUI::Interfaces::MachineInfoFlags;
 using BuzzGUI::Interfaces::ParameterType;
 using BuzzGUI::Interfaces::ParameterFlags;
+using BuzzGUI::Interfaces::PatternEvent;
 
 namespace ReBuzz
 {
@@ -65,12 +66,12 @@ namespace ReBuzz
         
         
 
-        void MachineWrapper::OnSequenceCreatedByReBuzz(int seq)
+        void MachineWrapper::OnSequenceCreatedByReBuzz(int idx, ISequence^ seq)
         {
 
         }
 
-        void MachineWrapper::OnSequecneRemovedByReBuzz(int seq)
+        void MachineWrapper::OnSequecneRemovedByReBuzz(int idx, ISequence^ seq)
         {
 
         }
@@ -114,7 +115,9 @@ namespace ReBuzz
                                                                 m_onKeyupHandler(nullptr),
                                                                 m_editorMessageMap(new std::unordered_map<UINT, OnWindowsMessage>()),
                                                                 m_editorMessageParamMap(new std::unordered_map<UINT, void*>()),
-                                                                m_onSelectedWaveChange(gcnew System::Collections::Generic::List<OnSelectedWaveChange^>())
+                                                                m_onSelectedWaveChange(gcnew System::Collections::Generic::List<OnSelectedWaveChange^>()),
+                                                                m_patternPosTickMap(new std::unordered_map<int64_t, int>()),
+                                                                m_lock(new std::mutex())
         {
             
             //Create machine manager
@@ -131,7 +134,17 @@ namespace ReBuzz
             m_onPatternAddedCallback = gcnew PatternManager::OnPatternEventDelegate(this, &MachineWrapper::OnPatternAdded);
             m_onPatternRemovedCallback = gcnew PatternManager::OnPatternEventDelegate(this, &MachineWrapper::OnPatternRemoved);
             m_onPatternChangedCallback = gcnew PatternManager::OnPatternEventDelegate(this, &MachineWrapper::OnPatternChanged);
-            m_patternMgr = gcnew PatternManager(m_onPatternAddedCallback, m_onPatternRemovedCallback, m_onPatternChangedCallback, nullptr);
+            m_onPatternPlayStartCallback = gcnew PatternManager::OnPatternPlayDelegate(this, &MachineWrapper::OnPatternPlayStart);
+            m_onPatternPlayEndCallback = gcnew PatternManager::OnPatternPlayDelegate(this, &MachineWrapper::OnPatternPlayEnd);
+            m_onPatternPlayPosChangeCallback = gcnew PatternManager::OnPatternPlayDelegate(this, &MachineWrapper::OnPatternPlayPosChange);
+            
+            m_patternMgr = gcnew PatternManager(m_onPatternAddedCallback, 
+                                                m_onPatternRemovedCallback, 
+                                                m_onPatternChangedCallback, 
+                                                nullptr,
+                                                m_onPatternPlayStartCallback,
+                                                m_onPatternPlayEndCallback,
+                                                m_onPatternPlayPosChangeCallback);
             
             //Create Wave manager
             m_waveManager = gcnew WaveManager();
@@ -149,11 +162,11 @@ namespace ReBuzz
             m_masterInfo = new CMasterInfo();
 
             //Ask ReBuzz to tell us when a sequence has been added
-            m_seqAddedAction = gcnew System::Action<int>(this, &MachineWrapper::OnSequenceCreatedByReBuzz);
+            m_seqAddedAction = gcnew System::Action<int, ISequence^>(this, &MachineWrapper::OnSequenceCreatedByReBuzz);
             Global::Buzz->Song->SequenceAdded += m_seqAddedAction;
 
             //Ask ReBuzz to tell us when a sequence has been removed
-            m_seqRemovedAction = gcnew System::Action<int>(this, &MachineWrapper::OnSequecneRemovedByReBuzz);
+            m_seqRemovedAction = gcnew System::Action<int, ISequence^>(this, &MachineWrapper::OnSequecneRemovedByReBuzz);
             Global::Buzz->Song->SequenceRemoved += m_seqRemovedAction;
 
             //Set up action for buzz song property changed (allows us to detect song stopped)
@@ -184,8 +197,6 @@ namespace ReBuzz
                 m_callbackWrapper = NULL;
             }
 
-         
-
             if (m_sequenceMap != NULL)
             {
                 delete m_sequenceMap;
@@ -203,6 +214,18 @@ namespace ReBuzz
             {
                 delete m_onSelectedWaveChange;
                 m_onSelectedWaveChange = nullptr;   
+            }
+
+            if (m_patternPosTickMap != NULL)
+            {
+                delete m_patternPosTickMap; 
+                m_patternPosTickMap = NULL;
+            }
+
+            if (m_lock != NULL)
+            {
+                delete m_lock;
+                m_lock = NULL;
             }
         }
 
@@ -315,6 +338,24 @@ namespace ReBuzz
                 m_patternMgr = nullptr;
             }
 
+            if (m_onPatternPlayEndCallback != nullptr)
+            {
+                delete m_onPatternPlayEndCallback;
+                m_onPatternPlayEndCallback = nullptr;
+            }
+
+            if (m_onPatternPlayStartCallback != nullptr)
+            {
+                delete m_onPatternPlayStartCallback;
+                m_onPatternPlayStartCallback = nullptr;
+            }
+
+            if (m_onPatternPlayPosChangeCallback != nullptr)
+            {
+                delete m_onPatternPlayPosChangeCallback;
+                m_onPatternPlayPosChangeCallback = nullptr;
+            }
+
             if (m_onPatEditorRedrawCallbacks != nullptr)
             {
                 delete m_onPatEditorRedrawCallbacks;
@@ -409,17 +450,51 @@ namespace ReBuzz
 
         void MachineWrapper::Tick()
         {
+            if (!m_initialised || (m_machine == NULL) || (m_host == nullptr))
+                return;
+
             //Update master info
             //This copies the master info from ReBuzz into the
             //CMasterInfo pointer attached to the native machine
             UpdateMasterInfo();
 
-            //Call tick on machine on the stroke of every tick
-            if (m_initialised && (m_machine != NULL) && m_masterInfo->PosInTick == 0)
+            if (m_host->SubTickInfo->CurrentSubTick != 0)
             {
-                //Tell the machine to tick
-                m_machine->Tick();
+                return;
             }
+            
+            //Gather list of playing patterns
+            //The m_patternPosTickMap list is updated when a pattern is played, the play position updated, or 
+            //a pattern is stopped.  The last position that NotifyOfPlayingPattern was called for the pattern
+            //is recorded, to prevent multiple calls for the same position (subticks, etc)
+            List<IPattern^> patternsToNotify;
+            {
+                std::lock_guard<std::mutex> lg(*m_lock);
+                for (auto& playingpat : *m_patternPosTickMap)
+                {
+                    IPattern^ pat =  m_patternMgr->GetById(playingpat.first, NULL);
+                    if (pat != nullptr)
+                    {   
+                        int newPlayPos = pat->PlayPosition / PatternEvent::TimeBase;
+                        if (playingpat.second != newPlayPos)
+                        {
+                            patternsToNotify.Add(pat);
+                            playingpat.second = newPlayPos;
+                        }
+                    }
+                }
+            }
+
+
+            //Notify of patterns playing (outside the lock)
+            for each(IPattern^ p in patternsToNotify)
+            {
+                NotifyOfPlayingPattern(p);
+            }
+            
+            
+            //Tell the machine to tick
+            m_machine->Tick();
         }
 
         void MachineWrapper::SetModifiedFlag()
@@ -835,7 +910,7 @@ namespace ReBuzz
             //Set target machine if needed            
             if ((currentEditorTgtMach != patMach) && (m_onNewPatternCallbacks != nullptr))
             {
-                int64_t patid = Utils::ObjectToInt64(pattern);
+                int64_t patid = pattern->CPattern.ToInt64();
                 for each (OnNewPatternDelegate ^ onNewPatCallback in m_onNewPatternCallbacks)
                 {
                     try
@@ -906,54 +981,31 @@ namespace ReBuzz
             exInterface->CreatePatternCopy(newPat, oldPat);
         }
 
-        void MachineWrapper::NotifyOfPlayingPattern()
+        void MachineWrapper::NotifyOfPlayingPattern(IPattern^ pat)
         {
             CMachineInterfaceEx* exInterface = m_callbackWrapper->GetExInterface();
+            if (exInterface == NULL)
+                return;
 
-            //Get sequences and tell machine about them
-            for each (ISequence ^ s in Global::Buzz->Song->Sequences)
+            CPattern* cpat = m_patternMgr->GetOrStorePattern(pat);
+            if((cpat != NULL) &&  (pat->PlayPosition > int::MinValue))
             {
-                if (!s->IsDisabled)
+                //Query the pattern for associated sequence(s)
+                for each (ISequence ^ s in pat->Sequences)
                 {
-                    //Ignore any sequence that does not have a playing sequence
-                    IPattern^ playingPat = s->PlayingPattern;
-                    if ((playingPat != nullptr) && (playingPat->PlayPosition >= 0))
+                    //Only notify of pattern playing if the machine associated with the current sequence 
+                    //matches the machine associated with the pattern
+                    if (!s->IsDisabled &&  (s->Machine == pat->Machine))
                     {
-                        //Get CPattern * for this pattern
-                        CPattern* cpat = m_patternMgr->GetOrStorePattern(playingPat);
-                        if (cpat != NULL)
+                        int64_t seqid = s->CSequence.ToInt64();
+                        bool created = false;
+                        CSequence* cseq = m_sequenceMap->GetOrStoreReBuzzTypeById(seqid, s, &created);
+                        if (cseq != NULL)
                         {
-                            CPatternData* patdata = m_patternMgr->GetBuzzPatternData(cpat);
-
-                            //Get CSequence * for this sequence
-                            uint64_t seqid = s->GetHashCode();
-                            bool created = false;
-                            CSequence* cseq = m_sequenceMap->GetOrStoreReBuzzTypeById(seqid, s, &created);
-                            if (cseq != NULL)
-                            {
-                                CMachine* patMach = m_machineMgr->GetOrStoreMachine(playingPat->Machine);
-
-                                //Ask the Native machine if it's ok to call the exInterface
-                                bool callExInterface = true;
-                                if (m_onPlayPatternCallbacks != nullptr)
-                                {
-                                    for each (OnPatternPlayDelegate ^ playPatCallback in m_onPlayPatternCallbacks)
-                                    {
-                                        if (!playPatCallback(playingPat->Machine, patMach, playingPat, cpat, playingPat->Name))
-                                        {
-                                            callExInterface = false;
-                                        }
-                                    }
-                                }
-
-                                if (callExInterface && (exInterface != NULL))
-                                {
-                                    //Tell interface about this pattern and the current play position within
-                                    //that pattern.
-                                    int playpos = s->PlayingPatternPosition;
-                                    exInterface->PlayPattern(cpat, cseq, playpos);
-                                }
-                            }
+                            //Tell interface about this pattern and the current play position within
+                            //that pattern.
+                            int playpos = pat->PlayPosition / PatternEvent::TimeBase;
+                            exInterface->PlayPattern(cpat, cseq, playpos);
                         }
                     }
                 }
@@ -1004,7 +1056,7 @@ namespace ReBuzz
         cli::array<int>^ MachineWrapper::GetPatternEditorMachineMIDIEvents(IPattern^ pattern)
         {
             //Get pattern
-            uint64_t patid = pattern->GetHashCode();
+            int64_t patid = pattern->CPattern.ToInt64(); 
             CPattern* pat = m_patternMgr->GetOrStorePattern(pattern);
 
             //Save data 
@@ -1128,6 +1180,41 @@ namespace ReBuzz
                     }
                 }
             }
+        }
+
+        void MachineWrapper::OnPatternPlayStart(int64_t id, IPattern^ rebuzzPat, CPattern* buzzPat)
+        {
+            int newPlayPos = rebuzzPat->PlayPosition / PatternEvent::TimeBase;
+
+            {
+                std::lock_guard<std::mutex> lg(*m_lock);
+                (*m_patternPosTickMap)[id] = -1;
+            }
+        }
+
+        void MachineWrapper::OnPatternPlayEnd(int64_t id, IPattern^ rebuzzPat, CPattern* buzzPat)
+        {
+            std::lock_guard<std::mutex> lg(*m_lock);
+            m_patternPosTickMap->erase(id);
+        }
+        
+        void MachineWrapper::OnPatternPlayPosChange(int64_t id, IPattern^ rebuzzPat, CPattern* buzzPat)
+        {
+            int newPlayPos = rebuzzPat->PlayPosition / PatternEvent::TimeBase;
+            bool notify = false;
+            {
+                std::lock_guard<std::mutex> lg(*m_lock);
+                
+                auto  found = m_patternPosTickMap->find(id);
+                if ((found == m_patternPosTickMap->end()) || ((*found).second != newPlayPos))
+                {
+                    notify = true;
+                    (*m_patternPosTickMap)[id] = rebuzzPat->PlayPosition / PatternEvent::TimeBase;
+                }
+            }
+
+            if(notify)
+                NotifyOfPlayingPattern(rebuzzPat);
         }
 
 
@@ -1268,17 +1355,9 @@ namespace ReBuzz
             }
         }
 
-        
-        
-
-        
-        
-        
-        
-
         CSequence* MachineWrapper::GetSequence(ISequence^ seq)
         {
-            uint64_t id = seq->GetHashCode();
+            uint64_t id = seq->CSequence.ToInt64();
             bool created = false;
             return m_sequenceMap->GetOrStoreReBuzzTypeById(id, seq, &created);
         }

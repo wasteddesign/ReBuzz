@@ -140,6 +140,8 @@ namespace ReBuzz
             BuzzType* GetBuzzTypeById_Internal(uint64_t id) const
             {
                 BuzzType* ret = NULL;
+                if (id == 0)
+                    return NULL;
 
                 const auto& found = m_idToDataMap.find(id);
                 if (found == m_idToDataMap.end())

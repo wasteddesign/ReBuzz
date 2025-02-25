@@ -161,9 +161,9 @@ namespace ReBuzz.Core
         string name;
         public string SongName { get => name; internal set { name = value; PropertyChanged.Raise(this, "Name"); } }
 
-        public event Action<int> SequenceAdded;
-        public event Action<int> SequenceRemoved;
-        public event Action<int> SequenceChanged;
+        public event Action<int, ISequence> SequenceAdded;
+        public event Action<int, ISequence> SequenceRemoved;
+        public event Action<int, ISequence> SequenceChanged;
 
         public SongCore(IUiDispatcher dispatcher)
         {
@@ -177,7 +177,7 @@ namespace ReBuzz.Core
                 SequenceCore sequenceCore = new SequenceCore(m as MachineCore);
                 sequences.Insert(index, sequenceCore);
                 PropertyChanged.Raise(this, "Sequences");
-                SequenceAdded?.Invoke(index);
+                SequenceAdded?.Invoke(index, sequenceCore);
             }
 
             Buzz.SetModifiedFlag();
@@ -191,7 +191,7 @@ namespace ReBuzz.Core
                 int index = sequences.IndexOf(sc);
                 sequences.Remove(sc);
                 PropertyChanged.Raise(this, "Sequences");
-                SequenceRemoved?.Invoke(index);
+                SequenceRemoved?.Invoke(index, sc);
                 sc.Release();
             }
             Buzz.SetModifiedFlag();
@@ -205,10 +205,10 @@ namespace ReBuzz.Core
                 int indext = sequences.IndexOf((SequenceCore)t);
                 sequences.RemoveAt(indexs);
                 sequences.Insert(indexs, (SequenceCore)t);
-                SequenceChanged?.Invoke(indexs);
+                SequenceChanged?.Invoke(indexs, t);
                 sequences.RemoveAt(indext);
                 sequences.Insert(indext, (SequenceCore)s);
-                SequenceChanged?.Invoke(indext);
+                SequenceChanged?.Invoke(indext, s);
             }
 
             Buzz.SetModifiedFlag();

@@ -192,13 +192,13 @@ namespace BuzzGUI.SequenceEditor
 
 		}
 
-		void song_SequenceAdded(int i)
+		void song_SequenceAdded(int i, ISequence seq)
 		{
 			AddSequence(i);
 			TrackCountChanged();
 		}
 
-		void song_SequenceRemoved(int i)
+		void song_SequenceRemoved(int i, ISequence seq)
 		{
 			trackStack.Children.RemoveAt(i);
 			(trackHeaderStack.Children[i] as TrackHeaderControl).Sequence = null;
@@ -206,10 +206,10 @@ namespace BuzzGUI.SequenceEditor
 			TrackCountChanged();
 		}
 
-		void song_SequenceChanged(int i)
+		void song_SequenceChanged(int i, ISequence seq)
 		{
-			(trackStack.Children[i] as TrackControl).Sequence = song.Sequences[i];
-			(trackHeaderStack.Children[i] as TrackHeaderControl).Sequence = song.Sequences[i];
+            (trackStack.Children[i] as TrackControl).Sequence = seq;
+			(trackHeaderStack.Children[i] as TrackHeaderControl).Sequence = seq;
 		}
 
 		void TrackCountChanged()
