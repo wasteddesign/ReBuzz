@@ -130,9 +130,6 @@ ReBuzzPatternXpMachine::ReBuzzPatternXpMachine(IBuzzMachineHost^ host) : m_host(
 
     m_onNewPatternCallback = gcnew MachineWrapper::OnNewPatternDelegate(this, &ReBuzzPatternXpMachine::OnPatternCreated);
     m_machineWrapper->AddNewPatternCallback(m_onNewPatternCallback);
-
-    m_onPatterPlayCallback = gcnew MachineWrapper::OnPatternPlayDelegate(this, &ReBuzzPatternXpMachine::OnPatternPlaying);
-    m_machineWrapper->AddPatternPlayCallback(m_onPatterPlayCallback);
 }
 
 ReBuzzPatternXpMachine::~ReBuzzPatternXpMachine()
@@ -180,12 +177,6 @@ void ReBuzzPatternXpMachine::Release()
     {
         delete m_onNewPatternCallback;
         m_onNewPatternCallback = nullptr;
-    }
-
-    if (m_onPatterPlayCallback != nullptr)
-    {
-        delete m_onPatterPlayCallback;
-        m_onPatterPlayCallback = nullptr;
     }
 
     if (m_sampleListControl != nullptr)
@@ -281,21 +272,6 @@ void ReBuzzPatternXpMachine::OnPatternCreated(IMachine^ rebuzzMachine, void * bu
                 (*foundpat).second->pPattern = reinterpret_cast<CPattern*>(buzzPattern);
         }
     }
-}
-
-bool ReBuzzPatternXpMachine::OnPatternPlaying(IMachine^ rebuzzMachine, void * buzzMachine,
-                                            IPattern^ rebuzzPattern, void * buzzPattern, String^ patternName)
-
-{
-    mi* pmi = reinterpret_cast<mi*>(m_interface);
-
-    //If the playing pattern is not for us, then return false to prevent the exInterface from being called
-    if (pmi->targetMachine != buzzMachine)
-    {
-        return false;
-    }
-
-    return true;
 }
 
 void ReBuzzPatternXpMachine::OnMenuItem_CreatePattern(int menuid)

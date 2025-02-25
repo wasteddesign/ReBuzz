@@ -96,8 +96,6 @@ namespace ReBuzz
              delegate void OnNewPatternDelegate(IMachine^ rebuzzMachine, void * buzzMachine, 
                                                IPattern^ rebuzzPattern, void * buzzPattern,String^ patternName);
 
-            delegate bool OnPatternPlayDelegate(IMachine^ rebuzzMachine, void * buzzMachine,
-                                                IPattern^ rebuzzPattern, void * buzzPattern,String^ patternName);
 
             delegate void OnPatternEditorRedrawDelegate();
 
@@ -130,10 +128,6 @@ namespace ReBuzz
             void AddPatternEditorCreaetdCallback(OnPatternEditorCreatedDelegate^ callback);
 
             void RemovePatternEditorCreaetdCallback(OnPatternEditorCreatedDelegate^ callback);
-
-            void AddPatternPlayCallback(OnPatternPlayDelegate^ callback);
-
-            void RemovePatternPlayCallback(OnPatternPlayDelegate^ callback);
 
             void SetEditorPattern(IPattern^ pattern);
 
@@ -229,7 +223,6 @@ namespace ReBuzz
             System::Collections::Generic::List< OnPatternEditorRedrawDelegate^>^ m_onPatEditorRedrawCallbacks;
             System::Collections::Generic::List< OnPatternEditorCreatedDelegate^>^ m_onPatternEditorCreatedCallbacks;
             System::Collections::Generic::List< OnNewPatternDelegate^>^ m_onNewPatternCallbacks;
-            System::Collections::Generic::List< OnPatternPlayDelegate^>^ m_onPlayPatternCallbacks;
             System::Collections::Generic::List < KeyboardFocusWindowHandleDelegate^>^ m_kbFocusWindowHandleCallbacks;
 
             WaveManager^ m_waveManager;

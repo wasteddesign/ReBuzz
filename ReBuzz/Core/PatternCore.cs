@@ -215,16 +215,27 @@ namespace ReBuzz.Core
         {
             Global.Buzz.Song.SequenceAdded -= Song_SequenceAdded;
             Global.Buzz.Song.SequenceRemoved -= Song_SequenceRemoved;
-            Global.Buzz.Song.SequenceChanged -= Song_SequenceAdded;
+            Global.Buzz.Song.SequenceChanged -= Song_SequenceChanged;
         }
 
+        
         private void Song_SequenceAdded(int obj, ISequence seq)
+        {
+            lock (_owningSequences)
+            {   //If the added sequence refers to the same machine as the
+                //one associated with the pattern, then associate the sequence with this pattern.
+                if(seq.Machine == Machine)
+                    _owningSequences.Add((ISequence)seq);
+            }
+        }
+
+        private void Song_SequenceChanged(int obj, ISequence seq)
         {
             lock (_owningSequences)
             {
                 //If the added sequence refers to the same machine as the
                 //one associated with the pattern, then associate the sequence with this pattern.
-                if(seq.Machine == Machine)
+                if (seq.Machine == Machine)
                     _owningSequences.Add((ISequence)seq);
             }
         }

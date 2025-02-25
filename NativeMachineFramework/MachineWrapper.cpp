@@ -128,7 +128,6 @@ namespace ReBuzz
             //Create pattern manager
             m_onPatEditorRedrawCallbacks = gcnew List<OnPatternEditorRedrawDelegate^>();
             m_onNewPatternCallbacks = gcnew List<OnNewPatternDelegate^>();
-            m_onPlayPatternCallbacks = gcnew List< OnPatternPlayDelegate^>();
             m_kbFocusWindowHandleCallbacks = gcnew List<KeyboardFocusWindowHandleDelegate^>();
             m_onPatternEditorCreatedCallbacks = gcnew List<OnPatternEditorCreatedDelegate^>();
             m_onPatternAddedCallback = gcnew PatternManager::OnPatternEventDelegate(this, &MachineWrapper::OnPatternAdded);
@@ -374,12 +373,6 @@ namespace ReBuzz
                 m_onPatternEditorCreatedCallbacks = nullptr;
             }
 
-            if (m_onPlayPatternCallbacks != nullptr)
-            {
-                delete  m_onPlayPatternCallbacks;
-                m_onPlayPatternCallbacks = nullptr;
-            }
-
             if (m_kbFocusWindowHandleCallbacks != nullptr)
             {
                 delete m_kbFocusWindowHandleCallbacks;
@@ -476,7 +469,7 @@ namespace ReBuzz
                     if (pat != nullptr)
                     {   
                         int newPlayPos = pat->PlayPosition / PatternEvent::TimeBase;
-                        if (playingpat.second != newPlayPos)
+                        if ((newPlayPos > int::MinValue) &&  (playingpat.second != newPlayPos))
                         {
                             patternsToNotify.Add(pat);
                             playingpat.second = newPlayPos;
@@ -865,24 +858,6 @@ namespace ReBuzz
             }
         }
 
-
-        void MachineWrapper::AddPatternPlayCallback(OnPatternPlayDelegate^ callback)
-        {
-            if (m_onPlayPatternCallbacks != nullptr)
-            {
-                m_onPlayPatternCallbacks->Add(callback);
-            }
-        }
-
-        void MachineWrapper::RemovePatternPlayCallback(OnPatternPlayDelegate^ callback)
-        {
-            if (m_onPlayPatternCallbacks != nullptr)
-            {
-                m_onPlayPatternCallbacks->Remove(callback);
-            }
-        }
-
-
         void MachineWrapper::SetEditorPattern(IPattern^ pattern)
         {
             //Make sure we're initialised
@@ -995,7 +970,7 @@ namespace ReBuzz
                 {
                     //Only notify of pattern playing if the machine associated with the current sequence 
                     //matches the machine associated with the pattern
-                    if (!s->IsDisabled &&  (s->Machine == pat->Machine))
+                    if (!s->IsDisabled && (pat == s->PlayingPattern) &&  (s->Machine == pat->Machine))
                     {
                         int64_t seqid = s->CSequence.ToInt64();
                         bool created = false;
