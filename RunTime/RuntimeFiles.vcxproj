@@ -75,6 +75,10 @@ xcopy /d /y "$(ProjectDir)bin64\*.*" "$(OutDir)\bin64\"
 
 xcopy /d /y "$(ProjectDir)..\3rdParty\libsndfile-1.dll" "$(OutDir)\" 
 
+xcopy /d /y "$(ProjectDir)..\3rdParty\box2d.dll" "$(OutDir)\" 
+
+xcopy /d /y "$(ProjectDir)..\3rdParty\Box2dNet.dll" "$(OutDir)\" 
+
 IF NOT EXIST "$(OutDir)\Help" mkdir "$(OutDir)\Help"
 xcopy /d /y /e "$(ProjectDir)Help" "$(OutDir)\Help" 
 
