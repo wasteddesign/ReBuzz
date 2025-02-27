@@ -231,13 +231,13 @@ namespace WDE.ModernSequenceEditor
             trackHeaderStack.Children.Insert(i, new TrackHeaderControl(this) { ViewSettings = viewSettings, Width = viewSettings.TrackWidth, HorizontalAlignment = HorizontalAlignment.Left, Resources = this.Resources, Sequence = song.Sequences[i] });
         }
 
-        void song_SequenceAdded(int i)
+        void song_SequenceAdded(int i, ISequence seq)
         {
             AddSequence(i);
             TrackCountChanged();
         }
 
-        void song_SequenceRemoved(int i)
+        void song_SequenceRemoved(int i, ISequence seq)
         {
             var trackControl = trackStack.Children[i] as TrackControl;
             trackControl.Sequence = null;
@@ -248,10 +248,10 @@ namespace WDE.ModernSequenceEditor
             TrackCountChanged();
         }
 
-        void song_SequenceChanged(int i)
+        void song_SequenceChanged(int i, ISequence seq)
         {
-            (trackStack.Children[i] as TrackControl).Sequence = song.Sequences[i];
-            (trackHeaderStack.Children[i] as TrackHeaderControl).Sequence = song.Sequences[i];
+            (trackStack.Children[i] as TrackControl).Sequence = seq;
+            (trackHeaderStack.Children[i] as TrackHeaderControl).Sequence = seq;
         }
 
         void TrackCountChanged()

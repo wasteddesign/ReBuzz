@@ -96,8 +96,6 @@ namespace ReBuzz
              delegate void OnNewPatternDelegate(IMachine^ rebuzzMachine, void * buzzMachine, 
                                                IPattern^ rebuzzPattern, void * buzzPattern,String^ patternName);
 
-            delegate bool OnPatternPlayDelegate(IMachine^ rebuzzMachine, void * buzzMachine,
-                                                IPattern^ rebuzzPattern, void * buzzPattern,String^ patternName);
 
             delegate void OnPatternEditorRedrawDelegate();
 
@@ -131,17 +129,11 @@ namespace ReBuzz
 
             void RemovePatternEditorCreaetdCallback(OnPatternEditorCreatedDelegate^ callback);
 
-            void AddPatternPlayCallback(OnPatternPlayDelegate^ callback);
-
-            void RemovePatternPlayCallback(OnPatternPlayDelegate^ callback);
-
             void SetEditorPattern(IPattern^ pattern);
 
             void* CreatePattern(IMachine^ machine, const char* name, int len);
 
             void CreatePatternCopy(IPattern^ pnew, IPattern^ p);
-
-            void NotifyOfPlayingPattern();
 
             void OverridePatternEditorWindowsMessage(UINT msg, IntPtr callback, void* param);
 
@@ -195,6 +187,10 @@ namespace ReBuzz
             void OnPatternAdded(int64_t id, IPattern^ pat, CPattern* buzzPat, PatternEventFlags flags);
             void OnPatternRemoved(int64_t id, IPattern^ pat, CPattern* buzzPat, PatternEventFlags flags);
             void OnPatternChanged(int64_t id, IPattern^ pat, CPattern* buzzPat, PatternEventFlags flags);
+            void OnPatternPlayStart(int64_t id, IPattern^ rebuzzPat, CPattern* buzzPat);
+            void OnPatternPlayEnd(int64_t id, IPattern^ rebuzzPat, CPattern* buzzPat);
+            void OnPatternPlayPosChange(int64_t id, IPattern^ rebuzzPat, CPattern* buzzPat);
+
 
             void SendMessageToKeyboardWindow(UINT msg, WPARAM wparam, LPARAM lparam);
 
@@ -208,11 +204,12 @@ namespace ReBuzz
             
             void Free();
 
-            void OnSequenceCreatedByReBuzz(int seq);
-            void OnSequecneRemovedByReBuzz(int seq);
+            void OnSequenceCreatedByReBuzz(int idx, ISequence^ seq);
+            void OnSequecneRemovedByReBuzz(int idx, ISequence^ seq);
 
             void BuzzSong_PropertyChanged(System::Object^ sender, PropertyChangedEventArgs^ args);
             
+            void NotifyOfPlayingPattern(IPattern ^ pat);
 
             
             RebuzzBuzzLookup<ISequence, int, CSequence>* m_sequenceMap;
@@ -226,7 +223,6 @@ namespace ReBuzz
             System::Collections::Generic::List< OnPatternEditorRedrawDelegate^>^ m_onPatEditorRedrawCallbacks;
             System::Collections::Generic::List< OnPatternEditorCreatedDelegate^>^ m_onPatternEditorCreatedCallbacks;
             System::Collections::Generic::List< OnNewPatternDelegate^>^ m_onNewPatternCallbacks;
-            System::Collections::Generic::List< OnPatternPlayDelegate^>^ m_onPlayPatternCallbacks;
             System::Collections::Generic::List < KeyboardFocusWindowHandleDelegate^>^ m_kbFocusWindowHandleCallbacks;
 
             WaveManager^ m_waveManager;
@@ -236,6 +232,9 @@ namespace ReBuzz
             PatternManager::OnPatternEventDelegate^ m_onPatternAddedCallback;
             PatternManager::OnPatternEventDelegate^ m_onPatternRemovedCallback;
             PatternManager::OnPatternEventDelegate^ m_onPatternChangedCallback;
+            PatternManager::OnPatternPlayDelegate^ m_onPatternPlayStartCallback;
+            PatternManager::OnPatternPlayDelegate^ m_onPatternPlayEndCallback;
+            PatternManager::OnPatternPlayDelegate^ m_onPatternPlayPosChangeCallback;
 
 
 
@@ -257,16 +256,18 @@ namespace ReBuzz
             CMachine* m_patternEditorMachine;
 
            
-            System::Action<int>^ m_seqAddedAction;
-            System::Action<int>^ m_seqRemovedAction;
+            System::Action<int,ISequence^>^ m_seqAddedAction;
+            System::Action<int, ISequence^>^ m_seqRemovedAction;
             UserControl^ m_control;
 
+            
             KeyEventHandler^ m_onKeyDownHandler;
             KeyEventHandler^ m_onKeyupHandler;
             std::unordered_map<UINT, OnWindowsMessage> * m_editorMessageMap;
             std::unordered_map<UINT, void *> * m_editorMessageParamMap;
             PropertyChangedEventHandler^ m_buzzSongPropChangeHandler;
-            
+            std::unordered_map<int64_t, int> * m_patternPosTickMap;
+            std::mutex* m_lock;
         };
     }
 }
