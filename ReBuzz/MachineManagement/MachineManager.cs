@@ -275,7 +275,7 @@ namespace ReBuzz.MachineManagement
             }
         }
 
-        internal void CallInit(MachineCore machine, byte[] data, int trackCount)
+        internal void CallInit(MachineCore machine, byte[] data, int trackCount, bool askSkip = false)
         {
             if (machine.DLL.IsMissing)
                 return;
@@ -284,7 +284,7 @@ namespace ReBuzz.MachineManagement
             var uiMessage = nativeMachineHost.UIMessage;
             var audioMessage = nativeMachineHost.AudioMessage;
 
-            if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control) && Keyboard.Modifiers.HasFlag(ModifierKeys.Alt) && machine.DLL.Name.StartsWith("Polac"))
+            if (askSkip && machine.DLL.Name.StartsWith("Polac"))
             {
                 // Debug
                 if (MessageBox.Show("Skip initializing " + machine.Name + "?", "Safe load machine?", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
