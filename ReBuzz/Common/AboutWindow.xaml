@@ -32,14 +32,14 @@
         </Grid>
         <Canvas x:Name="mainCanvas" Background="Transparent"></Canvas>        
         <TextBox Name="AboutText" xml:space="preserve" FontFamily="Segoe UI" FontSize="30" HorizontalAlignment="Stretch" TextWrapping="Wrap" HorizontalContentAlignment="Center"
-                 Background="Transparent" Foreground="White" BorderBrush="Transparent" BorderThickness="0" IsReadOnly="True"
+                 Background="Transparent" Foreground="GhostWhite" BorderBrush="Transparent" BorderThickness="0" IsReadOnly="True"
                  VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Hidden">
             <TextBox.Effect>
                 <DropShadowEffect ShadowDepth="4"
                       Direction="330"
                       Color="Black"
-                      Opacity="0.5"
-                      BlurRadius="4"/>
+                      Opacity="0.8"
+                      BlurRadius="7"/>
             </TextBox.Effect>
                         <TextBox.Triggers>
                 <EventTrigger RoutedEvent="Rectangle.Loaded">

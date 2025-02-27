@@ -10,6 +10,11 @@ using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using BuzzGUI.Common;
 using System.Linq;
+using ReBuzz.Core;
+using BuzzGUI.Interfaces;
+using BuzzGUI.Common.DSP;
+using System.Windows.Forms;
+using System.Windows.Threading;
 
 namespace ReBuzz.Common
 {
@@ -18,7 +23,7 @@ namespace ReBuzz.Common
     /// </summary>
     public partial class AboutWindow : Window
     {
-        public AboutWindow(string build)
+        public AboutWindow(ReBuzzCore reBuzz, string build)
         {
             DataContext = this;
             InitializeComponent();
@@ -28,7 +33,7 @@ namespace ReBuzz.Common
             Loaded += (sender, e) =>
             {
                 ps = new ParticleSystem(30, 100, 5, 100, 50, this.particleCanvas, this.partileGrid);
-
+                reBuzz.MasterTap += ReBuzz_MasterTap;
                 CreateWorldLimits();
                 CreateTextBoxes();
 
@@ -43,6 +48,14 @@ namespace ReBuzz.Common
                 CreateTextBoxes();
             };
 
+            DispatcherTimer dt = new DispatcherTimer();
+            dt.Interval = TimeSpan.FromSeconds(10);
+            dt.Tick += (sender, e) =>
+            {
+                rotateBoxes = !rotateBoxes;
+            };
+            dt.Start();
+
             MainGrid.MouseMove += (sender, e) =>
             {
                 pMouse = e.GetPosition(this.mainCanvas);
@@ -50,6 +63,8 @@ namespace ReBuzz.Common
 
             this.Closed += (sender, e) =>
             {
+                dt.Stop();
+                reBuzz.MasterTap -= ReBuzz_MasterTap;
                 CompositionTarget.Rendering -= CompositionTarget_Rendering;
                 ClearAll();
             };
@@ -115,6 +130,30 @@ this about text.";
             ((ThicknessAnimationUsingKeyFrames)sb.Children[0]).KeyFrames[1].Value = new Thickness(0, -textEndPos, 0, 0);
         }
 
+        float maxSample;
+        float VUMeterRange = 80f;
+
+        private void ReBuzz_MasterTap(float[] arg1, bool arg2, SongTime arg3)
+        {
+            if (!arg2) // Mono
+            {
+                maxSample = Math.Max(maxSample, DSP.AbsMax(arg1) * (1.0f / 32768.0f));
+            }
+            else
+            {
+                float[] L = new float[arg1.Length / 2];
+                float[] R = new float[arg1.Length / 2];
+                for (int i = 0; i < arg1.Length / 2; i++)
+                {
+                    L[i] = arg1[i * 2];
+                    R[i] = arg1[i * 2 + 1];
+                }
+
+                maxSample = Math.Max(maxSample, DSP.AbsMax(L) * (1.0f / 32768.0f));
+                maxSample = Math.Max(maxSample, DSP.AbsMax(R) * (1.0f / 32768.0f));
+            }
+        }
+
         private void CompositionTarget_Rendering(object? sender, EventArgs e)
         {
             ps.ParticleRoamUpdate(pMouse);
@@ -123,7 +162,6 @@ this about text.";
 
             UpdateWorld();
         }
-
 
         #region Box2d
 
@@ -137,6 +175,8 @@ this about text.";
         List<BoxInfo> rectangles = new List<BoxInfo>(1000);
         b2WorldId box2WorldId;
         IEnumerable<Color> rectColors = new HSPAColorProvider(80 + 20, 0, 0.916667,0.7, 0.7, 0.6, 0.6).Colors;
+        bool rotateBoxes;
+        float angleInRadians = 65 * (float)Math.PI / 180f;
 
         byte[] logobuffer = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -189,6 +229,10 @@ this about text.";
 
             var mousePos = Mouse.GetPosition(mainCanvas);
 
+            var db = Math.Min(Math.Max(Decibel.FromAmplitude(maxSample), -VUMeterRange), 0.0);
+            var VUMeterLevelL = (db + VUMeterRange) / VUMeterRange;
+            maxSample = 0;
+
             for (int i = 0; i < rectangles.Count; i++)
             {
                 var r = rectangles[i];
@@ -209,6 +253,29 @@ this about text.";
                 }
 
                 r.rectangle.RenderTransform = new RotateTransform(rotation.GetAngle() * 180 / Math.PI, r.rectangle.Width / 2, r.rectangle.Height / 2);
+
+                byte transparency = 127;
+                int tDist = 200 * 200;
+                if (mouseDist < tDist)
+                {
+                    // Update transparency
+                    double force = (1 - mouseDist / tDist);
+                    transparency = (byte)(127 + Math.Min(VUMeterLevelL * 128 * force, 128));
+                }
+
+                if (rotateBoxes)
+                {
+                    Vector2 center = new Vector2((float)mainCanvas.ActualWidth/2f, (float)-mainCanvas.ActualHeight/2f);
+                    var centerDirection = center - position;
+                    centerDirection = centerDirection / centerDirection.Length() * 10000;
+                    centerDirection = Vector2.Transform(centerDirection, Matrix3x2.CreateRotation(angleInRadians));
+                    B2Api.b2Body_ApplyForceToCenter(r.box2BodyId, centerDirection, true);
+                }
+
+                var brush = r.rectangle.Fill as SolidColorBrush;
+                var color = brush.Color;
+                brush.Color = Color.FromArgb(transparency, color.R, color.G, color.B);
+
                 Canvas.SetTop(r.rectangle, -position.Y);
                 Canvas.SetLeft(r.rectangle, position.X);
             }
@@ -216,49 +283,41 @@ this about text.";
 
         private void CreateWorldLimits()
         {
-            {
-                // Define the ground body
-                var groundBodyDef = B2Api.b2DefaultBodyDef();
-                groundBodyDef.position = new Vector2((float)(mainCanvas.ActualWidth / 2), (float)(-mainCanvas.ActualHeight - 10));
-                var groundBody = B2Api.b2CreateBody(box2WorldId, groundBodyDef);
+            // Define the ground body
+            var groundBodyDef = B2Api.b2DefaultBodyDef();
+            groundBodyDef.position = new Vector2((float)(mainCanvas.ActualWidth / 2), (float)(-mainCanvas.ActualHeight - 10));
+            var groundBody = B2Api.b2CreateBody(box2WorldId, groundBodyDef);
 
-                var shapeDef = B2Api.b2DefaultShapeDef();
-                var polygon = B2Api.b2MakeBox((float)(mainCanvas.ActualWidth / 2), (float)(20));
-                B2Api.b2CreatePolygonShape(groundBody, shapeDef, polygon);
-            }
+            var shapeDef = B2Api.b2DefaultShapeDef();
+            var polygon = B2Api.b2MakeBox((float)(mainCanvas.ActualWidth / 2), (float)(20));
+            B2Api.b2CreatePolygonShape(groundBody, shapeDef, polygon);
+            
+            // Define the right body
+            var leftBodyDef = B2Api.b2DefaultBodyDef();
+            leftBodyDef.position = new Vector2(-20, (float)(-mainCanvas.ActualHeight / 2));
+            var leftBody = B2Api.b2CreateBody(box2WorldId, leftBodyDef);
 
-            {
-                // Define the right body
-                var leftBodyDef = B2Api.b2DefaultBodyDef();
-                leftBodyDef.position = new Vector2(-20, (float)(-mainCanvas.ActualHeight / 2));
-                var leftBody = B2Api.b2CreateBody(box2WorldId, leftBodyDef);
+            shapeDef = B2Api.b2DefaultShapeDef();
+            polygon = B2Api.b2MakeBox((float)(20), (float)(mainCanvas.ActualHeight / 2));
+            B2Api.b2CreatePolygonShape(leftBody, shapeDef, polygon);
+            
+            // Define the left body
+            var rightBodyDef = B2Api.b2DefaultBodyDef();
+            rightBodyDef.position = new Vector2((float)(mainCanvas.ActualWidth + 10), (float)(-mainCanvas.ActualHeight / 2));
+            var rightBody = B2Api.b2CreateBody(box2WorldId, rightBodyDef);
 
-                var shapeDef = B2Api.b2DefaultShapeDef();
-                var polygon = B2Api.b2MakeBox((float)(20), (float)(mainCanvas.ActualHeight / 2));
-                B2Api.b2CreatePolygonShape(leftBody, shapeDef, polygon);
-            }
+            shapeDef = B2Api.b2DefaultShapeDef();
+            polygon = B2Api.b2MakeBox((float)(20), (float)(mainCanvas.ActualHeight / 2));
+            B2Api.b2CreatePolygonShape(rightBody, shapeDef, polygon);
+            
+            // Define the top body
+            var topBodyDef = B2Api.b2DefaultBodyDef();
+            topBodyDef.position = new Vector2((float)(mainCanvas.ActualWidth / 2), 20);
+            var topBody = B2Api.b2CreateBody(box2WorldId, topBodyDef);
 
-            {
-                // Define the right body
-                var rightBodyDef = B2Api.b2DefaultBodyDef();
-                rightBodyDef.position = new Vector2((float)(mainCanvas.ActualWidth), (float)(-mainCanvas.ActualHeight / 2));
-                var rightBody = B2Api.b2CreateBody(box2WorldId, rightBodyDef);
-
-                var shapeDef = B2Api.b2DefaultShapeDef();
-                var polygon = B2Api.b2MakeBox((float)(20), (float)(mainCanvas.ActualHeight / 2));
-                B2Api.b2CreatePolygonShape(rightBody, shapeDef, polygon);
-            }
-
-            {
-                // Define the top body
-                var topBodyDef = B2Api.b2DefaultBodyDef();
-                topBodyDef.position = new Vector2((float)(mainCanvas.ActualWidth / 2), 20);
-                var topBody = B2Api.b2CreateBody(box2WorldId, topBodyDef);
-
-                var shapeDef = B2Api.b2DefaultShapeDef();
-                var polygon = B2Api.b2MakeBox((float)(mainCanvas.ActualWidth / 2), (float)(20));
-                B2Api.b2CreatePolygonShape(topBody, shapeDef, polygon);
-            }
+            shapeDef = B2Api.b2DefaultShapeDef();
+            polygon = B2Api.b2MakeBox((float)(mainCanvas.ActualWidth / 2), (float)(20));
+            B2Api.b2CreatePolygonShape(topBody, shapeDef, polygon);
         }
 
         readonly float boxWidth = 9;
@@ -268,6 +327,7 @@ this about text.";
         void CreateTextBoxes()
         {
             Random random = new Random();
+            float scale = 700.0f / 80.0f;
 
             for (int y = 0; y < 20; y++)
             {
@@ -278,7 +338,7 @@ this about text.";
                         // add body ...
                         var bodyDef = B2Api.b2DefaultBodyDef();
                         bodyDef.type = b2BodyType.b2_dynamicBody;
-                        bodyDef.position = new((float)(x * mainCanvas.ActualWidth / 80), (float)(-y * mainCanvas.ActualWidth / 80));
+                        bodyDef.position = new((float)(x * scale), (float)(-(y + 8) * scale));
                         bodyDef.enableSleep = false;
                         bodyDef.linearDamping = 1f;
                         var b2BodyId = B2Api.b2CreateBody(box2WorldId, bodyDef);
@@ -291,7 +351,6 @@ this about text.";
 
                         var c = rectColors.ElementAt((y + x) % (80+20));
                         Rectangle r = new Rectangle() { Opacity = 0, Width = boxWidth, Height = boxHeight, Fill = new SolidColorBrush(Color.FromArgb(127, c.R, c.G, c.B)), RadiusX = boxRadius, RadiusY = boxRadius };
-                        //Rectangle r = new Rectangle() { Opacity = 0, Width = boxWidth, Height = boxHeight, Fill = new SolidColorBrush(Color.FromArgb(127, (byte)random.Next(255), (byte)random.Next(255), (byte)random.Next(255))), RadiusX = boxRadius, RadiusY = boxRadius };
                         mainCanvas.Children.Add(r);
                         SetInitAnimation(r, (y + x) / 80.0);
                         Canvas.SetTop(r, bodyDef.position.X);

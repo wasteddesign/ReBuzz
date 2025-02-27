@@ -603,7 +603,7 @@ namespace ReBuzz
                 }
                 if (cmd == BuzzCommand.About)
                 {
-                    AboutWindow aboutWindow = new AboutWindow("(build " + Buzz.BuildNumber + ")");
+                    AboutWindow aboutWindow = new AboutWindow(buzzCore, "(build " + Buzz.BuildNumber + ")");
                     aboutWindow.Owner = this;
                     aboutWindow.Topmost = true;
                     var rdw = Utils.GetUserControlXAML<Window>("ParameterWindowShell.xaml", buzzPath);
