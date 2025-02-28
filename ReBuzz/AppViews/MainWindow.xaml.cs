@@ -99,13 +99,6 @@ namespace ReBuzz
             this.machineManager = machineManager;
         }
 
-        void ShutDownReBuzzEngine()
-        {
-            Buzz.AudioEngine.FinalStop();
-            Buzz.MachineManager.Buzz = null;
-            Buzz.Release();
-        }
-
         public MainWindow()
         {
             var generalSettings = Global.GeneralSettings;
@@ -128,7 +121,7 @@ namespace ReBuzz
                 new FileNameToSaveChoiceThroughSaveFileDialog(),
                 new UserMessagesViaMessageBox());
 
-            var reBuzzCoreInitialization = new ReBuzzCoreInitialization(Buzz, buzzPath, windowsGuiDispatcher, registryEx);
+            var reBuzzCoreInitialization = new ReBuzzCoreInitialization(Buzz, buzzPath, windowsGuiDispatcher, registryEx, new WindowsKeyboard());
             reBuzzCoreInitialization.StartReBuzzEngineStep1(Buzz_PropertyChanged);
 
             BuzzGUIStartup.PreInit();
@@ -338,10 +331,9 @@ namespace ReBuzz
                     }
                 }
 
-                ShutDownReBuzzEngine();
+                reBuzzCoreInitialization.ShutDownReBuzzEngine();
 
-                seqenceEditor.Song = null;
-                seqenceEditor.Release();
+                ShutDownSequenceEditor(seqenceEditor);
 
                 ToolBarVM.Song = null;
                 ToolBarVM.Buzz = null;
@@ -881,6 +873,12 @@ namespace ReBuzz
                     }
                 }
             };
+        }
+
+        private static void ShutDownSequenceEditor(SequenceEditor sequenceEditor)
+        {
+            sequenceEditor.Song = null;
+            sequenceEditor.Release();
         }
 
         private void CreateSequenceView(ISong song)

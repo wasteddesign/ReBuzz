@@ -33,6 +33,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Machines\FakeNativeGenerator\FakeNativeGenerator.vcxproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <OutputItemType>Content</OutputItemType>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Private>true</Private>
+    </ProjectReference>
     <ProjectReference Include="..\ReBuzzGUI\BuzzGUI.Common\BuzzGUI.Common.csproj" />
     <ProjectReference Include="..\ReBuzzGUI\BuzzGUI.Interfaces\BuzzGUI.Interfaces.csproj" />
     <ProjectReference Include="..\ReBuzz\ReBuzz.csproj" />

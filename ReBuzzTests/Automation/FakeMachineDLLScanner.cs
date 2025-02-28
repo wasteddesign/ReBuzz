@@ -1,10 +1,12 @@
 using AtmaFileSystem;
+using AtmaFileSystem.IO;
 using BuzzGUI.Interfaces;
 using FluentAssertions.Execution;
 using ReBuzz.Core;
 using ReBuzz.FileOps;
 using ReBuzzTests.Automation.TestMachines;
 using System.Collections.Generic;
+using MachineDLL = ReBuzz.Core.MachineDLL;
 
 namespace ReBuzzTests.Automation
 {
@@ -64,6 +66,17 @@ namespace ReBuzzTests.Automation
         {
             Execute.Assertion.FailWith("Not called anywhere yet in the current tests");
             return null!;
+        }
+
+        //bug this isn't for native machines but more for static machines or non-dynamic machines
+        public void AddNativeMachine(ReBuzzCore reBuzz, FakeNativeGeneratorInfo info, AbsoluteDirectoryPath targetDir)
+        {
+            var assemblySourceLocation = AbsoluteDirectoryPath.OfExecutingAssembly().AddFileName(info.DllName);
+            var assemblyTargetLocation = targetDir.AddFileName(info.DllName);
+            var machineDll = info.GetMachineDll(reBuzz, assemblyTargetLocation);
+            assemblySourceLocation.Copy(assemblyTargetLocation);
+
+            machineDllsByName[machineDll.Name] = machineDll;
         }
     }
 }

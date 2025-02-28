@@ -71,13 +71,14 @@ namespace ReBuzz.MachineManagement
 
         private readonly SongCore song;
 
-        internal MachineManager(SongCore song, EngineSettings settings, string buzzPath, IUiDispatcher dispatcher)
+        internal MachineManager(SongCore song, EngineSettings settings, string buzzPath, IUiDispatcher dispatcher, IKeyboard keyboard)
         {
             this.song = song;
             IsSingleProcessMode = false;
             engineSettings = settings;
             this.buzzPath = buzzPath;
             this.dispatcher = dispatcher;
+            this.keyboard = keyboard;
         }
 
         // instrumentPath == null or "" if instruments are not supported
@@ -192,6 +193,7 @@ namespace ReBuzz.MachineManagement
         private readonly EngineSettings engineSettings;
         private readonly string buzzPath;
         private readonly IUiDispatcher dispatcher;
+        private readonly IKeyboard keyboard;
 
         void CreateNativeMachine(MachineCore machine, string instrument, int trackCount, byte[] data, bool callInit = true)
         {
@@ -284,7 +286,8 @@ namespace ReBuzz.MachineManagement
             var uiMessage = nativeMachineHost.UIMessage;
             var audioMessage = nativeMachineHost.AudioMessage;
 
-            if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control) && Keyboard.Modifiers.HasFlag(ModifierKeys.Alt) && machine.DLL.Name.StartsWith("Polac"))
+            if (keyboard.HasModifierKeyPressed(ModifierKeys.Control) 
+                && keyboard.HasModifierKeyPressed(ModifierKeys.Alt) && machine.DLL.Name.StartsWith("Polac"))
             {
                 // Debug
                 if (MessageBox.Show("Skip initializing " + machine.Name + "?", "Safe load machine?", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
@@ -1205,6 +1208,20 @@ namespace ReBuzz.MachineManagement
                 var machine = machineKV.Key;
                 machine.wavesEventsPending.Add(index);
             }
+        }
+    }
+
+    public interface IKeyboard //bug
+    {
+        bool HasModifierKeyPressed(Enum modifierKey);
+    }
+
+    internal class WindowsKeyboard //bug
+        : IKeyboard
+    {
+        public bool HasModifierKeyPressed(Enum modifierKey)
+        {
+            return Keyboard.Modifiers.HasFlag(modifierKey);
         }
     }
 }
