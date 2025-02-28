@@ -87,6 +87,12 @@ namespace ReBuzz.NativeMachine
             statePointer = basePointer + stateOffset;
         }
 
+        public void MachineCrashed(MachineCore machine, Exception e)
+        {
+            this.ChannelListener.buzz.DCWriteErrorLine(e.Message);
+            machine.MachineDLL.IsCrashed = true;
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void DoReveiveIncomingMessage()
         {
