@@ -448,7 +448,7 @@ namespace ReBuzzTests.Automation
 
         private void CreateInstrument(IMachineDLL machineDll, string instanceName)
         {
-            reBuzzCore.SongCore.CreateMachine(machineDll.Name, instanceName, null!, null!, null!, null!, -1, 0, 0);
+            reBuzzCore.SongCore.CreateMachine(machineDll.Name, null!, instanceName, null!, null!, null!, -1, 0, 0);
         }
 
         private void ConnectToMaster(MachineCore instance)

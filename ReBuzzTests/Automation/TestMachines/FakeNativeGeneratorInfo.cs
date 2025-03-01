@@ -12,7 +12,7 @@ namespace ReBuzzTests.Automation.TestMachines
         {
             return new MachineDLL
             {
-                Name = "Fake Native Generator",
+                Name = "FakeNativeGenerator",
                 Buzz = buzz,
                 Path = location.ToString(),
                 Is64Bit = true,
@@ -29,7 +29,7 @@ namespace ReBuzzTests.Automation.TestMachines
                     InternalVersion = 0,
                     MaxTracks = 1,
                     MinTracks = 1,
-                    Name = "Fake Native Generator",
+                    Name = "FakeNativeGenerator",
                     ShortName = "FakeNativeGen",
                     Type = MachineType.Generator,
                     Version = 66

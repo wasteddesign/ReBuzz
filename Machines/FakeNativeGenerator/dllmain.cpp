@@ -2,15 +2,28 @@
 #include "pch.h"
 
 #include "MachineInterface.h"
+#include <windef.h>
+#include <cstring>
+#include <cstdlib>
 #include <cmath>
 
-#define OUTPUT_COUNT	1
+#define MAX_TRACKS	4
 
-CMachineParameter const paraLevel = { pt_byte, "Level", "Level", 0, 127, 255, MPF_STATE, 0 };
+CMachineParameter const paraBDVolume = 
+{ 
+	pt_byte,										// type
+	"BD Volume",
+	"Bassdrum Volume (0=0%, 80=100%, FE=~198%)",	// description
+	0,												// MinValue	
+	254,											// MaxValue
+	255,											// NoValue
+	0,												// Flags
+	0
+};
 
-static CMachineParameter const *pParameters[] = { 
-	// track
-	&paraLevel,
+CMachineParameter const *pParameters[] = { 
+	// global
+	&paraBDVolume,
 };
 
 #pragma pack(1)
@@ -18,57 +31,38 @@ static CMachineParameter const *pParameters[] = {
 class gvals
 {
 public:
-	byte level;
+	byte bd_volume;
+};
+
+class tvals
+{
 };
 
 #pragma pack()
 
-CMachineInfo const MacInfo = 
+CMachineInfo const                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   MacInfo = 
 {
-	MT_GENERATOR,							// type
+	MT_GENERATOR,							// typel;;l;;ll;;ll  ';'p;
 	MI_VERSION,
-	MIF_MULTI_IO,							// flags
-	0,											// min tracks
-	0,								// max tracks
+	MIF_DOES_INPUT_MIXING,		// flags
+	0,										// min tracks
+	0,										// max tracks
 	1,										// numGlobalParameters
 	0,										// numTrackParameters
 	pParameters,
-	0, 
+	0,
 	NULL,
-	"MultiIOTest",
-	"MultiIOTest",								// short name
-	"Oskari Tammelin", 						// author
+	"FakeNativeGenerator",
+	"FakeNativeGen",								// short name
+	"WDE", 						// author
 	NULL
 };
 
-class mi;
-
-class miex : public CMachineInterfaceEx
+class CTrackState
 {
-public:
-	virtual void MultiWork(float const * const *inputs, float **outputs, int numsamples);
-	virtual char const *GetChannelName(bool input, int index)
-	{
-		if (input)
-		{
-			return "<invalid>";
-		}
-		else
-		{
-			switch(index)
-			{
-			case 0: return "A"; break;
-			case 1: return "Bb"; break;
-			case 2: return "B"; break;
-			default: return "<invalid>"; break;
-			}
-		}
-	}
-
-public:
-        mi *pmi;
 
 };
+
 class mi : public CMachineInterface
 {
 public:
@@ -77,47 +71,37 @@ public:
 
 	virtual void Init(CMachineDataInput * const pi);
 	virtual void Tick();
-	virtual void Save(CMachineDataOutput * const po);
+	virtual bool WorkMonoToStereo(float *pin, float *pout, int numsamples, int const mode);
 
-	void MultiWork(float const * const *inputs, float **outputs, int numsamples);
+private:
 
-public:
-	double phase[OUTPUT_COUNT];
-	double freq[OUTPUT_COUNT];
+	void TickBassdrum();
+	void GenerateBassdrum(float *psamples, int numsamples);
 
-	miex ex;
+	void Filter(float *psamples, int numsamples);
+
+private:
+	int BDVolume;
+
 	gvals gval;
-
+	tvals tval[MAX_TRACKS];
 };
 
-void miex::MultiWork(float const * const *inputs, float **outputs, int numsamples) { pmi->MultiWork(inputs, outputs, numsamples); }
-
+DLL_EXPORTS
 
 mi::mi()
 {
-	ex.pmi = this;
 	GlobalVals = &gval;
-	TrackVals = NULL;
-	AttrVals = NULL;
+	TrackVals = tval;
+
 }
 
 mi::~mi()
 {
+
 }
 
 void mi::Init(CMachineDataInput * const pi)
-{
-	pCB->SetMachineInterfaceEx(&ex);
-	pCB->SetOutputChannelCount(OUTPUT_COUNT);
-
-	for (int i = 0; i < OUTPUT_COUNT; i++)
-	{
-		phase[i] = 0;
-		freq[i] = pow(2.0, i / 12.0) * 440 * 2 * PI / pMasterInfo->SamplesPerSec;
-	}
-}
-
-void mi::Save(CMachineDataOutput * const po)
 {
 }
 
@@ -126,19 +110,10 @@ void mi::Tick()
 
 }
 
-void mi::MultiWork(float const * const *inputs, float **outputs, int numsamples)
+bool mi::WorkMonoToStereo(float *pin, float *pout, int numsamples, int const mode)
 {
-	for (int o = 0; o < OUTPUT_COUNT; o++)
-	{
-		float * __restrict pout = (float *)outputs[o];
-		if (pout != NULL)
-		{
-			for (int i = 0; i < numsamples*2; i++)
-			{
-				pout[i] = 30000;
-			}
-		}
-	}
-}
+	pout[0] = 1000000;
+	pout[1] = 2000000;
 
-DLL_EXPORTS;
+	return true;
+}
