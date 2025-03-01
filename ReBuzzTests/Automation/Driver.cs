@@ -150,7 +150,8 @@ namespace ReBuzzTests.Automation
                 fakeRegistry,
                 fileNameToLoadChoice,
                 fileNameToSaveChoice,
-                fakeUserMessages);
+                fakeUserMessages, 
+                new FakeKeyboard());
             fakeMachineDllScanner.AddFakeModernPatternEditor(reBuzzCore);
             addMachineActions.ForEach(addMachine => addMachine(fakeMachineDllScanner, reBuzzCore));
             initialization = new ReBuzzCoreInitialization(reBuzzCore, buzzPath, dispatcher, fakeRegistry, new FakeKeyboard());

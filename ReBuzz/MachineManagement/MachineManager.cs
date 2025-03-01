@@ -287,7 +287,6 @@ namespace ReBuzz.MachineManagement
             var audioMessage = nativeMachineHost.AudioMessage;
 
             if (askSkip && machine.DLL.Name.StartsWith("Polac"))
-                && keyboard.HasModifierKeyPressed(ModifierKeys.Alt) && machine.DLL.Name.StartsWith("Polac"))
             {
                 // Debug
                 if (MessageBox.Show("Skip initializing " + machine.Name + "?", "Safe load machine?", MessageBoxButton.YesNo) == MessageBoxResult.Yes)

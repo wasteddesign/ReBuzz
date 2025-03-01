@@ -119,7 +119,7 @@ namespace ReBuzz
                 registryEx,
                 new FileNameToLoadChoiceThroughOpenFileDialog(),
                 new FileNameToSaveChoiceThroughSaveFileDialog(),
-                new UserMessagesViaMessageBox());
+                new UserMessagesViaMessageBox(), new WindowsKeyboard());
 
             var reBuzzCoreInitialization = new ReBuzzCoreInitialization(Buzz, buzzPath, windowsGuiDispatcher, registryEx, new WindowsKeyboard());
             reBuzzCoreInitialization.StartReBuzzEngineStep1(Buzz_PropertyChanged);
