@@ -111,17 +111,17 @@ namespace WDE.ModernPatternEditor
             PropertyChanged.Raise(this, "ChangeMachine");
         }
 
-        private void Song_SequenceChanged(int obj)
+        private void Song_SequenceChanged(int obj, ISequence seq)
         {
             playRecordManager.RefreshPlayPosData();
         }
 
-        private void Song_SequenceRemoved(int obj)
+        private void Song_SequenceRemoved(int obj, ISequence seq)
         {
             playRecordManager.RefreshPlayPosData();
         }
 
-        private void Song_SequenceAdded(int obj)
+        private void Song_SequenceAdded(int obj, ISequence seq)
         {
             playRecordManager.RefreshPlayPosData();
         }
@@ -559,9 +559,9 @@ namespace WDE.ModernPatternEditor
                     }
                     else if (e.Key == Key.Space)
                     {
-                        if (SelectedMachine != null && SelectedMachine.SelectedPattern != null)
-                            SelectedMachine.SelectedPattern.Pattern.IsPlayingSolo ^= true;
-                        e.Handled = true;
+                        //if (SelectedMachine != null && SelectedMachine.SelectedPattern != null)
+                        //    SelectedMachine.SelectedPattern.Pattern.IsPlayingSolo ^= true;
+                        //e.Handled = true;
                     }
                     else if (e.Key == Key.Divide)
                     {

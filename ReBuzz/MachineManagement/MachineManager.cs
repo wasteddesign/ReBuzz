@@ -277,7 +277,7 @@ namespace ReBuzz.MachineManagement
             }
         }
 
-        internal void CallInit(MachineCore machine, byte[] data, int trackCount)
+        internal void CallInit(MachineCore machine, byte[] data, int trackCount, bool askSkip = false)
         {
             if (machine.DLL.IsMissing)
                 return;
@@ -286,7 +286,7 @@ namespace ReBuzz.MachineManagement
             var uiMessage = nativeMachineHost.UIMessage;
             var audioMessage = nativeMachineHost.AudioMessage;
 
-            if (keyboard.HasModifierKeyPressed(ModifierKeys.Control) 
+            if (askSkip && machine.DLL.Name.StartsWith("Polac"))
                 && keyboard.HasModifierKeyPressed(ModifierKeys.Alt) && machine.DLL.Name.StartsWith("Polac"))
             {
                 // Debug

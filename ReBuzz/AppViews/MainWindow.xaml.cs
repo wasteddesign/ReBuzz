@@ -595,7 +595,7 @@ namespace ReBuzz
                 }
                 if (cmd == BuzzCommand.About)
                 {
-                    AboutWindow aboutWindow = new AboutWindow("(build " + Buzz.BuildNumber + ")");
+                    AboutWindow aboutWindow = new AboutWindow(buzzCore, "(build " + Buzz.BuildNumber + ")");
                     aboutWindow.Owner = this;
                     aboutWindow.Topmost = true;
                     var rdw = Utils.GetUserControlXAML<Window>("ParameterWindowShell.xaml", buzzPath);
@@ -814,9 +814,13 @@ namespace ReBuzz
                 }
                 else if (e.Key == Key.Space)
                 {
-                    if (Buzz.ActiveView == BuzzView.PatternView && Buzz.NewSequenceEditorActivate)
+                    if (Buzz.ActiveView == BuzzView.PatternView)
                     {
-                        //e.Handled = true;
+                        if (Buzz.PatternEditorPattern != null)
+                        {
+                            Buzz.PatternEditorPattern.IsPlayingSolo ^= true;
+                        }
+                        e.Handled = true;
                     }
                 }
 

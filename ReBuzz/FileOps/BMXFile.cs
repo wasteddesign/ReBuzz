@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Input;
 using System.Xml.Linq;
 
 namespace ReBuzz.FileOps
@@ -481,6 +483,8 @@ namespace ReBuzz.FileOps
                 }
             }
 
+            bool askSkip = Keyboard.Modifiers.HasFlag(ModifierKeys.Control) && Keyboard.Modifiers.HasFlag(ModifierKeys.Alt);
+            List<Task> initTasks = new List<Task>();
             // Native control machines need to have all machines "visible" before calling init
             foreach (var kvMachine in dictInitData)
             {
@@ -491,9 +495,16 @@ namespace ReBuzz.FileOps
                 // Update machine names in ReBuzzEngine
                 buzz.MachineManager.RemapMachineNames(machine, importDictionaryNonHidden);
 
-                var val = kvMachine.Value;
-                buzz.MachineManager.CallInit(machine, val.data, val.tracks);
+                var task = Task.Factory.StartNew(() =>
+                {
+                    var val = kvMachine.Value;
+                    buzz.MachineManager.CallInit(machine, val.data, val.tracks, askSkip);
+                });
+
+                initTasks.Add(task);
             }
+
+            Task.WaitAll(initTasks);
         }
 
         private void RemapLoadedMachineParameterIndex(MachineCore machine, MachineCore savedMachine)

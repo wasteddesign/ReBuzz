@@ -30,6 +30,14 @@ namespace BuzzGUI.Interfaces
         event Action<IPatternColumn> ColumnRemoved;
         event Action<IPatternColumn> PatternChanged;
         void NotifyPatternChanged();
+
+        IntPtr CPattern { get;  }
+
+        IReadOnlyCollection<ISequence> Sequences { get; }
+
+       event Action<IPattern> OnPatternPlayStart;
+       event Action<IPattern> OnPatternPlayPositionChange;
+       event Action<IPattern> OnPatternPlayEnd;
     }
 
     public interface IPatternEditorColumn

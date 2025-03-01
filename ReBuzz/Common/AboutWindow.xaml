@@ -10,22 +10,6 @@
         Style="{DynamicResource ThemeWindowStyle}" ResizeMode="NoResize"
         Title="About ReBuzz" Height="400" Width="700" WindowStartupLocation="CenterOwner">
     <Window.Resources>
-        <Storyboard x:Key="Storyboard" BeginTime="00:00:00.000">
-            <DoubleAnimation Storyboard.TargetName="Rotation" 
-                             Storyboard.TargetProperty="Angle" 
-                             From="0" To="360" BeginTime="00:00:00.000" Duration="00:01:50.000" RepeatBehavior="Forever" />
-            <DoubleAnimation Storyboard.TargetName="RotateImage" 
-                             Storyboard.TargetProperty="Opacity" 
-                             From="1" To="0.9" BeginTime="00:00:00.000" Duration="00:00:10.000" RepeatBehavior="Forever" AutoReverse="True" />
-
-            <DoubleAnimation Storyboard.TargetName="BlurBitmapEffect" 
-                             Storyboard.TargetProperty="Radius" 
-                             From="0" To="30" Duration="00:00:50.000" RepeatBehavior="Forever" AutoReverse="True" />
-
-            <DoubleAnimation Storyboard.TargetName="MainGrid" 
-                             Storyboard.TargetProperty="Opacity" 
-                             From="0" To="1" Duration="00:00:00.500" />
-        </Storyboard>
         <Storyboard x:Key="StoryboardText" BeginTime="00:00:00.000">
             <ThicknessAnimationUsingKeyFrames Name="taText" Storyboard.TargetName="AboutText" Storyboard.TargetProperty="Margin" RepeatBehavior="Forever">
                 <SplineThicknessKeyFrame x:Name="stfStart" KeyTime="00:00:00" Value="0,0,0,0" />
@@ -42,34 +26,26 @@
         </Storyboard>
     </Window.Resources>
 
-    <Grid Background="White" ClipToBounds="True" x:Name="MainGrid">
-        <Image x:Name="RotateImage" Source="gfx/misty_rebuzz.jpeg" RenderTransformOrigin=".5,.5">
-            <Image.Effect>
-                <BlurEffect x:Name="BlurBitmapEffect" Radius="0" RenderingBias="Quality"/>
-            </Image.Effect>
-            <Image.RenderTransform>
-                <TransformGroup>
-                    <ScaleTransform ScaleX="2.2" ScaleY="2.2"></ScaleTransform>
-                    <RotateTransform x:Name="Rotation" Angle="0" />
-                </TransformGroup>
-            </Image.RenderTransform>
-            <Image.Triggers>
-                <EventTrigger RoutedEvent="Rectangle.Loaded">
-                    <BeginStoryboard Storyboard="{StaticResource Storyboard}" />
-                    <BeginStoryboard Storyboard="{StaticResource StoryboardText}" />
-                </EventTrigger>
-            </Image.Triggers>
-        </Image>
+    <Grid Background="Black" ClipToBounds="True" x:Name="MainGrid">
+        <Grid Name="partileGrid">
+            <Canvas x:Name="particleCanvas" Background="Transparent"></Canvas>
+        </Grid>
+        <Canvas x:Name="mainCanvas" Background="Transparent"></Canvas>        
         <TextBox Name="AboutText" xml:space="preserve" FontFamily="Segoe UI" FontSize="30" HorizontalAlignment="Stretch" TextWrapping="Wrap" HorizontalContentAlignment="Center"
-                 Background="Transparent" Foreground="Black" BorderBrush="Transparent" BorderThickness="0" IsReadOnly="True"
+                 Background="Transparent" Foreground="GhostWhite" BorderBrush="Transparent" BorderThickness="0" IsReadOnly="True"
                  VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Hidden">
             <TextBox.Effect>
                 <DropShadowEffect ShadowDepth="4"
                       Direction="330"
                       Color="Black"
-                      Opacity="0.5"
-                      BlurRadius="4"/>
+                      Opacity="0.8"
+                      BlurRadius="7"/>
             </TextBox.Effect>
+                        <TextBox.Triggers>
+                <EventTrigger RoutedEvent="Rectangle.Loaded">
+                    <BeginStoryboard Storyboard="{StaticResource StoryboardText}" />
+                </EventTrigger>
+            </TextBox.Triggers>
                 <TextBox.Style>
         <Style TargetType="{x:Type TextBox}">
             <Setter Property="Template">

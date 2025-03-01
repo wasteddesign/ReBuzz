@@ -44,5 +44,6 @@ namespace BuzzGUI.Interfaces
         // used for live pattern triggering
         void TriggerEvent(int time, SequenceEvent e, bool loop);
 
+        IntPtr CSequence { get; }
     }
 }

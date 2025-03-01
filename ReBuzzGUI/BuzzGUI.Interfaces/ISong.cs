@@ -19,9 +19,9 @@ namespace BuzzGUI.Interfaces
 
         IDictionary<string, object> Associations { get; }
 
-        event Action<int> SequenceAdded;
-        event Action<int> SequenceRemoved;
-        event Action<int> SequenceChanged;
+        event Action<int, ISequence> SequenceAdded;
+        event Action<int, ISequence> SequenceRemoved;
+        event Action<int, ISequence> SequenceChanged;
 
         void AddSequence(IMachine m, int index);
         void RemoveSequence(ISequence s);

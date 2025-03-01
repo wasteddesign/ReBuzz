@@ -16,6 +16,8 @@ using System.Xml.Serialization;
 using BuzzGUI.Common;
 using static ReBuzz.FileOps.BMXFile;
 using BuzzGUI.Common.InterfaceExtensions;
+using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace ReBuzz.FileOps
 {
@@ -236,14 +238,6 @@ namespace ReBuzz.FileOps
                         buzz.MasterVolume = 1.0 - (masterGlobals.Parameters[0].GetValue(0) / (double)masterGlobals.Parameters[0].MaxValue);
                         buzz.BPM = masterGlobals.Parameters[1].GetValue(0);
                         buzz.TPB = masterGlobals.Parameters[2].GetValue(0);
-
-                        // Copy parametervalues
-                        //CopyParameters(machineData.ParameterGroups[0], machineProto, 0, 0);
-                        //CopyParameters(machineData.ParameterGroups[1], machineProto, 1, 0);
-                        //for (int m = 0; m < machineProto.TrackCount; m++)
-                        //{
-                        //    CopyParameters(machineData.ParameterGroups[2], machineProto, 2, m);
-                        //}
                     }
                 }
                 else
@@ -304,6 +298,10 @@ namespace ReBuzz.FileOps
                     machines.Add(machineNew);
                 }
             }
+
+            bool askSkip = Keyboard.Modifiers.HasFlag(ModifierKeys.Control) && Keyboard.Modifiers.HasFlag(ModifierKeys.Alt);
+            List<Task> initTasks = new List<Task>();
+
             // Native control machines need to have all machines "visible" before calling init
             foreach (var kvMachine in dictInitData)
             {
@@ -314,9 +312,16 @@ namespace ReBuzz.FileOps
                 // Update machine names in ReBuzzEngine
                 buzz.MachineManager.RemapMachineNames(machine, importDictionaryNonHidden);
 
-                var val = kvMachine.Value;
-                buzz.MachineManager.CallInit(machine, val.data, val.tracks);
+                var task = Task.Factory.StartNew(() =>
+                {
+                    var val = kvMachine.Value;
+                    buzz.MachineManager.CallInit(machine, val.data, val.tracks);
+                });
+
+                initTasks.Add(task);
             }
+
+            Task.WaitAll(initTasks);
 
             // Pattern Editor Connections
             foreach (var machineData in songData.Machines)

@@ -101,7 +101,6 @@
     <Resource Include="Common\gfx\fox.jpeg" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Common\gfx\misty_rebuzz.jpeg" />
     <Resource Include="Common\gfx\splashscreen1.jpeg" />
     <Resource Include="Common\gfx\squirrel.jpeg" />
   </ItemGroup>
@@ -137,6 +136,9 @@
     <ProjectReference Include="..\ReBuzzGUI\NativeMachineFrameworkUI\NativeMachineFrameworkUI.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Box2dNet">
+      <HintPath>..\3rdParty\Box2dNet.dll</HintPath>
+    </Reference>
     <Reference Include="NAudio">
       <HintPath>..\3rdParty\NAudio\NAudio.dll</HintPath>
     </Reference>

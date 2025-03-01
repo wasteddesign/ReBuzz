@@ -264,7 +264,7 @@ namespace ReBuzz
                 machdata->m_info.Parameters = machdata->parameterPtrs.data();
 
             //Store the internal id against the machine name
-            int64_t id = Utils::ObjectToInt64(rebuzzMach);
+            int64_t id = rebuzzMach->CMachinePtr.ToInt64();
             machCallbackData->machineNameMap[machdata->name] = id;
         }
 
@@ -384,7 +384,7 @@ namespace ReBuzz
             {
                 std::lock_guard<std::mutex> lg(*m_lock);
 
-                machid = Utils::ObjectToInt64(m);
+                machid = m->CMachinePtr.ToInt64();
                 pmach = m_machineMap->GetOrStoreReBuzzTypeById(machid, m, &itemCreated);
             }
 
@@ -401,7 +401,7 @@ namespace ReBuzz
         {
             std::lock_guard<std::mutex> lg(*m_lock);
 
-            int64_t machid = Utils::ObjectToInt64(m);
+            int64_t machid = m->CMachinePtr.ToInt64();
             return m_machineMap->GetBuzzTypeById(machid);
         }
 
@@ -431,7 +431,7 @@ namespace ReBuzz
                             if (mach->Name == clrName)
                             {
                                 //Found - create entry in our map
-                                machid = Utils::ObjectToInt64(mach);
+                                machid = mach->CMachinePtr.ToInt64();
                                 rebuzzMachine = mach;
                                 ret = machCallbackData->machineMap->GetOrStoreReBuzzTypeById(machid, mach, &itemCreated);
                                 machCallbackData->machineNameMap[name] = machid;
@@ -470,7 +470,7 @@ namespace ReBuzz
                 std::lock_guard<std::mutex> lg(*m_lock);
 
                 //Do we have this machine in our map?
-                id = Utils::ObjectToInt64(machine);
+                id = machine->CMachinePtr.ToInt64();
                 pmach = m_machineMap->GetBuzzTypeById(id);
                 if (pmach == NULL)
                 {
@@ -491,7 +491,7 @@ namespace ReBuzz
             //Call the removed callback first
             if (m_onMachineRemovedCallback != nullptr)
             {
-                int64_t id = Utils::ObjectToInt64(machine);
+                int64_t id = machine->CMachinePtr.ToInt64();
                 CMachine* buzzMachine = NULL;
                 {
                     std::lock_guard<std::mutex> lg(*m_lock);
@@ -505,7 +505,7 @@ namespace ReBuzz
             std::lock_guard<std::mutex> lg(*m_lock);
 
             //Remove from machine manager
-            int64_t id = Utils::ObjectToInt64(machine);
+            int64_t id = machine->CMachinePtr.ToInt64();
             if (m_machineMap != NULL)
                 m_machineMap->RemoveById(id);
             

@@ -232,13 +232,13 @@ namespace WDE.ModernSequenceEditorHorizontal
             trackHeaderStack.Children.Insert(i, new TrackHeaderControl(this) { ViewSettings = viewSettings, Height = viewSettings.TrackHeight, HorizontalAlignment = HorizontalAlignment.Left, Resources = this.Resources, Sequence = song.Sequences[i] });
         }
 
-        void song_SequenceAdded(int i)
+        void song_SequenceAdded(int i, ISequence seq)
         {
             AddSequence(i);
             TrackCountChanged();
         }
 
-        void song_SequenceRemoved(int i)
+        void song_SequenceRemoved(int i, ISequence seq)
         {
             var trackControl = trackStack.Children[i] as TrackControl;
             trackControl.Sequence = null;
@@ -249,10 +249,10 @@ namespace WDE.ModernSequenceEditorHorizontal
             TrackCountChanged();
         }
 
-        void song_SequenceChanged(int i)
+        void song_SequenceChanged(int i, ISequence seq)
         {
-            (trackStack.Children[i] as TrackControl).Sequence = song.Sequences[i];
-            (trackHeaderStack.Children[i] as TrackHeaderControl).Sequence = song.Sequences[i];
+            (trackStack.Children[i] as TrackControl).Sequence = seq;
+            (trackHeaderStack.Children[i] as TrackHeaderControl).Sequence = seq;
         }
 
         void TrackCountChanged()
@@ -1482,14 +1482,14 @@ namespace WDE.ModernSequenceEditorHorizontal
                     Point location = Win32Mouse.GetScreenPosition();
                     location.X /= WPFExtensions.PixelsPerDip;
                     location.Y /= WPFExtensions.PixelsPerDip;
-                    patternWnd.Left = location.X - 50;
-                    patternWnd.Top = location.Y + 30;
+                    patternWnd.Left = location.X - pli.Pattern.Length * ViewSettings.TickWidth - 10;
+                    patternWnd.Top = location.Y;
 
                     if (patternWndCurrentPli != pli)
                     {
                         patternWndCurrentPli = pli;
-                        patternWnd.Width = ViewSettings.TrackHeight;
-                        patternWnd.Height = pli.Pattern.Length * ViewSettings.TickWidth;
+                        patternWnd.Height = ViewSettings.TrackHeight;
+                        patternWnd.Width = pli.Pattern.Length * ViewSettings.TickWidth;
 
                         PatternElement pe = new PatternElement((TrackControl)trackStack.Children[CursorRow], 0, new SequenceEvent(SequenceEventType.PlayPattern, pli.Pattern, pli.Pattern.Length), viewSettings);
                         patternWnd.Content = pe;
