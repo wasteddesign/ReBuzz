@@ -101,6 +101,6 @@ public class NativeGenerators //bug
 
         var samples = driver.ReadStereoSamples(1);
 
-        samples.AssertContainStereoSilence(1);
+        samples.AssertAreEqualTo([ExpectedSampleValue.From(new Sample(2,3))]);
     }
 }
