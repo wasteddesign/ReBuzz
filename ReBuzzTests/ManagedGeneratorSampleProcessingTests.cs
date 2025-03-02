@@ -97,7 +97,7 @@ public class NativeGenerators //bug
         driver.Start();
 
         driver.InsertMachineInstanceConnectedToMasterFor(nativeGenerator);
-        //bug driver.ExecuteMachineCommand(nativeGenerator.SetStereoSampleValueTo(new Sample(0, 0)));
+        driver.ExecuteMachineCommand(nativeGenerator.SetStereoSampleValueTo(new Sample(2, 3)));
 
         var samples = driver.ReadStereoSamples(1);
 

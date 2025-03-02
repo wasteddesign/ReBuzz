@@ -398,7 +398,7 @@ namespace ReBuzzTests.Automation
                 SongCoreMachine(destinationController.InstanceName));
         }
 
-        public void ExecuteMachineCommand(TestMachineInstanceCommand command)
+        public void ExecuteMachineCommand(ITestMachineInstanceCommand command)
         {
             command.Execute(reBuzzCore, addedGeneratorInstances);
         }

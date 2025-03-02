@@ -3,27 +3,40 @@
 
 #include "MachineInterface.h"
 #include <windef.h>
-#include <cstring>
 #include <cstdlib>
 #include <cmath>
+#include <iostream>
 
 #define MAX_TRACKS	4
 
-CMachineParameter const paraBDVolume = 
+CMachineParameter const sampleValueLeft = 
 { 
-	pt_byte,										// type
-	"BD Volume",
-	"Bassdrum Volume (0=0%, 80=100%, FE=~198%)",	// description
-	0,												// MinValue	
-	254,											// MaxValue
-	255,											// NoValue
+	pt_word,										// type
+	"SampleLeft",
+	"SampleLeftValue",	// description
+	-10000,												// MinValue	
+	100,											// MaxValue
+	100+1,											// NoValue
+	0,												// Flags
+	0
+};
+
+CMachineParameter const sampleValueRight = 
+{ 
+	pt_word,										// type
+	"SampleRight",
+	"SampleRightValue",	// description
+	-10000,												// MinValue	
+	100,											// MaxValue
+	100+1,											// NoValue
 	0,												// Flags
 	0
 };
 
 CMachineParameter const *pParameters[] = { 
 	// global
-	&paraBDVolume,
+	&sampleValueLeft,
+	&sampleValueRight,
 };
 
 #pragma pack(1)
@@ -31,7 +44,8 @@ CMachineParameter const *pParameters[] = {
 class gvals
 {
 public:
-	byte bd_volume;
+	word sampleValueLeft;
+	word sampleValueRight;
 };
 
 class tvals
@@ -42,12 +56,12 @@ class tvals
 
 CMachineInfo const                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   MacInfo = 
 {
-	MT_GENERATOR,							// typel;;l;;ll;;ll  ';'p;
-	MI_VERSION,
+	MT_GENERATOR,							// type
+  MI_VERSION,                // version
 	MIF_DOES_INPUT_MIXING,		// flags
 	0,										// min tracks
 	0,										// max tracks
-	1,										// numGlobalParameters
+	2,										// numGlobalParameters
 	0,										// numTrackParameters
 	pParameters,
 	0,
@@ -55,12 +69,7 @@ CMachineInfo const                                                              
 	"FakeNativeGenerator",
 	"FakeNativeGen",								// short name
 	"WDE", 						// author
-	NULL
-};
-
-class CTrackState
-{
-
+	"ApplySampleValues" //"Command1\nCommand2\nCommand3"
 };
 
 class mi : public CMachineInterface
@@ -72,17 +81,9 @@ public:
 	virtual void Init(CMachineDataInput * const pi);
 	virtual void Tick();
 	virtual bool WorkMonoToStereo(float *pin, float *pout, int numsamples, int const mode);
+  virtual void Command(const int i) override;
 
 private:
-
-	void TickBassdrum();
-	void GenerateBassdrum(float *psamples, int numsamples);
-
-	void Filter(float *psamples, int numsamples);
-
-private:
-	int BDVolume;
-
 	gvals gval;
 	tvals tval[MAX_TRACKS];
 };
@@ -93,7 +94,6 @@ mi::mi()
 {
 	GlobalVals = &gval;
 	TrackVals = tval;
-
 }
 
 mi::~mi()
@@ -112,8 +112,13 @@ void mi::Tick()
 
 bool mi::WorkMonoToStereo(float *pin, float *pout, int numsamples, int const mode)
 {
-	pout[0] = 1000000;
-	pout[1] = 2000000;
+	pout[0] = static_cast<float>(gval.sampleValueLeft);
+	pout[1] = static_cast<float>(gval.sampleValueRight);
 
 	return true;
+}
+
+void mi::Command(const int i)
+{
+
 }

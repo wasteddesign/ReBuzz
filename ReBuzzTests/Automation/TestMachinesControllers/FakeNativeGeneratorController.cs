@@ -1,4 +1,5 @@
-﻿using ReBuzzTests.Automation.TestMachines;
+﻿using Buzz.MachineInterface;
+using ReBuzzTests.Automation.TestMachines;
 
 namespace ReBuzzTests.Automation.TestMachinesControllers
 {
@@ -11,5 +12,10 @@ namespace ReBuzzTests.Automation.TestMachinesControllers
             new(instrumentName);
 
         public static FakeNativeGeneratorInfo Info => new();
+
+        public ITestMachineInstanceCommand SetStereoSampleValueTo(Sample sample)
+        {
+            return new NativeSetOutputSampleValuesCommand(this, sample);
+        }
     }
 }

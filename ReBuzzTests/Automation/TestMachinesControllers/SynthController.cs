@@ -19,7 +19,7 @@ namespace ReBuzzTests.Automation.TestMachinesControllers
         /// <summary>
         /// Command to set the returned stereo sample value to the passes constant value.
         /// </summary>
-        public TestMachineInstanceCommand SetStereoSampleValueTo(Sample sampleToReturn)
-            => new(this, "ConfigureSampleSource", () => (sampleToReturn.L, sampleToReturn.R));
+        public ITestMachineInstanceCommand SetStereoSampleValueTo(Sample sampleToReturn)
+            => new TestManagedMachineInstanceCommand(this, "ConfigureSampleSource", () => (sampleToReturn.L, sampleToReturn.R));
     }
 }
