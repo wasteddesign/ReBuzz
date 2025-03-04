@@ -13,9 +13,11 @@ namespace ReBuzzTests.Automation.TestMachinesControllers
 
         public static FakeNativeGeneratorInfo Info => new();
 
-        public ITestMachineInstanceCommand SetStereoSampleValueTo(Sample sample)
+        public ITestMachineInstanceCommand SetStereoSampleValueTo(
+            Sample sample, int sampleValueLeftDivisor = 1, int sampleValueRightDivisor = 1)
         {
-            return new NativeSetOutputSampleValuesCommand(this, sample);
+            return new NativeSetOutputSampleValuesCommand(this, sample, sampleValueLeftDivisor,
+                sampleValueRightDivisor);
         }
     }
 }

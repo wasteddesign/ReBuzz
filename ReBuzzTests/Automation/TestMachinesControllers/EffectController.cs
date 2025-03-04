@@ -13,7 +13,7 @@ namespace ReBuzzTests.Automation.TestMachinesControllers
         public static EffectController NewInstance(string effectName = MachineName) =>
             new(effectName);
 
-        public static ITestMachineInfo Info => EffectInfo.Instance;
+        public static IDynamicTestMachineInfo Info => EffectInfo.Instance;
 
         /// <summary>
         /// Command to make the effect copy the input sample to the output.

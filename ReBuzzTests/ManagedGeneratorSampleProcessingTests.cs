@@ -84,23 +84,3 @@ namespace ReBuzzTests
         }
     }
 }
-
-
-public class NativeGenerators //bug
-{
-    [Test]
-    public void ShouldWHAT() //bug
-    {
-        using var driver = new Driver();
-        var nativeGenerator = FakeNativeGeneratorController.NewInstance();
-        driver.AddNativeGeneratorToGear(FakeNativeGeneratorController.Info);
-        driver.Start();
-
-        driver.InsertMachineInstanceConnectedToMasterFor(nativeGenerator);
-        driver.ExecuteMachineCommand(nativeGenerator.SetStereoSampleValueTo(new Sample(2, 3)));
-
-        var samples = driver.ReadStereoSamples(1);
-
-        samples.AssertAreEqualTo([ExpectedSampleValue.From(new Sample(2,3))]);
-    }
-}

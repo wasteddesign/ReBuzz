@@ -10,9 +10,9 @@ namespace ReBuzzTests.Automation.TestMachines
     /// This information is awkward to put in the <see cref="FakeModernPatternEditor"/>
     /// class because it would require a reference to the types defined in this project.
     /// </summary>
-    internal class FakeModernPatternEditorInfo : ITestMachineInfo
+    internal class FakeModernPatternEditorInfo : IDynamicTestMachineInfo
     {
-        public static ITestMachineInfo Instance { get; } = new FakeModernPatternEditorInfo();
+        public static IDynamicTestMachineInfo Instance { get; } = new FakeModernPatternEditorInfo();
 
         MachineDLL ITestMachineInfo.GetMachineDll(ReBuzzCore buzz, AbsoluteFilePath location)
         {

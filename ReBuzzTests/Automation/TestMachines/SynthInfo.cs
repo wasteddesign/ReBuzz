@@ -10,9 +10,9 @@ namespace ReBuzzTests.Automation.TestMachines
     /// This information is awkward to put in the <see cref="Synth"/>
     /// class because it would require a reference to the types defined in this project.
     /// </summary>
-    public class SynthInfo : ITestMachineInfo
+    public class SynthInfo : IDynamicTestMachineInfo
     {
-        public static ITestMachineInfo Instance { get; } = new SynthInfo();
+        public static IDynamicTestMachineInfo Instance { get; } = new SynthInfo();
 
         MachineDLL ITestMachineInfo.GetMachineDll(ReBuzzCore buzz, AbsoluteFilePath location)
         {

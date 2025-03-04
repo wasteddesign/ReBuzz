@@ -14,7 +14,7 @@ namespace ReBuzzTests.Automation.TestMachinesControllers
         public static SynthController NewInstance(string instrumentName = MachineName) =>
             new(instrumentName);
 
-        public static ITestMachineInfo Info => SynthInfo.Instance;
+        public static IDynamicTestMachineInfo Info => SynthInfo.Instance;
 
         /// <summary>
         /// Command to set the returned stereo sample value to the passes constant value.

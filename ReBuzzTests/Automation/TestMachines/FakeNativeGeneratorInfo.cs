@@ -4,11 +4,11 @@ using ReBuzz.Core;
 
 namespace ReBuzzTests.Automation.TestMachines
 {
-    public class FakeNativeGeneratorInfo //bug move to another folder
+    public class FakeNativeGeneratorInfo : ITestMachineInfo
     {
         public static FakeNativeGeneratorInfo Instance { get; } = new FakeNativeGeneratorInfo();
 
-        internal MachineDLL GetMachineDll(ReBuzzCore buzz, AbsoluteFilePath location)
+        MachineDLL ITestMachineInfo.GetMachineDll(ReBuzzCore buzz, AbsoluteFilePath location)
         {
             return new MachineDLL
             {

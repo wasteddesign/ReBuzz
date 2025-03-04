@@ -9,11 +9,11 @@
 
 #define MAX_TRACKS	4
 
-CMachineParameter const sampleValueLeft = 
+CMachineParameter const sampleValueLeftIntegral = 
 { 
 	pt_word,										// type
-	"SampleLeft",
-	"SampleLeftValue",	// description
+	"SampleValueLeftIntegral",
+	"SampleValueLeftIntegral",	// description
 	-10000,												// MinValue	
 	100,											// MaxValue
 	100+1,											// NoValue
@@ -21,11 +21,35 @@ CMachineParameter const sampleValueLeft =
 	0
 };
 
-CMachineParameter const sampleValueRight = 
+CMachineParameter const sampleValueLeftDivisor = 
 { 
 	pt_word,										// type
-	"SampleRight",
-	"SampleRightValue",	// description
+	"SampleValueLeftDivisor",
+	"SampleValueLeftDivisor",	// description
+	-10000,												// MinValue	
+	100,											// MaxValue
+	100+1,											// NoValue
+	0,												// Flags
+	0
+};
+
+CMachineParameter const sampleValueRightIntegral = 
+{ 
+	pt_word,										// type
+	"SampleValueRightIntegral",
+	"SampleValueRightIntegral",	// description
+	-10000,												// MinValue	
+	100,											// MaxValue
+	100+1,											// NoValue
+	0,												// Flags
+	0
+};
+
+CMachineParameter const sampleValueRightDivisor = 
+{ 
+	pt_word,										// type
+	"SampleValueRightDivisor",
+	"SampleValueRightDivisor",	// description
 	-10000,												// MinValue	
 	100,											// MaxValue
 	100+1,											// NoValue
@@ -35,8 +59,10 @@ CMachineParameter const sampleValueRight =
 
 CMachineParameter const *pParameters[] = { 
 	// global
-	&sampleValueLeft,
-	&sampleValueRight,
+	&sampleValueLeftIntegral,
+	&sampleValueLeftDivisor,
+	&sampleValueRightIntegral,
+	&sampleValueRightDivisor,
 };
 
 #pragma pack(1)
@@ -44,8 +70,10 @@ CMachineParameter const *pParameters[] = {
 class gvals
 {
 public:
-	word sampleValueLeft;
-	word sampleValueRight;
+	word sampleValueLeftIntegral;
+	word sampleValueLeftDivisor;
+	word sampleValueRightIntegral;
+	word sampleValueRightDivisor;
 };
 
 class tvals
@@ -61,7 +89,7 @@ CMachineInfo const                                                              
 	MIF_DOES_INPUT_MIXING,		// flags
 	0,										// min tracks
 	0,										// max tracks
-	2,										// numGlobalParameters
+	4,										// numGlobalParameters
 	0,										// numTrackParameters
 	pParameters,
 	0,
@@ -112,8 +140,13 @@ void mi::Tick()
 
 bool mi::WorkMonoToStereo(float *pin, float *pout, int numsamples, int const mode)
 {
-	pout[0] = static_cast<float>(gval.sampleValueLeft);
-	pout[1] = static_cast<float>(gval.sampleValueRight);
+	for (auto i = 0 ; i < numsamples*2 ; i+=2)
+	{
+		pout[i] = 
+			static_cast<float>(gval.sampleValueLeftIntegral)/static_cast<float>(gval.sampleValueLeftDivisor);
+		pout[i+1] = 
+			static_cast<float>(gval.sampleValueRightIntegral)/static_cast<float>(gval.sampleValueRightDivisor);
+	}
 
 	return true;
 }

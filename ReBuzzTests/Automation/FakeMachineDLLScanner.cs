@@ -37,12 +37,22 @@ namespace ReBuzzTests.Automation
 
         public void AddDynamicMachine(
             ReBuzzCore buzz,
-            ITestMachineInfo machineInfo,
+            IDynamicTestMachineInfo machineInfo,
             AbsoluteDirectoryPath targetDir)
         {
             var assemblyLocation = targetDir.AddFileName(machineInfo.DllName);
             var machineDll = machineInfo.GetMachineDll(buzz, assemblyLocation);
             DynamicCompiler.CompileAndSave(machineInfo.SourceCode, assemblyLocation);
+
+            machineDllsByName[machineDll.Name] = machineDll;
+        }
+
+        public void AddPrecompiledMachine(ReBuzzCore reBuzz, ITestMachineInfo info, AbsoluteDirectoryPath targetDir)
+        {
+            var assemblySourceLocation = AbsoluteDirectoryPath.OfExecutingAssembly().AddFileName(info.DllName);
+            var assemblyTargetLocation = targetDir.AddFileName(info.DllName);
+            var machineDll = info.GetMachineDll(reBuzz, assemblyTargetLocation);
+            assemblySourceLocation.Copy(assemblyTargetLocation);
 
             machineDllsByName[machineDll.Name] = machineDll;
         }
@@ -66,17 +76,6 @@ namespace ReBuzzTests.Automation
         {
             Execute.Assertion.FailWith("Not called anywhere yet in the current tests");
             return null!;
-        }
-
-        //bug this isn't for native machines but more for static machines or non-dynamic machines
-        public void AddNativeMachine(ReBuzzCore reBuzz, FakeNativeGeneratorInfo info, AbsoluteDirectoryPath targetDir)
-        {
-            var assemblySourceLocation = AbsoluteDirectoryPath.OfExecutingAssembly().AddFileName(info.DllName);
-            var assemblyTargetLocation = targetDir.AddFileName(info.DllName);
-            var machineDll = info.GetMachineDll(reBuzz, assemblyTargetLocation);
-            assemblySourceLocation.Copy(assemblyTargetLocation);
-
-            machineDllsByName[machineDll.Name] = machineDll;
         }
     }
 }

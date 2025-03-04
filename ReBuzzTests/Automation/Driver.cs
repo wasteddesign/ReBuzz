@@ -403,19 +403,19 @@ namespace ReBuzzTests.Automation
             command.Execute(reBuzzCore, addedGeneratorInstances);
         }
 
-        public void AddDynamicGeneratorToGear(ITestMachineInfo info)
+        public void AddDynamicGeneratorToGear(IDynamicTestMachineInfo info)
         {
             AddDynamicMachineToGear(info, GearGeneratorsDir);
         }
 
-        public void AddDynamicEffectToGear(ITestMachineInfo info)
+        public void AddDynamicEffectToGear(IDynamicTestMachineInfo info)
         {
             AddDynamicMachineToGear(info, GearEffectsDir);
         }
 
-        public void AddNativeGeneratorToGear(FakeNativeGeneratorInfo info)
+        public void AddPrecompiledGeneratorToGear(FakeNativeGeneratorInfo info)
         {
-            addMachineActions.Add((scanner, reBuzz) => scanner.AddNativeMachine(reBuzz, info, GearGeneratorsDir));
+            addMachineActions.Add((scanner, reBuzz) => scanner.AddPrecompiledMachine(reBuzz, info, GearGeneratorsDir));
         }
 
         public TestReadBuffer ReadStereoSamples(int count)
@@ -466,7 +466,7 @@ namespace ReBuzzTests.Automation
             reBuzzCore.MasterVolume = newVolume;
         }
 
-        private void AddDynamicMachineToGear(ITestMachineInfo info, AbsoluteDirectoryPath targetPath)
+        private void AddDynamicMachineToGear(IDynamicTestMachineInfo info, AbsoluteDirectoryPath targetPath)
         {
             addMachineActions.Add((scanner, reBuzz) => scanner.AddDynamicMachine(reBuzz, info, targetPath));
         }
