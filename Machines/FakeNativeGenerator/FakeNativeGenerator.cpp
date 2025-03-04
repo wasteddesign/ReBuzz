@@ -5,59 +5,57 @@
 #include <windef.h>
 #include <cstdlib>
 #include <cmath>
-#include <iostream>
+#include <iterator>
 
-#define MAX_TRACKS	4
-
-CMachineParameter const sampleValueLeftIntegral = 
+constexpr CMachineParameter sampleValueLeftIntegral = 
 { 
-	pt_word,										// type
-	"SampleValueLeftIntegral",
+	pt_word,                    // type
+	"SampleValueLeftIntegral",  // name
 	"SampleValueLeftIntegral",	// description
-	-10000,												// MinValue	
-	100,											// MaxValue
-	100+1,											// NoValue
-	0,												// Flags
-	0
+	-10000,                     // MinValue	
+	100,                        // MaxValue
+	100+1,                      // NoValue
+	0,                          // Flags
+	0                           // Default value
 };
 
-CMachineParameter const sampleValueLeftDivisor = 
+constexpr CMachineParameter sampleValueLeftDivisor = 
 { 
-	pt_word,										// type
-	"SampleValueLeftDivisor",
+	pt_word,									// type
+  "SampleValueLeftDivisor", // name
 	"SampleValueLeftDivisor",	// description
-	-10000,												// MinValue	
+	-10000,										// MinValue	
 	100,											// MaxValue
-	100+1,											// NoValue
+	100+1,										// NoValue
 	0,												// Flags
-	0
+	0                         // Default value
 };
 
-CMachineParameter const sampleValueRightIntegral = 
+constexpr CMachineParameter sampleValueRightIntegral = 
 { 
-	pt_word,										// type
-	"SampleValueRightIntegral",
+	pt_word,                    // type
+  "SampleValueRightIntegral", // name
 	"SampleValueRightIntegral",	// description
-	-10000,												// MinValue	
-	100,											// MaxValue
-	100+1,											// NoValue
-	0,												// Flags
-	0
+	-10000,                     // MinValue	
+	100,                        // MaxValue
+	100+1,                      // NoValue
+	0,                          // Flags
+	0                           // Default value
 };
 
-CMachineParameter const sampleValueRightDivisor = 
+constexpr CMachineParameter sampleValueRightDivisor = 
 { 
-	pt_word,										// type
-	"SampleValueRightDivisor",
-	"SampleValueRightDivisor",	// description
-	-10000,												// MinValue	
-	100,											// MaxValue
-	100+1,											// NoValue
-	0,												// Flags
-	0
+	pt_word,                    // type
+  "SampleValueRightDivisor",  // name
+	"SampleValueRightDivisor",  // description
+	-10000,                     // MinValue	
+	100,                        // MaxValue
+	100+1,                      // NoValue
+	0,                          // Flags
+	0                           // Default value
 };
 
-CMachineParameter const *pParameters[] = { 
+static CMachineParameter const *pParameters[] = { 
 	// global
 	&sampleValueLeftIntegral,
 	&sampleValueLeftDivisor,
@@ -85,35 +83,33 @@ class tvals
 CMachineInfo const                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   MacInfo = 
 {
 	MT_GENERATOR,							// type
-  MI_VERSION,                // version
+  MI_VERSION,               // version
 	MIF_DOES_INPUT_MIXING,		// flags
-	0,										// min tracks
-	0,										// max tracks
-	4,										// numGlobalParameters
-	0,										// numTrackParameters
+	0,										    // min tracks
+	0,										    // max tracks
+	std::size(pParameters),		// numGlobalParameters
+	0,										    // numTrackParameters
 	pParameters,
 	0,
 	NULL,
 	"FakeNativeGenerator",
-	"FakeNativeGen",								// short name
-	"WDE", 						// author
-	"ApplySampleValues" //"Command1\nCommand2\nCommand3"
+	"FakeNativeGen",					// short name
+	"WDE", 						        // author
+	nullptr       //"Command1\nCommand2\nCommand3"
 };
 
 class mi : public CMachineInterface
 {
 public:
 	mi();
-	virtual ~mi();
+  ~mi() override;
 
-	virtual void Init(CMachineDataInput * const pi);
-	virtual void Tick();
-	virtual bool WorkMonoToStereo(float *pin, float *pout, int numsamples, int const mode);
-  virtual void Command(const int i) override;
+  void Init(CMachineDataInput * const pi) override;
+  void Tick() override;
+  bool WorkMonoToStereo(float *pin, float *pout, int numsamples, int const mode) override;
 
 private:
 	gvals gval;
-	tvals tval[MAX_TRACKS];
 };
 
 DLL_EXPORTS
@@ -121,13 +117,9 @@ DLL_EXPORTS
 mi::mi()
 {
 	GlobalVals = &gval;
-	TrackVals = tval;
 }
 
-mi::~mi()
-{
-
-}
+mi::~mi() = default;
 
 void mi::Init(CMachineDataInput * const pi)
 {
@@ -138,7 +130,7 @@ void mi::Tick()
 
 }
 
-bool mi::WorkMonoToStereo(float *pin, float *pout, int numsamples, int const mode)
+bool mi::WorkMonoToStereo(float *pin, float *pout, const int numsamples, int const mode)
 {
 	for (auto i = 0 ; i < numsamples*2 ; i+=2)
 	{
@@ -149,9 +141,4 @@ bool mi::WorkMonoToStereo(float *pin, float *pout, int numsamples, int const mod
 	}
 
 	return true;
-}
-
-void mi::Command(const int i)
-{
-
 }

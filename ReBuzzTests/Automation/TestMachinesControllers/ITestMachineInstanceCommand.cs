@@ -29,7 +29,6 @@ namespace ReBuzzTests.Automation.TestMachinesControllers
                 .SetValue(-1, (int)sample.R);
             globalParams.Parameters.Single(p => p.Name == "SampleValueRightDivisor")
                 .SetValue(-1, sampleValueRightDivisor);
-            machineCore.Commands.Single().Command.Execute(0); //bug unnecessary
         }
     }
 }
