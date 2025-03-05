@@ -5,6 +5,7 @@ using AtmaFileSystem.IO;
 using BuzzGUI.Common;
 using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
+using Core.NullableReferenceTypesExtensions;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using ReBuzz.AppViews;
@@ -110,9 +111,6 @@ namespace ReBuzzTests.Automation
         
         private Dictionary<string, MachineCore> addedGeneratorInstances = new();
         
-        /// <summary>
-        /// bug
-        /// </summary>
         private ReBuzzCoreInitialization initialization;
 
         public Driver()
@@ -252,12 +250,17 @@ namespace ReBuzzTests.Automation
 
         private void CopyAssemblyScannersToReBuzzTestDir()
         {
-            foreach (var filePath in AbsoluteDirectoryPath.Value("C:\\Users\\HYPERBOOK\\Documents\\GitHub\\GrzesiekReBuzz\\bin\\Debug\\x64\\net9.0-windows\\bin32").EnumerateFiles())
+            var reBuzzBinariesDirString =
+                File.ReadLines(AbsoluteDirectoryPath.OfExecutingAssembly().AddFileName("ReBuzzLocation.txt").ToString())
+                    .First().OrThrow();
+            var reBuzzBinariesDir = AbsoluteDirectoryPath.Value(reBuzzBinariesDirString);
+
+            foreach (var filePath in reBuzzBinariesDir.AddDirectoryName("bin32").EnumerateFiles())
             {
                 filePath.Copy(Bin32Dir + filePath.FileName(), true);
             }
 
-            foreach (var filePath in AbsoluteDirectoryPath.Value("C:\\Users\\HYPERBOOK\\Documents\\GitHub\\GrzesiekReBuzz\\bin\\Debug\\x64\\net9.0-windows\\bin64").EnumerateFiles())
+            foreach (var filePath in reBuzzBinariesDir.AddDirectoryName("bin64").EnumerateFiles())
             {
                 filePath.Copy(Bin64Dir + filePath.FileName(), true);
             }
@@ -485,14 +488,6 @@ namespace ReBuzzTests.Automation
         private MachineCore SongCoreMachine(string name)
         {
             return reBuzzCore.SongCore.MachinesList.Single(m => m.Name == name);
-        }
-    }
-
-    public class FakeKeyboard : IKeyboard
-    {
-        public bool HasModifierKeyPressed(Enum modifierKey)
-        {
-            return false; //bug temporary
         }
     }
 }

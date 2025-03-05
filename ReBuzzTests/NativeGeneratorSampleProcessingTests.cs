@@ -57,7 +57,6 @@ public class NativeGeneratorSampleProcessingTests
         samples.AssertAreEqualTo([ExpectedSampleValue.From(new Sample(0.2f, 0.03f))]);
     }
 
-    //bug
     [Test]
     public void OutputsASampleWhichIsASumFromAllMachines()
     {
@@ -80,7 +79,6 @@ public class NativeGeneratorSampleProcessingTests
         samples.AssertAreEqualTo([ExpectedSampleValue.From(gen1Sample + gen2Sample)]);
     }
 
-    //bug
     [Test]
     public void OutputsASampleWhichIsASumFromAllMachinesTimesMasterVolume()
     {

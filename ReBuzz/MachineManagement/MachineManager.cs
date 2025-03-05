@@ -10,7 +10,6 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using BuzzGUI.Common.Settings;
 using BuzzGUI.ParameterWindow;
@@ -1207,20 +1206,6 @@ namespace ReBuzz.MachineManagement
                 var machine = machineKV.Key;
                 machine.wavesEventsPending.Add(index);
             }
-        }
-    }
-
-    public interface IKeyboard //bug
-    {
-        bool HasModifierKeyPressed(Enum modifierKey);
-    }
-
-    internal class WindowsKeyboard //bug
-        : IKeyboard
-    {
-        public bool HasModifierKeyPressed(Enum modifierKey)
-        {
-            return Keyboard.Modifiers.HasFlag(modifierKey);
         }
     }
 }
