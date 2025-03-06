@@ -55,7 +55,11 @@
   <Target Name="RemoveEmptyObj" AfterTargets="AfterBuild">
     <Exec Command="IF EXIST obj rmdir obj" />
   </Target>
-  
+
+  <!-- 
+  This small snippet saves a path that requires some build-time info
+  so that the tests can read it and use it to find the ReBuzzEngine files.
+  -->
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
 	<WriteLinesToFile File="$(OutputPath)\ReBuzzLocation.txt" Lines="$(SolutionDir)bin\$(Configuration)\$(Platform)\net9.0-windows" Overwrite="true">
 	</WriteLinesToFile>
