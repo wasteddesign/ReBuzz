@@ -236,7 +236,7 @@ namespace ReBuzzTests.Automation
             ThemesDir.Create();
             SongsDir.Create();
             CopyGearFilesFromSourceCodeToReBuzzTestDir();
-            CopyAssemblyScannersToReBuzzTestDir();
+            CopyReBuzzEngineToReBuzzTestDir();
         }
 
         private void CopyGearFilesFromSourceCodeToReBuzzTestDir()
@@ -248,8 +248,13 @@ namespace ReBuzzTests.Automation
             }
         }
 
-        private void CopyAssemblyScannersToReBuzzTestDir()
+        private void CopyReBuzzEngineToReBuzzTestDir()
         {
+            // ReBuzzEngine is a separate project that is built to a specific directory based on platform and configuration.
+            // That's why the build of the test project creates a special file that includes
+            // this build-time data. The tests can then read it and use the path to copy
+            // the ReBuzzEngine binaries to the test directory.
+
             var reBuzzBinariesDirString =
                 File.ReadLines(AbsoluteDirectoryPath.OfExecutingAssembly().AddFileName("ReBuzzLocation.txt").ToString())
                     .First().OrThrow();
