@@ -17,6 +17,11 @@ namespace ReBuzzTests.Automation.TestMachinesControllers
             var machineCore = machineCores[controller.InstanceName];
             var globalParams = machineCore.ParameterGroups.Single(g => g.Type == ParameterGroupType.Global);
 
+            // Native machine interface does not allow float values,
+            // so as a workaround we represent the value as two integers:
+            // the integral part and the divisor. For example when the integral
+            // part is 1 and the divisor is 10, the value set in the fake generator is 0.1.
+
             globalParams.Parameters.Single(p => p.Name == "SampleValueLeftIntegral")
                 .SetValue(-1, (int)sample.L);
             globalParams.Parameters.Single(p => p.Name == "SampleValueLeftDivisor")
