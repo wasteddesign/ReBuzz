@@ -33,6 +33,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Machines\FakeNativeGenerator\FakeNativeGenerator.vcxproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <OutputItemType>Content</OutputItemType>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Private>true</Private>
+    </ProjectReference>
     <ProjectReference Include="..\ReBuzzGUI\BuzzGUI.Common\BuzzGUI.Common.csproj" />
     <ProjectReference Include="..\ReBuzzGUI\BuzzGUI.Interfaces\BuzzGUI.Interfaces.csproj" />
     <ProjectReference Include="..\ReBuzz\ReBuzz.csproj" />
@@ -49,4 +55,14 @@
   <Target Name="RemoveEmptyObj" AfterTargets="AfterBuild">
     <Exec Command="IF EXIST obj rmdir obj" />
   </Target>
+
+  <!-- 
+  This small snippet saves a path that requires some build-time info
+  so that the tests can read it and use it to find the ReBuzzEngine files.
+  -->
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+	<WriteLinesToFile File="$(OutputPath)\ReBuzzLocation.txt" Lines="$(SolutionDir)bin\$(Configuration)\$(Platform)\net9.0-windows" Overwrite="true">
+	</WriteLinesToFile>
+  </Target>
+
 </Project>

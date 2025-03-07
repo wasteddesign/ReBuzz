@@ -19,6 +19,10 @@ namespace ReBuzz
             RefClassWrapper < System::Action<IPatternColumn^>> patternChangeAction;
             RefClassWrapper<PropertyChangedEventHandler> propChangeEventHandler;
 
+            RefClassWrapper<System::Action<IPattern^>> patternPlayStartAction;
+            RefClassWrapper<System::Action<IPattern^>> patternPlayEndAction;
+            RefClassWrapper<System::Action<IPattern^>> patternPlayPosChangeAction;
+
             std::map<int64_t, std::map<std::string, uint64_t>> patternNameMap;
         };
 
@@ -35,6 +39,27 @@ namespace ReBuzz
             rebuzzpat->PropertyChanged -= tmpact->GetRef();
         }
 
+        static void RemovePatPlayStartHandler(uint64_t id, IPattern^ rebuzzpat, CPattern* buzzpat, CPatternData* patdata, void* param)
+        {
+            RefClassWrapper<System::Action<IPattern^>> *  tmpact = reinterpret_cast<RefClassWrapper<System::Action<IPattern^>> *>(param);
+            if(!tmpact->isNull())
+                rebuzzpat->OnPatternPlayStart -= tmpact->GetRef();
+        }
+
+        static void RemovePatPlayEndHandler(uint64_t id, IPattern^ rebuzzpat, CPattern* buzzpat, CPatternData* patdata, void* param)
+        {
+            RefClassWrapper<System::Action<IPattern^>>* tmpact = reinterpret_cast<RefClassWrapper<System::Action<IPattern^>> *>(param);            
+            if(!tmpact->isNull())
+            rebuzzpat->OnPatternPlayEnd -= tmpact->GetRef();
+        }
+
+        static void RemovePatPlayPosChangeHandler(uint64_t id, IPattern^ rebuzzpat, CPattern* buzzpat, CPatternData* patdata, void* param)
+        {
+            RefClassWrapper<System::Action<IPattern^>>* tmpact = reinterpret_cast<RefClassWrapper<System::Action<IPattern^>> *>(param);
+            if(!tmpact->isNull())
+                rebuzzpat->OnPatternPlayPositionChange -= tmpact->GetRef();
+        }
+
 
         void PatternManager::OnReBuzzPatternChange(IPattern^ rebuzzpat, bool lock)
         {
@@ -44,7 +69,9 @@ namespace ReBuzz
             CPattern* buzzPat;
             int newLen = 0;
             OnPatternEditorRedrawDelegate^ redrawcallback =nullptr;
-            int64_t patid = Utils::ObjectToInt64(rebuzzpat);
+            int64_t patid = rebuzzpat->CPattern.ToInt64();
+            if (patid == 0)
+                return;
            
             {
                 std::unique_lock<std::mutex> lg(*m_lock, std::defer_lock);
@@ -133,8 +160,8 @@ namespace ReBuzz
 
         void PatternManager::OnPatternRemovedByRebuzz(IPattern^ rebuzzpat)
         {
-            int64_t patid = Utils::ObjectToInt64(rebuzzpat);
-            int64_t machid = Utils::ObjectToInt64(rebuzzpat->Machine);
+            int64_t patid = rebuzzpat->CPattern.ToInt64(); 
+            int64_t machid = rebuzzpat->Machine->CMachinePtr.ToInt64();
             CPattern* buzzpat = m_patternMap->GetBuzzTypeById(patid);
             if (buzzpat == NULL)
                 return;
@@ -157,6 +184,15 @@ namespace ReBuzz
                 RefClassWrapper<System::Action<IPatternColumn^>> tmphdlr2(m_onPatternChangeAction);
                 RemovePatChangeAction(patid, rebuzzpat, buzzpat, (CPatternData*)buzzpat, &tmphdlr2);
             
+                RefClassWrapper<System::Action<IPattern^>> tmphdlr3(m_patternPlayStartAction);
+                RemovePatPlayStartHandler(patid, rebuzzpat, buzzpat, (CPatternData*)buzzpat, &tmphdlr3);
+
+                RefClassWrapper<System::Action<IPattern^>> tmphdlr4(m_patternPlayEndAction);
+                RemovePatPlayEndHandler(patid, rebuzzpat, buzzpat, (CPatternData*)buzzpat, &tmphdlr4);
+
+                RefClassWrapper<System::Action<IPattern^>> tmphdlr5(m_patternPlayPosChangeAction);
+                RemovePatPlayPosChangeHandler(patid, rebuzzpat, buzzpat, (CPatternData*)buzzpat, &tmphdlr5);
+
                 //Remove pattern from map
                 m_patternMap->RemoveById(patid);
 
@@ -167,6 +203,61 @@ namespace ReBuzz
                     std::string patname;
                     Utils::CLRStringToStdString(rebuzzpat->Name, patname);
                     (*foundMach).second.erase(patname);
+                }
+            }
+        }
+
+
+        void PatternManager::OnPatternPlayStart(IPattern^ pattern)
+        {
+            if (m_onPatternPlayStartCallback != nullptr)
+            {
+                const int64_t patId = pattern->CPattern.ToInt64();
+                CPattern* buzzpat = NULL;
+                {
+                    std::unique_lock<std::mutex> lg(*m_lock, std::defer_lock);
+                    buzzpat = m_patternMap->GetBuzzTypeById(patId);
+                }
+               
+                if (buzzpat != NULL)
+                {
+                    m_onPatternPlayStartCallback(patId, pattern, buzzpat);
+                }
+            }
+        }
+
+        void PatternManager::OnPatternPlayPosChange(IPattern^ pattern)
+        {
+            if (m_onPatternPlayPosChangeCallback != nullptr)
+            {
+                const int64_t patId = pattern->CPattern.ToInt64();
+                CPattern* buzzpat = NULL;
+                {
+                    std::unique_lock<std::mutex> lg(*m_lock, std::defer_lock);
+                    buzzpat = m_patternMap->GetBuzzTypeById(patId);
+                }
+
+                if (buzzpat != NULL)
+                {
+                    m_onPatternPlayPosChangeCallback(patId, pattern, buzzpat);
+                }
+            }
+        }
+                
+        void PatternManager::OnPatternPlayEnd(IPattern^ pattern)
+        {
+            if (m_onPatternPlayEndCallback != nullptr)
+            {
+                const int64_t patId = pattern->CPattern.ToInt64();
+                CPattern* buzzpat = NULL;
+                {
+                    std::unique_lock<std::mutex> lg(*m_lock, std::defer_lock);
+                    buzzpat = m_patternMap->GetBuzzTypeById(patId);
+                }
+
+                if (buzzpat != NULL)
+                {
+                    m_onPatternPlayEndCallback(patId, pattern, buzzpat);
                 }
             }
         }
@@ -192,8 +283,8 @@ namespace ReBuzz
             patdata->length = rebuzzPattern->Length;
 
             //Store pattern against name and ReBuzz CMachineDataPtr
-            int64_t machineId = Utils::ObjectToInt64(rebuzzPattern->Machine);
-            int64_t patId = Utils::ObjectToInt64(rebuzzPattern);
+            int64_t machineId = rebuzzPattern->Machine->CMachinePtr.ToInt64();
+            int64_t patId = rebuzzPattern->CPattern.ToInt64(); 
             callbackData->patternNameMap[machineId][patdata->name] = patId;
 
             //Mark this pattern needs to have the callback called for it
@@ -202,13 +293,25 @@ namespace ReBuzz
             //Register for events
             rebuzzPattern->PatternChanged += callbackData->patternChangeAction.GetRef();
             rebuzzPattern->PropertyChanged += callbackData->propChangeEventHandler.GetRef();
+
+            if(!callbackData->patternPlayStartAction.isNull())
+                rebuzzPattern->OnPatternPlayStart += callbackData->patternPlayStartAction.GetRef();
+            
+            if(!callbackData->patternPlayEndAction.isNull())
+                rebuzzPattern->OnPatternPlayEnd += callbackData->patternPlayEndAction.GetRef();
+            
+            if(!callbackData->patternPlayPosChangeAction.isNull())
+                rebuzzPattern->OnPatternPlayPositionChange += callbackData->patternPlayPosChangeAction.GetRef();
         }
 
 
         PatternManager::PatternManager(OnPatternEventDelegate^ onPatternAddedCallback,
                                        OnPatternEventDelegate^ onPatternRemovedCallback,
                                        OnPatternEventDelegate^ onPatternChangedCallback,
-                                       OnPatternEditorRedrawDelegate^ onPatternEditorRedrawCallback)
+                                       OnPatternEditorRedrawDelegate^ onPatternEditorRedrawCallback ,
+                                       OnPatternPlayDelegate^ onPatternPlayStartCallback,
+                                       OnPatternPlayDelegate^ onPatternPlayEndCallback,
+                                       OnPatternPlayDelegate^ onPatternPlayPosChangeCallback)
         {
             m_lock = new std::mutex();
             m_editorTargetMachine = nullptr;
@@ -220,6 +323,9 @@ namespace ReBuzz
             m_onPatternRemovedCallback = onPatternRemovedCallback;
             m_onPatternChangedCallback = onPatternChangedCallback;
             m_onPatternEditorRedrawCallback = onPatternEditorRedrawCallback;
+            m_onPatternPlayEndCallback = onPatternPlayEndCallback;
+            m_onPatternPlayStartCallback = onPatternPlayStartCallback;
+            m_onPatternPlayPosChangeCallback = onPatternPlayPosChangeCallback;
 
             PatternCreateCallbackData* patternCallbackData = new PatternCreateCallbackData();
             m_patternCallbackData = patternCallbackData;
@@ -238,10 +344,18 @@ namespace ReBuzz
             //set up action for pattern removed
             m_patternRemovedAction = gcnew System::Action<IPattern^>(this, &PatternManager::OnPatternRemovedByRebuzz);
 
+            //Set up for pattern play events
+            m_patternPlayStartAction = gcnew System::Action<IPattern^>(this, &PatternManager::OnPatternPlayStart);
+            m_patternPlayEndAction = gcnew System::Action<IPattern^>(this, &PatternManager::OnPatternPlayEnd);
+            m_patternPlayPosChangeAction= gcnew System::Action<IPattern^>(this, &PatternManager::OnPatternPlayPosChange);
+
             //Populate callback data
             patternCallbackData->patternMap = m_patternMap;
             patternCallbackData->patternChangeAction.Assign(m_onPatternChangeAction);
             patternCallbackData->propChangeEventHandler.Assign(m_onPropChangeEventHandler);
+            patternCallbackData->patternPlayStartAction.Assign(m_patternPlayStartAction);
+            patternCallbackData->patternPlayEndAction.Assign(m_patternPlayEndAction);
+            patternCallbackData->patternPlayPosChangeAction.Assign(m_patternPlayPosChangeAction);
         }
 
         PatternManager::!PatternManager()
@@ -333,6 +447,7 @@ namespace ReBuzz
                     m_patternMap->ForEachItem(RemovePatChangeAction, &tmpact);
                 
                 delete m_onPatternChangeAction;
+                m_onPatternChangeAction = nullptr;
             }
 
             if (m_onPropChangeEventHandler != nullptr)
@@ -342,6 +457,49 @@ namespace ReBuzz
                     m_patternMap->ForEachItem(RemovePropChangeHandler, &tmphdlr);
                 
                 delete m_onPropChangeEventHandler;
+                m_onPropChangeEventHandler = nullptr;
+            }
+
+            if (m_patternPlayStartAction != nullptr)
+            {
+                RefClassWrapper<System::Action<IPattern^>> tmphdlr(m_patternPlayStartAction);
+                if (m_patternMap != NULL)
+                    m_patternMap->ForEachItem(RemovePatPlayStartHandler, &tmphdlr);
+
+                delete m_patternPlayStartAction;
+                m_patternPlayStartAction = nullptr;
+            }
+
+            if (m_patternPlayEndAction != nullptr)
+            {
+                RefClassWrapper<System::Action<IPattern^>> tmphdlr(m_patternPlayEndAction);
+                if (m_patternMap != NULL)
+                    m_patternMap->ForEachItem(RemovePatPlayEndHandler, &tmphdlr);
+
+                delete m_patternPlayEndAction;
+                m_patternPlayEndAction = nullptr;
+            }
+
+            if (m_patternPlayPosChangeAction != nullptr)
+            {
+                RefClassWrapper<System::Action<IPattern^>> tmphdlr(m_patternPlayPosChangeAction);
+                if (m_patternMap != NULL)
+                    m_patternMap->ForEachItem(RemovePatPlayPosChangeHandler, &tmphdlr);
+
+                delete m_patternPlayPosChangeAction;
+                m_patternPlayPosChangeAction = nullptr;
+            }
+
+            if (m_patternPlayEndAction != nullptr)
+            {
+                delete m_patternPlayEndAction;
+                m_patternPlayEndAction = nullptr;
+            }
+
+            if (m_patternPlayPosChangeAction != nullptr)
+            {
+                delete m_patternPlayPosChangeAction;
+                m_patternPlayPosChangeAction = nullptr;
             }
 
             if (m_patternMap != NULL)
@@ -366,7 +524,7 @@ namespace ReBuzz
             EnumPatternsByMachineData* cbdata = reinterpret_cast<EnumPatternsByMachineData*>(param);
             
             //Get the machine id
-            uint64_t machId = Utils::ObjectToInt64(pat->Machine);
+            int64_t machId = pat->Machine->CMachinePtr.ToInt64();
             if (machId == cbdata->rebuzzMachineId)
             {
                 cbdata->ids.push_back(id);
@@ -378,7 +536,7 @@ namespace ReBuzz
         void PatternManager::RemovePatternsByMachine(IMachine^ rebuzzmac)
         {
             EnumPatternsByMachineData enumData;
-            enumData.rebuzzMachineId = Utils::ObjectToInt64(rebuzzmac);
+            enumData.rebuzzMachineId = rebuzzmac->CMachinePtr.ToInt64();
             {
                 std::lock_guard<std::mutex> lg(*m_lock);
 
@@ -398,7 +556,7 @@ namespace ReBuzz
             }
 
             //Unregister the pattern added and removed events from the machine
-            int64_t machineId = Utils::ObjectToInt64(rebuzzmac);
+            int64_t machineId = rebuzzmac->CMachinePtr.ToInt64();
             if (m_eventHandlersAddedToMachines->find(machineId) != m_eventHandlersAddedToMachines->end())
             {
                 //Remove pattern added event handler
@@ -409,7 +567,7 @@ namespace ReBuzz
                 m_eventHandlersAddedToMachines->erase(machineId);
                 for (int x = 0; x < m_machinesEventHandlersAddedTo->size(); ++x)
                 {
-                    if (Utils::ObjectToInt64((*m_machinesEventHandlersAddedTo)[x].GetRef()) == machineId)
+                    if ((*m_machinesEventHandlersAddedTo)[x].GetRef()->CMachinePtr.ToInt64() == machineId)
                     {
                         m_machinesEventHandlersAddedTo->erase(m_machinesEventHandlersAddedTo->begin() + x);
                         break;
@@ -436,6 +594,15 @@ namespace ReBuzz
 
                             RefClassWrapper<System::Action<IPatternColumn^>> tmphdlr2(m_onPatternChangeAction);
                             RemovePatChangeAction(patid, rebuzzPat, buzzpat, (CPatternData*)buzzpat, &tmphdlr2);
+
+                            RefClassWrapper<System::Action<IPattern^>> tmphdlr3(m_patternPlayStartAction);
+                            RemovePatPlayStartHandler(patid, rebuzzPat, buzzpat, (CPatternData*)buzzpat, &tmphdlr3);
+
+                            RefClassWrapper<System::Action<IPattern^>> tmphdlr4(m_patternPlayEndAction);
+                            RemovePatPlayEndHandler(patid, rebuzzPat, buzzpat, (CPatternData*)buzzpat, &tmphdlr4);
+
+                            RefClassWrapper<System::Action<IPattern^>> tmphdlr5(m_patternPlayPosChangeAction);
+                            RemovePatPlayPosChangeHandler(patid, rebuzzPat, buzzpat, (CPatternData*)buzzpat, &tmphdlr5);
                         }
                     }
 
@@ -452,7 +619,7 @@ namespace ReBuzz
             std::lock_guard<std::mutex> lg(*m_lock);
 
             //We need the machine CMachineDataPtr as an int64 to use the name map
-            int64_t cmachineid = Utils::ObjectToInt64(rebuzzmac);
+            int64_t cmachineid = rebuzzmac->CMachinePtr.ToInt64();
             
             //Get the CPattern * from the name map
             PatternCreateCallbackData* patternCallbackData = reinterpret_cast<PatternCreateCallbackData*>(m_patternCallbackData);
@@ -482,7 +649,7 @@ namespace ReBuzz
                 {
                     if (clrPatName == pat->Name)
                     {
-                        patId = Utils::ObjectToInt64(pat);
+                        patId = pat->CPattern.ToInt64();
                         patCreated = pat;
                         patternCallbackData->patternNameMap[cmachineid][name] = patId;
                         retPat =  m_patternMap->GetOrStoreReBuzzTypeById(patId, pat, &patternCreated);
@@ -513,7 +680,7 @@ namespace ReBuzz
             std::vector<CPattern*> callbackPats;
             std::vector<RefClassWrapper<IPattern>> callbackRebuzzPats;
             CPattern* cRetPat = NULL;
-            uint64_t id = Utils::ObjectToInt64(p);
+            int64_t id = p->CPattern.ToInt64();
             bool itemCreated = false;
             {
                 std::lock_guard<std::mutex> lg(*m_lock);
@@ -591,6 +758,22 @@ namespace ReBuzz
             return m_patternMap->GetBuzzEmulationType(pat);
         }
 
+        IPattern^ PatternManager::GetById(int64_t id, CPattern** retbuzzpat)
+        {
+            CPattern* buzzpat = NULL;
+            IPattern^ ret = nullptr;
+            {
+                std::lock_guard<std::mutex> lg(*m_lock);
+                buzzpat = m_patternMap->GetBuzzTypeById(id);
+                ret = m_patternMap->GetReBuzzTypeByBuzzType(buzzpat);
+            }
+
+            if (retbuzzpat != NULL)
+                *retbuzzpat = buzzpat;
+
+            return ret;
+        }
+
         void PatternManager::OnNativePatternChange(CPattern* pat, int newLen, const char * newName )
         {
             bool notifyNativeLength = false;
@@ -634,7 +817,7 @@ namespace ReBuzz
         void PatternManager::AddEventHandlersToMachine(IMachine^ mach)
         {
             std::lock_guard<std::mutex> lg(*m_lock);
-            int64_t machid = Utils::ObjectToInt64(mach);
+            int64_t machid = mach->CMachinePtr.ToInt64();
             if (m_eventHandlersAddedToMachines->find(machid) == m_eventHandlersAddedToMachines->end())
             {
                 mach->PatternAdded += m_patternAddedAction;

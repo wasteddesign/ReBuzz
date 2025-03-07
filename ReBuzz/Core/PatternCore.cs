@@ -58,12 +58,61 @@ namespace ReBuzz.Core
         public ReadOnlyCollection<IPatternColumn> Columns { get => columns.AsReadOnly(); }
 
         int playPosition;
+
+        public event Action<IPattern> OnPatternPlayStart;
+        public event Action<IPattern> OnPatternPlayPositionChange;
+        public event Action<IPattern> OnPatternPlayEnd;
+
         public int PlayPosition
         {
             get => playPosition;
             set
             {
+                bool playStart = (playPosition == int.MinValue);
+                bool posChange = (playPosition != value);
+                bool playEnd = (value == int.MinValue);
+
                 playPosition = value;
+
+                if (posChange)
+                {
+                    if(playStart)
+                    {
+                        if(OnPatternPlayStart != null)
+                        {
+                            try
+                            {
+                                OnPatternPlayStart(this);
+                            }
+                            catch
+                            { }
+                        }
+                    }
+                    else if(playEnd)
+                    {
+                        if (OnPatternPlayEnd != null)
+                        {
+                            try
+                            {
+                                OnPatternPlayEnd(this);
+                            }
+                            catch
+                            { }
+                        }
+                    }
+                    else if(OnPatternPlayPositionChange != null)
+                    {
+                        if (OnPatternPlayPositionChange != null)
+                        {
+                            try
+                            {
+                                OnPatternPlayPositionChange(this);
+                            }
+                            catch
+                            { }
+                        }
+                    }
+                }
             }
         }
 
@@ -127,6 +176,27 @@ namespace ReBuzz.Core
             CPattern = new IntPtr(patternHandleCounter++);
             columns = new List<IPatternColumn>();
 
+            //Get list of sequences that use this pattern
+            lock (_owningSequences)
+            {
+                foreach (var seq in Global.Buzz.Song.Sequences)
+                {
+                    var mach = seq.Machine;
+                    if (mach != null)
+                    {
+                        foreach (var pat in mach.Patterns.Where(p => p == this))
+                        {
+                            _owningSequences.Add(seq);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            Global.Buzz.Song.SequenceAdded += Song_SequenceAdded;
+            Global.Buzz.Song.SequenceRemoved += Song_SequenceRemoved;
+            Global.Buzz.Song.SequenceChanged += Song_SequenceAdded;
+
             /*
             foreach (var parTrackTuple in Machine.AllParametersAndTracks())
             {
@@ -136,6 +206,62 @@ namespace ReBuzz.Core
             */
             this.dispatcher = dispatcher;
         }
+
+        HashSet<ISequence> _owningSequences = new HashSet<ISequence>();
+
+
+
+        ~PatternCore()
+        {
+            Global.Buzz.Song.SequenceAdded -= Song_SequenceAdded;
+            Global.Buzz.Song.SequenceRemoved -= Song_SequenceRemoved;
+            Global.Buzz.Song.SequenceChanged -= Song_SequenceChanged;
+        }
+
+        
+        private void Song_SequenceAdded(int obj, ISequence seq)
+        {
+            lock (_owningSequences)
+            {   //If the added sequence refers to the same machine as the
+                //one associated with the pattern, then associate the sequence with this pattern.
+                if(seq.Machine == Machine)
+                    _owningSequences.Add((ISequence)seq);
+            }
+        }
+
+        private void Song_SequenceChanged(int obj, ISequence seq)
+        {
+            lock (_owningSequences)
+            {
+                //If the added sequence refers to the same machine as the
+                //one associated with the pattern, then associate the sequence with this pattern.
+                if (seq.Machine == Machine)
+                    _owningSequences.Add((ISequence)seq);
+            }
+        }
+
+        private void Song_SequenceRemoved(int obj, ISequence seq)
+        {
+            lock (_owningSequences)
+            {
+                _owningSequences.Remove((ISequence)seq);
+            }
+        }
+        public IReadOnlyCollection<ISequence> Sequences
+        {
+            get
+            {
+                IReadOnlyCollection<ISequence> ret;
+
+                lock (_owningSequences)
+                {
+                    ret = _owningSequences.ToReadOnlyCollection();
+                }
+
+                return ret;
+            }
+        }
+
 
         public event Action<IPatternColumn> ColumnAdded;
         public event Action<IPatternColumn> ColumnRemoved;

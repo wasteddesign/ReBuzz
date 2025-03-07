@@ -24,7 +24,8 @@ namespace ReBuzz.AppViews
         ReBuzzCore buzz,
         string buzzPath,
         IUiDispatcher dispatcher,
-        IRegistryEx registryEx)
+        IRegistryEx registryEx,
+        IKeyboard keyboard)
     {
         internal void StartReBuzzEngineStep1(PropertyChangedEventHandler onPropertyChanged)
         {
@@ -48,7 +49,7 @@ namespace ReBuzz.AppViews
 
         internal void StartReBuzzEngineStep3(EngineSettings engineSettings, IInitializationObserver observer)
         {
-            var machineManager = new MachineManager(buzz.SongCore, engineSettings, buzzPath, dispatcher);
+            var machineManager = new MachineManager(buzz.SongCore, engineSettings, buzzPath, dispatcher, keyboard);
             buzz.MachineManager = machineManager;
 
             buzz.AudioEngine = new
@@ -99,6 +100,13 @@ namespace ReBuzz.AppViews
 
             var audioDriver = registryEx.Read("AudioDriver", "WASAPI", "Settings");
             buzz.SelectedAudioDriver = audioDriver;
+        }
+
+        public void ShutDownReBuzzEngine()
+        {
+            buzz.AudioEngine.FinalStop();
+            buzz.MachineManager.Buzz = null;
+            buzz.Release();
         }
     }
 }

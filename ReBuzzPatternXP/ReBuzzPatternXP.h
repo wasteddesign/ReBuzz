@@ -142,10 +142,7 @@ private:
     void OnPatternCreated(IMachine^ rebuzzMachine, void* buzzMachine,
                             IPattern^ rebuzzPattern, void* buzzPattern, String^ patternName);
 
-    bool OnPatternPlaying(IMachine^ rebuzzMachine, void* buzzMachine,
-                          IPattern^ rebuzzPattern, void* buzzPattern, String^ patternName);
-
-
+    
     void OnMenuItem_CreatePattern(int menuid);
     void OnMenuItem_DeletePattern(int menuid);
     void OnMenuItem_PatternProperties(int id);
@@ -165,7 +162,6 @@ private:
     MachineWrapper::KeyboardFocusWindowHandleDelegate^ m_onKbFocusCallback;
     MachineWrapper::OnPatternEditorRedrawDelegate^ m_onEditorRedrawCallback;
     MachineWrapper::OnNewPatternDelegate^ m_onNewPatternCallback;
-    MachineWrapper::OnPatternPlayDelegate^ m_onPatterPlayCallback;
     ContextMenu::OnMenuItemClickDelegate^ m_onCreatePatternMenuCallback;
     ContextMenu::OnMenuItemClickDelegate^ m_onDeletePatternMenuCallback;
     ContextMenu::OnMenuItemClickDelegate^ m_PatternPropertiesMenuCallback;

@@ -1,10 +1,12 @@
 using AtmaFileSystem;
+using AtmaFileSystem.IO;
 using BuzzGUI.Interfaces;
 using FluentAssertions.Execution;
 using ReBuzz.Core;
 using ReBuzz.FileOps;
 using ReBuzzTests.Automation.TestMachines;
 using System.Collections.Generic;
+using MachineDLL = ReBuzz.Core.MachineDLL;
 
 namespace ReBuzzTests.Automation
 {
@@ -35,12 +37,22 @@ namespace ReBuzzTests.Automation
 
         public void AddDynamicMachine(
             ReBuzzCore buzz,
-            ITestMachineInfo machineInfo,
+            IDynamicTestMachineInfo machineInfo,
             AbsoluteDirectoryPath targetDir)
         {
             var assemblyLocation = targetDir.AddFileName(machineInfo.DllName);
             var machineDll = machineInfo.GetMachineDll(buzz, assemblyLocation);
             DynamicCompiler.CompileAndSave(machineInfo.SourceCode, assemblyLocation);
+
+            machineDllsByName[machineDll.Name] = machineDll;
+        }
+
+        public void AddPrecompiledMachine(ReBuzzCore reBuzz, ITestMachineInfo info, AbsoluteDirectoryPath targetDir)
+        {
+            var assemblySourceLocation = AbsoluteDirectoryPath.OfExecutingAssembly().AddFileName(info.DllName);
+            var assemblyTargetLocation = targetDir.AddFileName(info.DllName);
+            var machineDll = info.GetMachineDll(reBuzz, assemblyTargetLocation);
+            assemblySourceLocation.Copy(assemblyTargetLocation);
 
             machineDllsByName[machineDll.Name] = machineDll;
         }

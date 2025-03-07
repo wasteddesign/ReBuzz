@@ -5,11 +5,13 @@ using AtmaFileSystem.IO;
 using BuzzGUI.Common;
 using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
+using Core.NullableReferenceTypesExtensions;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using ReBuzz.AppViews;
 using ReBuzz.Audio;
 using ReBuzz.Core;
+using ReBuzz.FileOps;
 using ReBuzz.MachineManagement;
 using ReBuzzTests.Automation.Assertions;
 using ReBuzzTests.Automation.TestMachines;
@@ -61,6 +63,16 @@ namespace ReBuzzTests.Automation
         private AbsoluteDirectoryPath GearDir => reBuzzRootDir.AddDirectoryName("Gear");
 
         /// <summary>
+        /// ReBuzz bin32 directory for the current test
+        /// </summary>
+        private AbsoluteDirectoryPath Bin32Dir => reBuzzRootDir.AddDirectoryName("bin32");
+
+        /// <summary>
+        /// ReBuzz bin64 directory for the current test
+        /// </summary>
+        private AbsoluteDirectoryPath Bin64Dir => reBuzzRootDir.AddDirectoryName("bin64");
+
+        /// <summary>
         /// ReBuzz themes directory for the current test
         /// </summary>
         private AbsoluteDirectoryPath ThemesDir => reBuzzRootDir.AddDirectoryName("Themes");
@@ -98,6 +110,8 @@ namespace ReBuzzTests.Automation
         private List<Action<FakeMachineDLLScanner, ReBuzzCore>> addMachineActions = [];
         
         private Dictionary<string, MachineCore> addedGeneratorInstances = new();
+        
+        private ReBuzzCoreInitialization initialization;
 
         public Driver()
         {
@@ -134,10 +148,11 @@ namespace ReBuzzTests.Automation
                 fakeRegistry,
                 fileNameToLoadChoice,
                 fileNameToSaveChoice,
-                fakeUserMessages);
+                fakeUserMessages, 
+                new FakeKeyboard());
             fakeMachineDllScanner.AddFakeModernPatternEditor(reBuzzCore);
             addMachineActions.ForEach(addMachine => addMachine(fakeMachineDllScanner, reBuzzCore));
-            var initialization = new ReBuzzCoreInitialization(reBuzzCore, buzzPath, dispatcher, fakeRegistry);
+            initialization = new ReBuzzCoreInitialization(reBuzzCore, buzzPath, dispatcher, fakeRegistry, new FakeKeyboard());
             initialization.StartReBuzzEngineStep1((sender, args) =>
             {
                 TestContext.Out.WriteLine($"PropertyChanged: {args.PropertyName}");
@@ -213,26 +228,53 @@ namespace ReBuzzTests.Automation
         private void SetupDirectoryStructure()
         {
             reBuzzRootDir.Create();
+            Bin32Dir.Create();
+            Bin64Dir.Create();
             GearDir.Create();
             GearEffectsDir.Create();
             GearGeneratorsDir.Create();
             ThemesDir.Create();
             SongsDir.Create();
             CopyGearFilesFromSourceCodeToReBuzzTestDir();
+            CopyReBuzzEngineToReBuzzTestDir();
         }
 
         private void CopyGearFilesFromSourceCodeToReBuzzTestDir()
         {
-            foreach (AbsoluteFilePath gearFile in AbsoluteDirectoryPath.OfThisFile().AddDirectoryName("Gear")
+            foreach (var gearFile in AbsoluteDirectoryPath.OfThisFile().AddDirectoryName("Gear")
                          .EnumerateFiles())
             {
                 gearFile.Copy(GearDir + gearFile.FileName(), true);
             }
         }
 
+        private void CopyReBuzzEngineToReBuzzTestDir()
+        {
+            // ReBuzzEngine is a separate project that is built to a specific directory based on platform and configuration.
+            // That's why the build of the test project creates a special file that includes
+            // this build-time data. The tests can then read it and use the path to copy
+            // the ReBuzzEngine binaries to the test directory.
+
+            var reBuzzBinariesDirString =
+                File.ReadLines(AbsoluteDirectoryPath.OfExecutingAssembly().AddFileName("ReBuzzLocation.txt").ToString())
+                    .First().OrThrow();
+            var reBuzzBinariesDir = AbsoluteDirectoryPath.Value(reBuzzBinariesDirString);
+
+            foreach (var filePath in reBuzzBinariesDir.AddDirectoryName("bin32").EnumerateFiles())
+            {
+                filePath.Copy(Bin32Dir + filePath.FileName(), true);
+            }
+
+            foreach (var filePath in reBuzzBinariesDir.AddDirectoryName("bin64").EnumerateFiles())
+            {
+                filePath.Copy(Bin64Dir + filePath.FileName(), true);
+            }
+        }
+
         public void Dispose()
         {
             reBuzzCore?.ExecuteCommand(BuzzCommand.Exit);
+            initialization.ShutDownReBuzzEngine();
             AttemptToCleanupTestRootDirs();
         }
 
@@ -364,19 +406,24 @@ namespace ReBuzzTests.Automation
                 SongCoreMachine(destinationController.InstanceName));
         }
 
-        public void ExecuteMachineCommand(TestMachineInstanceCommand command)
+        public void ExecuteMachineCommand(ITestMachineInstanceCommand command)
         {
             command.Execute(reBuzzCore, addedGeneratorInstances);
         }
 
-        public void AddDynamicGeneratorToGear(ITestMachineInfo info)
+        public void AddDynamicGeneratorToGear(IDynamicTestMachineInfo info)
         {
             AddDynamicMachineToGear(info, GearGeneratorsDir);
         }
 
-        public void AddDynamicEffectToGear(ITestMachineInfo info)
+        public void AddDynamicEffectToGear(IDynamicTestMachineInfo info)
         {
             AddDynamicMachineToGear(info, GearEffectsDir);
+        }
+
+        public void AddPrecompiledGeneratorToGear(FakeNativeGeneratorInfo info)
+        {
+            addMachineActions.Add((scanner, reBuzz) => scanner.AddPrecompiledMachine(reBuzz, info, GearGeneratorsDir));
         }
 
         public TestReadBuffer ReadStereoSamples(int count)
@@ -409,7 +456,7 @@ namespace ReBuzzTests.Automation
 
         private void CreateInstrument(IMachineDLL machineDll, string instanceName)
         {
-            reBuzzCore.SongCore.CreateMachine(machineDll.Name, instanceName, null!, null!, null!, null!, -1, 0, 0);
+            reBuzzCore.SongCore.CreateMachine(machineDll.Name, null!, instanceName, null!, null!, null!, -1, 0, 0);
         }
 
         private void ConnectToMaster(MachineCore instance)
@@ -427,7 +474,7 @@ namespace ReBuzzTests.Automation
             reBuzzCore.MasterVolume = newVolume;
         }
 
-        private void AddDynamicMachineToGear(ITestMachineInfo info, AbsoluteDirectoryPath targetPath)
+        private void AddDynamicMachineToGear(IDynamicTestMachineInfo info, AbsoluteDirectoryPath targetPath)
         {
             addMachineActions.Add((scanner, reBuzz) => scanner.AddDynamicMachine(reBuzz, info, targetPath));
         }
@@ -447,6 +494,5 @@ namespace ReBuzzTests.Automation
         {
             return reBuzzCore.SongCore.MachinesList.Single(m => m.Name == name);
         }
-
     }
 }

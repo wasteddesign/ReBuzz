@@ -1,30 +1,23 @@
-using AtmaFileSystem;
+﻿using AtmaFileSystem;
 using BuzzGUI.Interfaces;
 using ReBuzz.Core;
 
 namespace ReBuzzTests.Automation.TestMachines
 {
-    /// <summary>
-    /// Contains additional information about the fake Synth machine.
-    ///
-    /// This information is awkward to put in the <see cref="Synth"/>
-    /// class because it would require a reference to the types defined in this project.
-    /// </summary>
-    public class SynthInfo : IDynamicTestMachineInfo
+    public class FakeNativeGeneratorInfo : ITestMachineInfo
     {
-        public static IDynamicTestMachineInfo Instance { get; } = new SynthInfo();
+        public static FakeNativeGeneratorInfo Instance { get; } = new FakeNativeGeneratorInfo();
 
         MachineDLL ITestMachineInfo.GetMachineDll(ReBuzzCore buzz, AbsoluteFilePath location)
         {
-            var decl = Synth.GetMachineDecl();
             return new MachineDLL
             {
-                Name = decl.Name,
+                Name = "FakeNativeGenerator",
                 Buzz = buzz,
                 Path = location.ToString(),
                 Is64Bit = true,
                 IsCrashed = false,
-                IsManaged = true,
+                IsManaged = false,
                 IsLoaded = false,
                 IsMissing = false,
                 IsOutOfProcess = false,
@@ -32,12 +25,12 @@ namespace ReBuzzTests.Automation.TestMachines
                 MachineInfo = new MachineInfo
                 {
                     Flags = MachineInfoFlags.LOAD_DATA_RUNTIME,
-                    Author = decl.Author,
+                    Author = "WDE",
                     InternalVersion = 0,
-                    MaxTracks = decl.MaxTracks,
+                    MaxTracks = 1,
                     MinTracks = 1,
-                    Name = decl.Name,
-                    ShortName = decl.ShortName,
+                    Name = "FakeNativeGenerator",
+                    ShortName = "FakeNativeGen",
                     Type = MachineType.Generator,
                     Version = 66
                 },
@@ -54,7 +47,6 @@ namespace ReBuzzTests.Automation.TestMachines
             };
         }
 
-        public string DllName => Synth.GetMachineDecl().Name + ".dll";
-        public string SourceCode => Synth.GetSourceCode();
+        public string DllName => "FakeNativeGenerator.dll";
     }
 }
