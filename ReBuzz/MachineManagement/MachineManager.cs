@@ -10,7 +10,6 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using BuzzGUI.Common.Settings;
 using BuzzGUI.ParameterWindow;
@@ -71,13 +70,14 @@ namespace ReBuzz.MachineManagement
 
         private readonly SongCore song;
 
-        internal MachineManager(SongCore song, EngineSettings settings, string buzzPath, IUiDispatcher dispatcher)
+        internal MachineManager(SongCore song, EngineSettings settings, string buzzPath, IUiDispatcher dispatcher, IKeyboard keyboard)
         {
             this.song = song;
             IsSingleProcessMode = false;
             engineSettings = settings;
             this.buzzPath = buzzPath;
             this.dispatcher = dispatcher;
+            this.keyboard = keyboard;
         }
 
         // instrumentPath == null or "" if instruments are not supported
@@ -192,6 +192,7 @@ namespace ReBuzz.MachineManagement
         private readonly EngineSettings engineSettings;
         private readonly string buzzPath;
         private readonly IUiDispatcher dispatcher;
+        private readonly IKeyboard keyboard;
 
         void CreateNativeMachine(MachineCore machine, string instrument, int trackCount, byte[] data, bool callInit = true)
         {

@@ -635,7 +635,8 @@ namespace ReBuzz.Core
             IRegistryEx registryEx,
             IFileNameChoice fileNameToLoadChoice,
             IFileNameChoice fileNameToSaveChoice,
-            IUserMessages userMessages)
+            IUserMessages userMessages, 
+            IKeyboard keyboard)
         {
             this.fileNameToLoadChoice = fileNameToLoadChoice;
             this.fileNameToSaveChoice = fileNameToSaveChoice;
@@ -762,6 +763,7 @@ namespace ReBuzz.Core
                     machine.UpdateLastEngineThread();
                 }
             };
+            this.keyboard = keyboard;
         }
 
         public void StartEvents()
@@ -1237,7 +1239,7 @@ namespace ReBuzz.Core
             string extension = Path.GetExtension(path);
             if (extension == ".bmx" || extension == ".bmw")
             {
-                file = new BMXFile(this, buzzPath, dispatcher);
+                file = new BMXFile(this, buzzPath, dispatcher, keyboard);
             }
             else
             {
@@ -1884,6 +1886,7 @@ namespace ReBuzz.Core
         private readonly IFileNameChoice fileNameToLoadChoice;
         private readonly IFileNameChoice fileNameToSaveChoice;
         private readonly IUserMessages userMessages;
+        private readonly IKeyboard keyboard;
 
         public string InfoText { get => infoText; internal set { infoText = value; PropertyChanged.Raise(this, "InfoText"); } }
 

@@ -58,6 +58,7 @@ namespace ReBuzz.FileOps
         private readonly List<SequenceCore> bmxSequences;
         private readonly string buzzPath;
         private readonly IUiDispatcher dispatcher;
+        private readonly IKeyboard keyboard;
 
         enum SectionType
         {
@@ -84,7 +85,7 @@ namespace ReBuzz.FileOps
             XQES = 0x58514553  // Sequence properties
         }
 
-        public BMXFile(ReBuzzCore buzz, string buzzPath, IUiDispatcher dispatcher)
+        public BMXFile(ReBuzzCore buzz, string buzzPath, IUiDispatcher dispatcher, IKeyboard keyboard)
         {
             this.buzz = buzz;
             machines = new List<MachineCore>();
@@ -93,6 +94,7 @@ namespace ReBuzz.FileOps
             remappedWaveReferences = new Dictionary<int, int>();
             this.buzzPath = buzzPath;
             this.dispatcher = dispatcher;
+            this.keyboard = keyboard;
         }
 
         public void Load(string path, float x = 0, float y = 0, ImportSongAction importAction = null)
@@ -483,7 +485,7 @@ namespace ReBuzz.FileOps
                 }
             }
 
-            bool askSkip = Keyboard.Modifiers.HasFlag(ModifierKeys.Control) && Keyboard.Modifiers.HasFlag(ModifierKeys.Alt);
+            bool askSkip = keyboard.HasModifierKeyPressed(ModifierKeys.Control) && keyboard.HasModifierKeyPressed(ModifierKeys.Alt);
             List<Task> initTasks = new List<Task>();
             // Native control machines need to have all machines "visible" before calling init
             foreach (var kvMachine in dictInitData)

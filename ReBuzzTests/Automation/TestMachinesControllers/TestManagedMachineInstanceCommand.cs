@@ -8,7 +8,7 @@ namespace ReBuzzTests.Automation.TestMachinesControllers
     /// A test command that is passed to the driver
     /// and driver executes it within the context it holds.
     /// </summary>
-    public class TestMachineInstanceCommand(DynamicMachineController controller, string commandName, object parameter)
+    public class TestManagedMachineInstanceCommand(DynamicMachineController controller, string commandName, object parameter) : ITestMachineInstanceCommand
     {
         public void Execute(
             ReBuzzCore buzzCore,
