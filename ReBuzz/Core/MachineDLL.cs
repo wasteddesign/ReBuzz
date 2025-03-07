@@ -15,8 +15,6 @@ namespace ReBuzz.Core
 {
     internal class MachineDLL : IMachineDLL
     {
-        readonly ManagedMachineDLL managed;
-
         public IBuzz Buzz { get; set; }
 
         public string Name { get; set; }
@@ -34,11 +32,11 @@ namespace ReBuzz.Core
 
         public bool IsLoaded { get; set; }
 
-        public bool IsMissing { get; set; }
+        bool isMissing;
+        public bool IsMissing { get => isMissing; set { isMissing = value; PropertyChanged.Raise(this, "IsMissing"); } }
 
         bool isCrashed = false;
 
-        // ToDo: IsCrashed should be moved to Machine.
         public bool IsCrashed { get => isCrashed; set { isCrashed = value; PropertyChanged.Raise(this, "IsCrashed"); } }
 
         public bool IsOutOfProcess { get; set; }
@@ -146,6 +144,26 @@ namespace ReBuzz.Core
         public event PropertyChangedEventHandler PropertyChanged;
         public void Load()
         {
+        }
+
+        internal MachineDLL Clone()
+        {
+            MachineDLL dll = new MachineDLL();
+            dll.Buzz = Buzz;
+            dll.Name = Name;
+            dll.Path = Path;
+            dll.SHA1Hash = SHA1Hash;
+            dll.Skin = Skin;
+            dll.SkinLEDSize = SkinLEDSize;
+            dll.SkinLED = SkinLED;
+            dll.SkinLEDPosition = SkinLEDPosition;
+            dll.Is64Bit = Is64Bit;
+            dll.isCrashed = IsCrashed;
+            dll.IsLoaded = IsLoaded;
+            dll.IsManaged = IsManaged;
+            dll.MachineInfo = MachineInfo;
+
+            return dll;
         }
     }
 }

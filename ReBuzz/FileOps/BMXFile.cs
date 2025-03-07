@@ -1,17 +1,23 @@
-﻿using BuzzGUI.Common;
+﻿using BespokeFusion;
+using BuzzGUI.Common;
 using BuzzGUI.Common.InterfaceExtensions;
 using BuzzGUI.Interfaces;
+using ReBuzz.Common;
 using ReBuzz.Core;
 using ReBuzz.Core.Actions.GraphActions;
 using ReBuzz.MachineManagement;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Forms;
 using System.Windows.Input;
-using System.Xml.Linq;
+using System.Windows.Interop;
+using System.Windows.Media;
 
 namespace ReBuzz.FileOps
 {
@@ -24,6 +30,8 @@ namespace ReBuzz.FileOps
 
     internal class BMXFile : IReBuzzFile
     {
+        internal static readonly int LoadWaitTime = 20000;
+
         readonly int WaveFlagsEnvelope = 0x80;
         public class Section
         {
@@ -128,20 +136,23 @@ namespace ReBuzz.FileOps
 
                 foreach (var machine in machines)
                 {
-                    // Assign editor to pattern before calling UpdateWaveReferences
-                    if (machine.EditorMachine != null)
+                    if (machine.Ready)
                     {
-                        buzz.MachineManager.SetPatternEditorPattern(machine.EditorMachine, machine.Patterns.FirstOrDefault());
-                        // Notify machines that waveReferences have changed due to import
-                        buzz.MachineManager.UpdateWaveReferences(machine.EditorMachine, machine, remappedWaveReferences);
-                    }
-                    else
-                    {
-                        buzz.MachineManager.UpdateWaveReferences(machine, machine, remappedWaveReferences);
-                    }
+                        // Assign editor to pattern before calling UpdateWaveReferences
+                        if (machine.EditorMachine != null)
+                        {
+                            buzz.MachineManager.SetPatternEditorPattern(machine.EditorMachine, machine.Patterns.FirstOrDefault());
+                            // Notify machines that waveReferences have changed due to import
+                            buzz.MachineManager.UpdateWaveReferences(machine.EditorMachine, machine, remappedWaveReferences);
+                        }
+                        else
+                        {
+                            buzz.MachineManager.UpdateWaveReferences(machine, machine, remappedWaveReferences);
+                        }
 
-                    // Notify import finished and machine name changes
-                    buzz.MachineManager.ImportFinished(machine, importDictionaryNonHidden);
+                        // Notify import finished and machine name changes
+                        buzz.MachineManager.ImportFinished(machine, importDictionaryNonHidden);
+                    }
                 }
 
                 EndFileOperation(import);
@@ -485,8 +496,16 @@ namespace ReBuzz.FileOps
                 }
             }
 
+            // Native control machines need to have all machines "visible" before calling init
+            InitMachines(dictInitData.Where(kv => !kv.Key.DLL.Info.Flags.HasFlag(MachineInfoFlags.CONTROL_MACHINE)), true);
+            InitMachines(dictInitData.Where(kv => kv.Key.DLL.Info.Flags.HasFlag(MachineInfoFlags.CONTROL_MACHINE)), true);
+        }
+
+        internal void InitMachines(IEnumerable<KeyValuePair<MachineCore, MachineInitData>> dictInitData, bool multiThread)
+        {
             bool askSkip = keyboard.HasModifierKeyPressed(ModifierKeys.Control) && keyboard.HasModifierKeyPressed(ModifierKeys.Alt);
             List<Task> initTasks = new List<Task>();
+
             // Native control machines need to have all machines "visible" before calling init
             foreach (var kvMachine in dictInitData)
             {
@@ -497,16 +516,54 @@ namespace ReBuzz.FileOps
                 // Update machine names in ReBuzzEngine
                 buzz.MachineManager.RemapMachineNames(machine, importDictionaryNonHidden);
 
-                var task = Task.Factory.StartNew(() =>
+                if (multiThread)
+                {
+                    var task = Task.Factory.StartNew(() =>
+                    {
+                        var val = kvMachine.Value;
+                        buzz.MachineManager.CallInit(machine, val.data, val.tracks, askSkip);
+                    });
+
+                    initTasks.Add(task);
+                }
+                else
                 {
                     var val = kvMachine.Value;
                     buzz.MachineManager.CallInit(machine, val.data, val.tracks, askSkip);
-                });
-
-                initTasks.Add(task);
+                }
             }
 
-            Task.WaitAll(initTasks);
+            // Wait max xx seconds
+            while (!Task.WaitAll(initTasks.ToArray(), LoadWaitTime))
+            {
+                List<MachineCore> badMachinesList = new List<MachineCore>();
+                string machinesMessage = "";
+                foreach (var t in initTasks)
+                {
+                    if (!t.IsCompleted)
+                    {
+                        int index = initTasks.IndexOf(t);
+                        var badMachine = dictInitData.ElementAt(index).Key;
+                        badMachinesList.Add(badMachine);
+                        machinesMessage += badMachine.Name + " (" + badMachine.DLL.Name + ")\n";
+                    }
+                }
+
+                if (MessageBoxWindow.ShowYesNoWindow("Wait more?", "Loading machines below is taking a long time. Do you want to wait more?\n\n" + machinesMessage) == MessageBoxResult.No)
+                {
+                    // Init on some machine was not completed
+                    foreach (var badMachine in badMachinesList)
+                    {
+                        badMachine.MachineDLL.IsCrashed = true;
+                        badMachine.Ready = false;
+                        string error = "Init call failed for machine: " + badMachine.Name;
+                        buzz.DCWriteErrorLine(error);
+
+                        buzz.MachineManager.DeleteMachine(badMachine);
+                    }
+                    break;
+                }
+            }
         }
 
         private void RemapLoadedMachineParameterIndex(MachineCore machine, MachineCore savedMachine)
