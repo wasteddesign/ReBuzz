@@ -96,6 +96,7 @@ namespace ReBuzz.MachineManagement
                 {
                     var machineDLL = machine.MachineDLL;
                     machineDLL.IsMissing = true;
+                    machineDLL.IsCrashed = true;
                     machineDLL.Name = libName;
                     machineDLL.Path = path;
                     machineDLL.MachineInfo.MinTracks = machineDLL.MachineInfo.MaxTracks = trackCount;
@@ -111,7 +112,7 @@ namespace ReBuzz.MachineManagement
                 }
 
                 var mDll = buzz.MachineDLLs[libName] as MachineDLL;
-                machine.MachineDLL = mDll;
+                machine.MachineDLL = mDll.Clone();
                 machine.MachineDLL.Buzz = buzz;
 
                 string name = machineName != null ? machineName : mDll.Info.ShortName;
@@ -180,11 +181,11 @@ namespace ReBuzz.MachineManagement
                 machine.Data = data;
             }
 
-
             // Set default values
             managedMachineHost.SetParameterDefaults(machine);
 
             machine.Ready = true;
+            machine.MachineDLL.IsLoaded = true;
         }
 
         NativeMachineHost nativeMachineHostSingleProcess32;
@@ -314,6 +315,7 @@ namespace ReBuzz.MachineManagement
             audioMessage.AudioSetNumTracks(machine, trackCount);
 
             machine.Ready = true;
+            machine.MachineDLL.IsLoaded = true;
         }
 
         internal IMachineDLL GetPatternEditorDLL(MachineCore machine)
@@ -486,6 +488,7 @@ namespace ReBuzz.MachineManagement
             machine.ParameterGroupsList.Add(pgTracks);
 
             machine.Ready = true;
+            machine.MachineDLL.IsLoaded = true;
             return machine;
         }
 
@@ -569,6 +572,7 @@ namespace ReBuzz.MachineManagement
             lock (ReBuzzCore.AudioLock)
             {
                 machine.Ready = false;
+                machine.MachineDLL.IsLoaded = false;
                 machine.ClearEvents();
 
                 var gui = machine.gui;
@@ -588,16 +592,6 @@ namespace ReBuzz.MachineManagement
 
                 if (nativeMachines.ContainsKey(machine))
                 {
-                    /*
-                    if (!machine.DLL.IsCrashed)
-                    {
-                        nativeMachines[machine].UIMessage.UIDeleteMI(machine);
-                        if (!IsSingleProcessMode)
-                        {
-                            nativeMachines[machine].Dispose();
-                        }
-                    }
-                    */
                     if (!IsSingleProcessMode)
                     {
                         // Just kill the process

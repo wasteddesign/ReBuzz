@@ -443,6 +443,8 @@ namespace ReBuzz.Core
             set { attributes = value; PropertyChanged.Raise(this, "Attributes"); }
         }
         public bool Ready { get; internal set; }
+
+
         public long CMachineHost { get; internal set; }
         public List<CMachineEvent> CMachineEventType { get; internal set; }
 
@@ -565,7 +567,7 @@ namespace ReBuzz.Core
 
         public void DoubleClick()
         {
-            if (DLL.IsCrashed)
+            if (!Ready)
                 return;
 
             if (!DLL.IsManaged)

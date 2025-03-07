@@ -1,0 +1,61 @@
+﻿<Window
+    x:Class="BespokeFusion.MessageBoxWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:ReBuzz.Common"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="MessageBoxWindow"
+    Topmost="True"
+    VerticalAlignment="Center"
+    ResizeMode="NoResize"
+    WindowStartupLocation="CenterScreen"
+    mc:Ignorable="d"
+                    WindowStyle="ToolWindow"
+    TextOptions.TextFormattingMode="{Binding TextFormattingMode}"
+    Style="{DynamicResource ThemeWindowStyle}"
+    Width="400"
+    Height="240">
+
+
+
+    <Grid Name="MainContentControl" x:FieldModifier="public">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" x:Name="TitleBackgroundPanel" x:FieldModifier="public" MouseLeftButtonDown="TitleBackgroundPanel_MouseLeftButtonDown">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <!--<Image x:FieldModifier="public" Name="MessageBoxIcon" Source="Assets/Notification.png" Stretch="UniformToFill" Width="30" Margin="6,0,0,0" Height="30"/>-->
+            <!--<materialDesign:PackIcon Kind="MessageText" Foreground="{DynamicResource MaterialDesignPaper}" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="6,0,6,0"/>-->
+            <TextBlock Name="TxtTitle" Margin="4" x:FieldModifier="public" Grid.Column="1" Text="Title" VerticalAlignment="Center" FontWeight="Medium" />
+        </Grid>
+
+        <ScrollViewer Name="MessageControl" x:FieldModifier="public" Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <TextBlock x:FieldModifier="public" Name="TxtMessage" MinHeight="100" Text="Message" TextWrapping="Wrap" Padding="3" VerticalAlignment="Top" FontWeight="Normal" Margin="24,12"/>
+        </ScrollViewer>
+
+        <Grid Grid.Row="2" Margin="24,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Button x:FieldModifier="public"  Name="BtnCopyMessage" Click="BtnCopyMessage_OnClick" Grid.Column="0" VerticalAlignment="Top" Height="30" Width="30" ToolTip="Copy to Clipboard" HorizontalAlignment="Left" Margin="0">
+                <Grid>
+                    <TextBlock FontSize="19" Margin="-2, -3, 0, 0">📄</TextBlock>
+                    <TextBlock FontSize="19" Margin="2, 1, 0, 0">📄</TextBlock>
+                </Grid>
+            </Button>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:FieldModifier="public"  Name="BtnOk" Click="BtnOk_OnClick" Content="Ok" Width="100" Padding="24,5" />
+                <Button x:FieldModifier="public"  Name="BtnCancel" Click="BtnCancel_OnClick" Content="Cancel" Width="100" Padding="24,5" Margin="24,0,0,0"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

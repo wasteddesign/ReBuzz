@@ -91,6 +91,7 @@ namespace ReBuzz.NativeMachine
         {
             this.ChannelListener.buzz.DCWriteErrorLine(e.Message);
             machine.MachineDLL.IsCrashed = true;
+            machine.Ready = false;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

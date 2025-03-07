@@ -1390,6 +1390,8 @@ namespace ReBuzz.Core
             {
                 var mc = p.Machine as MachineCore;
 
+                if (!mc.Ready)
+                    return;
 
                 var em = mc.EditorMachine;
                 if (em == null)

@@ -167,12 +167,19 @@ namespace ReBuzz.NativeMachine
                 return;
             }
 
-            lock (UIMessageLock)
+            try
             {
-                Reset();
-                SetMessageData((int)UIMessages.UIDeleteMI);
-                SetMessageDataPtr(machine.CMachinePtr);
-                DoSendMessage();
+                lock (UIMessageLock)
+                {
+                    Reset();
+                    SetMessageData((int)UIMessages.UIDeleteMI);
+                    SetMessageDataPtr(machine.CMachinePtr);
+                    DoSendMessage();
+                }
+            }
+            catch (Exception e)
+            {
+                MachineCrashed(machine, e);
             }
         }
 
@@ -183,16 +190,23 @@ namespace ReBuzz.NativeMachine
                 return;
             }
 
-            lock (UIMessageLock)
+            try
             {
-                Reset();
-                SetMessageData((int)UIMessages.UIInit);
-                WriteMasterInfo();
-                SetMessageDataPtr(machine.CMachinePtr);
-                SetMessageData(machine.CMachineHost);
-                SetMessageData(data.Length);
-                SetMessageData(data);
-                DoSendMessage();
+                lock (UIMessageLock)
+                {
+                    Reset();
+                    SetMessageData((int)UIMessages.UIInit);
+                    WriteMasterInfo();
+                    SetMessageDataPtr(machine.CMachinePtr);
+                    SetMessageData(machine.CMachineHost);
+                    SetMessageData(data.Length);
+                    SetMessageData(data);
+                    DoSendMessage();
+                }
+            }
+            catch (Exception e)
+            {
+                MachineCrashed(machine, e);
             }
         }
 
@@ -203,14 +217,24 @@ namespace ReBuzz.NativeMachine
                 return;
             }
 
-            lock (UIMessageLock)
+            try
             {
-                Reset();
-                SetMessageData((int)UIMessages.UILoad);
-                SetMessageDataPtr(machine.CMachinePtr);
-                SetMessageData(data.Length);
-                SetMessageData(data);
-                DoSendMessage();
+                lock (ReBuzzCore.AudioLock)
+                {
+                    lock (UIMessageLock)
+                    {
+                        Reset();
+                        SetMessageData((int)UIMessages.UILoad);
+                        SetMessageDataPtr(machine.CMachinePtr);
+                        SetMessageData(data.Length);
+                        SetMessageData(data);
+                        DoSendMessage();
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                MachineCrashed(machine, e);
             }
         }
 
@@ -221,14 +245,22 @@ namespace ReBuzz.NativeMachine
                 return null;
             }
 
-            lock (UIMessageLock)
+            try
             {
-                Reset();
-                SetMessageData((int)UIMessages.UISave);
-                SetMessageDataPtr(machine.CMachinePtr);
-                var msg = DoSendMessage();
-                byte[] retData = msg != null ? GetData() : null;
-                return retData;
+                lock (UIMessageLock)
+                {
+                    Reset();
+                    SetMessageData((int)UIMessages.UISave);
+                    SetMessageDataPtr(machine.CMachinePtr);
+                    var msg = DoSendMessage();
+                    byte[] retData = msg != null ? GetData() : null;
+                    return retData;
+                }
+            }
+            catch (Exception e)
+            {
+                MachineCrashed(machine, e);
+                return null;
             }
         }
 
@@ -239,12 +271,19 @@ namespace ReBuzz.NativeMachine
                 return;
             }
 
-            lock (UIMessageLock)
+            try
             {
-                Reset();
-                SetMessageData((int)UIMessages.UIAttributesChanged);
-                SetMessageDataPtr(machine.CMachinePtr);
-                DoSendMessage();
+                lock (UIMessageLock)
+                {
+                    Reset();
+                    SetMessageData((int)UIMessages.UIAttributesChanged);
+                    SetMessageDataPtr(machine.CMachinePtr);
+                    DoSendMessage();
+                }
+            }
+            catch (Exception e)
+            {
+                MachineCrashed(machine, e);
             }
         }
 
@@ -255,12 +294,19 @@ namespace ReBuzz.NativeMachine
                 return;
             }
 
-            lock (UIMessageLock)
+            try
             {
-                Reset();
-                SetMessageData((int)UIMessages.UIStop);
-                SetMessageDataPtr(machine.CMachinePtr);
-                DoSendMessage();
+                lock (UIMessageLock)
+                {
+                    Reset();
+                    SetMessageData((int)UIMessages.UIStop);
+                    SetMessageDataPtr(machine.CMachinePtr);
+                    DoSendMessage();
+                }
+            }
+            catch (Exception e)
+            {
+                MachineCrashed(machine, e);
             }
         }
 
@@ -271,13 +317,20 @@ namespace ReBuzz.NativeMachine
                 return;
             }
 
-            lock (UIMessageLock)
+            try
             {
-                Reset();
-                SetMessageData((int)UIMessages.UICommand);
-                SetMessageDataPtr(machine.CMachinePtr);
-                SetMessageData(command);
-                DoSendMessage();
+                lock (UIMessageLock)
+                {
+                    Reset();
+                    SetMessageData((int)UIMessages.UICommand);
+                    SetMessageDataPtr(machine.CMachinePtr);
+                    SetMessageData(command);
+                    DoSendMessage();
+                }
+            }
+            catch (Exception e)
+            {
+                MachineCrashed(machine, e);
             }
         }
 
@@ -288,14 +341,21 @@ namespace ReBuzz.NativeMachine
                 return;
             }
 
-            lock (UIMessageLock)
+            try
             {
-                Reset();
-                SetMessageData((int)UIMessages.UIAddInput);
-                SetMessageDataPtr(machine.CMachinePtr);
-                SetMessageData(name);
-                SetMessageData(stereo);
-                DoSendMessage();
+                lock (UIMessageLock)
+                {
+                    Reset();
+                    SetMessageData((int)UIMessages.UIAddInput);
+                    SetMessageDataPtr(machine.CMachinePtr);
+                    SetMessageData(name);
+                    SetMessageData(stereo);
+                    DoSendMessage();
+                }
+            }
+            catch (Exception e)
+            {
+                MachineCrashed(machine, e);
             }
         }
 
@@ -306,13 +366,20 @@ namespace ReBuzz.NativeMachine
                 return;
             }
 
-            lock (UIMessageLock)
+            try
             {
-                Reset();
-                SetMessageData((int)UIMessages.UIDeleteInput);
-                SetMessageDataPtr(machine.CMachinePtr);
-                SetMessageData(name);
-                DoSendMessage();
+                lock (UIMessageLock)
+                {
+                    Reset();
+                    SetMessageData((int)UIMessages.UIDeleteInput);
+                    SetMessageDataPtr(machine.CMachinePtr);
+                    SetMessageData(name);
+                    DoSendMessage();
+                }
+            }
+            catch (Exception e)
+            {
+                MachineCrashed(machine, e);
             }
         }
 
@@ -323,14 +390,21 @@ namespace ReBuzz.NativeMachine
                 return;
             }
 
-            lock (UIMessageLock)
+            try
             {
-                Reset();
-                SetMessageData((int)UIMessages.UIRenameInput);
-                SetMessageDataPtr(machine.CMachinePtr);
-                SetMessageData(oldName);
-                SetMessageData(newName);
-                DoSendMessage();
+                lock (UIMessageLock)
+                {
+                    Reset();
+                    SetMessageData((int)UIMessages.UIRenameInput);
+                    SetMessageDataPtr(machine.CMachinePtr);
+                    SetMessageData(oldName);
+                    SetMessageData(newName);
+                    DoSendMessage();
+                }
+            }
+            catch (Exception e)
+            {
+                MachineCrashed(machine, e);
             }
         }
 
@@ -341,14 +415,21 @@ namespace ReBuzz.NativeMachine
                 return;
             }
 
-            lock (UIMessageLock)
+            try
             {
-                Reset();
-                SetMessageData((int)UIMessages.UISetInputChannels);
-                SetMessageDataPtr(machine.CMachinePtr);
-                SetMessageData(name);
-                SetMessageData(stereo ? (byte)1 : (byte)0);
-                DoSendMessage();
+                lock (UIMessageLock)
+                {
+                    Reset();
+                    SetMessageData((int)UIMessages.UISetInputChannels);
+                    SetMessageDataPtr(machine.CMachinePtr);
+                    SetMessageData(name);
+                    SetMessageData(stereo ? (byte)1 : (byte)0);
+                    DoSendMessage();
+                }
+            }
+            catch (Exception e)
+            {
+                MachineCrashed(machine, e);
             }
         }
 
@@ -359,22 +440,30 @@ namespace ReBuzz.NativeMachine
                 return null;
             }
 
-            lock (UIMessageLock)
+            try
             {
-                string str = null;
-                Reset();
-                SetMessageData((int)UIMessages.UIDescribeValue);
-                SetMessageDataPtr(machine.CMachinePtr);
-                SetMessageData(param);
-                SetMessageData(value);
-                DoSendMessage();
-                bool success = GetMessageBool();
-                if (success)
+                lock (UIMessageLock)
                 {
-                    str = GetMessageString();
-                }
+                    string str = null;
+                    Reset();
+                    SetMessageData((int)UIMessages.UIDescribeValue);
+                    SetMessageDataPtr(machine.CMachinePtr);
+                    SetMessageData(param);
+                    SetMessageData(value);
+                    DoSendMessage();
+                    bool success = GetMessageBool();
+                    if (success)
+                    {
+                        str = GetMessageString();
+                    }
 
-                return str;
+                    return str;
+                }
+            }
+            catch (Exception e)
+            {
+                MachineCrashed(machine, e);
+                return null;
             }
         }
 
@@ -385,22 +474,30 @@ namespace ReBuzz.NativeMachine
                 return null;
             }
 
-            lock (UIMessageLock)
+            try
             {
-                Reset();
-                SetMessageData((int)UIMessages.UIHandleGUIMessage);
-                SetMessageDataPtr(machine.CMachinePtr);
-                SetMessageData(msg);
-                DoSendMessage();
-
-                byte[] allData = GetData();
-                bool msgOut = allData[allData.Length - 1] == 1;
-                byte[] dataOut = null;
-                if (msgOut)
+                lock (UIMessageLock)
                 {
-                    dataOut = allData.Take(allData.Length - 1).ToArray();
+                    Reset();
+                    SetMessageData((int)UIMessages.UIHandleGUIMessage);
+                    SetMessageDataPtr(machine.CMachinePtr);
+                    SetMessageData(msg);
+                    DoSendMessage();
+
+                    byte[] allData = GetData();
+                    bool msgOut = allData[allData.Length - 1] == 1;
+                    byte[] dataOut = null;
+                    if (msgOut)
+                    {
+                        dataOut = allData.Take(allData.Length - 1).ToArray();
+                    }
+                    return dataOut;
                 }
-                return dataOut;
+            }
+            catch (Exception e)
+            {
+                MachineCrashed(machine, e);
+                return null;
             }
         }
 

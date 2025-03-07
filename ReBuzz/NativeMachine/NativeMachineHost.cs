@@ -130,7 +130,6 @@ namespace ReBuzz.NativeMachine
 
                 Thread.Sleep(10);
             }
-
         }
 
         private void HostMessage_MessageEvent(object sender, EventArgs e)

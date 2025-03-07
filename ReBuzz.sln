@@ -102,6 +102,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MatildeTracker", "3rdParty\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModernPianoroll", "Machines\ModernPianoroll\ModernPianoroll.csproj", "{96BBD442-E1F4-4262-AB89-8B7FEC863110}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManagedMultiIOEffect", "Machines\ManagedMultiIOEffect\ManagedMultiIOEffect.csproj", "{8DFB8010-0A27-457C-395C-7705958058E3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -210,8 +212,8 @@ Global
 		{7311D651-7877-4421-A50F-681DF2489746}.Release|x64.Build.0 = Release|x64
 		{81558D6A-A800-4412-B37C-6E49AFE99EBA}.Debug|x64.ActiveCfg = Debug|x64
 		{81558D6A-A800-4412-B37C-6E49AFE99EBA}.Debug|x64.Build.0 = Debug|x64
-		{81558D6A-A800-4412-B37C-6E49AFE99EBA}.Release|x64.ActiveCfg = Release|Any CPU
-		{81558D6A-A800-4412-B37C-6E49AFE99EBA}.Release|x64.Build.0 = Release|Any CPU
+		{81558D6A-A800-4412-B37C-6E49AFE99EBA}.Release|x64.ActiveCfg = Release|x64
+		{81558D6A-A800-4412-B37C-6E49AFE99EBA}.Release|x64.Build.0 = Release|x64
 		{3DE340EE-8261-44E4-A9DE-BDA7A6479B47}.Debug|x64.ActiveCfg = Debug|Any CPU
 		{3DE340EE-8261-44E4-A9DE-BDA7A6479B47}.Debug|x64.Build.0 = Debug|Any CPU
 		{3DE340EE-8261-44E4-A9DE-BDA7A6479B47}.Release|x64.ActiveCfg = Release|Any CPU
@@ -240,6 +242,10 @@ Global
 		{96BBD442-E1F4-4262-AB89-8B7FEC863110}.Debug|x64.Build.0 = Debug|x64
 		{96BBD442-E1F4-4262-AB89-8B7FEC863110}.Release|x64.ActiveCfg = Release|x64
 		{96BBD442-E1F4-4262-AB89-8B7FEC863110}.Release|x64.Build.0 = Release|x64
+		{8DFB8010-0A27-457C-395C-7705958058E3}.Debug|x64.ActiveCfg = Debug|x64
+		{8DFB8010-0A27-457C-395C-7705958058E3}.Debug|x64.Build.0 = Debug|x64
+		{8DFB8010-0A27-457C-395C-7705958058E3}.Release|x64.ActiveCfg = Release|x64
+		{8DFB8010-0A27-457C-395C-7705958058E3}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -275,6 +281,7 @@ Global
 		{8EDA2AAB-8F43-4956-A0C1-DDFB7281262F} = {3E0FA0F6-F319-4976-8FC2-E02A57DFF2FE}
 		{34A84216-9B9E-4372-AE1E-5B95C986B1DB} = {47576D10-8B3E-4382-B16D-B9B0A7FE477D}
 		{96BBD442-E1F4-4262-AB89-8B7FEC863110} = {47576D10-8B3E-4382-B16D-B9B0A7FE477D}
+		{8DFB8010-0A27-457C-395C-7705958058E3} = {47576D10-8B3E-4382-B16D-B9B0A7FE477D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A1E0287A-2CF1-4075-82E6-66EF95D320F5}

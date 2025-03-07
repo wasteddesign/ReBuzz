@@ -1,5 +1,6 @@
-﻿using BuzzGUI.Common.DSP;
-using BuzzGUI.Common.Templates;
+﻿using BespokeFusion;
+using BuzzGUI.Common.DSP;
+using BuzzGUI.Common.InterfaceExtensions;
 using BuzzGUI.Interfaces;
 using ReBuzz.Core;
 using ReBuzz.Core.Actions.GraphActions;
@@ -8,16 +9,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Input;
+using System.Windows.Interop;
 using System.Xml;
 using System.Xml.Serialization;
-using BuzzGUI.Common;
 using static ReBuzz.FileOps.BMXFile;
-using BuzzGUI.Common.InterfaceExtensions;
-using System.Threading.Tasks;
-using System.Windows.Input;
 
 namespace ReBuzz.FileOps
 {
@@ -299,29 +298,9 @@ namespace ReBuzz.FileOps
                 }
             }
 
-            bool askSkip = Keyboard.Modifiers.HasFlag(ModifierKeys.Control) && Keyboard.Modifiers.HasFlag(ModifierKeys.Alt);
-            List<Task> initTasks = new List<Task>();
-
             // Native control machines need to have all machines "visible" before calling init
-            foreach (var kvMachine in dictInitData)
-            {
-                var machine = kvMachine.Key;
-
-                FileOpsEvent(FileEventType.StatusUpdate, "Init Machine: " + machine.Name + "...");
-
-                // Update machine names in ReBuzzEngine
-                buzz.MachineManager.RemapMachineNames(machine, importDictionaryNonHidden);
-
-                var task = Task.Factory.StartNew(() =>
-                {
-                    var val = kvMachine.Value;
-                    buzz.MachineManager.CallInit(machine, val.data, val.tracks);
-                });
-
-                initTasks.Add(task);
-            }
-
-            Task.WaitAll(initTasks);
+            InitMachines(dictInitData.Where(kv => !kv.Key.DLL.Info.Flags.HasFlag(MachineInfoFlags.CONTROL_MACHINE)), true);
+            InitMachines(dictInitData.Where(kv => kv.Key.DLL.Info.Flags.HasFlag(MachineInfoFlags.CONTROL_MACHINE)), true);
 
             // Pattern Editor Connections
             foreach (var machineData in songData.Machines)
@@ -570,6 +549,71 @@ namespace ReBuzz.FileOps
 
                 // Notify import finished and machine name changes
                 buzz.MachineManager.ImportFinished(machine, importDictionaryNonHidden);
+            }
+        }
+
+        internal void InitMachines(IEnumerable<KeyValuePair<MachineCore, MachineInitData>> dictInitData, bool multiThread)
+        {
+            bool askSkip = false;// Keyboard.Modifiers.HasFlag(ModifierKeys.Control) && Keyboard.Modifiers.HasFlag(ModifierKeys.Alt);
+            List<Task> initTasks = new List<Task>();
+
+            // Native control machines need to have all machines "visible" before calling init
+            foreach (var kvMachine in dictInitData)
+            {
+                var machine = kvMachine.Key;
+
+                FileOpsEvent(FileEventType.StatusUpdate, "Init Machine: " + machine.Name + "...");
+
+                // Update machine names in ReBuzzEngine
+                buzz.MachineManager.RemapMachineNames(machine, importDictionaryNonHidden);
+
+                if (multiThread)
+                {
+                    var task = Task.Factory.StartNew(() =>
+                    {
+                        var val = kvMachine.Value;
+                        buzz.MachineManager.CallInit(machine, val.data, val.tracks, askSkip);
+                    });
+
+                    initTasks.Add(task);
+                }
+                else
+                {
+                    var val = kvMachine.Value;
+                    buzz.MachineManager.CallInit(machine, val.data, val.tracks, askSkip);
+                }
+            }
+
+            // Wait max xx seconds
+            while (!Task.WaitAll(initTasks.ToArray(), LoadWaitTime))
+            {
+                List<MachineCore> badMachinesList = new List<MachineCore>();
+                string machinesMessage = "";
+                foreach (var t in initTasks)
+                {
+                    if (!t.IsCompleted)
+                    {
+                        int index = initTasks.IndexOf(t);
+                        var badMachine = dictInitData.ElementAt(index).Key;
+                        badMachinesList.Add(badMachine);
+                        machinesMessage += badMachine.Name + " (" + badMachine.DLL.Name + ")\n";
+                    }
+                }
+
+                if (MessageBoxWindow.ShowYesNoWindow("Wait more?", "Loading machines below is taking a long time. Do you want to wait more?\n\n" + machinesMessage) == MessageBoxResult.No)
+                {
+                    // Init on some machine was not completed
+                    foreach (var badMachine in badMachinesList)
+                    {
+                        badMachine.MachineDLL.IsCrashed = true;
+                        badMachine.Ready = false;
+                        string error = "Init call failed for machine: " + badMachine.Name;
+                        buzz.DCWriteErrorLine(error);
+
+                        buzz.MachineManager.DeleteMachine(badMachine);
+                    }
+                    break;
+                }
             }
         }
 
