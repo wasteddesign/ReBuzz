@@ -797,32 +797,36 @@ namespace ReBuzz.MachineManagement
             if (machine.DLL.IsCrashed)
                 return null;
 
-            if (machine.DLL.IsManaged && managedMachines.ContainsKey(machine))
+            // Maybe fix: lock audio & midi so that there are no interruptions when getting vst data
+            lock (ReBuzzCore.AudioLock)
             {
-                var machineHost = ManagedMachines[machine];
-                if (machine.DLL.Info.Flags.HasFlag(MachineInfoFlags.PATTERN_EDITOR))
+                if (machine.DLL.IsManaged && managedMachines.ContainsKey(machine))
                 {
-                    return machineHost.GetPatternEditorData();
-                }
-                else
-                {
-                    using (MemoryStream ms = new MemoryStream())
+                    var machineHost = ManagedMachines[machine];
+                    if (machine.DLL.Info.Flags.HasFlag(MachineInfoFlags.PATTERN_EDITOR))
                     {
-                        var data = machineHost.MachineState;
-                        ms.Write(BitConverter.GetBytes(2), 0, 1);      // Version
-                        int size = data != null ? data.Length : 0;
-                        ms.Write(BitConverter.GetBytes(size), 0, 4);         // Size
-                        if (data != null)
-                            ms.Write(data, 0, size);                          // Content
-                        return ms.ToArray();
+                        return machineHost.GetPatternEditorData();
+                    }
+                    else
+                    {
+                        using (MemoryStream ms = new MemoryStream())
+                        {
+                            var data = machineHost.MachineState;
+                            ms.Write(BitConverter.GetBytes(2), 0, 1);      // Version
+                            int size = data != null ? data.Length : 0;
+                            ms.Write(BitConverter.GetBytes(size), 0, 4);         // Size
+                            if (data != null)
+                                ms.Write(data, 0, size);                          // Content
+                            return ms.ToArray();
+                        }
                     }
                 }
-            }
-            else if (nativeMachines.ContainsKey(machine))
-            {
-                //lock (ReBuzzCore.AudioLock)
+                else if (nativeMachines.ContainsKey(machine))
                 {
-                    return nativeMachines[machine].UIMessage.UISave(machine);
+                    lock (nativeMachines[machine].MidiMessage.MidiLock)
+                    {
+                        return nativeMachines[machine].UIMessage.UISave(machine);
+                    }
                 }
             }
             return null;
