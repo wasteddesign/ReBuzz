@@ -166,6 +166,7 @@ namespace ReBuzz.Core
 
             dll.Name = Name;
             dll.Path = Path;
+            dll.SHA1Hash = SHA1Hash;
 
             return dll;
         }

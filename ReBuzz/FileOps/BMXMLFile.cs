@@ -554,7 +554,7 @@ namespace ReBuzz.FileOps
 
         internal void InitMachines(IEnumerable<KeyValuePair<MachineCore, MachineInitData>> dictInitData, bool multiThread)
         {
-            bool askSkip = false;// Keyboard.Modifiers.HasFlag(ModifierKeys.Control) && Keyboard.Modifiers.HasFlag(ModifierKeys.Alt);
+            bool askSkip = Keyboard.Modifiers.HasFlag(ModifierKeys.Control) && Keyboard.Modifiers.HasFlag(ModifierKeys.Alt);
             List<Task> initTasks = new List<Task>();
 
             // Native control machines need to have all machines "visible" before calling init
