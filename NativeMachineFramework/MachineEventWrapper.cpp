@@ -17,7 +17,7 @@ namespace ReBuzz
         {
             m_callbacks = new std::vector<EVENT_HANDLER_PTR>();
             m_callbackParams = new std::vector<void*>();
-            m_selfId = Utils::ObjectToInt64(self);
+            m_selfId = self->CMachinePtr.ToInt64();
         }
 
         MachineEventWrapper::!MachineEventWrapper()
@@ -56,7 +56,7 @@ namespace ReBuzz
                 return;
 
             //Is this us?
-            int64_t machineId = Utils::ObjectToInt64(machine);
+            int64_t machineId = machine->CMachinePtr.ToInt64();
             if (machineId == m_selfId)
                 return;
 

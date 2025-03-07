@@ -10,9 +10,9 @@ namespace ReBuzzTests.Automation.TestMachines
     /// This information is awkward to put in the <see cref="Effect"/>
     /// class because it would require a reference to the types defined in this project.
     /// </summary>
-    public class EffectInfo : ITestMachineInfo
+    public class EffectInfo : IDynamicTestMachineInfo
     {
-        public static ITestMachineInfo Instance { get; } = new EffectInfo();
+        public static IDynamicTestMachineInfo Instance { get; } = new EffectInfo();
         MachineDLL ITestMachineInfo.GetMachineDll(ReBuzzCore buzz, AbsoluteFilePath location)
         {
             var decl = Effect.GetMachineDecl();

@@ -39,10 +39,15 @@ namespace ReBuzz
 
             delegate void OnPatternEditorRedrawDelegate();
 
+            delegate void OnPatternPlayDelegate(int64_t id, IPattern^ pat, CPattern* buzzPat);
+
             PatternManager(OnPatternEventDelegate^ onPatternAddedCallback,
                            OnPatternEventDelegate^ onPatternRemovedCallback,
                            OnPatternEventDelegate^ onPatternChangedCallback,
-                           OnPatternEditorRedrawDelegate^ onPatternEditorRedrawCallback);
+                           OnPatternEditorRedrawDelegate^ onPatternEditorRedrawCallback, 
+                           OnPatternPlayDelegate^ onPatternPlayStartCallback,
+                           OnPatternPlayDelegate^ onPatternPlayEndCallback, 
+                           OnPatternPlayDelegate^ onPatternPlayPosChangeCallback);
 
             !PatternManager();
             ~PatternManager();
@@ -58,6 +63,8 @@ namespace ReBuzz
             IPattern^ GetReBuzzPattern(CPattern * pat);
 
             CPatternData* GetBuzzPatternData(CPattern * pat);
+
+            IPattern^ GetById(int64_t id, CPattern** retbuzzpat);
 
             void OnNativePatternChange(CPattern* pat, int newLen, const char * newName );
 
@@ -76,6 +83,10 @@ namespace ReBuzz
             void OnPatternCreatedByRebuzz(IPattern^ pattern);
             void OnPatternRemovedByRebuzz(IPattern^ pattern);
             
+            void OnPatternPlayStart(IPattern^ pattern);
+            void OnPatternPlayPosChange(IPattern^ pattern);
+            void OnPatternPlayEnd(IPattern^ pattern);
+
             static void PatternChangeCheckCallback(uint64_t id, IPattern^ rebuzzpat, CPattern* buzzpat, CPatternData* patdata, void* param);
 
 
@@ -89,12 +100,20 @@ namespace ReBuzz
             OnPatternEventDelegate^ m_onPatternRemovedCallback;
             OnPatternEventDelegate^ m_onPatternChangedCallback;
             OnPatternEditorRedrawDelegate^ m_onPatternEditorRedrawCallback;
+            OnPatternPlayDelegate^ m_onPatternPlayStartCallback;
+            OnPatternPlayDelegate^ m_onPatternPlayEndCallback;
+            OnPatternPlayDelegate^ m_onPatternPlayPosChangeCallback;
             
             System::Action<IPatternColumn^>^ m_onPatternChangeAction;
             PropertyChangedEventHandler^ m_onPropChangeEventHandler;
 
             System::Action<IPattern^>^ m_patternAddedAction;
             System::Action<IPattern^>^ m_patternRemovedAction;
+            System::Action<IPattern^>^ m_patternPlayStartAction;
+            System::Action<IPattern^>^ m_patternPlayEndAction;
+            System::Action<IPattern^>^ m_patternPlayPosChangeAction;
+
+
             std::set<int64_t>* m_eventHandlersAddedToMachines;
             std::vector<RefClassWrapper<IMachine>> * m_machinesEventHandlersAddedTo;
             IMachine^ m_editorTargetMachine;
