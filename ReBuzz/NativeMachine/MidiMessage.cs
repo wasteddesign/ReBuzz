@@ -7,7 +7,7 @@ namespace ReBuzz.NativeMachine
 {
     internal class MidiMessage : NativeMessage
     {
-        private readonly Lock MidiLock = new();
+        internal readonly Lock MidiLock = new();
 
         public MidiMessage(ChannelType channel, MemoryMappedViewAccessor accessor, NativeMachineHost nativeMachineHost) : base(channel, accessor, nativeMachineHost)
         {

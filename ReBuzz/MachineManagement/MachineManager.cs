@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using BuzzGUI.Common.Settings;
 using BuzzGUI.ParameterWindow;
@@ -70,14 +71,13 @@ namespace ReBuzz.MachineManagement
 
         private readonly SongCore song;
 
-        internal MachineManager(SongCore song, EngineSettings settings, string buzzPath, IUiDispatcher dispatcher, IKeyboard keyboard)
+        internal MachineManager(SongCore song, EngineSettings settings, string buzzPath, IUiDispatcher dispatcher)
         {
             this.song = song;
             IsSingleProcessMode = false;
             engineSettings = settings;
             this.buzzPath = buzzPath;
             this.dispatcher = dispatcher;
-            this.keyboard = keyboard;
         }
 
         // instrumentPath == null or "" if instruments are not supported
@@ -96,6 +96,7 @@ namespace ReBuzz.MachineManagement
                 {
                     var machineDLL = machine.MachineDLL;
                     machineDLL.IsMissing = true;
+                    machineDLL.IsCrashed = true;
                     machineDLL.Name = libName;
                     machineDLL.Path = path;
                     machineDLL.MachineInfo.MinTracks = machineDLL.MachineInfo.MaxTracks = trackCount;
@@ -180,11 +181,11 @@ namespace ReBuzz.MachineManagement
                 machine.Data = data;
             }
 
-
             // Set default values
             managedMachineHost.SetParameterDefaults(machine);
 
             machine.Ready = true;
+            machine.MachineDLL.IsLoaded = true;
         }
 
         NativeMachineHost nativeMachineHostSingleProcess32;
@@ -192,7 +193,6 @@ namespace ReBuzz.MachineManagement
         private readonly EngineSettings engineSettings;
         private readonly string buzzPath;
         private readonly IUiDispatcher dispatcher;
-        private readonly IKeyboard keyboard;
 
         void CreateNativeMachine(MachineCore machine, string instrument, int trackCount, byte[] data, bool callInit = true)
         {
@@ -315,7 +315,7 @@ namespace ReBuzz.MachineManagement
             audioMessage.AudioSetNumTracks(machine, trackCount);
 
             machine.Ready = true;
-            machine.MachineDLL.IsLoaded = false;
+            machine.MachineDLL.IsLoaded = true;
         }
 
         internal IMachineDLL GetPatternEditorDLL(MachineCore machine)
@@ -488,6 +488,7 @@ namespace ReBuzz.MachineManagement
             machine.ParameterGroupsList.Add(pgTracks);
 
             machine.Ready = true;
+            machine.MachineDLL.IsLoaded = true;
             return machine;
         }
 
@@ -591,16 +592,6 @@ namespace ReBuzz.MachineManagement
 
                 if (nativeMachines.ContainsKey(machine))
                 {
-                    /*
-                    if (!machine.DLL.IsCrashed)
-                    {
-                        nativeMachines[machine].UIMessage.UIDeleteMI(machine);
-                        if (!IsSingleProcessMode)
-                        {
-                            nativeMachines[machine].Dispose();
-                        }
-                    }
-                    */
                     if (!IsSingleProcessMode)
                     {
                         // Just kill the process
@@ -806,6 +797,7 @@ namespace ReBuzz.MachineManagement
             if (machine.DLL.IsCrashed)
                 return null;
 
+            // Maybe fix: lock audio & midi so that there are no interruptions when getting vst data
             lock (ReBuzzCore.AudioLock)
             {
                 if (machine.DLL.IsManaged && managedMachines.ContainsKey(machine))
@@ -831,7 +823,10 @@ namespace ReBuzz.MachineManagement
                 }
                 else if (nativeMachines.ContainsKey(machine))
                 {
-                    return nativeMachines[machine].UIMessage.UISave(machine);
+                    lock (nativeMachines[machine].MidiMessage.MidiLock)
+                    {
+                        return nativeMachines[machine].UIMessage.UISave(machine);
+                    }
                 }
             }
             return null;
