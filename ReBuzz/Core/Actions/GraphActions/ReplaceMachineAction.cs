@@ -1,5 +1,6 @@
 ﻿using BuzzGUI.Common.Actions;
 using BuzzGUI.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -89,8 +90,95 @@ namespace ReBuzz.Core.Actions.GraphActions
                 var machine = buzz.Song.Machines.FirstOrDefault(m => m.Name == machineInfo.Name) as MachineCore;
                 if (machine != null)
                 {
-                    buzz.MachineManager.SetInstrument(machine, newInstrument);
-                    this.newMachineName = machine.Name; // Save name for undo
+                    if (machine.DLL.IsCrashed)
+                    {
+                        // Adapter machine was crashed, so we need to recreate adapter and save & restore all relevant data
+                        // Save editor data
+                        byte[] editorData = machine.PatternEditorData;
+                        string editorDLLName = machine.PatternEditorDLL.Name;
+                        string dllName = machine.DLL.Name;
+                        string oldMachineName = machine.Name;
+                        int tracks = machine.TrackCount;
+                        float x = machine.Position.Item1;
+                        float y = machine.Position.Item2;
+
+                        // Save pattern information
+                        var patterns = machine.Patterns.ToArray();
+
+                        // Save sequences and events
+                        List<Tuple<int, List<Tuple<int, SequenceEvent>>>> oldSeqs = new List<Tuple<int, List<Tuple<int, SequenceEvent>>>>();
+                        foreach(var seq in buzz.Song.Sequences)
+                        {
+                            if (seq.Machine == machine)
+                            {
+                                int index = buzz.Song.Sequences.IndexOf(seq);
+                                List<Tuple<int, SequenceEvent>> oldEvents = new List<Tuple<int, SequenceEvent>>();
+                                foreach (var e in seq.Events)
+                                {
+                                    oldEvents.Add(new(e.Key, e.Value));
+                                }
+
+                                oldSeqs.Add(new (index, oldEvents));
+                            }
+                        }
+
+                        lock (ReBuzzCore.AudioLock)
+                        {
+                            new DeleteMachinesAction(buzz, new List<IMachine>() { machine }, this.dispatcher).Do();
+                            new CreateMachineAction(buzz, dllName, newInstrument, oldMachineName, null, editorDLLName, editorData, tracks, x, y).Do();
+                        }
+
+                        var newMachine = buzz.Song.Machines.Last();
+
+                        var nameAfterCreation = newMachine.Name; // Save name for undo
+
+                        // Pattern editor expects to have data linked to the old machine, so do some renaming before creating patterns
+                        buzz.RenameMachine(newMachine as MachineCore, oldMachineName);
+
+                        // Create patterns
+                        foreach (var p in patterns)
+                        {
+                            newMachine.CreatePattern(p.Name, p.Length);
+                        }
+
+                        foreach (var seq in oldSeqs)
+                        {
+                            int index = seq.Item1;
+                            buzz.Song.AddSequence(newMachine, index);
+                            var newSeq = buzz.Song.Sequences[index];
+
+                            foreach (var e in seq.Item2)
+                            {
+                                var seOld = e.Item2;
+                                var time = e.Item1;
+                                var pattern = newMachine.Patterns.FirstOrDefault(p => p.Name == e.Item2.Pattern.Name);
+                                SequenceEvent seNew = new SequenceEvent(seOld.Type, pattern, seOld.Span);
+                                newSeq.SetEvent(time, seNew);
+                            }
+                        }
+                        
+                        // reconnect inputs
+                        foreach (var cma in machineInfo.connections.Where(c => c.Destination == machineInfo.Name))
+                        {
+                            var src = buzz.Song.Machines.FirstOrDefault(m => m.Name == cma.Source);
+                            new ConnectMachinesAction(buzz, src, machine, 0, 0, cma.Amp, cma.Pan, dispatcher).Do();
+                        }
+
+                        // reconnect outputs
+                        foreach (var cma in machineInfo.connections.Where(c => c.Source == machineInfo.Name))
+                        {
+                            var dst = buzz.Song.Machines.FirstOrDefault(m => m.Name == cma.Destination);
+                            new ConnectMachinesAction(buzz, machine, dst, 0, 0, cma.Amp, cma.Pan, dispatcher).Do();
+                        }
+
+                        buzz.RenameMachine(newMachine as MachineCore, nameAfterCreation);
+                        this.newMachineName = nameAfterCreation; // Save name for undo
+                    }
+                    else
+                    {
+                        buzz.MachineManager.SetInstrument(machine, newInstrument);
+                        this.newMachineName = machine.Name; // Save name for undo
+                    }
                 }
             }
             else
@@ -135,9 +223,12 @@ namespace ReBuzz.Core.Actions.GraphActions
                 var machine = buzz.Song.Machines.FirstOrDefault(m => m.Name == newMachineName) as MachineCore;
                 if (machine != null)
                 {
-                    buzz.MachineManager.SetInstrument(machine, machineInfo.Instrument);
-                    this.newMachineName = machine.Name; // Save name for redo
-                    machine.Data = machineInfo.Data;
+                    if (machineInfo.Instrument != null)
+                    {
+                        buzz.MachineManager.SetInstrument(machine, machineInfo.Instrument);
+                        this.newMachineName = machine.Name; // Save name for redo
+                        machine.Data = machineInfo.Data;
+                    }
                 }
             }
             else
