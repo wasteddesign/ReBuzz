@@ -37,8 +37,9 @@ namespace ReBuzz.Core.Actions.GraphActions
                 }
                 else
                 {
+                    string peName = m.PatternEditorDLL != null ? m.PatternEditorDLL.Name : null;
                     deleteMachinesAction = new DeleteMachinesAction(buzz, new List<IMachine>() { m }, this.dispatcher);
-                    createMachinesAction = new CreateMachineAction(buzz, MachineDll.Name, instInfo.InstrumentName, null, null, m.PatternEditorDLL.Name, null, m.TrackCount, m.Position.Item1, m.Position.Item2);
+                    createMachinesAction = new CreateMachineAction(buzz, MachineDll.Name, instInfo.InstrumentName, null, null, peName, null, m.TrackCount, m.Position.Item1, m.Position.Item2);
                 }
             }
             // Backup connections
@@ -58,9 +59,10 @@ namespace ReBuzz.Core.Actions.GraphActions
             }
             else
             {
+                string peName = m.PatternEditorDLL != null ? m.PatternEditorDLL.Name : null;
                 // Delete machine action saves patterns and editor data
                 deleteMachinesAction = new DeleteMachinesAction(buzz, new List<IMachine>() { m }, this.dispatcher);
-                createMachinesAction = new CreateMachineAction(buzz, machine, instrument, null, null, m.PatternEditorDLL.Name, null, m.TrackCount, m.Position.Item1, m.Position.Item2);
+                createMachinesAction = new CreateMachineAction(buzz, machine, instrument, null, null, peName, null, m.TrackCount, m.Position.Item1, m.Position.Item2);
             }
             // Backup connections
             var machineCore = m as MachineCore;
