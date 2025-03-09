@@ -95,7 +95,7 @@ namespace ReBuzz.Core.Actions.GraphActions
                         // Adapter machine was crashed, so we need to recreate adapter and save & restore all relevant data
                         // Save editor data
                         byte[] editorData = machine.PatternEditorData;
-                        string editorDLLName = machine.PatternEditorDLL.Name;
+                        string editorDLLName = machine.PatternEditorDLL != null ? machine.PatternEditorDLL.Name : null;
                         string dllName = machine.DLL.Name;
                         string oldMachineName = machine.Name;
                         int tracks = machine.TrackCount;
