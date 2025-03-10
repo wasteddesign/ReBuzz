@@ -96,7 +96,8 @@ namespace ReBuzz.NativeMachine
         HostBeginWriteToPlayingPattern,
         HostEndWriteToPlayingPattern,
         HostWriteToPlayingPattern,
-        HostMidiOut
+        HostMidiOut,
+        HostSetTempo
     };
 
     public enum MIDIMessages

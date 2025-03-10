@@ -950,6 +950,14 @@ namespace ReBuzz.NativeMachine
                             DoReplyMessage();
                         }
                         break;
+                    case HostMessages.HostSetTempo:
+                        {
+                            int bpm = GetMessageData<int>();
+                            var buzz = Global.Buzz as ReBuzzCore;
+                            buzz.BPM = bpm;
+                            DoReplyMessage();
+                        }
+                        break;
                 }
             }
         }

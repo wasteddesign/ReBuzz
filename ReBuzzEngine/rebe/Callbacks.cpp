@@ -704,6 +704,10 @@ int CMICallbacks::GetTempo()
 void CMICallbacks::SetTempo(int bpm)
 {
 	MICB1(bpm);
+	IPC::Message m(IPC::HostSetTempo);
+	m.Write(bpm);
+	IPC::Message reply;
+	DoCallback(m, reply);
 }
 
 int CMICallbacks::GetTPB()
