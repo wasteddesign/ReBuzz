@@ -1,4 +1,5 @@
 ﻿using BespokeFusion;
+using BuzzGUI.Common;
 using BuzzGUI.Common.DSP;
 using BuzzGUI.Common.InterfaceExtensions;
 using BuzzGUI.Interfaces;
@@ -585,7 +586,7 @@ namespace ReBuzz.FileOps
             }
 
             // Wait max xx seconds
-            while (!Task.WaitAll(initTasks.ToArray(), LoadWaitTime))
+            while (!Task.WaitAll(initTasks.ToArray(), (int)Global.GeneralSettings.SongLoadWait * 1000))
             {
                 List<MachineCore> badMachinesList = new List<MachineCore>();
                 string machinesMessage = "";

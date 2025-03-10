@@ -150,7 +150,6 @@ namespace ReBuzz.MachineManagement
             // Create Parameters
             managedMachineDLL.CreateMachineDllParameters(machine);
 
-            machine.MachineDLL.IsLoaded = true;
             machine.TrackCount = trackcount;
             machine.MachineDLL.ManagedDLL = managedMachineDLL;
 
