@@ -164,8 +164,8 @@ namespace ReBuzz.MachineManagement
                 }
 
             }
-            else if ((flags.HasFlag(MachineInfoFlags.MONO_TO_STEREO) || (flags.HasFlag(MachineInfoFlags.DOES_INPUT_MIXING) && !flags.HasFlag(MachineInfoFlags.STEREO_EFFECT)))
-                    && Machine.DLL.Info.Version > MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_12)
+            else if (flags.HasFlag(MachineInfoFlags.MONO_TO_STEREO) || (flags.HasFlag(MachineInfoFlags.DOES_INPUT_MIXING) && !flags.HasFlag(MachineInfoFlags.STEREO_EFFECT)
+                    && Machine.DLL.Info.Version > MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_12))
             {
                 // Most? old machines have mono_to_stereo if they implement DOES_INPUT_MIXING
                 Sample[] samples = Machine.GetStereoSamples(nSamples);

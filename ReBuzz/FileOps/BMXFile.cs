@@ -30,8 +30,6 @@ namespace ReBuzz.FileOps
 
     internal class BMXFile : IReBuzzFile
     {
-        internal static readonly int LoadWaitTime = 20000;
-
         readonly int WaveFlagsEnvelope = 0x80;
         public class Section
         {
@@ -534,7 +532,7 @@ namespace ReBuzz.FileOps
             }
 
             // Wait max xx seconds
-            while (!Task.WaitAll(initTasks.ToArray(), LoadWaitTime))
+            while (!Task.WaitAll(initTasks.ToArray(), (int)Global.GeneralSettings.SongLoadWait * 1000))
             {
                 List<MachineCore> badMachinesList = new List<MachineCore>();
                 string machinesMessage = "";

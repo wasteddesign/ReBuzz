@@ -43,7 +43,11 @@
   <Machine Name="CyanPhase DX Instrument Adapter" Blacklist="True"/>
   <Machine Name="CyanPhase DX Effect Adapter" Blacklist="True"/>
   <Machine Name="CyanPhase DMO Effect Adapter" Blacklist="True"/>
-  <Machine Name="11-MidiCCout" Blacklist="True"/>
+  <Machine Name="CyanPhase AuxReturn" Blacklist="True"/>
+  <Machine Name="HD AuxRepeater" Blacklist="True"/>
+  <Machine Name="Jeskola AuxSend" Blacklist="True"/>
+  <Machine Name="ld auxsend" Blacklist="True"/>
+  <Machine Name="WhiteNoise AuxReturn" Blacklist="True"/>
 
   <Machine Name="Rymix*" Multithreading="False"/>
   <Machine Name="FireSledge ParamEQ" Multithreading="False"/>
