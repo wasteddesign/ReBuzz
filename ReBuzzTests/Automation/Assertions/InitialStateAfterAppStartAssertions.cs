@@ -37,7 +37,7 @@ namespace ReBuzzTests.Automation.Assertions
             ReBuzzCore reBuzzCore, AbsoluteDirectoryPath gearDir, IMachine machine)
         {
             InitialStateAssertions.AssertFakeModernPatternEditor(reBuzzCore, gearDir,
-                (MachineDLL)machine.PatternEditorDLL);
+                (MachineDLL)machine.PatternEditorDLL, true, MachineInfoFlags.STEREO_EFFECT | MachineInfoFlags.LOAD_DATA_RUNTIME, new ModernPatternEditorManagedDllAssertions());
         }
 
         public void AssertInitialStateOfMachineManager(
@@ -171,7 +171,7 @@ namespace ReBuzzTests.Automation.Assertions
             machineCore.MachineGUIWindow.Should().BeNull();
 
             machineCore.DLL.Should().Be(machineCore.MachineDLL);
-            InitialStateAssertions.AssertFakeModernPatternEditor(reBuzzCore, gearDir, machineCore.MachineDLL);
+            InitialStateAssertions.AssertFakeModernPatternEditor(reBuzzCore, gearDir, machineCore.MachineDLL, true, MachineInfoFlags.STEREO_EFFECT | MachineInfoFlags.LOAD_DATA_RUNTIME, new ModernPatternEditorManagedDllAssertions());
         }
     }
 }
