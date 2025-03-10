@@ -189,21 +189,32 @@ namespace ReBuzzTests.Automation.Assertions
             Dictionary<string, MachineDLL> machineDlLsList, ReBuzzCore reBuzzCore, AbsoluteDirectoryPath gearDir)
         {
             MachineDLL modernPatternEditor = machineDlLsList["Modern Pattern Editor"];
-            AssertFakeModernPatternEditor(reBuzzCore, gearDir, modernPatternEditor);
+            AssertFakeModernPatternEditor(reBuzzCore, gearDir, modernPatternEditor, false,
+                MachineInfoFlags.NO_OUTPUT |
+                MachineInfoFlags.CONTROL_MACHINE |
+                MachineInfoFlags.PATTERN_EDITOR |
+                MachineInfoFlags.LOAD_DATA_RUNTIME, 
+                new ModernPatternEditorManagedDllNullAssertions());
         }
 
         internal static void AssertFakeModernPatternEditor(
-            ReBuzzCore reBuzzCore, AbsoluteDirectoryPath gearDir, MachineDLL modernPatternEditor)
+            ReBuzzCore reBuzzCore,
+            AbsoluteDirectoryPath gearDir,
+            MachineDLL modernPatternEditor,
+            bool expectedIsLoaded,
+            MachineInfoFlags flags,
+            IModernPatternEditorManagedDllAssertions managedDllAssertions)
         {
             MachineDLL modernPatternEditorDll = FakeModernPatternEditorInfo.Instance.GetMachineDll(reBuzzCore,
                 gearDir.AddFileName(FakeModernPatternEditorInfo.Instance.DllName));
+
             modernPatternEditor.Buzz.Should().Be(reBuzzCore);
             modernPatternEditor.Path.Should().Be(modernPatternEditorDll.Path);
             modernPatternEditor.Name.Should().Be(modernPatternEditorDll.Name);
             modernPatternEditor.Is64Bit.Should().Be(modernPatternEditorDll.Is64Bit);
             modernPatternEditor.IsCrashed.Should().Be(modernPatternEditorDll.IsCrashed);
             modernPatternEditor.IsManaged.Should().Be(modernPatternEditorDll.IsManaged);
-            modernPatternEditor.IsLoaded.Should().Be(true);
+            modernPatternEditor.IsLoaded.Should().Be(expectedIsLoaded);
             modernPatternEditor.IsMissing.Should().Be(modernPatternEditorDll.IsMissing);
             modernPatternEditor.IsOutOfProcess.Should().Be(modernPatternEditorDll.IsOutOfProcess);
             modernPatternEditor.ModuleHandle.Should().Be(modernPatternEditorDll.ModuleHandle);
@@ -212,8 +223,7 @@ namespace ReBuzzTests.Automation.Assertions
 
             modernPatternEditor.MachineInfo.Name.Should().Be(modernPatternEditorDll.MachineInfo.Name);
             modernPatternEditor.MachineInfo.Author.Should().Be(modernPatternEditorDll.MachineInfo.Author);
-            modernPatternEditor.MachineInfo.Flags.Should()
-                .Be(MachineInfoFlags.STEREO_EFFECT | MachineInfoFlags.LOAD_DATA_RUNTIME);
+            modernPatternEditor.MachineInfo.Flags.Should().Be(flags);
             modernPatternEditor.MachineInfo.InternalVersion.Should()
                 .Be(modernPatternEditorDll.MachineInfo.InternalVersion);
             modernPatternEditor.MachineInfo.MaxTracks.Should().Be(modernPatternEditorDll.MachineInfo.MaxTracks);
@@ -221,24 +231,11 @@ namespace ReBuzzTests.Automation.Assertions
             modernPatternEditor.MachineInfo.ShortName.Should().Be(modernPatternEditorDll.MachineInfo.ShortName);
             modernPatternEditor.MachineInfo.Type.Should().Be(modernPatternEditorDll.MachineInfo.Type);
 
-            modernPatternEditor.ManagedDLL.machineInfo.Should().Be(FakeModernPatternEditor.GetMachineDecl());
-            modernPatternEditor.ManagedDLL.MachineInfo.Should().Be(modernPatternEditor.MachineInfo);
-            modernPatternEditor.ManagedDLL.WorkFunctionType.Should().Be(ManagedMachineDLL.WorkFunctionTypes.Effect);
-            modernPatternEditor.ManagedDLL.Assembly.Should().NotBeNull();
-            modernPatternEditor.ManagedDLL.constructor.Should().NotBeNull();
-
-            modernPatternEditor.ManagedDLL.globalParameters.Should().HaveCount(2);
-            AssertGlobalParameters(modernPatternEditor.ManagedDLL.globalParameters[0],
-                modernPatternEditor.ManagedDLL.globalParameters[1]);
-
-            modernPatternEditor.ManagedDLL.trackParameters.Should().HaveCount(1);
-            AssertParameter(modernPatternEditor.ManagedDLL.trackParameters[0], ExpectedMachineParameter.ATrackParam());
-
-            modernPatternEditor.ManagedDLL.machineType.Name.Should().Be(nameof(FakeModernPatternEditor));
+            managedDllAssertions.Assert(modernPatternEditor);
             modernPatternEditor.Presets.Should().BeNull();
         }
 
-        private static void AssertGlobalParameters(MachineParameter parameter1, MachineParameter parameter2)
+        internal static void AssertGlobalParameters(MachineParameter parameter1, MachineParameter parameter2)
         {
             AssertParameter(parameter1, ExpectedMachineParameter.Gain());
             AssertParameter(parameter2, ExpectedMachineParameter.Bypass());
@@ -392,7 +389,7 @@ namespace ReBuzzTests.Automation.Assertions
             }
         }
 
-        private static void AssertParameter(
+        internal static void AssertParameter(
             MachineParameter parameter, ExpectedMachineParameter expectedParameter)
         {
             expectedParameter.AssertIsMatchedBy(
