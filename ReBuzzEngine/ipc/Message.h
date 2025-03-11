@@ -102,7 +102,8 @@ enum HostMessages
 	HostWriteToPlayingPattern,
 	HostMidiOut,
 	HostSetTempo,
-	HostSetTPB
+	HostSetTPB,
+	HostSetSongPosition
 };
 
 enum MIDIMessages

@@ -98,7 +98,8 @@ namespace ReBuzz.NativeMachine
         HostWriteToPlayingPattern,
         HostMidiOut,
         HostSetTempo,
-        HostSetTPB
+        HostSetTPB,
+        HostSetSongPosition
     };
 
     public enum MIDIMessages

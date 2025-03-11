@@ -691,6 +691,11 @@ int CMICallbacks::GetSongPosition()
 void CMICallbacks::SetSongPosition(int pos)
 {
 	MICB1(pos);
+
+	IPC::Message m(IPC::HostSetSongPosition);
+	m.Write(pos);
+	IPC::Message reply;
+	DoCallback(m, reply);
 }
 
 

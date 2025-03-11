@@ -966,6 +966,14 @@ namespace ReBuzz.NativeMachine
                             DoReplyMessage();
                         }
                         break;
+                    case HostMessages.HostSetSongPosition:
+                        {
+                            int pos = GetMessageData<int>();
+                            var buzz = Global.Buzz as ReBuzzCore;
+                            buzz.SongCore.PlayPosition = pos;
+                            DoReplyMessage();
+                        }
+                        break;
                 }
             }
         }
