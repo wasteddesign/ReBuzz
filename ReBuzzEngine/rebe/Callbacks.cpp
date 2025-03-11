@@ -752,6 +752,9 @@ int CMICallbacks::GetSongEnd()
 void CMICallbacks::Play()
 {
 	MICB0;
+	IPC::Message m(IPC::HostPlay);
+	IPC::Message reply;
+	DoCallback(m, reply);
 }
 
 void CMICallbacks::Stop()

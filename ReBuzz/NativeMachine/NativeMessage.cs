@@ -974,6 +974,13 @@ namespace ReBuzz.NativeMachine
                             DoReplyMessage();
                         }
                         break;
+                    case HostMessages.HostPlay:
+                        {
+                            var buzz = Global.Buzz as ReBuzzCore;
+                            buzz.Playing = true;
+                            DoReplyMessage();
+                        }
+                        break;
                 }
             }
         }
