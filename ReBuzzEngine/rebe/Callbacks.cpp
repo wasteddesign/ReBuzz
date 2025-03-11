@@ -720,7 +720,10 @@ int CMICallbacks::GetTPB()
 void CMICallbacks::SetTPB(int tpb)
 {
 	MICB1(tpb);
-
+	IPC::Message m(IPC::HostSetTPB);
+	m.Write(tpb);
+	IPC::Message reply;
+	DoCallback(m, reply);
 }
 
 int CMICallbacks::GetLoopStart()

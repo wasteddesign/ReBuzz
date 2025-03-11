@@ -958,6 +958,14 @@ namespace ReBuzz.NativeMachine
                             DoReplyMessage();
                         }
                         break;
+                    case HostMessages.HostSetTPB:
+                        {
+                            int tpb = GetMessageData<int>();
+                            var buzz = Global.Buzz as ReBuzzCore;
+                            buzz.TPB = tpb;
+                            DoReplyMessage();
+                        }
+                        break;
                 }
             }
         }
