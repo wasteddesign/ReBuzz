@@ -691,6 +691,11 @@ int CMICallbacks::GetSongPosition()
 void CMICallbacks::SetSongPosition(int pos)
 {
 	MICB1(pos);
+
+	IPC::Message m(IPC::HostSetSongPosition);
+	m.Write(pos);
+	IPC::Message reply;
+	DoCallback(m, reply);
 }
 
 
@@ -704,6 +709,10 @@ int CMICallbacks::GetTempo()
 void CMICallbacks::SetTempo(int bpm)
 {
 	MICB1(bpm);
+	IPC::Message m(IPC::HostSetTempo);
+	m.Write(bpm);
+	IPC::Message reply;
+	DoCallback(m, reply);
 }
 
 int CMICallbacks::GetTPB()
@@ -716,7 +725,10 @@ int CMICallbacks::GetTPB()
 void CMICallbacks::SetTPB(int tpb)
 {
 	MICB1(tpb);
-
+	IPC::Message m(IPC::HostSetTPB);
+	m.Write(tpb);
+	IPC::Message reply;
+	DoCallback(m, reply);
 }
 
 int CMICallbacks::GetLoopStart()
@@ -740,6 +752,9 @@ int CMICallbacks::GetSongEnd()
 void CMICallbacks::Play()
 {
 	MICB0;
+	IPC::Message m(IPC::HostPlay);
+	IPC::Message reply;
+	DoCallback(m, reply);
 }
 
 void CMICallbacks::Stop()

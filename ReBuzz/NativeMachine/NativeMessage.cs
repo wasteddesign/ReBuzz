@@ -950,6 +950,37 @@ namespace ReBuzz.NativeMachine
                             DoReplyMessage();
                         }
                         break;
+                    case HostMessages.HostSetTempo:
+                        {
+                            int bpm = GetMessageData<int>();
+                            var buzz = Global.Buzz as ReBuzzCore;
+                            buzz.BPM = bpm;
+                            DoReplyMessage();
+                        }
+                        break;
+                    case HostMessages.HostSetTPB:
+                        {
+                            int tpb = GetMessageData<int>();
+                            var buzz = Global.Buzz as ReBuzzCore;
+                            buzz.TPB = tpb;
+                            DoReplyMessage();
+                        }
+                        break;
+                    case HostMessages.HostSetSongPosition:
+                        {
+                            int pos = GetMessageData<int>();
+                            var buzz = Global.Buzz as ReBuzzCore;
+                            buzz.SongCore.PlayPosition = pos;
+                            DoReplyMessage();
+                        }
+                        break;
+                    case HostMessages.HostPlay:
+                        {
+                            var buzz = Global.Buzz as ReBuzzCore;
+                            buzz.Playing = true;
+                            DoReplyMessage();
+                        }
+                        break;
                 }
             }
         }
