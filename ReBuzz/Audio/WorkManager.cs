@@ -233,7 +233,7 @@ namespace ReBuzz.Audio
         private void UpdateNonStaticParametersToDefault()
         {
             int noRecord = 1 << 16;
-            foreach (var machine in buzzCore.SongCore.MachinesList.Where(m => !m.DLL.IsManaged))
+            foreach (var machine in buzzCore.SongCore.MachinesList.Where(m => !m.DLL.IsManaged && m.Ready))
             {
                 if (ReBuzzCore.masterInfo.PosInTick == 0 || (engineSettings.SubTickTiming && ReBuzzCore.subTickInfo.PosInSubTick == 0 && machine.DLL.Info.Version >= MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_42))
                 {

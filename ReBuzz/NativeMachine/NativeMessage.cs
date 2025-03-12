@@ -1125,6 +1125,8 @@ namespace ReBuzz.NativeMachine
         {
             fixed (byte* ptr = receaveMessageTable)
             {
+                if (ptr == (byte*)0)
+                    throw new Exception("Invalid pointer");
 #pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
                 T res = *(T*)&ptr[offset];
                 offset += sizeof(T);

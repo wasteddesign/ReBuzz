@@ -1161,17 +1161,6 @@ namespace ReBuzz.Core
 
                 IReBuzzFile bmxFile = GetReBuzzFile(filename);
 
-                if (false)
-                {
-                    // Test
-                    bmxFile.FileEvent += (type, eventText, o) =>
-                    {
-                        FileEvent?.Invoke(type, eventText, o);
-                    };
-                    OpenFile.Invoke(filename);
-                    bmxFile.Load(filename);
-                }
-
                 try
                 {
                     bmxFile.FileEvent += (type, eventText, o) =>

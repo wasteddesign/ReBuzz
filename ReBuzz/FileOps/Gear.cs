@@ -1,8 +1,11 @@
 ﻿using System;
 using System.IO;
+using System.IO.Enumeration;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Xml;
 using System.Xml.Serialization;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace ReBuzz.FileOps
 {
@@ -90,14 +93,22 @@ namespace ReBuzz.FileOps
             Machine = thisMachineList.ToArray();
         }
 
-        internal bool IsBlacklisted(string libName)
+        internal bool IsBlacklisted(XMLMachineDLL xmac)
         {
-            var m = Machine.FirstOrDefault(m => m.Name == libName && m.Blacklist=="True");
+            var m = Machine.FirstOrDefault((m) =>
+            {
+                if (FileSystemName.MatchesSimpleExpression(m.Name, xmac.Name))
+                {
+                    if (m.Blacklist == "True")
+                        return true;
+                    else if (xmac.MachineInfo.Version < m.MinimumMIVersion)
+                        return true;
+                }
+                return false;
+            });
             return m != null ? true : false;
         }
     }
-
-
 
     public class Machine
     {

@@ -2,22 +2,17 @@
 using BuzzGUI.Common;
 using BuzzGUI.Common.InterfaceExtensions;
 using BuzzGUI.Interfaces;
-using ReBuzz.Common;
 using ReBuzz.Core;
 using ReBuzz.Core.Actions.GraphActions;
 using ReBuzz.MachineManagement;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Forms;
 using System.Windows.Input;
-using System.Windows.Interop;
-using System.Windows.Media;
 
 namespace ReBuzz.FileOps
 {
@@ -460,7 +455,14 @@ namespace ReBuzz.FileOps
                     // Copy stuff from proto to real. ToDo: Clean this up;
                     machineNew.AttributesList = machineProto.AttributesList;
 
-                    if (!machineNew.DLL.IsMissing)
+                    if (machineNew.DLL.IsCrashed)
+                    {
+                        // Ensure parametergroup structures are as expected
+                        machineNew.ParameterGroupsList = new List<ParameterGroup>() { machineNew.ParameterGroupsList[0] };
+                        AddGroup(machineProto, machineNew, 1);
+                        AddGroup(machineProto, machineNew, 2);
+                    }
+                    else if (!machineNew.DLL.IsMissing)
                     {
                         // Copy parametervalues
                         CopyParameters(machineProto, machineNew, 0, 0);
@@ -1007,10 +1009,14 @@ namespace ReBuzz.FileOps
                             IParameter targetParameter = null;
                             if (targetMachine != null)
                             {
-                                //if (!targetMachine.DLL.IsMissing)
+                                // Negative group is Buzz midi column invisible to editors. Used by Note Matrix.
+                                try
                                 {
-                                    // Negative group is Buzz midi column invisible to editors. Used by Note Matrix.
                                     targetParameter = (group != -1 && indexInGroup != -1) ? targetMachine.ParameterGroups[group].Parameters[indexInGroup] : ParameterCore.GetMidiParameter(targetMachine, dispatcher);
+                                }
+                                catch
+                                {
+                                    buzz.DCWriteErrorLine("Parameter mismatch for machine: " + machine.DLL.Name + " | Parameter Group: " + group + " | Parameter: " + indexInGroup);
                                 }
                             }
 

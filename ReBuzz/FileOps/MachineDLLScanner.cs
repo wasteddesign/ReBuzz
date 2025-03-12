@@ -97,7 +97,7 @@ namespace ReBuzz.FileOps
         {
             foreach (var xmac in xMLMachineDLLs)
             {
-                if (!buzz.Gear.IsBlacklisted(xmac.Name))
+                if (!buzz.Gear.IsBlacklisted(xmac))
                 {
                     MachineDLL mDll = new MachineDLL();
 

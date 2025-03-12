@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading;
 
 namespace ReBuzz.Core
 {
@@ -26,6 +27,8 @@ namespace ReBuzz.Core
 
         public event Action<int> WaveChanged;
         public event PropertyChangedEventHandler PropertyChanged;
+
+        internal Lock PlayWaveLock = new Lock();
 
         PlayWaveInfo PlayWaveData { get; set; }
         internal class PlayWaveInfo
@@ -261,7 +264,7 @@ namespace ReBuzz.Core
 
         public void PlayWave(string file)
         {
-            lock (ReBuzzCore.AudioLock)
+            lock (PlayWaveLock)
             {
                 StopPlayingWave();
                 try
@@ -286,7 +289,7 @@ namespace ReBuzz.Core
 
         internal void StopPlayingWave()
         {
-            lock (ReBuzzCore.AudioLock)
+            lock (PlayWaveLock)
             {
                 if (PlayWaveData != null && PlayWaveData.sf != null)
                 {
@@ -305,38 +308,41 @@ namespace ReBuzz.Core
         // Read sampleCount stereo samples to buffer
         internal bool GetPlayWaveSamples(float[] buffer, int offset, int sampleCount)
         {
-            if (PlayWaveData != null)
+            lock (PlayWaveLock)
             {
-                if (PlayWaveData.sf != null)
+                if (PlayWaveData != null)
                 {
-                    int samplesRead = 0;
-                    while (realTimeResampler.AvailableSamples() < sampleCount)
+                    if (PlayWaveData.sf != null)
                     {
-                        if (!ReadSamplesFromFile(offset, sampleCount))
-                            return false;
+                        int samplesRead = 0;
+                        while (realTimeResampler.AvailableSamples() < sampleCount)
+                        {
+                            if (!ReadSamplesFromFile(offset, sampleCount))
+                                return false;
 
-                        realTimeResampler.FillBuffer(wavetableAudiobuffer, sampleCount);
+                            realTimeResampler.FillBuffer(wavetableAudiobuffer, sampleCount);
+                        }
+
+                        realTimeResampler.GetSamples(buffer, offset, sampleCount);
                     }
-
-                    realTimeResampler.GetSamples(buffer, offset, sampleCount);
-                }
-                else if (PlayWaveData.wave.Layers.Count > 0)
-                {
-                    var layer = PlayWaveData.wave.Layers.First();
-                    while (realTimeResampler.AvailableSamples() < sampleCount)
+                    else if (PlayWaveData.wave.Layers.Count > 0)
                     {
-                        layer.GetDataAsFloat(wavetableAudiobuffer, 0, 2, 0, PlayWaveData.postion, sampleCount);
-                        layer.GetDataAsFloat(wavetableAudiobuffer, 0 + 1, 2, 1, PlayWaveData.postion, sampleCount);
+                        var layer = PlayWaveData.wave.Layers.First();
+                        while (realTimeResampler.AvailableSamples() < sampleCount)
+                        {
+                            layer.GetDataAsFloat(wavetableAudiobuffer, 0, 2, 0, PlayWaveData.postion, sampleCount);
+                            layer.GetDataAsFloat(wavetableAudiobuffer, 0 + 1, 2, 1, PlayWaveData.postion, sampleCount);
 
-                        realTimeResampler.FillBuffer(wavetableAudiobuffer, sampleCount);
-                        PlayWaveData.postion += sampleCount;
+                            realTimeResampler.FillBuffer(wavetableAudiobuffer, sampleCount);
+                            PlayWaveData.postion += sampleCount;
+                        }
+                        realTimeResampler.GetSamples(buffer, offset, sampleCount);
+
+                        return true;
                     }
-                    realTimeResampler.GetSamples(buffer, offset, sampleCount);
-
-                    return true;
                 }
+                return false;
             }
-            return false;
         }
 
         bool ReadSamplesFromFile(int offset, int sampleCount)

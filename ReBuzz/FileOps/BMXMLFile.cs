@@ -14,7 +14,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Interop;
 using System.Xml;
 using System.Xml.Serialization;
 using static ReBuzz.FileOps.BMXFile;
@@ -264,7 +263,13 @@ namespace ReBuzz.FileOps
                         }
                     }
 
-                    if (!machineNew.DLL.IsMissing)
+                    if (machineNew.DLL.IsCrashed)
+                    {
+                        machineNew.ParameterGroupsList = new List<ParameterGroup>() { machineNew.ParameterGroupsList[0] };
+                        AddGroup(machineData.ParameterGroups[1], machineNew, 1);
+                        AddGroup(machineData.ParameterGroups[2], machineNew, 2);
+                    }
+                    else if (!machineNew.DLL.IsMissing)
                     {
                         // Copy parametervalues
                         CopyParameters(machineData.ParameterGroups[0], machineNew, 0, 0);

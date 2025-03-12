@@ -66,80 +66,88 @@ namespace ReBuzz.NativeMachine
                 return false;
             }
 
-            lock (UIMessageLock)
+            try
             {
-                Reset();
-                SetMessageData((int)UIMessages.UILoadLibrary);
-                SetMessageData(libname);
-                SetMessageData(path);
-                DoSendMessage();
-
-                IntPtr handle = GetMessageIntPtr(machine);
-
-                if (handle.ToInt64() == 0)
+                lock (UIMessageLock)
                 {
-                    // Failed
-                    Global.Buzz.DCWriteLine(GetMessageString());
-                    return false;
+                    Reset();
+                    SetMessageData((int)UIMessages.UILoadLibrary);
+                    SetMessageData(libname);
+                    SetMessageData(path);
+                    DoSendMessage();
+
+                    IntPtr handle = GetMessageIntPtr(machine);
+
+                    if (handle.ToInt64() == 0)
+                    {
+                        // Failed
+                        Global.Buzz.DCWriteLine(GetMessageString());
+                        return false;
+                    }
+                    else
+                    {
+                        MachineDLL machineDLL = machine.MachineDLL;
+                        machineDLL.ModuleHandle = handle;
+
+                        var info = machineDLL.MachineInfo;
+                        info.Type = (MachineType)GetMessageData<int>();
+                        info.Version = GetMessageData<int>();
+                        info.Flags = (MachineInfoFlags)GetMessageData<int>();
+                        info.MinTracks = GetMessageData<int>();
+                        info.MaxTracks = GetMessageData<int>();
+                        int numGlobalParameters = GetMessageData<int>();
+                        int numTrackParameters = GetMessageData<int>();
+
+                        // Global
+                        ParameterGroup gpg = new ParameterGroup(machine, ParameterGroupType.Global);
+                        machine.AddParameterGroup(gpg);
+                        for (int i = 0; i < numGlobalParameters; i++)
+                        {
+                            gpg.AddParameter(ReadParameter(i));
+                        }
+                        if (gpg.Parameters.Count > 0)
+                        {
+                            gpg.TrackCount = 1;
+                        }
+
+                        // Track
+                        ParameterGroup tpg = new ParameterGroup(machine, ParameterGroupType.Track);
+                        machine.AddParameterGroup(tpg);
+                        for (int i = 0; i < numTrackParameters; i++)
+                        {
+                            var p = ReadParameter(i);
+                            tpg.AddParameter(p);
+                        }
+
+                        // Attributes
+                        int numAttributes = GetMessageData<int>();
+                        for (int i = 0; i < numAttributes; i++)
+                        {
+                            machine.AttributesList.Add(ReadAttribute(machine));
+                        }
+
+                        info.Name = GetMessageString();
+                        info.ShortName = GetMessageString();
+                        info.Author = GetMessageString();
+                        string commands = GetMessageString();
+
+                        bool cLibInreface = GetMessageByte() != 0;
+
+                        machineDLL.Path = path;
+                        machineDLL.Name = libname;
+                        machineDLL.IsLoaded = true;
+                        machine.TrackCount = info.MinTracks;
+
+                        machine.SetParametersToDefaulValue();
+                        //machine.SetCommands(commands);
+                    }
+                    return true;
                 }
-                else
-                {
-                    MachineDLL machineDLL = machine.MachineDLL;
-                    machineDLL.ModuleHandle = handle;
-
-                    var info = machineDLL.MachineInfo;
-                    info.Type = (MachineType)GetMessageData<int>();
-                    info.Version = GetMessageData<int>();
-                    info.Flags = (MachineInfoFlags)GetMessageData<int>();
-                    info.MinTracks = GetMessageData<int>();
-                    info.MaxTracks = GetMessageData<int>();
-                    int numGlobalParameters = GetMessageData<int>();
-                    int numTrackParameters = GetMessageData<int>();
-
-                    // Global
-                    ParameterGroup gpg = new ParameterGroup(machine, ParameterGroupType.Global);
-                    machine.AddParameterGroup(gpg);
-                    for (int i = 0; i < numGlobalParameters; i++)
-                    {
-                        gpg.AddParameter(ReadParameter(i));
-                    }
-                    if (gpg.Parameters.Count > 0)
-                    {
-                        gpg.TrackCount = 1;
-                    }
-
-                    // Track
-                    ParameterGroup tpg = new ParameterGroup(machine, ParameterGroupType.Track);
-                    machine.AddParameterGroup(tpg);
-                    for (int i = 0; i < numTrackParameters; i++)
-                    {
-                        var p = ReadParameter(i);
-                        tpg.AddParameter(p);
-                    }
-
-                    // Attributes
-                    int numAttributes = GetMessageData<int>();
-                    for (int i = 0; i < numAttributes; i++)
-                    {
-                        machine.AttributesList.Add(ReadAttribute(machine));
-                    }
-
-                    info.Name = GetMessageString();
-                    info.ShortName = GetMessageString();
-                    info.Author = GetMessageString();
-                    string commands = GetMessageString();
-
-                    bool cLibInreface = GetMessageByte() != 0;
-
-                    machineDLL.Path = path;
-                    machineDLL.Name = libname;
-                    machineDLL.IsLoaded = true;
-                    machine.TrackCount = info.MinTracks;
-
-                    machine.SetParametersToDefaulValue();
-                    //machine.SetCommands(commands);
-                }
-                return true;
+            }
+            catch (Exception e)
+            {
+                MachineCrashed(machine, e);
+                return false;
             }
         }
         internal void UINewMISync(MachineCore machine, string libname)
@@ -149,14 +157,21 @@ namespace ReBuzz.NativeMachine
                 return;
             }
 
-            lock (UIMessageLock)
+            try
             {
-                Reset();
-                SetMessageData((int)UIMessages.UINewMI);
-                SetMessageData(libname);
-                DoSendMessage();
+                lock (UIMessageLock)
+                {
+                    Reset();
+                    SetMessageData((int)UIMessages.UINewMI);
+                    SetMessageData(libname);
+                    DoSendMessage();
 
-                machine.CMachinePtr = GetMessageIntPtr(machine);
+                    machine.CMachinePtr = GetMessageIntPtr(machine);
+                }
+            }
+            catch (Exception e)
+            {
+                MachineCrashed(machine, e);
             }
         }
 
@@ -534,14 +549,22 @@ namespace ReBuzz.NativeMachine
                 return IntPtr.Zero;
             }
 
-            lock (UIMessageLock)
+            try
             {
-                Reset();
-                SetMessageData((int)UIMessages.UIGetDLLPtr);
-                SetMessageData(libname);
-                DoSendMessage();
-                var dllPtr = GetMessageIntPtr(machine);
-                return dllPtr;
+                lock (UIMessageLock)
+                {
+                    Reset();
+                    SetMessageData((int)UIMessages.UIGetDLLPtr);
+                    SetMessageData(libname);
+                    DoSendMessage();
+                    var dllPtr = GetMessageIntPtr(machine);
+                    return dllPtr;
+                }
+            }
+            catch (Exception e)
+            {
+                MachineCrashed(machine, e);
+                return IntPtr.Zero;
             }
         }
 
@@ -552,31 +575,39 @@ namespace ReBuzz.NativeMachine
                 return new List<string>();
             }
 
-            lock (UIMessageLock)
+            try
             {
-                Dictionary<string, int> instrumentList = new Dictionary<string, int>();
-                Reset();
-                SetMessageData((int)UIMessages.UIGetInstrumentList);
-                SetMessageDataPtr(dllPtr);
-                DoSendMessage();
-
-                byte[] data = GetData();
-
-                string instrument = "";
-                for (int i = 0; i < data.Length; i++)
+                lock (UIMessageLock)
                 {
-                    if (data[i] == 0 && instrument != "")
-                    {
-                        instrumentList[instrument] = 0;
-                        instrument = "";
-                    }
-                    else
-                    {
-                        instrument += (char)data[i];
-                    }
-                }
+                    Dictionary<string, int> instrumentList = new Dictionary<string, int>();
+                    Reset();
+                    SetMessageData((int)UIMessages.UIGetInstrumentList);
+                    SetMessageDataPtr(dllPtr);
+                    DoSendMessage();
 
-                return instrumentList.Keys.ToList();
+                    byte[] data = GetData();
+
+                    string instrument = "";
+                    for (int i = 0; i < data.Length; i++)
+                    {
+                        if (data[i] == 0 && instrument != "")
+                        {
+                            instrumentList[instrument] = 0;
+                            instrument = "";
+                        }
+                        else
+                        {
+                            instrument += (char)data[i];
+                        }
+                    }
+
+                    return instrumentList.Keys.ToList();
+                }
+            }
+            catch (Exception e)
+            {
+                MachineCrashed(machine, e);
+                return new List<string>();
             }
         }
 
@@ -587,24 +618,32 @@ namespace ReBuzz.NativeMachine
                 return null;
             }
 
-            lock (UIMessageLock)
+            try
             {
-                string ret = null;
-                Reset();
-                SetMessageData((int)UIMessages.UIGetInstrumentPath);
-                SetMessageDataPtr(dllPtr);
-                SetMessageData(instrumentName);
-                DoSendMessage();
-                if (GetMessageBool())
+                lock (UIMessageLock)
                 {
-                    ret = GetMessageString();
-                }
+                    string ret = null;
+                    Reset();
+                    SetMessageData((int)UIMessages.UIGetInstrumentPath);
+                    SetMessageDataPtr(dllPtr);
+                    SetMessageData(instrumentName);
+                    DoSendMessage();
+                    if (GetMessageBool())
+                    {
+                        ret = GetMessageString();
+                    }
 
-                string s1 = "UIGetInstrumentPath for " + instrumentName.Trim() + ":";
-                int spaceCount = Math.Max(60 - s1.Length, 1);
-                s1 = s1.PadRight(s1.Length + spaceCount);
-                Global.Buzz.DCWriteLine(s1 + ret);
-                return ret;
+                    string s1 = "UIGetInstrumentPath for " + instrumentName.Trim() + ":";
+                    int spaceCount = Math.Max(60 - s1.Length, 1);
+                    s1 = s1.PadRight(s1.Length + spaceCount);
+                    Global.Buzz.DCWriteLine(s1 + ret);
+                    return ret;
+                }
+            }
+            catch (Exception e)
+            {
+                MachineCrashed(machine, e);
+                return null;
             }
         }
 
@@ -615,16 +654,24 @@ namespace ReBuzz.NativeMachine
                 return false;
             }
 
-            lock (UIMessageLock)
+            try
             {
-                Reset();
-                SetMessageData((int)UIMessages.UISetInstrument);
-                SetMessageDataPtr(machine.CMachinePtr);
-                SetMessageData(instrumentName);
-                DoSendMessage();
-                bool ret = GetMessageBool();
+                lock (UIMessageLock)
+                {
+                    Reset();
+                    SetMessageData((int)UIMessages.UISetInstrument);
+                    SetMessageDataPtr(machine.CMachinePtr);
+                    SetMessageData(instrumentName);
+                    DoSendMessage();
+                    bool ret = GetMessageBool();
 
-                return ret;
+                    return ret;
+                }
+            }
+            catch (Exception e)
+            {
+                MachineCrashed(machine, e);
+                return false;
             }
         }
 
@@ -635,21 +682,29 @@ namespace ReBuzz.NativeMachine
                 return false;
             }
 
-            lock (UIMessageLock)
+            try
             {
-                bool ret = false;
-                var bEvent = machine.CMachineEventType.FirstOrDefault(t => t.Type == e.Type);
-                if (bEvent.Event_Handler != null)
+                lock (UIMessageLock)
                 {
-                    Reset();
-                    SetMessageData((int)UIMessages.UIEvent);
-                    SetMessageDataPtr(machine.CMachinePtr);
-                    SetMessageDataPtr(e.Event_Handler);
-                    SetMessageDataPtr(e.Param_Addr);
-                    DoSendMessage();
-                    ret = GetMessageBool(); // Handled?
+                    bool ret = false;
+                    var bEvent = machine.CMachineEventType.FirstOrDefault(t => t.Type == e.Type);
+                    if (bEvent.Event_Handler != null)
+                    {
+                        Reset();
+                        SetMessageData((int)UIMessages.UIEvent);
+                        SetMessageDataPtr(machine.CMachinePtr);
+                        SetMessageDataPtr(e.Event_Handler);
+                        SetMessageDataPtr(e.Param_Addr);
+                        DoSendMessage();
+                        ret = GetMessageBool(); // Handled?
+                    }
+                    return ret;
                 }
-                return ret;
+            }
+            catch (Exception ex)
+            {
+                MachineCrashed(machine, ex);
+                return false;
             }
         }
 
@@ -695,66 +750,79 @@ namespace ReBuzz.NativeMachine
 
         internal void UIGetResources(MachineCore machine, out BitmapSource skinImage, out BitmapSource ledImage, out Point ledPosition)
         {
-            Reset();
-            SetMessageData((int)UIMessages.UIGetResources);
-            SetMessageDataPtr(machine.CMachinePtr);
-            DoSendMessage();
-
-            skinImage = null;
-            ledImage = null;
-
-            // Skin
-            if (GetMessageBool())
+            skinImage = null; ledImage = null; ledPosition = (default);
+            if (machine.DLL.IsCrashed)
             {
-                int width = GetMessageData<int>();
-                int height = GetMessageData<int>();
-                int size = width * height * 4;
-                byte[] data = new byte[size];
+                return;
+            }
 
-                // Decide between black or white text color based on skin image
-                int colorLightness = 0;
+            try
+            {
+                Reset();
+                SetMessageData((int)UIMessages.UIGetResources);
+                SetMessageDataPtr(machine.CMachinePtr);
+                DoSendMessage();
 
-                for (int i = 0; i < size; i++)
+                skinImage = null;
+                ledImage = null;
+
+                // Skin
+                if (GetMessageBool())
                 {
-                    data[i] = GetMessageByte();
-                    if ((i + 1) % 4 != 0)
+                    int width = GetMessageData<int>();
+                    int height = GetMessageData<int>();
+                    int size = width * height * 4;
+                    byte[] data = new byte[size];
+
+                    // Decide between black or white text color based on skin image
+                    int colorLightness = 0;
+
+                    for (int i = 0; i < size; i++)
                     {
-                        colorLightness += data[i];
+                        data[i] = GetMessageByte();
+                        if ((i + 1) % 4 != 0)
+                        {
+                            colorLightness += data[i];
+                        }
                     }
+
+                    colorLightness /= (width * height * 3);
+
+                    if (colorLightness < 128)
+                    {
+                        machine.MachineDLL.SkinTextColor = Colors.White;
+                    }
+                    else
+                    {
+                        machine.MachineDLL.SkinTextColor = Colors.Black;
+                    }
+
+                    skinImage = GetImageSource(data, size, width, height);
                 }
 
-                colorLightness /= (width * height * 3);
-
-                if (colorLightness < 128)
+                // SkinLed
+                if (GetMessageBool())
                 {
-                    machine.MachineDLL.SkinTextColor = Colors.White;
-                }
-                else
-                {
-                    machine.MachineDLL.SkinTextColor = Colors.Black;
+                    int width = GetMessageData<int>();
+                    int height = GetMessageData<int>();
+                    int size = width * height * 4;
+                    byte[] data = new byte[size];
+                    for (int i = 0; i < size; i++)
+                    {
+                        data[i] = GetMessageByte();
+                    }
+
+                    ledImage = GetImageSource(data, size, width, height);
                 }
 
-                skinImage = GetImageSource(data, size, width, height);
+                int x = GetMessageByte();
+                int y = GetMessageByte();
+                ledPosition = new Point(x, y);
             }
-
-            // SkinLed
-            if (GetMessageBool())
+            catch (Exception e)
             {
-                int width = GetMessageData<int>();
-                int height = GetMessageData<int>();
-                int size = width * height * 4;
-                byte[] data = new byte[size];
-                for (int i = 0; i < size; i++)
-                {
-                    data[i] = GetMessageByte();
-                }
-
-                ledImage = GetImageSource(data, size, width, height);
+                MachineCrashed(machine, e);
             }
-
-            int x = GetMessageByte();
-            int y = GetMessageByte();
-            ledPosition = new Point(x, y);
         }
 
         internal BitmapSource GetImageSource(byte[] data, int size, int width, int height)

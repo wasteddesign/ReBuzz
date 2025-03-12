@@ -16,7 +16,7 @@ namespace BuzzGUI.MachineView.MDBTab
     public class MDBTabVM : INotifyPropertyChanged
     {
         readonly MachineView view;
-        static readonly string mdbRoot = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Buzz\\MDB");
+        static readonly string mdbRoot = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "ReBuzz\\MDB");
         static readonly string jsonPath = System.IO.Path.Combine(mdbRoot, "mdb.json.zip");
         static readonly string machinesPath = System.IO.Path.Combine(mdbRoot, "mdb_machines.zip");
         static readonly string gearPath = System.IO.Path.Combine(mdbRoot, "Gear");

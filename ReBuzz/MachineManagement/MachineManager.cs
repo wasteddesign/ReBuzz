@@ -95,9 +95,9 @@ namespace ReBuzz.MachineManagement
                 // If missing
                 if (!buzz.MachineDLLs.ContainsKey(libName))
                 {
+                    buzz.DCWriteErrorLine("Missing machine: " + machine.MachineDLL.Name);
                     var machineDLL = machine.MachineDLL;
                     machineDLL.IsMissing = true;
-                    machineDLL.IsCrashed = true;
                     machineDLL.Name = libName;
                     machineDLL.Path = path;
                     machineDLL.MachineInfo.MinTracks = machineDLL.MachineInfo.MaxTracks = trackCount;
@@ -270,10 +270,15 @@ namespace ReBuzz.MachineManagement
             // Add machine here so that it is visible when machine does callbacks
             nativeMachines.Add(machine, nativeMachineHost);
             buzz.SongCore.MachinesList.Add(machine);
-            
+
             if (callInit)
             {
                 CallInit(machine, data, trackCount);
+            }
+
+            if (machine.DLL.IsCrashed)
+            {
+                ValidateMachineStructures(machine);
             }
         }
 
@@ -315,8 +320,25 @@ namespace ReBuzz.MachineManagement
             machine.TrackCount = trackCount;
             audioMessage.AudioSetNumTracks(machine, trackCount);
 
+            if (machine.DLL.IsCrashed)
+            {
+                ValidateMachineStructures(machine);
+            }
+
             machine.Ready = true;
             machine.MachineDLL.IsLoaded = true;
+        }
+
+        private void ValidateMachineStructures(MachineCore machine)
+        {
+            if (machine.ParameterGroupsList.Count == 1)
+            {
+                machine.ParameterGroupsList.Add(new ParameterGroup(machine, ParameterGroupType.Global));
+            }
+            if (machine.ParameterGroupsList.Count == 2)
+            {
+                machine.ParameterGroupsList.Add(new ParameterGroup(machine, ParameterGroupType.Track));
+            }
         }
 
         internal IMachineDLL GetPatternEditorDLL(MachineCore machine)
