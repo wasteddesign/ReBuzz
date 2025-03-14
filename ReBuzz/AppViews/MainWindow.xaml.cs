@@ -262,7 +262,7 @@ namespace ReBuzz
                 WavetableVM.Wavetable = song.Wavetable;
 
                 // Info view
-                InfoView = new InfoView();
+                InfoView = new InfoView(Buzz);
                 rd = Utils.GetUserControlXAML<ResourceDictionary>(Buzz.Theme.InfoView.Source, buzzPath);
                 InfoView.Resources.MergedDictionaries.Add(rd);
                 borderInfo.Child = InfoView;
@@ -1064,7 +1064,7 @@ namespace ReBuzz
             WavetableVM.Wavetable = song.Wavetable;
 
             // Info view
-            InfoView = new InfoView();
+            InfoView = new InfoView(Buzz);
             rd = Utils.GetUserControlXAML<ResourceDictionary>(Buzz.Theme.InfoView.Source, buzzPath);
             InfoView.Resources.MergedDictionaries.Add(rd);
             borderInfo.Child = InfoView;
