@@ -537,6 +537,7 @@ namespace ReBuzz.NativeMachine
                     {
                         string name = GetMessageString();
                         int flags = GetMessageData<int>();
+                        machine.envelopes.Add(name, new Envelope() { Flags = (byte)flags });
                     }
                 }
             }

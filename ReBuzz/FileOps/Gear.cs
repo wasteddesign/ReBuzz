@@ -2,10 +2,8 @@
 using System.IO;
 using System.IO.Enumeration;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Xml;
 using System.Xml.Serialization;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace ReBuzz.FileOps
 {
@@ -14,6 +12,11 @@ namespace ReBuzz.FileOps
     {
         [XmlElement(ElementName = "Machine")]
         public Machine[] Machine { get; set; }
+
+        public Gear()
+        {
+            Machine = new Machine[0];
+        }
 
         public static Gear LoadGearFile(string path)
         {

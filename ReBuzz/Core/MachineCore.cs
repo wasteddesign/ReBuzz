@@ -199,8 +199,9 @@ namespace ReBuzz.Core
             }
         }
 
-        readonly List<string> envelopeNames = new List<string>();
-        public ReadOnlyCollection<string> EnvelopeNames { get => envelopeNames.ToReadOnlyCollection(); }
+        internal Dictionary<string, Envelope> envelopes = new Dictionary<string, Envelope>();
+
+        public ReadOnlyCollection<string> EnvelopeNames { get => envelopes.Keys.ToReadOnlyCollection(); }
 
         List<PatternCore> patterns = new List<PatternCore>();
         public ReadOnlyCollection<IPattern> Patterns

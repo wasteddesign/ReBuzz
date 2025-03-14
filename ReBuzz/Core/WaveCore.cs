@@ -19,7 +19,8 @@ namespace ReBuzz.Core
         public string Name { get; set; }
         public string FileName { get; set; }
 
-        public WaveFlags Flags { get; set; }
+        WaveFlags flags;
+        public WaveFlags Flags { get => flags; set { flags = value; buzz.MachineManager.UpdateWaveInfo(); } }
 
         float volume = 1.0f;
         public float Volume {
@@ -52,11 +53,26 @@ namespace ReBuzz.Core
         public event Action<int> WaveChanged;
         public event PropertyChangedEventHandler PropertyChanged;
 
-        internal List<Envelope> envelopes = new List<Envelope>();
+        internal List<Envelope> envelopes = new List<Envelope>()
+        {
+            new Envelope(),     // Volume
+            new Envelope(),     // Panning
+            new Envelope()      // Pitch
+        };
+
+        /// <summary>
+        /// TODO:
+        /// The returned envelope is associated with machine 'm'. The association is needed for CMachineInterface::GetWaveEnvPlayPos calls.
+        /// </summary>
         public IEnvelope GetEnvelope(int index, IMachine m)
         {
+            var mc = m as MachineCore;
             if (index < envelopes.Count)
+            {
+                if (index == 1 && !m.HasStereoOutput)
+                    return null;
                 return envelopes[index];
+            }
 
             return null;
         }

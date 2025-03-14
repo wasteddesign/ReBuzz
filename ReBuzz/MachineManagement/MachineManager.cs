@@ -95,7 +95,7 @@ namespace ReBuzz.MachineManagement
                 // If missing
                 if (!buzz.MachineDLLs.ContainsKey(libName))
                 {
-                    buzz.DCWriteErrorLine("Missing machine: " + machine.MachineDLL.Name);
+                    buzz.DCWriteErrorLine("Missing machine: " + libName);
                     var machineDLL = machine.MachineDLL;
                     machineDLL.IsMissing = true;
                     machineDLL.Name = libName;
@@ -153,7 +153,10 @@ namespace ReBuzz.MachineManagement
             machine.TrackCount = trackcount;
             machine.MachineDLL.ManagedDLL = managedMachineDLL;
 
-            ManagedMachines.Add(machine, managedMachineHost);
+            lock (ReBuzzCore.AudioLock)
+            {
+                ManagedMachines.Add(machine, managedMachineHost);
+            }
 
             machine.SetCommands();
 
@@ -268,8 +271,13 @@ namespace ReBuzz.MachineManagement
             machine.MachineDLL.SkinLEDPosition = ledPosition;
 
             // Add machine here so that it is visible when machine does callbacks
-            nativeMachines.Add(machine, nativeMachineHost);
-            buzz.SongCore.MachinesList.Add(machine);
+            lock (ReBuzzCore.AudioLock)
+            {
+                nativeMachines.Add(machine, nativeMachineHost);
+                buzz.SongCore.MachinesList.Add(machine);
+            }
+
+            uiMessage.UIGetEnvelopeInfos(machine);
 
             if (callInit)
             {
@@ -851,8 +859,8 @@ namespace ReBuzz.MachineManagement
                         return nativeMachines[machine].UIMessage.UISave(machine);
                     }
                 }
+                return null;
             }
-            return null;
         }
 
         internal void SetMachineData(MachineCore machine, byte[] value)
