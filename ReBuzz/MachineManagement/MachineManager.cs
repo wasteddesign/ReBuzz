@@ -233,7 +233,7 @@ namespace ReBuzz.MachineManagement
             var audioMessage = nativeMachineHost.AudioMessage;
 
             // Send wavetable info before new?
-            //audioMessage.AudioBeginBlock(machine, buzz.Song.Wavetable as WavetableCore);
+            audioMessage.AudioBeginBlock(machine, buzz.Song.Wavetable as WavetableCore);
 
             uiMessage.SendMessageBuzzInitSync(Buzz.MainWindowHandle, machine.MachineDLL.Is64Bit);
             uiMessage.UIDSPInitSync(ReBuzzCore.masterInfo.SamplesPerSec);
