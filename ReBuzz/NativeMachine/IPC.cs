@@ -100,7 +100,11 @@ namespace ReBuzz.NativeMachine
         HostSetTempo,
         HostSetTPB,
         HostSetSongPosition,
-        HostPlay
+        HostPlay,
+        HostGetConnection,
+        HostGetConnectionSource,
+        HostGetConnectionDestination,
+        HostGetConnectionCount
     };
 
     public enum MIDIMessages
