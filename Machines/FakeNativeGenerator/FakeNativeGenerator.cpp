@@ -7,7 +7,7 @@
 #include <cmath>
 #include <iterator>
 
-constexpr CMachineParameter sampleValueLeftMultiplier = 
+constexpr CMachineParameter sampleValueLeftIntegral = 
 { 
   pt_word,                    // type
   "SampleValueLeftIntegral",  // name
@@ -31,7 +31,7 @@ constexpr CMachineParameter sampleValueLeftDivisor =
   0                         // Default value
 };
 
-constexpr CMachineParameter sampleValueRightMultiplier = 
+constexpr CMachineParameter sampleValueRightIntegral = 
 { 
   pt_word,                    // type
   "SampleValueRightIntegral", // name
@@ -57,9 +57,9 @@ constexpr CMachineParameter sampleValueRightDivisor =
 
 static CMachineParameter const* pParameters[] = { 
   // global
-  &sampleValueLeftMultiplier,
+  &sampleValueLeftIntegral,
   &sampleValueLeftDivisor,
-  &sampleValueRightMultiplier,
+  &sampleValueRightIntegral,
   &sampleValueRightDivisor,
 };
 
@@ -68,9 +68,9 @@ static CMachineParameter const* pParameters[] = {
 class gvals
 {
 public:
-  word sampleValueLeftMultiplier;
+  word sampleValueLeftIntegral;
   word sampleValueLeftDivisor;
-  word sampleValueRightMultiplier;
+  word sampleValueRightIntegral;
   word sampleValueRightDivisor;
 };
 
@@ -117,9 +117,9 @@ bool mi::WorkMonoToStereo(float* pin, float* pout, const int numsamples, int con
   for (auto i = 0 ; i < numsamples * 2 ; i+=2)
   {
     pout[i] = 
-      static_cast<float>(gval.sampleValueLeftMultiplier)/static_cast<float>(gval.sampleValueLeftDivisor);
+      static_cast<float>(gval.sampleValueLeftIntegral)/static_cast<float>(gval.sampleValueLeftDivisor);
     pout[i+1] = 
-      static_cast<float>(gval.sampleValueRightMultiplier)/static_cast<float>(gval.sampleValueRightDivisor);
+      static_cast<float>(gval.sampleValueRightIntegral)/static_cast<float>(gval.sampleValueRightDivisor);
   }
 
   return true;
