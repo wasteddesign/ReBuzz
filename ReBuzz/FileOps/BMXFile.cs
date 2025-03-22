@@ -496,9 +496,10 @@ namespace ReBuzz.FileOps
                 }
             }
 
+            bool useMultithreading = Global.GeneralSettings.MultithreadSongLoading;
             // Native control machines need to have all machines "visible" before calling init
-            InitMachines(dictInitData.Where(kv => !kv.Key.DLL.Info.Flags.HasFlag(MachineInfoFlags.CONTROL_MACHINE)), true);
-            InitMachines(dictInitData.Where(kv => kv.Key.DLL.Info.Flags.HasFlag(MachineInfoFlags.CONTROL_MACHINE)), true);
+            InitMachines(dictInitData.Where(kv => !kv.Key.DLL.Info.Flags.HasFlag(MachineInfoFlags.CONTROL_MACHINE)), useMultithreading);
+            InitMachines(dictInitData.Where(kv => kv.Key.DLL.Info.Flags.HasFlag(MachineInfoFlags.CONTROL_MACHINE)), useMultithreading);
         }
 
         internal void InitMachines(IEnumerable<KeyValuePair<MachineCore, MachineInitData>> dictInitData, bool multiThread)

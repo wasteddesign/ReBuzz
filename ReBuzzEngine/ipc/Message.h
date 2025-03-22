@@ -104,7 +104,11 @@ enum HostMessages
 	HostSetTempo,
 	HostSetTPB,
 	HostSetSongPosition,
-	HostPlay
+	HostPlay,
+	HostGetConnection,
+	HostGetConnectionSource,
+	HostGetConnectionDestination,
+	HostGetConnectionCount
 };
 
 enum MIDIMessages

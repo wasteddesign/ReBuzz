@@ -10,6 +10,9 @@ namespace ReBuzz.Core
 {
     internal class MachineConnectionCore : IMachineConnection
     {
+        private static IntPtr connectionHandleCounter = 100;
+
+        public IntPtr CMachineConnection { get; private set; }
         public IMachine Source { get; set; }
         public IMachine Destination { get; set; }
 
@@ -165,6 +168,8 @@ namespace ReBuzz.Core
         public MachineConnectionCore(IUiDispatcher dispatcher)
         {
             interpolatorAmp.Value = amp;
+
+            CMachineConnection = connectionHandleCounter++;
             this.dispatcher = dispatcher;
         }
 

@@ -448,8 +448,8 @@ CSequence *CMICallbacks::GetPlayingSequence(CMachine *pmac)
 	DoCallback(m, reply);
 
 	IPC::MessageReader r(reply);
-	DWORD seq = r.ReadDWORD();
-	return (CSequence*)seq;
+	CSequence* seq = (CSequence*)r.ReadPtr();
+	return seq;
 }
 
 void *CMICallbacks::GetPlayingRow(CSequence *pseq, int group, int track)
@@ -470,7 +470,6 @@ void CMICallbacks::SetMachineInterfaceEx(CMachineInterfaceEx *pex)
 	m.Write(pmcb->pMachine->pHostMac);
 	IPC::Message reply;
 	DoCallback(m, reply);
-
 }
 
 int CMICallbacks::GetStateFlags()
@@ -1453,25 +1452,79 @@ bool CMICallbacks::IsValidAsciiChar(CMachine *pmac, int param, char ch)
 int CMICallbacks::GetConnectionCount(CMachine *pmac, bool output)
 {
 	MICB2(pmac, output);
-	return 0;
+
+	if (pmac == NULL)
+		return NULL;
+
+	IPC::Message m(IPC::HostGetConnectionCount);
+	m.Write(pmac->pHostMac);
+	m.Write(output);
+	IPC::Message reply;
+	DoCallback(m, reply);
+
+	IPC::MessageReader r(reply);
+	return r.ReadDWORD();;
 }
 
 CMachineConnection *CMICallbacks::GetConnection(CMachine *pmac, bool output, int index)
 {
 	MICB3(pmac, output, index);
-	return NULL;
+
+	if (pmac == NULL)
+		return NULL;
+
+	IPC::Message m(IPC::HostGetConnection);
+	m.Write(pmac->pHostMac);
+	m.Write(output);
+	m.Write(index);
+	IPC::Message reply;
+	DoCallback(m, reply);
+
+	IPC::MessageReader r(reply);
+	CMachineConnection* conn = (CMachineConnection*)r.ReadPtr();
+	return conn;
 }
 
 CMachine *CMICallbacks::GetConnectionSource(CMachineConnection *pmc, int &channel)
 {
 	MICB2(pmc, channel);
-	return NULL;
+
+	if (pmc == NULL)
+		return NULL;
+
+	IPC::Message m(IPC::HostGetConnectionSource);
+	m.WritePtr(pmc);
+	m.Write(channel);
+	IPC::Message reply;
+	DoCallback(m, reply);
+
+	IPC::MessageReader r(reply);
+	string name = r.ReadString();
+	if (name.size() == 0)
+		return NULL;
+	else
+		return GetMachine(name.c_str());
 }
 
 CMachine *CMICallbacks::GetConnectionDestination(CMachineConnection *pmc, int &channel)
 {
 	MICB2(pmc, channel);
-	return NULL;
+
+	if (pmc == NULL)
+		return NULL;
+
+	IPC::Message m(IPC::HostGetConnectionDestination);
+	m.WritePtr(pmc);
+	m.WritePtr(channel);
+	IPC::Message reply;
+	DoCallback(m, reply);
+
+	IPC::MessageReader r(reply);
+	string name = r.ReadString();
+	if (name.size() == 0)
+		return NULL;
+	else
+		return GetMachine(name.c_str());
 }
 
 int CMICallbacks::GetTotalLatency()

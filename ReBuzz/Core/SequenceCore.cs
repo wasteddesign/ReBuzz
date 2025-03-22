@@ -9,7 +9,7 @@ namespace ReBuzz.Core
 {
     internal class SequenceCore : ISequence
     {
-        private static int sequenceHandleCounter = 100;
+        private static IntPtr sequenceHandleCounter = 100;
 
         internal MachineCore MachineCore { get; private set; }
         public IMachine Machine { get => MachineCore; }
@@ -78,7 +78,7 @@ namespace ReBuzz.Core
         public SequenceCore(MachineCore mc)
         {
             MachineCore = mc;
-            CSequence = new IntPtr(sequenceHandleCounter++);
+            CSequence = sequenceHandleCounter++;
             EventsList = new OrderedDictionary<int, SequenceEvent>();
         }
 
