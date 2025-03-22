@@ -11,7 +11,7 @@ namespace ReBuzzTests.Automation.TestMachinesControllers
         public static FakeNativeGeneratorController NewInstance(string instrumentName = MachineName) =>
             new(instrumentName);
 
-        public static FakeNativeGeneratorInfo Info => new();
+        public static ITestMachineInfo Info => FakeNativeGeneratorInfo.Instance;
 
         public ITestMachineInstanceCommand SetStereoSampleValueTo(
             Sample sample, int sampleValueLeftDivisor = 1, int sampleValueRightDivisor = 1)

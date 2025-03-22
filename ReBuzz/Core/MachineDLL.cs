@@ -39,7 +39,15 @@ namespace ReBuzz.Core
         bool isCrashed = false;
 
         // ToDo: IsCrashed should be moved to Machine.
-        public bool IsCrashed { get => isCrashed; set { isCrashed = value; PropertyChanged.Raise(this, "IsCrashed"); } }
+        public bool IsCrashed
+        {
+            get => isCrashed;
+            set
+            {
+                isCrashed = value;
+                PropertyChanged.Raise(this, "IsCrashed");
+            }
+        }
 
         public bool IsOutOfProcess { get; set; }
 

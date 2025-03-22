@@ -12,7 +12,7 @@ constexpr CMachineParameter sampleValueLeftIntegral =
   pt_word,                    // type
   "SampleValueLeftIntegral",  // name
   "SampleValueLeftIntegral",	// description
-  -10000,                     // MinValue	
+  -100,                       // MinValue	
   100,                        // MaxValue
   100+1,                      // NoValue
   0,                          // Flags
@@ -24,7 +24,7 @@ constexpr CMachineParameter sampleValueLeftDivisor =
   pt_word,									// type
   "SampleValueLeftDivisor", // name
   "SampleValueLeftDivisor",	// description
-  -10000,										// MinValue	
+  -100,  										// MinValue	
   100,											// MaxValue
   100+1,										// NoValue
   0,												// Flags
@@ -36,7 +36,7 @@ constexpr CMachineParameter sampleValueRightIntegral =
   pt_word,                    // type
   "SampleValueRightIntegral", // name
   "SampleValueRightIntegral",	// description
-  -10000,                     // MinValue	
+  -100,                       // MinValue	
   100,                        // MaxValue
   100+1,                      // NoValue
   0,                          // Flags
@@ -48,14 +48,14 @@ constexpr CMachineParameter sampleValueRightDivisor =
   pt_word,                    // type
   "SampleValueRightDivisor",  // name
   "SampleValueRightDivisor",  // description
-  -10000,                     // MinValue	
+  -100,                       // MinValue	
   100,                        // MaxValue
   100+1,                      // NoValue
   0,                          // Flags
   0                           // Default value
 };
 
-static CMachineParameter const *pParameters[] = { 
+static CMachineParameter const* pParameters[] = { 
   // global
   &sampleValueLeftIntegral,
   &sampleValueLeftDivisor,
@@ -72,10 +72,6 @@ public:
   word sampleValueLeftDivisor;
   word sampleValueRightIntegral;
   word sampleValueRightDivisor;
-};
-
-class tvals
-{
 };
 
 #pragma pack()
@@ -95,18 +91,15 @@ CMachineInfo const                                                              
   "FakeNativeGenerator",
   "FakeNativeGen",					// short name
   "WDE", 						        // author
-  nullptr                   //"Command1\nCommand2\nCommand3"
+  nullptr,                  //"Command1\nCommand2\nCommand3"
+  nullptr
 };
 
 class mi : public CMachineInterface
 {
 public:
   mi();
-  ~mi() override;
-
-  void Init(CMachineDataInput * const pi) override;
-  void Tick() override;
-  bool WorkMonoToStereo(float *pin, float *pout, int numsamples, int const mode) override;
+  bool WorkMonoToStereo(float* pin, float* pout, int numsamples, int const mode) override;
 
 private:
   gvals gval;
@@ -119,20 +112,9 @@ mi::mi()
   GlobalVals = &gval;
 }
 
-mi::~mi() = default;
-
-void mi::Init(CMachineDataInput * const pi)
+bool mi::WorkMonoToStereo(float* pin, float* pout, const int numsamples, int const mode)
 {
-}
-
-void mi::Tick()
-{
-
-}
-
-bool mi::WorkMonoToStereo(float *pin, float *pout, const int numsamples, int const mode)
-{
-  for (auto i = 0 ; i < numsamples*2 ; i+=2)
+  for (auto i = 0 ; i < numsamples * 2 ; i+=2)
   {
     pout[i] = 
       static_cast<float>(gval.sampleValueLeftIntegral)/static_cast<float>(gval.sampleValueLeftDivisor);
