@@ -33,6 +33,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Machines\FakeNativeEffect\FakeNativeEffect.vcxproj" >
+	    <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+	    <OutputItemType>Content</OutputItemType>
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	    <Private>true</Private>
+    </ProjectReference>
     <ProjectReference Include="..\Machines\FakeNativeGenerator\FakeNativeGenerator.vcxproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <OutputItemType>Content</OutputItemType>
