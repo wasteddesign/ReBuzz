@@ -6,61 +6,36 @@
 #include <cstdlib>
 #include <cmath>
 #include <iterator>
+#include <string>
 
 constexpr CMachineParameter sampleValueLeftMultiplier = 
 { 
-  pt_word,                    // type
-  "SampleValueLeftIntegral",  // name
-  "SampleValueLeftIntegral",	// description
-  -100,                       // MinValue	
-  100,                        // MaxValue
-  100+1,                      // NoValue
-  0,                          // Flags
-  0                           // Default value
-};
-
-constexpr CMachineParameter sampleValueLeftDivisor = 
-{ 
-  pt_word,									// type
-  "SampleValueLeftDivisor", // name
-  "SampleValueLeftDivisor",	// description
-  -100,  										// MinValue	
-  100,											// MaxValue
-  100+1,										// NoValue
-  0,												// Flags
-  0                         // Default value
+  pt_word,                      // type
+  "SampleValueLeftMultiplier",  // name
+  "SampleValueLeftMultiplier",	// description
+  -100,                         // MinValue	
+  100,                          // MaxValue
+  100+1,                        // NoValue
+  0,                            // Flags
+  0                             // Default value
 };
 
 constexpr CMachineParameter sampleValueRightMultiplier = 
 { 
-  pt_word,                    // type
-  "SampleValueRightIntegral", // name
-  "SampleValueRightIntegral",	// description
-  -100,                       // MinValue	
-  100,                        // MaxValue
-  100+1,                      // NoValue
-  0,                          // Flags
-  0                           // Default value
-};
-
-constexpr CMachineParameter sampleValueRightDivisor = 
-{ 
-  pt_word,                    // type
-  "SampleValueRightDivisor",  // name
-  "SampleValueRightDivisor",  // description
-  -100,                       // MinValue	
-  100,                        // MaxValue
-  100+1,                      // NoValue
-  0,                          // Flags
-  0                           // Default value
+  pt_word,                      // type
+  "SampleValueRightMultiplier", // name
+  "SampleValueRightMultiplier",	// description
+  -100,                         // MinValue	
+  100,                          // MaxValue
+  100+1,                        // NoValue
+  0,                            // Flags
+  0                             // Default value
 };
 
 static CMachineParameter const* pParameters[] = { 
   // global
   &sampleValueLeftMultiplier,
-  &sampleValueLeftDivisor,
   &sampleValueRightMultiplier,
-  &sampleValueRightDivisor,
 };
 
 #pragma pack(1)
@@ -69,18 +44,16 @@ class gvals
 {
 public:
   word sampleValueLeftMultiplier;
-  word sampleValueLeftDivisor;
   word sampleValueRightMultiplier;
-  word sampleValueRightDivisor;
 };
 
 #pragma pack()
 
 CMachineInfo const                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   MacInfo = 
 {
-  MT_GENERATOR,							// type
+  MT_EFFECT,  							// type
   MI_VERSION,               // version
-  MIF_DOES_INPUT_MIXING,		// flags
+  MIF_STEREO_EFFECT,		    // flags
   0,										    // min tracks
   0,										    // max tracks
   std::size(pParameters),		// numGlobalParameters
@@ -88,10 +61,10 @@ CMachineInfo const                                                              
   pParameters,
   0,
   nullptr,
-  "FakeNativeGenerator",
-  "FakeNativeGen",					// short name
+  "FakeNativeEffect",
+  "FakeNativeEffect",					// short name
   "WDE", 						        // author
-  nullptr,                  //"Command1\nCommand2\nCommand3"
+  nullptr,                   //"Command1\nCommand2\nCommand3"
   nullptr
 };
 
@@ -99,7 +72,7 @@ class mi : public CMachineInterface
 {
 public:
   mi();
-  bool WorkMonoToStereo(float* pin, float* pout, int numsamples, int const mode) override;
+  bool Work(float* psamples, int numsamples, const int mode) override;
 
 private:
   gvals gval;
@@ -112,14 +85,12 @@ mi::mi()
   GlobalVals = &gval;
 }
 
-bool mi::WorkMonoToStereo(float* pin, float* pout, const int numsamples, int const mode)
+bool mi:: Work(float* psamples, int numsamples, const int mode)
 {
-  for (auto i = 0 ; i < numsamples * 2 ; i+=2)
+  for (auto i = 0 ; i < numsamples*2 ; i+=2)
   {
-    pout[i] = 
-      static_cast<float>(gval.sampleValueLeftMultiplier)/static_cast<float>(gval.sampleValueLeftDivisor);
-    pout[i+1] = 
-      static_cast<float>(gval.sampleValueRightMultiplier)/static_cast<float>(gval.sampleValueRightDivisor);
+    psamples[i] = psamples[i] * gval.sampleValueLeftMultiplier;
+    psamples[i + 1] = psamples[i + 1] * gval.sampleValueRightMultiplier;
   }
 
   return true;

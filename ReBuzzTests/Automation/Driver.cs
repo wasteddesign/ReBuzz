@@ -421,9 +421,14 @@ namespace ReBuzzTests.Automation
             AddDynamicMachineToGear(info, GearEffectsDir);
         }
 
-        public void AddPrecompiledGeneratorToGear(FakeNativeGeneratorInfo info)
+        public void AddPrecompiledGeneratorToGear(ITestMachineInfo info)
         {
             addMachineActions.Add((scanner, reBuzz) => scanner.AddPrecompiledMachine(reBuzz, info, GearGeneratorsDir));
+        }
+
+        public void AddPrecompiledEffectToGear(ITestMachineInfo info)
+        {
+            addMachineActions.Add((scanner, reBuzz) => scanner.AddPrecompiledMachine(reBuzz, info, GearEffectsDir));
         }
 
         public TestReadBuffer ReadStereoSamples(int count)

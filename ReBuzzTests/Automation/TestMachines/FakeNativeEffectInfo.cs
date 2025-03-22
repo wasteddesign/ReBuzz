@@ -4,15 +4,15 @@ using ReBuzz.Core;
 
 namespace ReBuzzTests.Automation.TestMachines
 {
-    public class FakeNativeGeneratorInfo : ITestMachineInfo
+    public class FakeNativeEffectInfo : ITestMachineInfo
     {
-        public static ITestMachineInfo Instance { get; } = new FakeNativeGeneratorInfo();
+        public static FakeNativeEffectInfo Instance { get; } = new();
 
         MachineDLL ITestMachineInfo.GetMachineDll(ReBuzzCore buzz, AbsoluteFilePath location)
         {
             return new MachineDLL
             {
-                Name = "FakeNativeGenerator",
+                Name = "FakeNativeEffect",
                 Buzz = buzz,
                 Path = location.ToString(),
                 Is64Bit = true,
@@ -29,13 +29,13 @@ namespace ReBuzzTests.Automation.TestMachines
                     InternalVersion = 0,
                     MaxTracks = 1,
                     MinTracks = 1,
-                    Name = "FakeNativeGenerator",
-                    ShortName = "FakeNativeGen",
-                    Type = MachineType.Generator,
+                    Name = "FakeNativeEffect",
+                    ShortName = "FakeNativeEffect",
+                    Type = MachineType.Effect,
                     Version = 66
                 },
                 Presets = null,
-                SHA1Hash = "258A3DE5BA33E71D69271E36557EA8E4E582298E",
+                SHA1Hash = "258A3DE5BA33E71D69271E36557EA8E4E582298F",
                 GUIFactoryDecl =
                     new MachineGUIFactoryDecl
                     {
@@ -47,6 +47,6 @@ namespace ReBuzzTests.Automation.TestMachines
             };
         }
 
-        public string DllName => "FakeNativeGenerator.dll";
+        public string DllName => "FakeNativeEffect.dll";
     }
 }
