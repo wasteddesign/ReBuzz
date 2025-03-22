@@ -111,7 +111,8 @@ Jagger - rnnoise-windows
 Marc Jacobi - VST.net
             
 Joachip, unz, IX, retrofox, snowglobe,
-fbev, mantratronic, okp, mute, MarCNeT, Grzegorz Gałęzowski...
+fbev, mantratronic, okp, mute, MarCNeT,
+Grzegorz Gałęzowski, zeffii...
 For improvements, testing, support, problem
 solving and late night brainstorming
 
