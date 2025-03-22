@@ -980,8 +980,8 @@ namespace BuzzGUI.WaveformControl
             {
                 if (Waveform != null)
                 {
-                    double frac = (PlayCursor.Offset / ExtentWidth);
-                    return string.Format("CURSOR: {0} (samples) | {0:X4} (hex%)", PlayCursor.OffsetSamples, (int)(frac * 0xFFFE));
+                    double frac = ((double)PlayCursor.OffsetSamples / Waveform.SampleCount);
+                    return string.Format("CURSOR: {0}/{1} (samples) | {2:X4} (hex%)", PlayCursor.OffsetSamples, Waveform.SampleCount, (int)(frac * 0xFFFE));
                 }
                 else
                 {
