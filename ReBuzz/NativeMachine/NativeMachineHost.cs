@@ -7,6 +7,7 @@ using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Threading;
 using BuzzGUI.Interfaces;
+using System.Runtime.InteropServices;
 
 namespace ReBuzz.NativeMachine
 {
@@ -53,7 +54,6 @@ namespace ReBuzz.NativeMachine
             accessor = mappedFile.CreateViewAccessor();
 
             HostMessage = new HostMessage(ChannelType.HostChannel, accessor, this);
-            HostMessage.MessageEvent += HostMessage_MessageEvent;
             UIMessage = new UIMessage(ChannelType.UIChannel, accessor, this, dispatcher);
             AudioMessage = new AudioMessage(ChannelType.AudioChannel, accessor, this);
             MidiMessage = new MidiMessage(ChannelType.MidiChannel, accessor, this);
@@ -83,6 +83,9 @@ namespace ReBuzz.NativeMachine
             childProcess = Process.Start(processInfo);
             childProcess.PriorityClass = ProcessAndThreadProfile.ProcessPriorityClassNativeHostProcess;
             childProcess.EnableRaisingEvents = true;
+
+            childProcess.WaitForInputIdle(); // Wait for the process to be ready for input
+            IsConnected = true;
 
             childProcess.Exited += (sender, e) =>
             {
@@ -119,32 +122,8 @@ namespace ReBuzz.NativeMachine
             // Track child processes and close them is main app crashes/closes
             ChildProcessTracker.AddProcess(childProcess);
 
-            while (true)
-            {
-                if (IsConnected)
-                {
-                    UIMessage.SendMessageBuzzInitSync(buzz.MainWindowHandle, host64);
-                    UIMessage.UIDSPInitSync(ReBuzzCore.masterInfo.SamplesPerSec);
-                    break;
-                }
-
-                Thread.Sleep(10);
-            }
-        }
-
-        private void HostMessage_MessageEvent(object sender, EventArgs e)
-        {
-            IsConnected = true;
-            HostMessage.MessageEvent -= HostMessage_MessageEvent;
-
-            // Use async no to block host listener thread
-            //Application.Current.Dispatcher.BeginInvoke((Action)(() =>
-            ThreadPool.QueueUserWorkItem(delegate
-            {
-                //Connected?.BeginInvoke(this, EventArgs.Empty, null, null);
-                Connected?.Invoke(this, EventArgs.Empty);
-            });
-            //));
+            UIMessage.SendMessageBuzzInitSync(buzz.MainWindowHandle, host64);
+            UIMessage.UIDSPInitSync(ReBuzzCore.masterInfo.SamplesPerSec);
         }
 
         public void Dispose()
@@ -167,8 +146,6 @@ namespace ReBuzz.NativeMachine
                 mappedFile.Dispose();
                 IsConnected = false;
             }
-
-            HostMessage.MessageEvent -= HostMessage_MessageEvent;
         }
     }
 }

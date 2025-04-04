@@ -42,7 +42,7 @@ namespace ReBuzz.MachineManagement
         internal bool WorkMachine(int nSamples)
         {
             bool isActive = false;
-            DateTime dtStart = DateTime.Now;
+            DateTime dtStart = DateTime.UtcNow;
             Machine.EngineThreadId = Thread.CurrentThread.ManagedThreadId;
 
             foreach (var tracks in Machine.setMachineTrackCountList)
@@ -76,7 +76,7 @@ namespace ReBuzz.MachineManagement
                     isActive = WorkMachineNative(nSamples);
                 }
             }
-            DateTime dtEnd = DateTime.Now;
+            DateTime dtEnd = DateTime.UtcNow;
             long timeDelta = dtEnd.Ticks - dtStart.Ticks;
             Machine.PerformanceDataCurrent.PerformanceCount += timeDelta;
             Machine.PerformanceDataCurrent.CycleCount += timeDelta;
@@ -118,7 +118,7 @@ namespace ReBuzz.MachineManagement
             }
 
             // If machine wants to do input mixing, first call Input for all inputs
-            if (flags.HasFlag(MachineInfoFlags.DOES_INPUT_MIXING))
+            if ((flags & MachineInfoFlags.DOES_INPUT_MIXING) == MachineInfoFlags.DOES_INPUT_MIXING)
             {
                 Sample[] samples;
 
@@ -130,7 +130,7 @@ namespace ReBuzz.MachineManagement
                 }
             }
 
-            if (flags.HasFlag(MachineInfoFlags.MULTI_IO))
+            if ((flags & MachineInfoFlags.MULTI_IO) == MachineInfoFlags.MULTI_IO)
             {
                 if (Machine.OutputChannelCount >= MAX_MULTI_IO_CHANNELS || Machine.InputChannelCount >= MAX_MULTI_IO_CHANNELS)
                     return false;
@@ -164,7 +164,7 @@ namespace ReBuzz.MachineManagement
                 }
 
             }
-            else if (flags.HasFlag(MachineInfoFlags.MONO_TO_STEREO) || (flags.HasFlag(MachineInfoFlags.DOES_INPUT_MIXING) && !flags.HasFlag(MachineInfoFlags.STEREO_EFFECT)
+            else if ((flags & MachineInfoFlags.MONO_TO_STEREO) == MachineInfoFlags.MONO_TO_STEREO || ((flags & MachineInfoFlags.DOES_INPUT_MIXING) == MachineInfoFlags.DOES_INPUT_MIXING && !((flags & MachineInfoFlags.STEREO_EFFECT) == MachineInfoFlags.STEREO_EFFECT)
                     && Machine.DLL.Info.Version > MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_12))
             {
                 // Most? old machines have mono_to_stereo if they implement DOES_INPUT_MIXING
@@ -185,7 +185,7 @@ namespace ReBuzz.MachineManagement
                     (output as MachineConnectionCore).DoTap(samples, true, buzz.GetSongTime());
                 }
             }
-            else if (flags.HasFlag(MachineInfoFlags.STEREO_EFFECT) /* || Machine.DLL.Info.Version >= 42 */)
+            else if ((flags & MachineInfoFlags.STEREO_EFFECT) == MachineInfoFlags.STEREO_EFFECT /* || Machine.DLL.Info.Version >= 42 */)
             {
                 Sample[] samples = Machine.GetStereoSamples(nSamples);
 
@@ -236,7 +236,7 @@ namespace ReBuzz.MachineManagement
             var machineHost = manageMachineHost;
             var flags = Machine.DLL.Info.Flags;
             var type = Machine.DLL.Info.Type;
-            if (flags.HasFlag(MachineInfoFlags.MULTI_IO))
+            if ((flags & MachineInfoFlags.MULTI_IO) == MachineInfoFlags.MULTI_IO)
             {
                 if (Machine.OutputChannelCount >= MAX_MULTI_IO_CHANNELS || Machine.InputChannelCount >= MAX_MULTI_IO_CHANNELS)
                     return false;

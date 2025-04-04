@@ -4,7 +4,6 @@ using BuzzGUI.Interfaces;
 using ReBuzz.Common;
 using System;
 using System.ComponentModel;
-using System.Windows;
 
 namespace ReBuzz.Core
 {
@@ -116,28 +115,8 @@ namespace ReBuzz.Core
 
                 dispatcher.BeginInvoke(() =>
                 {
-                    if (Tap != null)
-                    {
-                        Tap.Invoke(samples, stereo, songTime);
-                    }
+                    Tap?.Invoke(samples, stereo, songTime);
                 });
-            }
-        }
-
-        public void DoTap(int numSamples, SongTime songTime)
-        {
-            if (Tap != null)
-            {
-                float[] samples = new float[numSamples * 2];
-                int j = 0;
-                for (int i = 0; i < numSamples; i++)
-                {
-                    samples[j] = buffer[i].L;
-                    j++;
-                    samples[j] = buffer[i].R;
-                    j++;
-                }
-                Tap.Invoke(samples, HasPan, songTime);
             }
         }
 

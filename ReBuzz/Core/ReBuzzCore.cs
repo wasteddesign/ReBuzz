@@ -650,7 +650,7 @@ namespace ReBuzz.Core
             this.userMessages = userMessages;
 
             // Init process and thread priorities
-            ProcessAndThreadProfile.Profile2();
+            ProcessAndThreadProfile.SetProfile(engineSettings.PriorityProfile);
 
             DefaultPatternEditor = "Modern Pattern Editor";
 
@@ -1873,7 +1873,7 @@ namespace ReBuzz.Core
         private readonly EngineSettings engineSettings;
         private readonly string buzzPath;
         private readonly IMachineDLLScanner machineDllScanner;
-        private readonly IUiDispatcher dispatcher;
+        internal readonly IUiDispatcher dispatcher;
         private readonly IRegistryEx registryEx;
         private readonly IFileNameChoice fileNameToLoadChoice;
         private readonly IFileNameChoice fileNameToSaveChoice;

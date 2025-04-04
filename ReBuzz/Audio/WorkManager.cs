@@ -71,9 +71,10 @@ namespace ReBuzz.Audio
         // Avoid new object creation to minimize GC.
         public int ThreadRead(float[] buffer, int offset, int count)
         {
+
             lock (ReBuzzCore.AudioLock)
             {
-                long time = DateTime.Now.Ticks;
+                long time = DateTime.UtcNow.Ticks;
 
                 multiThreadingEnabled = engineSettings.Multithreading;
 
@@ -204,7 +205,7 @@ namespace ReBuzz.Audio
                     }
                 }
 
-                buzzCore.PerformanceCurrent.EnginePerformanceCount += (DateTime.Now.Ticks - time);
+                buzzCore.PerformanceCurrent.EnginePerformanceCount += (DateTime.UtcNow.Ticks - time);
 
                 return count;
             }
@@ -235,7 +236,7 @@ namespace ReBuzz.Audio
             int noRecord = 1 << 16;
             foreach (var machine in buzzCore.SongCore.MachinesList.Where(m => !m.DLL.IsManaged && m.Ready))
             {
-                if (ReBuzzCore.masterInfo.PosInTick == 0 || (engineSettings.SubTickTiming && ReBuzzCore.subTickInfo.PosInSubTick == 0 && machine.DLL.Info.Version >= MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_42))
+                if (!machine.sendControlChangesFlag && (ReBuzzCore.masterInfo.PosInTick == 0 || (engineSettings.SubTickTiming && ReBuzzCore.subTickInfo.PosInSubTick == 0 && machine.DLL.Info.Version >= MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_42)))
                 {
                     foreach (var p in machine.ParameterGroups[0].Parameters)
                     {

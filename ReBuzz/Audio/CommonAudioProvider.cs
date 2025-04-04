@@ -16,8 +16,7 @@ namespace ReBuzz.Audio
         private readonly IBuzz buzz;
 
         WorkThreadEngine workEngine;
-        readonly ManualResetEvent fillBufferEvent = new ManualResetEvent(false);
-
+        
         bool stopped;
         private readonly float[] threadBuffer;
         private readonly float[][] threadBufferChannel;
@@ -210,26 +209,18 @@ namespace ReBuzz.Audio
                     fillBufferNeed = threadBuffer.Length - threadBufferFillLevel;
                 }
             }
-            if (!stopped && threadType != EAudioThreadType.None)
-            {
-                // Continue filling the buffer in BufferFillThread
-                fillBufferEvent.Set();
-            }
             return count;
         }
 
         public void Stop()
         {
             stopped = true;             // Stop audio thread
-            lock (bufferLock)
-            {
-                fillBufferEvent.Set();      // Stop waiting for request to fill buffer
-            }
 
             workManager.Stop();
             if (workEngine != null)
             {
                 workEngine.Stop();
+                workEngine.AllDoneEvent().WaitOne();
                 workEngine = null;
             }
 
