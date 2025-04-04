@@ -752,7 +752,7 @@ namespace WDE.ModernPatternEditor
                     if (!selection.Active)
                         selection = Selection.Start(pattern.CursorPosition).SetEnd(pattern.CursorPosition);
 
-                    DoAction(new CutOrCopyPatternEventsAction(Editor.MPEPatternsDB.GetMPEPattern(pattern.Pattern), selection, Editor.clipboard, true));
+                    DoAction(new CutOrCopyPatternEventsAction(Editor.MPEPatternsDB.GetMPEPattern(pattern.Pattern), selection, PatternEditor.clipboard, true));
                 }
             };
 
@@ -764,7 +764,7 @@ namespace WDE.ModernPatternEditor
                     Selection selection = pattern.Selection;
                     if (!selection.Active)
                         selection = Selection.Start(pattern.CursorPosition).SetEnd(pattern.CursorPosition);
-                    DoAction(new CutOrCopyPatternEventsAction(Editor.MPEPatternsDB.GetMPEPattern(pattern.Pattern), selection, Editor.clipboard, false));
+                    DoAction(new CutOrCopyPatternEventsAction(Editor.MPEPatternsDB.GetMPEPattern(pattern.Pattern), selection, PatternEditor.clipboard, false));
                 }
             };
 
@@ -776,7 +776,7 @@ namespace WDE.ModernPatternEditor
                     Selection selection = pattern.Selection;
                     if (!selection.Active)
                         selection = Selection.Start(pattern.CursorPosition).SetEnd(pattern.CursorPosition);
-                    DoAction(new PastePatternEventsAction(Editor.MPEPatternsDB.GetMPEPattern(pattern.Pattern), selection, Editor.clipboard));
+                    DoAction(new PastePatternEventsAction(Editor.MPEPatternsDB.GetMPEPattern(pattern.Pattern), selection, PatternEditor.clipboard));
                 }
             };
 

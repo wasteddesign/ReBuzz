@@ -29,7 +29,7 @@ namespace WDE.ModernPatternEditor
         ISong song;
 
         internal MPEPatternDatabase MPEPatternsDB;
-        internal PatternClipboard clipboard = new PatternClipboard();
+        internal static PatternClipboard clipboard = new PatternClipboard();
         internal PlayRecordManager playRecordManager;
         internal ChordsWindow chordsWindow;
 
@@ -1189,7 +1189,7 @@ namespace WDE.ModernPatternEditor
             // This limits the amount of messages.
             if (songTime.PosInTick == 0)
             {
-                foreach( var pattern in changedPatternsSinceLastTick.Keys.ToList())
+                foreach( var pattern in changedPatternsSinceLastTick.Keys)
                 {
                     pattern.NotifyPatternChanged();
                     changedPatternsSinceLastTick.TryRemove(pattern, out bool result);

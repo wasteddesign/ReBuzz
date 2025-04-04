@@ -7,7 +7,7 @@ namespace WDE.ModernPatternEditor.Actions
     public class PastePatternEventsAction : PatternAction
     {
         Selection r;
-        PatternClipboard clipboard;
+        PatternClipboard oldClipboard;
         PatternClipboard oldEvents = new PatternClipboard();
         MPEPattern mPEPattern;
 
@@ -15,18 +15,18 @@ namespace WDE.ModernPatternEditor.Actions
             : base(pattern.Pattern)
         {
             this.mPEPattern = pattern;
-            this.r = Selection.Start(r.Bounds.Item1).SetEnd(r.Bounds.Item2);
-            this.clipboard = clipboard;
+            this.r = r;
+            this.oldClipboard = new PatternClipboard(Pattern, clipboard);
         }
 
         protected override void DoAction()
         {
-            if (!clipboard.ContainsData) return;
+            if (!oldClipboard.ContainsData) return;
 
             Selection copyRange = CreatePasteSelection(); // Create copy range bease on clipboard rect
 
             oldEvents.Copy(mPEPattern, copyRange); // Save old events from 
-            clipboard.Paste(mPEPattern, copyRange);
+            oldClipboard.Paste(mPEPattern, copyRange);
         }
 
         protected override void UndoAction()
@@ -40,13 +40,13 @@ namespace WDE.ModernPatternEditor.Actions
             //int rpb = r.Bounds.Item1.PatternVM.DefaultRPB;
             Digit rangeStart = r.Bounds.Item1.Offset(0, 0);
             Digit rangeEnd = rangeStart;//.SetColumn(rangeStart.Column + clipboard.NumColumns);
-            for (int i = 0; i < clipboard.NumColumns; i++)
+            for (int i = 0; i < oldClipboard.NumColumns; i++)
             {
                 rangeEnd = rangeEnd.RightColumn;
             }
 
             int startTime = rangeStart.ParameterColumn.GetDigitTime(rangeStart);// rangeStart.Beat * (rpb * PatternEvent.TimeBase) + rangeStart.TimeInBeat;
-            int endTime = startTime + clipboard.RegionLenght;
+            int endTime = startTime + oldClipboard.RegionLenght;
             int targetBeat = (endTime - 1) / (PatternControl.BUZZ_TICKS_PER_BEAT * PatternEvent.TimeBase);
             int timeInBeat = (endTime - 1) % (PatternControl.BUZZ_TICKS_PER_BEAT * PatternEvent.TimeBase);
             rangeEnd = rangeEnd.SetBeat(targetBeat);

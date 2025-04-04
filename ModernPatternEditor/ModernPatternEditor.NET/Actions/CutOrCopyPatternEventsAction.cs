@@ -6,7 +6,6 @@ namespace WDE.ModernPatternEditor.Actions
     public class CutOrCopyPatternEventsAction : PatternAction
     {
         Selection r;
-        PatternClipboard clipboard;
         PatternClipboard oldClipboard = new PatternClipboard();
         PatternClipboard oldEvents = new PatternClipboard();
         bool cut;
@@ -18,30 +17,30 @@ namespace WDE.ModernPatternEditor.Actions
             this.mPEPattern = pattern;
             this.r = r;
 
-            this.clipboard = clipboard;
             this.cut = cut;
-        }
 
-        protected override void DoAction()
-        {
+            // Copy pattern data to shared clipboard
+            clipboard.Copy(mPEPattern, r);
+
             oldClipboard.Clone(Pattern, clipboard);
 
             if (cut)
             {
                 oldEvents.Copy(mPEPattern, r);
-                clipboard.Cut(mPEPattern, r);
             }
-            else
+        }
+
+        protected override void DoAction()
+        {
+            if (cut)
             {
-                clipboard.Copy(mPEPattern, r);
+                oldClipboard.Cut(mPEPattern, r);
             }
         }
 
         protected override void UndoAction()
         {
             if (cut) oldEvents.Paste(mPEPattern, r);
-            clipboard.Clone(Pattern, oldClipboard);
         }
-
     }
 }

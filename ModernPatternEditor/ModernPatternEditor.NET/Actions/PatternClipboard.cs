@@ -1,6 +1,5 @@
 ﻿using BuzzGUI.Interfaces;
 using WDE.ModernPatternEditor.MPEStructures;
-//using Wintellect.PowerCollections;
 
 namespace WDE.ModernPatternEditor.Actions
 {
@@ -31,7 +30,7 @@ namespace WDE.ModernPatternEditor.Actions
         {
             if (c.columnBeatData != null)
             {
-                columnBeatData = new Dictionary<int, OrderedDictionary<int, int>>(); //new List<MPEPatternColumnBeatRef>(c.columnBeatData.Count);
+                columnBeatData = new Dictionary<int, OrderedDictionary<int, int>>();
                 foreach (var key in c.columnBeatData.Keys)
                 {
                     OrderedDictionary<int, int> dict = new OrderedDictionary<int, int>();
@@ -43,7 +42,7 @@ namespace WDE.ModernPatternEditor.Actions
             if (c.eventData != null)
             {
                 eventData = new Dictionary<int, List<PatternEvent>>();
-                foreach (var key in eventData.Keys)
+                foreach (var key in c.eventData.Keys)
                 {
                     List<PatternEvent> edata = new List<PatternEvent>();
                     foreach (var e in c.eventData[key])
@@ -80,7 +79,6 @@ namespace WDE.ModernPatternEditor.Actions
             Digit topLeftDigit = r.Bounds.Item1;
             int topTime = topLeftDigit.ParameterColumn.GetDigitTime(topLeftDigit);
             Digit columnIterator = topLeftDigit;
-            //int columnNumber = pattern.Pattern.Columns.IndexOf(columnIterator.ParameterColumn.PatternColumn);
 
             foreach (int columnNumber in eventData.Keys)
             {
