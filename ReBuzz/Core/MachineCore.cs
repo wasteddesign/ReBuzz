@@ -22,6 +22,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Threading;
 
 namespace ReBuzz.Core
 {
@@ -479,9 +480,15 @@ namespace ReBuzz.Core
                 CanExecuteDelegate = x => true,
                 ExecuteDelegate = x =>
                 {
-                    Task.Factory.StartNew(() =>
-                        (Graph.Buzz as ReBuzzCore).MachineManager.Command(this, (int)x)
-                    );
+                    // Wait a small amount of time to let context menu close. Use DispatcherTimer to ensure we are in UI thread.
+                    DispatcherTimer dt = new DispatcherTimer();
+                    dt.Interval = TimeSpan.FromMilliseconds(200);
+                    dt.Tick += (sender, e) =>
+                    {
+                        dt.Stop();
+                        (Graph.Buzz as ReBuzzCore).MachineManager.Command(this, (int)x);
+                    };
+                    dt.Start();
                 }
             };
             this.dispatcher = dispatcher;
