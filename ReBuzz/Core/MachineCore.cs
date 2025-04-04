@@ -479,7 +479,9 @@ namespace ReBuzz.Core
                 CanExecuteDelegate = x => true,
                 ExecuteDelegate = x =>
                 {
-                    (Graph.Buzz as ReBuzzCore).MachineManager.Command(this, (int)x);
+                    Task.Factory.StartNew(() =>
+                        (Graph.Buzz as ReBuzzCore).MachineManager.Command(this, (int)x)
+                    );
                 }
             };
             this.dispatcher = dispatcher;
