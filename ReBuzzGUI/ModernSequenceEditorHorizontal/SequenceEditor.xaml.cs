@@ -300,13 +300,14 @@ namespace WDE.ModernSequenceEditorHorizontal
             trackStack.Width = w;
             markerCanvas.Width = w;
             bgMarkerCanvas.Width = w;
-            //fgMarkerCanvas.Height = h;
+            fgMarkerCanvas.Width = w;
 
             UpdateBackgroundMarkers();
 
             selectionLayer.UpdateVisual();
 
             timeLineElement.InvalidateVisual();
+
         }
 
         void UpdateBackgroundMarkers()
@@ -1409,7 +1410,7 @@ namespace WDE.ModernSequenceEditorHorizontal
                 markerSV.Width = mw;
                 
                 //markerSV.Margin = new Thickness(0, 0, 0, 0);
-                markerCanvas.Width = mw;
+                //markerCanvas.Width = mw;
 
                 UpdateBackgroundMarkers();
 
@@ -1512,6 +1513,11 @@ namespace WDE.ModernSequenceEditorHorizontal
             patternListBox.MouseLeave += (sender, e) =>
             {
                 patternWnd.Hide();
+            };
+
+            trackSV.Loaded += (sender, e) =>
+            {
+                UpdateBackgroundMarkers();
             };
         }
 

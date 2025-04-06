@@ -1539,6 +1539,11 @@ namespace WDE.ModernSequenceEditor
             {
                 patternWnd.Hide();
             };
+
+            trackSV.Loaded += (sender, e) =>
+            {
+                UpdateBackgroundMarkers();
+            };
         }
 
         private void CbSteps_SelectionChanged(object sender, SelectionChangedEventArgs e)
