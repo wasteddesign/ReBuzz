@@ -1322,5 +1322,10 @@ namespace ReBuzz.Core
                 }
             }
         }
+
+        internal void AttributesChanged()
+        {
+            PropertyChanged.Raise(this, "Attributes");
+        }
     }
 }

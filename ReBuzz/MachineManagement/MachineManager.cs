@@ -1168,6 +1168,7 @@ namespace ReBuzz.MachineManagement
         {
             if (machine != null && nativeMachines.ContainsKey(machine) && machine.Ready)
             {
+                machine.AttributesChanged();
                 var host = nativeMachines[machine];
                 host.UIMessage.UIAttributesChanged(machine);
             }
