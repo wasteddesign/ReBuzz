@@ -104,7 +104,8 @@ namespace ReBuzz
             var generalSettings = Global.GeneralSettings;
             var engineSettings = Global.EngineSettings;
             var registryRoot = Global.RegistryRoot;
-            debugWindow = new DebugWindow(buzzPath);
+            debugWindow = DebugWindow.CreateAsync(buzzPath);
+
             DataContext = this;
 
             InitializeComponent();
@@ -123,6 +124,11 @@ namespace ReBuzz
 
             var reBuzzCoreInitialization = new ReBuzzCoreInitialization(Buzz, buzzPath, windowsGuiDispatcher, registryEx, new WindowsKeyboard());
             reBuzzCoreInitialization.StartReBuzzEngineStep1(Buzz_PropertyChanged);
+
+            if (Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                debugWindow.Show();
+            }
 
             BuzzGUIStartup.PreInit();
 
@@ -626,6 +632,8 @@ namespace ReBuzz
                     }
                     Buzz.Playing = false;
                     Buzz.Release();
+
+                    debugWindow.CloseWindow();
 
                     Environment.Exit(0);
                 }
