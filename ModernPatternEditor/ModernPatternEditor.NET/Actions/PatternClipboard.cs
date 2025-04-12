@@ -82,7 +82,8 @@ namespace WDE.ModernPatternEditor.Actions
 
             foreach (int columnNumber in eventData.Keys)
             {
-                var column = pattern.GetColumn(columnIterator.ParameterColumn.PatternColumn);
+                var patternColumn = columnIterator.ParameterColumn.PatternColumn;
+                var column = pattern.GetColumn(patternColumn);
                 var events = eventData[columnNumber];
                 column.ClearRegion(RegionLenght, topTime, columnIterator);
                 column.SetEvents(events.ToArray(), topTime, true);
@@ -92,7 +93,7 @@ namespace WDE.ModernPatternEditor.Actions
                 foreach (int beatRows in columnBeatData[columnNumber].Values)
                 {
                     // Set rows in beat
-                    pattern.Columns[columnNumber].SetBeatSubdivision(beatIterator.Beat, beatRows);
+                    patternColumn.SetBeatSubdivision(beatIterator.Beat, beatRows);
                     if (beatIterator.IsLastBeat)
                         break;
                     beatIterator = beatIterator.NextBeat;
