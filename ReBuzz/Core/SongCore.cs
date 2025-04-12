@@ -101,13 +101,16 @@ namespace ReBuzz.Core
             get { return loopStart; }
             set
             {
-                loopStart = value;
-                ReBuzzCore.GlobalState.LoopStart = value;
-                if (PlayPosition < loopStart)
+                lock (ReBuzzCore.AudioLock)
                 {
-                    PlayPosition = loopStart;
+                    loopStart = value;
+                    ReBuzzCore.GlobalState.LoopStart = value;
+                    if (PlayPosition < loopStart)
+                    {
+                        PlayPosition = loopStart;
+                    }
+                    PropertyChanged.Raise(this, "LoopStart");
                 }
-                PropertyChanged.Raise(this, "LoopStart");
             }
         }
 
@@ -117,17 +120,20 @@ namespace ReBuzz.Core
             get { return loopEnd; }
             set
             {
-                loopEnd = value;
-                ReBuzzCore.GlobalState.LoopEnd = value;
-                if (PlayPosition >= loopEnd)
+                lock (ReBuzzCore.AudioLock)
                 {
-                    PlayPosition = LoopStart;
+                    loopEnd = value;
+                    ReBuzzCore.GlobalState.LoopEnd = value;
+                    if (PlayPosition >= loopEnd)
+                    {
+                        PlayPosition = LoopStart;
+                    }
+                    if (SongEnd < loopEnd)
+                    {
+                        SongEnd = loopEnd;
+                    }
+                    PropertyChanged.Raise(this, "LoopEnd");
                 }
-                if (SongEnd < loopEnd)
-                {
-                    SongEnd = loopEnd;
-                }
-                PropertyChanged.Raise(this, "LoopEnd");
             }
         }
 
@@ -137,13 +143,16 @@ namespace ReBuzz.Core
             get { return songEnd; }
             set
             {
-                songEnd = value;
-                ReBuzzCore.GlobalState.SongEnd = value;
-                if (PlayPosition >= songEnd)
+                lock (ReBuzzCore.AudioLock)
                 {
-                    PlayPosition = LoopStart;
+                    songEnd = value;
+                    ReBuzzCore.GlobalState.SongEnd = value;
+                    if (PlayPosition >= songEnd)
+                    {
+                        PlayPosition = LoopStart;
+                    }
+                    PropertyChanged.Raise(this, "SongEnd");
                 }
-                PropertyChanged.Raise(this, "SongEnd");
             }
         }
 

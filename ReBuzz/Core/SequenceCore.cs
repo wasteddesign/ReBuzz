@@ -90,96 +90,108 @@ namespace ReBuzz.Core
 
         public void Clear(int time, int span)
         {
-            OrderedDictionary<int, SequenceEvent> od = new OrderedDictionary<int, SequenceEvent>();
-            foreach (var eventTime in Events.Keys.ToArray())
+            lock (ReBuzzCore.AudioLock)
             {
-                if (eventTime < time || eventTime >= time + span)
+                OrderedDictionary<int, SequenceEvent> od = new OrderedDictionary<int, SequenceEvent>();
+                foreach (var eventTime in Events.Keys.ToArray())
                 {
-                    od.Add(eventTime, Events[eventTime]);
+                    if (eventTime < time || eventTime >= time + span)
+                    {
+                        od.Add(eventTime, Events[eventTime]);
+                    }
                 }
+
+                EventsList = od;
+                UpdateSpans();
+                PropertyChanged.Raise(this, "Events");
+                SpanCleared.Invoke(time, span);
+
+                (Global.Buzz as ReBuzzCore).SetModifiedFlag();
             }
-
-            EventsList = od;
-            UpdateSpans();
-            PropertyChanged.Raise(this, "Events");
-            SpanCleared.Invoke(time, span);
-
-            (Global.Buzz as ReBuzzCore).SetModifiedFlag();
         }
 
         public void Delete(int time, int span)
         {
-            OrderedDictionary<int, SequenceEvent> od = new OrderedDictionary<int, SequenceEvent>();
-            foreach (var eventTime in Events.Keys.ToArray())
+            lock (ReBuzzCore.AudioLock)
             {
-                var e = Events[eventTime];
-                if (eventTime >= time && eventTime < time + span)
+                OrderedDictionary<int, SequenceEvent> od = new OrderedDictionary<int, SequenceEvent>();
+                foreach (var eventTime in Events.Keys.ToArray())
                 {
-                    // Don't add events to updated sequence if between time and span (delete)
+                    var e = Events[eventTime];
+                    if (eventTime >= time && eventTime < time + span)
+                    {
+                        // Don't add events to updated sequence if between time and span (delete)
+                    }
+                    else if (eventTime >= time + span)
+                    {
+                        od.Add(eventTime - span, e);
+                    }
+                    else
+                    {
+                        od.Add(eventTime, e);
+                    }
                 }
-                else if (eventTime >= time + span)
-                {
-                    od.Add(eventTime - span, e);
-                }
-                else
-                {
-                    od.Add(eventTime, e);
-                }
-            }
 
-            EventsList = od;
-            UpdateSpans();
-            SpanDeleted?.Invoke(time, span);
-            PropertyChanged.Raise(this, "Events");
-            (Global.Buzz as ReBuzzCore).SetModifiedFlag();
+                EventsList = od;
+                UpdateSpans();
+                SpanDeleted?.Invoke(time, span);
+                PropertyChanged.Raise(this, "Events");
+                (Global.Buzz as ReBuzzCore).SetModifiedFlag();
+            }
         }
 
         public void Insert(int time, int span)
         {
-            OrderedDictionary<int, SequenceEvent> od = new OrderedDictionary<int, SequenceEvent>();
-            foreach (var eventTime in Events.Keys.ToArray())
+            lock (ReBuzzCore.AudioLock)
             {
-                var e = Events[eventTime];
-                if (eventTime >= time)
+                OrderedDictionary<int, SequenceEvent> od = new OrderedDictionary<int, SequenceEvent>();
+                foreach (var eventTime in Events.Keys.ToArray())
                 {
-                    od.Add(eventTime + span, e);
+                    var e = Events[eventTime];
+                    if (eventTime >= time)
+                    {
+                        od.Add(eventTime + span, e);
+                    }
+                    else
+                    {
+                        od.Add(eventTime, e);
+                    }
                 }
-                else
-                {
-                    od.Add(eventTime, e);
-                }
-            }
 
-            EventsList = od;
-            UpdateSpans();
-            SpanInserted?.Invoke(time, span);
-            PropertyChanged.Raise(this, "Events");
-            (Global.Buzz as ReBuzzCore).SetModifiedFlag();
+                EventsList = od;
+                UpdateSpans();
+                SpanInserted?.Invoke(time, span);
+                PropertyChanged.Raise(this, "Events");
+                (Global.Buzz as ReBuzzCore).SetModifiedFlag();
+            }
         }
 
         public void SetEvent(int time, SequenceEvent e)
         {
-            if (e == null)
+            lock (ReBuzzCore.AudioLock)
             {
-                if (Events.ContainsKey(time))
+                if (e == null)
                 {
-                    EventsList.Remove(time);
+                    if (Events.ContainsKey(time))
+                    {
+                        EventsList.Remove(time);
+                        UpdateSpans();
+                        PropertyChanged.Raise(this, "Events");
+                        EventChanged?.Invoke(time);
+                    }
+                }
+                else
+                {
+                    if (e.Type == SequenceEventType.PlayPattern && e.Pattern != null)
+                        e.Span = e.Pattern.Length;
+
+                    this.EventsList[time] = e;
                     UpdateSpans();
                     PropertyChanged.Raise(this, "Events");
                     EventChanged?.Invoke(time);
                 }
-            }
-            else
-            {
-                if (e.Type == SequenceEventType.PlayPattern && e.Pattern != null)
-                    e.Span = e.Pattern.Length;
-
-                this.EventsList[time] = e;
-                UpdateSpans();
-                PropertyChanged.Raise(this, "Events");
-                EventChanged?.Invoke(time);
-            }
             (Global.Buzz as ReBuzzCore).SetModifiedFlag();
+            }
         }
 
         void UpdateSpans()
