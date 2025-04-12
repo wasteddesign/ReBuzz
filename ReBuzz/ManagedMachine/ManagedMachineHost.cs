@@ -738,11 +738,15 @@ namespace ReBuzz.ManagedMachine
                 {
                     var track = paramTrack.Value;
                     int index = par.Group.Type == ParameterGroupType.Global ? par.IndexInGroup : par.IndexInGroup + machine.ParameterGroups[1].Parameters.Count;
-                    SetParameterValue(index, track, par.GetValue(track));
+                    var val = par.GetValue(track);
+
+                    // Properties need to stay within min/max
+                    if (val >= par.MinValue && val <= par.MaxValue)
+                    {
+                        SetParameterValue(index, track, par.GetValue(track));
+                    }
                 }
             }
-
-            //machine.parametersChanged.Clear();
         }
 
         internal void SetParameterDefaults(MachineCore mc)
