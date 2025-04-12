@@ -97,28 +97,17 @@ namespace ReBuzz
                     {
                         editorMachine = previous;
                     }
-                    /*
-                    if (editorMachine.IsManaged)
-                    {
-                        machineBoxLabel.Visibility = Visibility.Collapsed;
-                        machineBox.Visibility = Visibility.Collapsed;
-                        patternBoxLabel.Visibility = Visibility.Collapsed;
-                        patternBox.Visibility = Visibility.Collapsed;
-                    }
-                    else
-                    {
-                        machineBoxLabel.Visibility = Visibility.Visible;
-                        machineBox.Visibility = Visibility.Visible;
-                        patternBoxLabel.Visibility = Visibility.Visible;
-                        patternBox.Visibility = Visibility.Visible;
-                    }
-                    */
 
                     Dispatcher.InvokeAsync(() =>
                     {
                         PropertyChanged.Raise(this, "EditorMachine");
                     });
                 }
+                // Force layout redo to fix pattern editor redraw issue
+                //if (ReBuzz.ActiveView != BuzzView.PatternView)
+                //{
+                    editorBorder?.Child?.InvalidateMeasure();
+                //}
             }
         }
         SequenceEditor sequenceEditor;
