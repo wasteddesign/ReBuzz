@@ -51,6 +51,7 @@ namespace ReBuzz.Core.Actions.GraphActions
         public ReplaceMachineAction(ReBuzzCore buzz, IMachine m, string machine, string instrument, float x, float y, IUiDispatcher dispatcher)
         {
             this.dispatcher = dispatcher;
+            this.buzz = buzz;
             var newMachine = buzz.MachineDLLs[machine];
             if (newMachine.Name == m.DLL.Name && instrument != null)
             {
