@@ -2,6 +2,7 @@
 using BuzzGUI.Common;
 using BuzzGUI.Common.InterfaceExtensions;
 using BuzzGUI.Interfaces;
+using BuzzGUI.MachineView;
 using ReBuzz.Core;
 using ReBuzz.Core.Actions.GraphActions;
 using ReBuzz.MachineManagement;
@@ -453,7 +454,7 @@ namespace ReBuzz.FileOps
                     }
 
                     // Copy stuff from proto to real. ToDo: Clean this up;
-                    machineNew.AttributesList = machineProto.AttributesList;
+                    CopyAttributes(machineProto, machineNew);
 
                     if (machineNew.DLL.IsCrashed)
                     {
@@ -595,6 +596,20 @@ namespace ReBuzz.FileOps
             }
 
             machine.remappedLoadedMachineParameterIndexes = paramMappings;
+        }
+        internal static void CopyAttributes(MachineCore machineFrom, MachineCore machineTo)
+        {
+            var aFrom = machineFrom.AttributesList;
+            var aTo = machineTo.AttributesList;
+            for (int i = 0; i < aTo.Count; i++)
+            {
+                var ma = aTo[i];
+                var at = i < aFrom.Count() ? aFrom[i] : null;
+                if (at != null)
+                {
+                    ma.Value = at.Value;
+                }
+            }
         }
 
         internal static void CopyParameters(MachineCore machineFrom, MachineCore machineTo, int group, int track)
