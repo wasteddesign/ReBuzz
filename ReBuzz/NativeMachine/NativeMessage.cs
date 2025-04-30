@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Windows;
 
 namespace ReBuzz.NativeMachine
 {
@@ -429,14 +430,18 @@ namespace ReBuzz.NativeMachine
                             var machine = channelListener.buzz.GetMachineFromHostID(hostId);
                             if (machine != null)
                             {
-                                if (n == 2)
+                                // Ensure these are called from UI thread
+                                Application.Current.Dispatcher.BeginInvoke(() =>
                                 {
-                                    machine.HasStereoOutput = true;
-                                }
-                                else
-                                {
-                                    machine.HasStereoOutput = false;
-                                }
+                                    if (n == 2)
+                                    {
+                                        machine.HasStereoOutput = true;
+                                    }
+                                    else
+                                    {
+                                        machine.HasStereoOutput = false;
+                                    }
+                                });
                             }
                         }
                         break;
@@ -450,7 +455,11 @@ namespace ReBuzz.NativeMachine
                             var machine = channelListener.buzz.GetMachineFromHostID(hostId);
                             if (machine != null)
                             {
-                                machine.InputChannelCount = count;
+                                // Ensure these are called from UI thread
+                                Application.Current.Dispatcher.BeginInvoke( () =>
+                                {
+                                    machine.InputChannelCount = count;
+                                });
                             }
                         }
                         break;
@@ -465,7 +474,11 @@ namespace ReBuzz.NativeMachine
 
                             if (machine != null)
                             {
-                                machine.OutputChannelCount = count;
+                                // Ensure these are called from UI thread
+                                Application.Current.Dispatcher.BeginInvoke(() =>
+                                {
+                                    machine.OutputChannelCount = count;
+                                });
                             }
                         }
                         break;
@@ -501,7 +514,7 @@ namespace ReBuzz.NativeMachine
                         }
                         break;
                     case HostMessages.HostSetEventHandler:
-                        {
+                        {   
                             long hostMachineId = GetMessageData<long>();
                             var machine = ChannelListener.buzz.GetMachineFromHostID(hostMachineId);
                             // TODO: Can machine register to other machine events?
