@@ -25,6 +25,7 @@
 	<CETCompat>false</CETCompat>
 	<IntermediateOutputPath>$(SolutionDir)build\$(Configuration)\$(Platform)\ReBuzz\obj</IntermediateOutputPath>
 	<OutputPath>$(SolutionDir)bin\$(Configuration)\$(Platform)</OutputPath>
+	<EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
   </PropertyGroup>
   
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -156,6 +157,9 @@
     </Reference>
     <Reference Include="NAudio.WinMM">
       <HintPath>..\3rdParty\NAudio\NAudio.WinMM.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.Serialization.Formatters">
+      <HintPath>..\3rdParty\System.Runtime.Serialization.Formatters.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
