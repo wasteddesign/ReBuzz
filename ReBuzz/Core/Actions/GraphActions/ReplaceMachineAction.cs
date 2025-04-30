@@ -30,7 +30,7 @@ namespace ReBuzz.Core.Actions.GraphActions
                 var instInfo = MachineDB.DictLibRef[id];
                 var MachineDll = MachineDLLs[instInfo.libName];
 
-                if (MachineDll.Name == m.DLL.Name && instInfo.InstrumentName != null)
+                if (MachineDll.Name == m.DLL.Name && instInfo.InstrumentName != null && instInfo.InstrumentName != "")
                 {
                     this.swapInstrument = true;
                     this.newInstrument = instInfo.InstrumentName;
@@ -53,7 +53,7 @@ namespace ReBuzz.Core.Actions.GraphActions
             this.dispatcher = dispatcher;
             this.buzz = buzz;
             var newMachine = buzz.MachineDLLs[machine];
-            if (newMachine.Name == m.DLL.Name && instrument != null)
+            if (newMachine.Name == m.DLL.Name && instrument != null && instrument != "")
             {
                 this.swapInstrument = true;
                 this.newInstrument = instrument;
