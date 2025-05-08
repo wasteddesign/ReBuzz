@@ -497,7 +497,7 @@ namespace ReBuzz.FileOps
                 }
             }
 
-            bool useMultithreading = Global.GeneralSettings.MultithreadSongLoading;
+            bool useMultithreading = false;// Global.GeneralSettings.MultithreadSongLoading;
             // Native control machines need to have all machines "visible" before calling init
             InitMachines(dictInitData.Where(kv => !kv.Key.DLL.Info.Flags.HasFlag(MachineInfoFlags.CONTROL_MACHINE)), useMultithreading);
             InitMachines(dictInitData.Where(kv => kv.Key.DLL.Info.Flags.HasFlag(MachineInfoFlags.CONTROL_MACHINE)), useMultithreading);
@@ -2306,7 +2306,7 @@ namespace ReBuzz.FileOps
         {
             byte[] buffer = new byte[sizeof(int)];
 
-            fs.Read(buffer, 0, sizeof(int));
+            fs.ReadExactly(buffer);
             return BitConverter.ToInt32(buffer, 0);
         }
 
@@ -2314,7 +2314,7 @@ namespace ReBuzz.FileOps
         {
             byte[] buffer = new byte[sizeof(int)];
 
-            fs.Read(buffer, 0, sizeof(int));
+            fs.ReadExactly(buffer);
             return BitConverter.ToUInt32(buffer, 0);
         }
 
@@ -2322,7 +2322,7 @@ namespace ReBuzz.FileOps
         {
             byte[] buffer = new byte[sizeof(ushort)];
 
-            fs.Read(buffer, 0, sizeof(ushort));
+            fs.ReadExactly(buffer);
             return BitConverter.ToUInt16(buffer, 0);
         }
 
@@ -2330,7 +2330,7 @@ namespace ReBuzz.FileOps
         {
             byte[] buffer = new byte[sizeof(float)];
 
-            fs.Read(buffer, 0, sizeof(float));
+            fs.ReadExactly(buffer);
             return BitConverter.ToSingle(buffer, 0);
         }
 
@@ -2338,7 +2338,7 @@ namespace ReBuzz.FileOps
         {
             byte[] buffer = new byte[sizeof(byte)];
 
-            fs.Read(buffer, 0, sizeof(byte));
+            fs.ReadExactly(buffer);
             return buffer[0];
         }
 
@@ -2346,7 +2346,7 @@ namespace ReBuzz.FileOps
         {
             byte[] buffer = new byte[sizeof(ulong)];
 
-            fs.Read(buffer, 0, sizeof(ulong));
+            fs.ReadExactly(buffer);
             return BitConverter.ToUInt64(buffer, 0);
         }
 
@@ -2392,7 +2392,7 @@ namespace ReBuzz.FileOps
         {
             byte[] buffer = new byte[length];
 
-            fs.Read(buffer, 0, length);
+            fs.ReadExactly(buffer);
             return buffer;
         }
 

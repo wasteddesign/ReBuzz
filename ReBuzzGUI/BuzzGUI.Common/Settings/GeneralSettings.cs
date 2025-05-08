@@ -25,7 +25,7 @@
         [BuzzSetting(SongLoadWaitTime.Seconds_30, Description = "Maximum time to wait a song to load. If the song is not loaded within this time user can choose further actions.")]
         public SongLoadWaitTime SongLoadWait { get; set; }
 
-        [BuzzSetting(true, Description = "Use multiple threads to initialize machines when loading a song.")]
-        public bool MultithreadSongLoading { get; set; }
+        //[BuzzSetting(true, Description = "Use multiple threads to initialize machines when loading a song.")]
+        //public bool MultithreadSongLoading { get; set; }
     }
 }
