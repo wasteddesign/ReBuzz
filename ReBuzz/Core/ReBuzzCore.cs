@@ -1314,7 +1314,7 @@ namespace ReBuzz.Core
             }
 
             // Some UI components require MIDIInput.Invoke to be called from UI thread (Midi Keyboard)
-            dispatcher.BeginInvoke(new Action(() =>
+            dispatcher.Invoke(new Action(() =>
             {
                 MIDIActivity = true;
                 MIDIInput?.Invoke(data);
