@@ -1022,6 +1022,7 @@ namespace ReBuzz.Core
                 if (fileName.HasValue)
                 {
                     OpenSongFile(fileName.Value());
+                    BuzzCommandRaised?.Invoke(cmd);
                 }
             }
             else if (cmd == BuzzCommand.SaveFile)
