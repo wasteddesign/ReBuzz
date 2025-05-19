@@ -24,6 +24,26 @@ namespace ReBuzz.Core.Actions.GraphActions
                 MachineInfoRef machineData = new MachineInfoRef(machine);
                 deleteMachineDatas.Add(machineData);
                 SaveConnections(machine, machineData);
+
+                // Save sequences
+                int index = 0;
+                foreach (var seq in buzz.SongCore.Sequences.Where(s => s.Machine == machine))
+                {
+                    var events = seq.Events;
+                    index = buzz.SongCore.Sequences.IndexOf(seq);
+                    machineData.AddSequence(index, events);
+                    index++;
+                }
+
+                // Save pattern colors
+                foreach (var pattern in BuzzGUI.SequenceEditor.SequenceEditor.ViewSettings.PatternAssociations.Keys.Where(pa => pa.Machine == machine))
+                {
+                    if (BuzzGUI.SequenceEditor.SequenceEditor.ViewSettings.PatternAssociations.TryGetValue(pattern, out var pex))
+                    {
+                        // Save pattern color
+                        machineData.patternAssociations.Add(pattern.Name, pex.ColorIndex);
+                    }
+                }
             }
 
         }
@@ -66,26 +86,12 @@ namespace ReBuzz.Core.Actions.GraphActions
                     var machine = buzz.SongCore.MachinesList.FirstOrDefault(x => x.Name == machineData.Name);
                     if (machine != null)
                     {
-                        var sequences = machineData.sequences;
-                        sequences.Clear();
 
-                        // Save sequences
-                        int index = 0;
-                        foreach (var seq in buzz.SongCore.Sequences.Where(s => s.Machine == machine))
-                        {
-                            var events = seq.Events;
-                            index = buzz.SongCore.Sequences.IndexOf(seq);
-                            machineData.AddSequence(index, events);
-                            index++;
-                        }
-
-                        // Save pattern colors
+                        // Remove pattern colors
                         foreach (var pattern in BuzzGUI.SequenceEditor.SequenceEditor.ViewSettings.PatternAssociations.Keys.Where(pa => pa.Machine == machine))
                         {
                             if (BuzzGUI.SequenceEditor.SequenceEditor.ViewSettings.PatternAssociations.TryGetValue(pattern, out var pex))
                             {
-                                // Save pattern color
-                                machineData.patternAssociations.Add(pattern.Name, pex.ColorIndex);
                                 // remove from dictionary
                                 BuzzGUI.SequenceEditor.SequenceEditor.ViewSettings.PatternAssociations.Remove(pattern);
                             }
