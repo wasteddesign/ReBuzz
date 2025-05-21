@@ -67,14 +67,14 @@ namespace ReBuzzTests.Automation
             return machineDllsByName[name];
         }
 
-        public void AddMachineDllsToDictionary(ReBuzzCore buzz, XMLMachineDLL[] xmlMachineDLLs, Dictionary<string, MachineDLL> md)
+        public void AddMachineDllsToDictionary(ReBuzzCore buzz, XMLMachineDLL[] xmlMachineDlls, Dictionary<string, MachineDLL> md)
         {
-            Execute.Assertion.FailWith("Not called anywhere yet in the current tests");
+            AssertionChain.GetOrCreate().FailWith("Not called anywhere yet in the current tests");
         }
 
         public XMLMachineDLL ValidateDll(ReBuzzCore buzz, string libName, string path, string buzzPath)
         {
-            Execute.Assertion.FailWith("Not called anywhere yet in the current tests");
+            AssertionChain.GetOrCreate().FailWith("Not called anywhere yet in the current tests");
             return null!;
         }
     }

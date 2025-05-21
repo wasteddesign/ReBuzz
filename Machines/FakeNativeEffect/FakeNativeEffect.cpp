@@ -7,29 +7,57 @@
 #include <cmath>
 #include <iterator>
 #include <string>
+#include <filesystem>
+#include <__msvc_filebuf.hpp>
+
+std::filesystem::path GetDllFilePath()
+{
+    HMODULE hModule = nullptr;
+    char path[MAX_PATH];
+
+    // Use a variable inside the DLL to get its module handle
+    if (GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                          reinterpret_cast<LPCSTR>(&GetDllFilePath), &hModule))
+    {
+        if (GetModuleFileNameA(hModule, path, MAX_PATH) > 0)
+        {
+            return std::filesystem::path(std::string(path));
+        }
+    }
+    throw std::runtime_error("Could not get DLL Path");
+}
+
+static void AbortIfRequested()
+{
+  auto path = GetDllFilePath().parent_path() / "crash_fake_machine";
+  if (std::filesystem::exists(path))
+  {
+    std::abort();
+  }
+}
 
 constexpr CMachineParameter sampleValueLeftMultiplier = 
-{ 
-  pt_word,                      // type
-  "SampleValueLeftMultiplier",  // name
-  "SampleValueLeftMultiplier",	// description
-  -100,                         // MinValue	
-  100,                          // MaxValue
-  100+1,                        // NoValue
-  0,                            // Flags
-  0                             // Default value
+{
+  .Type = pt_word,                            // type
+  .Name = "SampleValueLeftMultiplier",        // name
+  .Description = "SampleValueLeftMultiplier",	// description
+  .MinValue = -100,                           // MinValue	
+  .MaxValue = 100,                            // MaxValue
+  .NoValue = 100+1,                           // NoValue
+  .Flags = 0,                                 // Flags
+  .DefValue = 0                               // Default value
 };
 
 constexpr CMachineParameter sampleValueRightMultiplier = 
-{ 
-  pt_word,                      // type
-  "SampleValueRightMultiplier", // name
-  "SampleValueRightMultiplier",	// description
-  -100,                         // MinValue	
-  100,                          // MaxValue
-  100+1,                        // NoValue
-  0,                            // Flags
-  0                             // Default value
+{
+  .Type = pt_word,                              // type
+  .Name = "SampleValueRightMultiplier",         // name
+  .Description = "SampleValueRightMultiplier",	// description
+  .MinValue = -100,                             // MinValue	
+  .MaxValue = 100,                              // MaxValue
+  .NoValue = 100+1,                             // NoValue
+  .Flags = 0,                                   // Flags
+  .DefValue = 0                                 // Default value
 };
 
 static CMachineParameter const* pParameters[] = { 
@@ -51,21 +79,21 @@ public:
 
 CMachineInfo const                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   MacInfo = 
 {
-  MT_EFFECT,  							// type
-  MI_VERSION,               // version
-  MIF_STEREO_EFFECT,		    // flags
-  0,										    // min tracks
-  0,										    // max tracks
-  std::size(pParameters),		// numGlobalParameters
-  0,										    // numTrackParameters
-  pParameters,
-  0,
-  nullptr,
-  "FakeNativeEffect",
-  "FakeNativeEffect",					// short name
-  "WDE", 						        // author
-  nullptr,                   //"Command1\nCommand2\nCommand3"
-  nullptr
+  .Type = MT_EFFECT,  							               // type
+  .Version = MI_VERSION,                           // version
+  .Flags = MIF_STEREO_EFFECT,		                   // flags
+  .minTracks = 0,										               // min tracks
+  .maxTracks = 0,										               // max tracks
+  .numGlobalParameters = std::size(pParameters),	 // numGlobalParameters
+  .numTrackParameters = 0,										     // numTrackParameters
+  .Parameters = pParameters,
+  .numAttributes = 0,
+  .Attributes = nullptr,
+  .Name = "FakeNativeEffect",
+  .ShortName = "FakeNativeEffect",	               // short name
+  .Author = "WDE", 						                     // author
+  .Commands = nullptr,                             //"Command1\nCommand2\nCommand3"
+  .pLI = nullptr
 };
 
 class mi : public CMachineInterface
@@ -82,11 +110,14 @@ DLL_EXPORTS
 
 mi::mi()
 {
+  _set_abort_behavior(0, _WRITE_ABORT_MSG);
+  AbortIfRequested();
   GlobalVals = &gval;
 }
 
 bool mi:: Work(float* psamples, int numsamples, const int mode)
 {
+  AbortIfRequested();
   for (auto i = 0 ; i < numsamples*2 ; i+=2)
   {
     psamples[i] = psamples[i] * gval.sampleValueLeftMultiplier;
@@ -95,3 +126,4 @@ bool mi:: Work(float* psamples, int numsamples, const int mode)
 
   return true;
 }
+

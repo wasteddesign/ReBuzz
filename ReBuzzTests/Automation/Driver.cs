@@ -112,17 +112,21 @@ namespace ReBuzzTests.Automation
         private Dictionary<string, MachineCore> addedGeneratorInstances = new();
         
         private ReBuzzCoreInitialization initialization;
+        private readonly AbsoluteFilePath crashEffectFilePath;
+        private readonly AbsoluteFilePath crashGeneratorFilePath;
 
         public Driver()
         {
             ResetGlobalState();
             fakeUserMessages = new FakeUserMessages();
             fakeMachineDllScanner = new FakeMachineDLLScanner(GearDir);
+            crashEffectFilePath = GearEffectsDir.AddFileName("crash_fake_machine");
+            crashGeneratorFilePath = GearGeneratorsDir.AddFileName("crash_fake_machine");
         }
 
         static Driver()
         {
-            AssertionOptions.FormattingOptions.MaxLines = 10000;
+            AssertionEngine.Configuration.Formatting.MaxLines = 10000;
 
             // Cleaning up on start because the machine dlls created in previous test run
             // were probably held locked by the previous test process which prevented deleting them.
@@ -449,6 +453,33 @@ namespace ReBuzzTests.Automation
             return new TestReadBuffer(result, buffer);
         }
 
+        public void AssertIsCrashed(DynamicMachineController controller)
+        {
+            SongCoreMachine(controller.InstanceName).DLL.IsCrashed.Should().BeTrue();
+            MachineManagerMachine(controller.InstanceName).MachineDLL
+                .IsCrashed.Should().BeTrue();
+        }
+
+        public void EnableEffectCrashing()
+        {
+            crashEffectFilePath.Create().Dispose();
+        }
+
+        public void DisableEffectCrashing()
+        {
+            crashEffectFilePath.Delete();
+        }
+
+        public void EnableGeneratorCrashing()
+        {
+            crashGeneratorFilePath.Create().Dispose();
+        }
+
+        public void DisableGeneratorCrashing()
+        {
+            crashGeneratorFilePath.Delete();
+        }
+
         /// <summary>
         /// Resets the global state before each test
         /// </summary>
@@ -498,6 +529,11 @@ namespace ReBuzzTests.Automation
         private MachineCore SongCoreMachine(string name)
         {
             return reBuzzCore.SongCore.MachinesList.Single(m => m.Name == name);
+        }
+
+        private MachineCore MachineManagerMachine(string instanceName)
+        {
+            return reBuzzCore.MachineManager.NativeMachines.Single(kvp => kvp.Key.Name == instanceName).Key;
         }
     }
 }
