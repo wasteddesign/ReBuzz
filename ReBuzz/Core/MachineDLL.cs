@@ -170,7 +170,7 @@ namespace ReBuzz.Core
             dll.IsManaged = IsManaged;
             dll.IsMissing = IsMissing;
             dll.IsOutOfProcess = IsOutOfProcess;
-            dll.MachineInfo = MachineInfo;
+            dll.MachineInfo = MachineInfo.Clone();
 
             dll.Name = Name;
             dll.Path = Path;
