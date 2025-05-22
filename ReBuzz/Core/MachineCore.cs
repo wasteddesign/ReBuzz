@@ -580,6 +580,14 @@ namespace ReBuzz.Core
             if (!Ready)
                 return;
 
+#if DEBUG
+            if (Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                this.MachineDLL.IsCrashed = true;
+                return;
+            }
+#endif
+
             if (!DLL.IsManaged)
             {
                 var me = CMachineEventType.FirstOrDefault(e => e.Type == BEventType.DoubleClickMachine);
