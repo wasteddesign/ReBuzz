@@ -1,0 +1,8 @@
+﻿<Window x:Class="EnvelopeBlock.SetValEditWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="StepEditWindow" Height="22" Width="42" ShowInTaskbar="False" WindowStyle="None" ResizeMode="NoResize">
+  <TextBox Name="textBox" MaxLength="5" MaxLines="1" TextAlignment="Right">
+    
+  </TextBox>
+</Window>
