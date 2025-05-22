@@ -1177,7 +1177,7 @@ namespace ReBuzz.FileOps
                 for (int i = 0; i < machineCount; i++)
                 {
                     string machineName = ReadString(fs);
-                    MachineCore machine = machines[i];
+                    MachineCore machine = machines.FirstOrDefault(m => m.Name == machineName) ;
 
                     int numberOfItems = ReadInt(fs);
 
