@@ -18,6 +18,9 @@ using ReBuzzTests.Automation.TestMachines;
 using System.Collections.Generic;
 using System.Linq;
 using ReBuzzTests.Automation.TestMachinesControllers;
+using Serilog;
+using Serilog.Events;
+using Serilog.Parsing;
 
 namespace ReBuzzTests.Automation
 {
@@ -47,6 +50,8 @@ namespace ReBuzzTests.Automation
         /// </summary>
         private static readonly AbsoluteDirectoryPath TestDataRootPath =
             AbsoluteDirectoryPath.Value(Path.GetTempPath()).AddDirectoryName("ReBuzzTestData");
+
+        private static readonly InMemorySink inMemorySink;
 
         /// <summary>
         /// ReBuzz root directory for the current test. Each test gets its own root directory.
@@ -131,6 +136,7 @@ namespace ReBuzzTests.Automation
             // Cleaning up on start because the machine dlls created in previous test run
             // were probably held locked by the previous test process which prevented deleting them.
             AttemptToCleanupTestRootDirs();
+            inMemorySink = new InMemorySink();
         }
 
         public void Start()
@@ -488,6 +494,10 @@ namespace ReBuzzTests.Automation
             ReBuzzCore.GlobalState = new BuzzGlobalState();
             ReBuzzCore.subTickInfo = new SubTickInfoExtended();
             ReBuzzCore.masterInfo = new MasterInfoExtended();
+            Log.Logger = new LoggerConfiguration()
+                .WriteTo.Sink(inMemorySink)
+                .MinimumLevel.Debug()
+                .CreateLogger();
         }
 
         private void CreateInstrument(IMachineDLL machineDll, string instanceName)
@@ -534,6 +544,23 @@ namespace ReBuzzTests.Automation
         private MachineCore MachineManagerMachine(string instanceName)
         {
             return reBuzzCore.MachineManager.NativeMachines.Single(kvp => kvp.Key.Name == instanceName).Key;
+        }
+
+        public void AssertMachineCrashWasLogged()
+        {
+            using (new AssertionScope())
+            {
+               inMemorySink.Entries.Should()
+                    .ContainEquivalentOf(
+                        new LogEvent(DateTimeOffset.MaxValue, LogEventLevel.Error,
+                            null, new MessageTemplate("Cannot access a disposed object.\r\nObject name: 'Microsoft.Win32.SafeHandles.SafeWaitHandle'.",
+                                [new TextToken("Cannot access a disposed object.\r\nObject name: 'Microsoft.Win32.SafeHandles.SafeWaitHandle'.")]), []),
+                        options => options.Excluding(e => e.Timestamp))
+                    .And.ContainEquivalentOf(
+                        new LogEvent(DateTimeOffset.MaxValue, LogEventLevel.Error, null,
+                            new MessageTemplate("Invalid pointer", [new TextToken("Invalid pointer")]), []),
+                        options => options.Excluding(e => e.Timestamp));
+            }
         }
     }
 }
