@@ -22,7 +22,7 @@
                 <ColumnDefinition Width="40"/>
                 <ColumnDefinition Width="40"/>
             </Grid.ColumnDefinitions>
-            <ToggleButton x:Name="tbAutoMidi" Content="Auto Assign"></ToggleButton>
+            
             <TextBlock Grid.Column="1" Text="Channel" HorizontalAlignment="Right" VerticalAlignment="Center"></TextBlock>
             <TextBox x:Name="tbChannel" Grid.Column="2" Text="0" HorizontalAlignment="Right" Width="30" MaxLength="2" MaxLines="1" TextAlignment="Right"></TextBox>
             <TextBlock Grid.Column="3" Text="CC" HorizontalAlignment="Right" VerticalAlignment="Center"></TextBlock>
