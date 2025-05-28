@@ -1022,7 +1022,7 @@ namespace WDE.ConnectionMixer
                     }
                     if (mcd.MIDIChannelP4 != -1)
                     {
-                        int data = MIDICreateOutputData(mcd, 0);
+                        int data = MIDICreateOutputData(mcd, 3);
                         buzz.SendMIDIOutput(deviceNumber, data);
                     }
                 }
