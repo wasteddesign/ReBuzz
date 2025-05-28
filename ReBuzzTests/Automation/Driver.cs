@@ -401,6 +401,7 @@ namespace ReBuzzTests.Automation
         public MachineCore InsertMachineInstanceFor(DynamicMachineController controller)
         {
             var machineDll = fakeMachineDllScanner.GetMachineDLL(controller.Name);
+            File.WriteAllText(machineDll.Path + ".txt", controller.InstanceName);
             CreateInstrument(machineDll, controller.InstanceName);
             var addedInstance = reBuzzCore.SongCore.MachinesList.Last();
             addedGeneratorInstances[controller.InstanceName] = addedInstance;
@@ -459,32 +460,29 @@ namespace ReBuzzTests.Automation
             return new TestReadBuffer(result, buffer);
         }
 
-        public void AssertIsCrashed(DynamicMachineController controller)
+        public void AssertMachineIsCrashed(DynamicMachineController controller)
         {
             SongCoreMachine(controller.InstanceName).DLL.IsCrashed.Should().BeTrue();
             MachineManagerMachine(controller.InstanceName).MachineDLL
                 .IsCrashed.Should().BeTrue();
         }
 
-        public void EnableEffectCrashing()
+        public void EnableEffectCrashing(DynamicMachineController crashingEffect)
         {
-            crashEffectFilePath.Create().Dispose();
+            MachineSpecificCrashFileName(crashingEffect).Create().Dispose();
         }
 
-        public void DisableEffectCrashing()
+        public void EnableGeneratorCrashingFor(DynamicMachineController crashingGenerator)
         {
-            crashEffectFilePath.Delete();
+            MachineSpecificCrashFileName(crashingGenerator).Create().Dispose();
         }
 
-        public void EnableGeneratorCrashing()
+        private AbsoluteFilePath MachineSpecificCrashFileName(DynamicMachineController crashingGenerator)
         {
-            crashGeneratorFilePath.Create().Dispose();
+            return crashGeneratorFilePath.ChangeFileNameTo(crashGeneratorFilePath.FileName()
+                .AppendBeforeExtension("_" + crashingGenerator.InstanceName));
         }
 
-        public void DisableGeneratorCrashing()
-        {
-            crashGeneratorFilePath.Delete();
-        }
 
         /// <summary>
         /// Resets the global state before each test
@@ -546,21 +544,40 @@ namespace ReBuzzTests.Automation
             return reBuzzCore.MachineManager.NativeMachines.Single(kvp => kvp.Key.Name == instanceName).Key;
         }
 
-        public void AssertMachineCrashWasLogged()
+        public void AssertLogContainsInvalidPointerMessage()
         {
-            using (new AssertionScope())
-            {
-               inMemorySink.Entries.Should()
-                    .ContainEquivalentOf(
-                        new LogEvent(DateTimeOffset.MaxValue, LogEventLevel.Error,
-                            null, new MessageTemplate("Cannot access a disposed object.\r\nObject name: 'Microsoft.Win32.SafeHandles.SafeWaitHandle'.",
-                                [new TextToken("Cannot access a disposed object.\r\nObject name: 'Microsoft.Win32.SafeHandles.SafeWaitHandle'.")]), []),
-                        options => options.Excluding(e => e.Timestamp))
-                    .And.ContainEquivalentOf(
-                        new LogEvent(DateTimeOffset.MaxValue, LogEventLevel.Error, null,
-                            new MessageTemplate("Invalid pointer", [new TextToken("Invalid pointer")]), []),
-                        options => options.Excluding(e => e.Timestamp));
-            }
+            inMemorySink.Entries.Should()
+                .ContainEquivalentOf(
+                    new LogEvent(DateTimeOffset.MaxValue, LogEventLevel.Error, null,
+                        new MessageTemplate("Invalid pointer", [new TextToken("Invalid pointer")]), []),
+                    options => options.Excluding(e => e.Timestamp));
+        }
+
+        public void AssertLogContainsCannotAccessDisposedObjectMessage()
+        {
+            inMemorySink.Entries.Should()
+                .ContainEquivalentOf(
+                    new LogEvent(DateTimeOffset.MaxValue, LogEventLevel.Error,
+                        null, new MessageTemplate(
+                            "Cannot access a disposed object.\r\nObject name: 'Microsoft.Win32.SafeHandles.SafeWaitHandle'.",
+                            [
+                                new TextToken(
+                                    "Cannot access a disposed object.\r\nObject name: 'Microsoft.Win32.SafeHandles.SafeWaitHandle'.")
+                            ]), []),
+                    options => options.Excluding(e => e.Timestamp));
+        }
+
+        public void AssertLogContainsIndexOutsideArrayBoundsMessage()
+        {
+            inMemorySink.Entries.Should()
+                .ContainEquivalentOf(
+                    new LogEvent(DateTimeOffset.MaxValue, LogEventLevel.Error,
+                        null, new MessageTemplate(
+                            "Index was outside the bounds of the array.",
+                            [
+                                new TextToken("Index was outside the bounds of the array.")
+                            ]), []),
+                    options => options.Excluding(e => e.Timestamp));
         }
     }
 }
