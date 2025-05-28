@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -70,6 +71,8 @@ namespace WDE.ConnectionMixer
                     UpdateVol(i, conn);
                 }
             }
+
+            SetupMidiOutputDevice();
         }
 
         private void Song_ConnectionAdded(IMachineConnection conn)
@@ -972,6 +975,7 @@ namespace WDE.ConnectionMixer
             }
 
             public int NumMixerConsoles { get; set; }
+            public string MIDIOutDeviceName { get; set; }
 
             public event PropertyChangedEventHandler PropertyChanged;
         }
@@ -983,10 +987,68 @@ namespace WDE.ConnectionMixer
             set
             {
                 machineState = value;
+
                 if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs("MachineState"));
             }
         }
 
+        private void SetupMidiOutputDevice()
+        {
+            var deviceName = machineState.MIDIOutDeviceName;
+            var buzz = Global.Buzz;
+            var midiOut = buzz.GetMidiOuts().FirstOrDefault(mo => mo.Item2 == deviceName);
+            if (midiOut != null)
+            {
+                int deviceNumber = midiOut.Item1;
+
+                for (int i = 0; i < NUM_MIXERS; i++)
+                {
+                    var mcd = machineState.Mcd[i];
+                    
+                    if (mcd.MIDIChannelP1 != -1)
+                    {
+                        int data = MIDICreateOutputData(mcd, 0);
+                        buzz.SendMIDIOutput(deviceNumber, data);
+                    }
+                    if (mcd.MIDIChannelP2 != -1)
+                    {
+                        int data = MIDICreateOutputData(mcd, 1);
+                        buzz.SendMIDIOutput(deviceNumber, data);
+                    }
+                    if (mcd.MIDIChannelP3 != -1)
+                    {
+                        int data = MIDICreateOutputData(mcd, 2);
+                        buzz.SendMIDIOutput(deviceNumber, data);
+                    }
+                    if (mcd.MIDIChannelP4 != -1)
+                    {
+                        int data = MIDICreateOutputData(mcd, 0);
+                        buzz.SendMIDIOutput(deviceNumber, data);
+                    }
+                }
+            }
+        }
+
+        internal int MIDICreateOutputData(MachineConnectionData mcd, int paramNum)
+        {
+            int midiData = -1;
+
+            var machine = Global.Buzz.Song.Machines.FirstOrDefault(x => x.Name == mcd.paramTable[paramNum].machine);
+            if (machine != null)
+            {
+                IParameter par = machine.GetParameter(mcd.paramTable[paramNum].param);
+                if (par != null)
+                {
+                    double scale = (par.MaxValue - par.MinValue) / 127.0;
+
+                    int currentVal = par.GetValue(0);
+                    int currentValueToMIDI = (int)((currentVal - par.MinValue) / scale);
+
+                    midiData = MIDI.Encode(MIDI.ControlChange | mcd.MIDIChannelP1, mcd.MIDICCP1, currentValueToMIDI);
+                }
+            }
+            return midiData;
+        }
 
         public IEnumerable<IMenuItem> Commands
         {
@@ -1582,6 +1644,10 @@ namespace WDE.ConnectionMixer
             };
             otherMenu.Items.Add(mi2);
 
+            mi2 = new MenuItem() { Header = "_Send values to MIDI Device on song load..." };
+            mi2.Click += Mi_Click_Setup_External_MIDI_Device_On_Load;
+            otherMenu.Items.Add(mi2);
+
             MenuItem minm = new MenuItem() { Header = "_Number of Mixer Controls" };
             minm.Icon = " # ";
 
@@ -1604,6 +1670,16 @@ namespace WDE.ConnectionMixer
             otherMenu.Items.Add(minm);
 
             return menu;
+        }
+
+        private void Mi_Click_Setup_External_MIDI_Device_On_Load(object sender, RoutedEventArgs e)
+        {
+            string decive = connectionMixerMachine.MachineState.MIDIOutDeviceName;
+            MIDIOutWindow mow = new MIDIOutWindow(decive);
+            if (mow.ShowDialog() == true)
+            {
+                connectionMixerMachine.MachineState.MIDIOutDeviceName = mow.GetSelectedDeviceName();
+            }
         }
 
         private void Mi_Click_Number_of_Mixers(object sender, RoutedEventArgs e)
@@ -1638,7 +1714,7 @@ namespace WDE.ConnectionMixer
 
             // saveFileDlg.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 
-            Nullable<bool> result = saveFileDlg.ShowDialog();
+            var result = saveFileDlg.ShowDialog();
 
             if (result == true)
             {
@@ -1658,7 +1734,7 @@ namespace WDE.ConnectionMixer
             //openFileDlg.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 
             // Launch OpenFileDialog by calling ShowDialog method
-            Nullable<bool> result = openFileDlg.ShowDialog();
+            var result = openFileDlg.ShowDialog();
 
             // Get the selected file name and display in a TextBox.
             // Load content of file in a TextBlock
