@@ -5,10 +5,24 @@
 #include <windef.h>
 #include <cstdlib>
 #include <cmath>
+#include <filesystem>
+#include <fstream>
 #include <iterator>
 #include <string>
-#include <filesystem>
-#include <__msvc_filebuf.hpp>
+
+std::string ReadShortFileContentAndRemoveFile(std::string filePath)
+{
+  std::string content;
+  std::ifstream file(filePath);
+  file >> content;
+  file.close();
+
+  // removing because the next instance of the same machine will recreate the file
+  // with different content and we don't want confusion that
+  // the machine can reuse this file
+  std::remove(filePath.c_str());
+  return content;
+}
 
 std::filesystem::path GetDllFilePath()
 {
@@ -27,14 +41,21 @@ std::filesystem::path GetDllFilePath()
     throw std::runtime_error("Could not get DLL Path");
 }
 
-static void AbortIfRequested()
+static void DebugShow(std::string message)
 {
-  auto path = GetDllFilePath().parent_path() / "crash_fake_machine";
+  MessageBoxA(nullptr, message.c_str(), "Debug msg", 0);
+}
+
+static void AbortIfRequested(const std::string& machineName)
+{
+  _set_abort_behavior(0, _WRITE_ABORT_MSG);
+  auto path = GetDllFilePath().parent_path() / (std::string("crash_fake_machine_") + machineName);
   if (std::filesystem::exists(path))
   {
-    std::abort();
+    std::abort();    
   }
 }
+
 
 constexpr CMachineParameter sampleValueLeftMultiplier = 
 {
@@ -104,20 +125,20 @@ public:
 
 private:
   gvals gval;
+  std::string machineName;
 };
 
 DLL_EXPORTS
 
-mi::mi()
+mi::mi() : machineName(ReadShortFileContentAndRemoveFile(GetDllFilePath().string() + ".txt"))
 {
-  _set_abort_behavior(0, _WRITE_ABORT_MSG);
-  AbortIfRequested();
+  AbortIfRequested(machineName);
   GlobalVals = &gval;
 }
 
 bool mi:: Work(float* psamples, int numsamples, const int mode)
 {
-  AbortIfRequested();
+  AbortIfRequested(machineName);
   for (auto i = 0 ; i < numsamples*2 ; i+=2)
   {
     psamples[i] = psamples[i] * gval.sampleValueLeftMultiplier;

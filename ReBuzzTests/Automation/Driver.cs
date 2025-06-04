@@ -467,19 +467,20 @@ namespace ReBuzzTests.Automation
                 .IsCrashed.Should().BeTrue();
         }
 
-        public void EnableEffectCrashing(DynamicMachineController crashingEffect)
+        public void EnableEffectCrashingFor(DynamicMachineController crashingEffect)
         {
-            MachineSpecificCrashFileName(crashingEffect).Create().Dispose();
+            MachineSpecificCrashFileName(crashEffectFilePath, crashingEffect).Create().Dispose();
         }
 
         public void EnableGeneratorCrashingFor(DynamicMachineController crashingGenerator)
         {
-            MachineSpecificCrashFileName(crashingGenerator).Create().Dispose();
+            MachineSpecificCrashFileName(crashGeneratorFilePath, crashingGenerator).Create().Dispose();
         }
 
-        private AbsoluteFilePath MachineSpecificCrashFileName(DynamicMachineController crashingGenerator)
+        private AbsoluteFilePath MachineSpecificCrashFileName(
+            AbsoluteFilePath crashingMachineDllPath, DynamicMachineController crashingGenerator)
         {
-            return crashGeneratorFilePath.ChangeFileNameTo(crashGeneratorFilePath.FileName()
+            return crashingMachineDllPath.ChangeFileNameTo(crashingMachineDllPath.FileName()
                 .AppendBeforeExtension("_" + crashingGenerator.InstanceName));
         }
 

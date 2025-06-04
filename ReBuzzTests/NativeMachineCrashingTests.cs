@@ -5,7 +5,7 @@ using ReBuzzTests.Automation.TestMachinesControllers;
 
 namespace ReBuzzTests
 {
-    public class MachineCrashingTests
+    public class NativeMachineCrashingTests
     {
         [Test]
         public void DoesNotOutputSamplesFromGeneratorCrashedOnLoadingNewInstance()
@@ -33,13 +33,13 @@ namespace ReBuzzTests
 
             var samples = driver.ReadStereoSamples(1);
 
-            samples.AssertAreEqualTo([
-                ExpectedSampleValue.From(sampleFromGenerator1 + sampleFromGenerator2)
-            ]);
-
             driver.AssertMachineIsCrashed(crashingGenerator);
             driver.AssertLogContainsCannotAccessDisposedObjectMessage();
             driver.AssertLogContainsInvalidPointerMessage();
+            
+            samples.AssertAreEqualTo([
+                ExpectedSampleValue.From(sampleFromGenerator1 + sampleFromGenerator2)
+            ]);
         }
 
         [Test]
@@ -66,12 +66,67 @@ namespace ReBuzzTests
             driver.EnableGeneratorCrashingFor(crashingGenerator);
             var samples = driver.ReadStereoSamples(1);
 
+            driver.AssertMachineIsCrashed(crashingGenerator);
+            driver.AssertLogContainsIndexOutsideArrayBoundsMessage();
+            
             samples.AssertAreEqualTo([
                 ExpectedSampleValue.From(sampleFromGenerator1 + sampleFromGenerator2)
             ]);
 
-            driver.AssertMachineIsCrashed(crashingGenerator);
+        }
+
+        [Test]
+        public void DoesNotRouteSoundThroughEffectsCrashedOnLoadingNewInstance()
+        {
+            using var driver = new Driver();
+            var crashingEffect = FakeNativeEffectController.NewInstance("crashingEffect");
+            var okGenerator = FakeNativeGeneratorController.NewInstance("okGen");
+            driver.AddPrecompiledGeneratorToGear(FakeNativeGeneratorInfo.Instance);
+            driver.AddPrecompiledEffectToGear(FakeNativeEffectInfo.Instance);
+            driver.Start();
+
+            driver.InsertMachineInstanceFor(okGenerator);
+            driver.EnableEffectCrashingFor(crashingEffect);
+            driver.InsertMachineInstanceConnectedToMasterFor(crashingEffect);
+            driver.Connect(okGenerator, crashingEffect);
+
+            driver.ExecuteMachineCommand(okGenerator.SetStereoSampleValueTo(new Sample(2, 3)));
+            driver.ExecuteMachineCommand(crashingEffect.SetStereoSampleMultiplier(2));
+
+            var samples = driver.ReadStereoSamples(1);
+
+            driver.AssertMachineIsCrashed(crashingEffect);
+            driver.AssertLogContainsCannotAccessDisposedObjectMessage();
+            driver.AssertLogContainsInvalidPointerMessage();
+            
+            samples.AssertAreEqualTo([ExpectedSampleValue.Zero()]);
+        }
+
+        [Test]
+        public void DoesNotOutputSamplesThroughCrashedEffects()
+        {
+            using var driver = new Driver();
+            var crashingEffect = FakeNativeEffectController.NewInstance("crashingEffect");
+            var okGenerator = FakeNativeGeneratorController.NewInstance("okGen");
+            var sampleFromGenerator = new Sample(2, 3);
+            driver.AddPrecompiledGeneratorToGear(FakeNativeGeneratorInfo.Instance);
+            driver.AddPrecompiledEffectToGear(FakeNativeEffectInfo.Instance);
+            driver.Start();
+
+            driver.InsertMachineInstanceFor(okGenerator);
+            driver.InsertMachineInstanceConnectedToMasterFor(crashingEffect);
+            driver.Connect(okGenerator, crashingEffect);
+
+            driver.ExecuteMachineCommand(okGenerator.SetStereoSampleValueTo(sampleFromGenerator));
+            driver.ExecuteMachineCommand(crashingEffect.SetStereoSampleMultiplier(2));
+
+            driver.EnableEffectCrashingFor(crashingEffect);
+            var samples = driver.ReadStereoSamples(1);
+
+            driver.AssertMachineIsCrashed(crashingEffect);
             driver.AssertLogContainsIndexOutsideArrayBoundsMessage();
+
+            samples.AssertAreEqualTo([ExpectedSampleValue.From(sampleFromGenerator)]);
         }
     }
 }
