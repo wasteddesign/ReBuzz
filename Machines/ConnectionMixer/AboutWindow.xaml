@@ -1,0 +1,35 @@
+﻿<Window x:Class="WDE.ConnectionMixer.AboutWindow"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:WDE.ConnectionMixer"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800"
+        WindowStyle="None" WindowStartupLocation="CenterScreen" ResizeMode="NoResize" Width="720" Height="580" Topmost="True" >
+    <Window.Resources>
+        <SolidColorBrush x:Key="bgBrush" Color="#4242e7"></SolidColorBrush>
+        <SolidColorBrush x:Key="foregroundBrush" Color="#a5a5ff"></SolidColorBrush>
+    </Window.Resources>
+    <Border x:Name="mainBorder" Background="{StaticResource bgBrush}" BorderBrush="{StaticResource foregroundBrush}" Margin="0" BorderThickness="50, 60">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="76"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <TextBlock x:Name="tbTop" Margin="1, 10, 1, 0" VerticalAlignment="Stretch" Grid.Row="0" Foreground="{StaticResource foregroundBrush}"></TextBlock>
+            <TextBox x:Name="tbEdit" Grid.Row="1" AcceptsReturn="True" TextWrapping="Wrap"  Margin="1, 0, 1, 10" BorderThickness="0" Background="{StaticResource bgBrush}" Foreground="{StaticResource foregroundBrush}" CaretBrush="Transparent"></TextBox>
+            <Canvas Grid.Row="1" Margin="1, 0, 1, 10">
+                <Border x:Name="Caret" Margin="0"
+                Visibility="Collapsed"
+                Canvas.Left="0" 
+                Canvas.Top="0" 
+                Width="12" 
+                Height="14" 
+                Background="{StaticResource foregroundBrush}">
+                </Border>
+            </Canvas>
+
+        </Grid>
+    </Border>
+</Window>

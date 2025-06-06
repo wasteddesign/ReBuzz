@@ -1,4 +1,5 @@
 ﻿using Buzz.MachineInterface;
+using BuzzGUI.Common;
 using BuzzGUI.Common.InterfaceExtensions;
 using BuzzGUI.Common.Templates;
 using BuzzGUI.Interfaces;
@@ -743,7 +744,11 @@ namespace ReBuzz.ManagedMachine
                     // Properties need to stay within min/max
                     if (val >= par.MinValue && val <= par.MaxValue)
                     {
-                        SetParameterValue(index, track, par.GetValue(track));
+                        SetParameterValue(index, track, val);
+                    }
+                    else if (par.Type == ParameterType.Note && val == BuzzNote.Off)
+                    {
+                        SetParameterValue(index, track, val);
                     }
                 }
             }

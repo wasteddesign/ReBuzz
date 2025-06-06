@@ -430,18 +430,14 @@ namespace ReBuzz.NativeMachine
                             var machine = channelListener.buzz.GetMachineFromHostID(hostId);
                             if (machine != null)
                             {
-                                // Ensure these are called from UI thread
-                                Application.Current.Dispatcher.BeginInvoke(() =>
+                                if (n == 2)
                                 {
-                                    if (n == 2)
-                                    {
-                                        machine.HasStereoOutput = true;
-                                    }
-                                    else
-                                    {
-                                        machine.HasStereoOutput = false;
-                                    }
-                                });
+                                    machine.HasStereoOutput = true;
+                                }
+                                else
+                                {
+                                    machine.HasStereoOutput = false;
+                                }
                             }
                         }
                         break;
@@ -455,11 +451,7 @@ namespace ReBuzz.NativeMachine
                             var machine = channelListener.buzz.GetMachineFromHostID(hostId);
                             if (machine != null)
                             {
-                                // Ensure these are called from UI thread
-                                Application.Current.Dispatcher.BeginInvoke( () =>
-                                {
-                                    machine.InputChannelCount = count;
-                                });
+                                machine.InputChannelCount = count;
                             }
                         }
                         break;
@@ -474,11 +466,7 @@ namespace ReBuzz.NativeMachine
 
                             if (machine != null)
                             {
-                                // Ensure these are called from UI thread
-                                Application.Current.Dispatcher.BeginInvoke(() =>
-                                {
-                                    machine.OutputChannelCount = count;
-                                });
+                                machine.OutputChannelCount = count;
                             }
                         }
                         break;

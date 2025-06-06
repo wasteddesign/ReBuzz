@@ -1,0 +1,15 @@
+- r8brain-free-src is a library for performing sample rate conversion of audio data. https://github.com/avaneev/r8brain-free-src
+
+- SRC.NET Managed Wrapper for LibSampleRate https://github.com/protyposis/SRC.NET
+
+- C# Cubic Spline Interpolation Ryan Seghers  https://www.codeproject.com/Articles/560163/Csharp-Cubic-Spline-Interpolation
+
+- SoundTouch Audio Processing Library https://surina.net/soundtouch/
+
+- Robotman's Amiga cursor: http://www.gratuitousscience.com/?p=2285
+
+- Alan Tinsley's Topaz font http://www.geekometry.com/2013/11/amiga-topaz-truetype-font-for-windows-and-mac-os/
+
+- Spectrogram, Scott W Harden https://github.com/swharden/Spectrogram
+
+- NAudio, https://github.com/naudio/NAudio

@@ -12,6 +12,7 @@ namespace ReBuzz.Core.Actions.GraphActions
         readonly DeleteMachinesAction deleteMachinesAction;
         readonly CreateMachineAction createMachinesAction;
 
+        MachineInfoRef machineData;
         readonly MachineInfoRef machineInfo;
         private string newMachineName;
         private readonly bool swapInstrument;
@@ -42,6 +43,18 @@ namespace ReBuzz.Core.Actions.GraphActions
                     createMachinesAction = new CreateMachineAction(buzz, MachineDll.Name, instInfo.InstrumentName, null, null, peName, null, m.TrackCount, m.Position.Item1, m.Position.Item2);
                 }
             }
+
+            machineData = new MachineInfoRef(m as MachineCore);
+            // Save sequences
+            int index = 0;
+            foreach (var seq in buzz.SongCore.Sequences.Where(s => s.Machine == m))
+            {
+                var events = seq.Events;
+                index = buzz.SongCore.Sequences.IndexOf(seq);
+                machineData.AddSequence(index, events);
+                index++;
+            }
+
             // Backup connections
             var machineCore = m as MachineCore;
             machineInfo = new MachineInfoRef(machineCore);
@@ -65,6 +78,18 @@ namespace ReBuzz.Core.Actions.GraphActions
                 deleteMachinesAction = new DeleteMachinesAction(buzz, new List<IMachine>() { m }, this.dispatcher);
                 createMachinesAction = new CreateMachineAction(buzz, machine, instrument, null, null, peName, null, m.TrackCount, m.Position.Item1, m.Position.Item2);
             }
+
+            machineData = new MachineInfoRef(m as MachineCore);
+            // Save sequences
+            int index = 0;
+            foreach (var seq in buzz.SongCore.Sequences.Where(s => s.Machine == m))
+            {
+                var events = seq.Events;
+                index = buzz.SongCore.Sequences.IndexOf(seq);
+                machineData.AddSequence(index, events);
+                index++;
+            }
+
             // Backup connections
             var machineCore = m as MachineCore;
             machineInfo = new MachineInfoRef(machineCore);
@@ -189,7 +214,7 @@ namespace ReBuzz.Core.Actions.GraphActions
                 deleteMachinesAction.Do();
                 createMachinesAction.Do();
 
-                var machine = buzz.Song.Machines.Last();
+                var machine = buzz.Song.Machines.Last() as MachineCore;
                 newMachineName = machine.Name; // Save name for undo
 
                 if (machine.Patterns.Count == 0)
@@ -201,6 +226,36 @@ namespace ReBuzz.Core.Actions.GraphActions
                 {
                     buzz.Song.AddSequence(machine, buzz.Song.Sequences.Count);
                     buzz.Song.Sequences.Last().SetEvent(0, new SequenceEvent(SequenceEventType.PlayPattern, machine.Patterns.First()));
+                }
+                else
+                {
+                    // Clean machine seqs
+                    foreach (var s in buzz.Song.Sequences.Where(s => s.Machine == machine).ToArray())
+                    {
+                        buzz.Song.RemoveSequence(s);
+                    }
+
+                    // Create sequences
+                    var sequences = machineData.sequences;
+
+                    if (machine != null)
+                    {
+                        foreach (var seq in sequences)
+                        {
+                            buzz.SongCore.AddSequence(machine, seq.Key);
+                            var seqAdded = buzz.SongCore.SequencesList.ElementAt(seq.Key);
+                            //foreach (var eventItem in seq.Value)
+                            //{
+                            //    var seqEvent = eventItem.Value;
+                            //    // Get pattern
+                            //    var pattern = machine.PatternsList.FirstOrDefault(p => p.Name == seqEvent.PatternName);
+                            //    // Create new seqence event
+                            //    SequenceEvent sequenceEvent = new SequenceEvent(seqEvent.Type, pattern, seqEvent.Span);
+                            //    seqAdded.SetEvent(eventItem.Key, sequenceEvent);
+                            //}
+                        }
+                    }
+
                 }
 
                 // reconnect inputs

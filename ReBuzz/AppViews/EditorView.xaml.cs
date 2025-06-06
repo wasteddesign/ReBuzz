@@ -10,6 +10,8 @@ using System.Linq;
 using System.Windows.Controls;
 using System.Windows;
 using System.Windows.Input;
+using System;
+using ReBuzz.MachineManagement;
 
 namespace ReBuzz
 {
@@ -106,11 +108,12 @@ namespace ReBuzz
                 // Force layout redo to fix pattern editor redraw issue
                 //if (ReBuzz.ActiveView != BuzzView.PatternView)
                 //{
-                    editorBorder?.Child?.InvalidateMeasure();
+                    //editorBorder?.Child?.InvalidateMeasure();
                 //}
             }
         }
         SequenceEditor sequenceEditor;
+        private UserControl currentVisibleEditorControl;
         private readonly IRegistryEx registryEx;
 
         public SequenceEditor SequenceEditor
@@ -136,6 +139,17 @@ namespace ReBuzz
             ReBuzz = reBuzz;
             DataContext = this;
             InitializeComponent();
+
+            ReBuzz.Song.MachineRemoved += (m) =>
+            {
+                var mc = m as MachineCore;
+                var editor = mc.EditorMachine;
+                if (editor != null)
+                {
+                    var patternEditorControl = ReBuzz.MachineManager.GetPatternEditorControl(editor);
+                    editorBorder.Children.Remove(patternEditorControl);
+                }
+            };
 
             EditorMachines = new ObservableCollection<IMachineDLL>();
             machines = new List<MachineVM>();
@@ -264,5 +278,68 @@ namespace ReBuzz
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
+
+        internal void SetEditorControl(UserControl control)
+        {
+            if (control != null)
+            {
+                if (currentVisibleEditorControl != null)
+                {
+                    currentVisibleEditorControl.Visibility = Visibility.Collapsed;
+                }
+
+                if (!editorBorder.Children.Contains(control))
+                    editorBorder.Children.Add(control);
+
+                control.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                if (currentVisibleEditorControl != null)
+                {
+                    currentVisibleEditorControl.Visibility = Visibility.Collapsed;
+                }
+            }
+
+            currentVisibleEditorControl = control;
+        }
+
+        internal void PatternEditorActivated()
+        {   
+            if (currentVisibleEditorControl != null)
+            {
+                var m = ReBuzz.PatternEditorPattern?.Machine as MachineCore;
+                
+                EditorMachine = m?.EditorMachine.DLL;
+                currentVisibleEditorControl.Focus();
+            }
+            else
+            {
+                Focus();
+            }
+        }
+
+        internal void FocusEditor()
+        {   
+            if (currentVisibleEditorControl != null)
+            {
+                currentVisibleEditorControl.Focus();
+            }
+        }
+
+        internal void FocusSequenceEditor()
+        {
+            gridEditorView.RowDefinitions[0].Focus();
+        }
+
+        internal void Clear()
+        {
+            if (currentVisibleEditorControl != null)
+            {
+                currentVisibleEditorControl.Visibility = Visibility.Collapsed;
+            }
+            editorBorder.Children.Clear();
+            currentVisibleEditorControl = null;
+        }
     }
 }

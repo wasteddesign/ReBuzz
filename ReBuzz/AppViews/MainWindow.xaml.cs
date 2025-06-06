@@ -187,16 +187,7 @@ namespace ReBuzz
               },
               onSetPatternEditorControl: (control) =>
               {
-                  if (EditorView.editorBorder.Child != null)
-                      EditorView.editorBorder.Child.Visibility = Visibility.Collapsed;
-
-                  EditorView.editorBorder.Child = control;
-
-                  if (control != null)
-                  {
-                      control.Visibility = Visibility.Visible;
-                      EditorView.editorBorder.InvalidateMeasure();
-                  }
+                  EditorView.SetEditorControl(control);
               },
               onFullScreenChanged: (fullScreen) =>
               {
@@ -614,7 +605,11 @@ namespace ReBuzz
                     SequenceEditor.ViewSettings.TimeSignatureList.Set(0, 16);
                     song.Associations.Clear();
                     seqenceEditor.Song = song;
-                    song.ActionStack = new ManagedActionStack();
+                    EditorView.Clear();
+                }
+                else if (cmd == BuzzCommand.OpenFile)
+                {
+                    EditorView.Clear();
                 }
                 else if (cmd == BuzzCommand.Exit)
                 {
@@ -1022,7 +1017,7 @@ namespace ReBuzz
         {
             if (EditorView != null)
             {
-                EditorView.editorBorder.Child = null;
+                EditorView.SetEditorControl(null);
             }
 
             Buzz.ThemeColors = Utils.GetThemeColors(buzzPath);
@@ -1121,18 +1116,8 @@ namespace ReBuzz
             {
                 Buzz.ActiveView = BuzzView.PatternView;
             }
-            var editor = EditorView.editorBorder.Child;
-            if (editor != null)
-            {
-                var m = Buzz.PatternEditorPattern?.Machine as MachineCore;
 
-                EditorView.EditorMachine = m?.EditorMachine.DLL;
-                editor.Focus();
-            }
-            else
-            {
-                EditorView.Focus();
-            }
+            EditorView.PatternEditorActivated();
         }
 
         private void Buzz_SequenceEditorActivated()
@@ -1199,15 +1184,11 @@ namespace ReBuzz
 
                     if (Buzz.NewSequenceEditorActivate)
                     {
-                        EditorView.gridEditorView.RowDefinitions[0].Focus();
+                        EditorView.FocusSequenceEditor();
                     }
                     else
                     {
-                        var editor = EditorView.editorBorder.Child;
-                        if (editor != null)
-                        {
-                            editor.Focus();
-                        }
+                        EditorView.FocusEditor();
                     }
 
                     break;

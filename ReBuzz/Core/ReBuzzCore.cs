@@ -1022,6 +1022,7 @@ namespace ReBuzz.Core
                 if (fileName.HasValue)
                 {
                     OpenSongFile(fileName.Value());
+                    BuzzCommandRaised?.Invoke(cmd);
                 }
             }
             else if (cmd == BuzzCommand.SaveFile)
@@ -1297,29 +1298,91 @@ namespace ReBuzz.Core
         {
             if (midiFocusMachine != null && !midiFocusMachine.DLL.IsMissing)
             {
+                var focusMachine = midiFocusMachine as MachineCore;
                 var editor = (midiFocusMachine as MachineCore).EditorMachine;
                 bool polacConversion = (midiFocusMachine.DLL.Name == "Polac VSTi 1.1") ||
                     (midiFocusMachine.DLL.Name == "Polac VST 1.1");
 
-                if (editor == null)
+                int b = MIDI.DecodeStatus(data);
+                int channel = 0;
+
+                if ((b & 0xF0) == 0xF0)
                 {
-                    // Send to machine
-                    MachineManager.SendMidiInput(midiFocusMachine, data, polacConversion);
+                    // both bytes are used for command code in this case
                 }
                 else
                 {
-                    // Send to editor. Editor will send midi message to machine.
-                    MachineManager.SendMidiInput(editor, data, polacConversion);
+                    channel = (b & 0x0F);
+                }
+
+                // Don't double send MIDI to machine
+                MachineCore machineHandled = null;
+
+                // Route channel 1 MIDI input to the active machine.
+                if (Global.MIDISettings.MasterKeyboardMode)
+                {
+                    if (channel == 0)
+                    {
+                        SendMidiInput(focusMachine, editor, data, polacConversion);
+                        machineHandled = focusMachine;
+                    }
+
+                    foreach (var m in Song.Machines)
+                    {
+                        var mc = m as MachineCore;
+                        if (mc.DLL.Info.Type != MachineType.Master && (mc.MIDIInputChannel == 0 || mc.MIDIInputChannel == channel + 1) && mc != machineHandled)
+                        {
+                            SendMidiInput(mc, mc.EditorMachine, data, polacConversion);
+                        }
+                    }
+                }
+                else
+                {
+                    // Don't send all MIDI to all machines like old Buzz used to do.
+                    if (Global.MIDISettings.MIDIFiltering)
+                    {
+                        foreach (var m in Song.Machines)
+                        {
+                            var mc = m as MachineCore;
+                            if (mc.DLL.Info.Type != MachineType.Master && (mc.MIDIInputChannel == 0 || mc.MIDIInputChannel == channel + 1) && mc != machineHandled)
+                            {
+                                SendMidiInput(mc, mc.EditorMachine, data, polacConversion);
+                            }
+                        }
+                    }
+                    else if (!Global.MIDISettings.MIDIFiltering)
+                    {
+                        foreach (var m in Song.Machines)
+                        {
+                            var mc = m as MachineCore;
+                            if (mc.DLL.Info.Type != MachineType.Master && mc != machineHandled)
+                                SendMidiInput(mc, mc.EditorMachine, data, polacConversion);
+                        }
+                    }
                 }
             }
 
             // Some UI components require MIDIInput.Invoke to be called from UI thread (Midi Keyboard)
-            dispatcher.BeginInvoke(new Action(() =>
+            dispatcher.Invoke(new Action(() =>
             {
                 MIDIActivity = true;
                 MIDIInput?.Invoke(data);
                 }
             ));
+        }
+
+        void SendMidiInput(MachineCore machine, MachineCore editor, int data, bool polacConversion)
+        {
+            if (editor == null)
+            {
+                // Send to machine
+                MachineManager.SendMidiInput(machine, data, polacConversion);
+            }
+            else
+            {
+                // Send to editor. Editor will send midi message to machine.
+                MachineManager.SendMidiInput(editor, data, polacConversion);
+            }
         }
 
         public IEnumerable<Tuple<int, string>> GetMidiOuts()
