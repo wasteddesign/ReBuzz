@@ -2,7 +2,9 @@ using Serilog.Core;
 using Serilog.Events;
 using System.Collections.Concurrent;
 
-public class InMemorySink : ILogEventSink //bug
+namespace ReBuzzTests.Automation;
+
+public class InMemorySink : ILogEventSink
 {
     public ConcurrentBag<LogEvent> Entries { get; } = [];
     

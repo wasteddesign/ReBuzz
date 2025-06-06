@@ -36,7 +36,6 @@ namespace ReBuzzTests
             driver.AssertMachineIsCrashed(crashingGenerator);
             driver.AssertLogContainsCannotAccessDisposedObjectMessage();
             driver.AssertLogContainsInvalidPointerMessage();
-            
             samples.AssertAreEqualTo([
                 ExpectedSampleValue.From(sampleFromGenerator1 + sampleFromGenerator2)
             ]);
@@ -68,7 +67,6 @@ namespace ReBuzzTests
 
             driver.AssertMachineIsCrashed(crashingGenerator);
             driver.AssertLogContainsIndexOutsideArrayBoundsMessage();
-            
             samples.AssertAreEqualTo([
                 ExpectedSampleValue.From(sampleFromGenerator1 + sampleFromGenerator2)
             ]);
@@ -98,12 +96,11 @@ namespace ReBuzzTests
             driver.AssertMachineIsCrashed(crashingEffect);
             driver.AssertLogContainsCannotAccessDisposedObjectMessage();
             driver.AssertLogContainsInvalidPointerMessage();
-            
             samples.AssertAreEqualTo([ExpectedSampleValue.Zero()]);
         }
 
         [Test]
-        public void DoesNotOutputSamplesThroughCrashedEffects()
+        public void IgnoresEffectsCrashDuringSampleGenerationInSignalRoute()
         {
             using var driver = new Driver();
             var crashingEffect = FakeNativeEffectController.NewInstance("crashingEffect");
@@ -125,7 +122,6 @@ namespace ReBuzzTests
 
             driver.AssertMachineIsCrashed(crashingEffect);
             driver.AssertLogContainsIndexOutsideArrayBoundsMessage();
-
             samples.AssertAreEqualTo([ExpectedSampleValue.From(sampleFromGenerator)]);
         }
     }
