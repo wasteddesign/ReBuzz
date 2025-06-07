@@ -1240,6 +1240,7 @@ namespace ReBuzz.Core
 
         public void SaveSongFile(string filename)
         {
+            AudioEngine.Stop();
             DeleteBackup();
 
             // Check filename
@@ -1280,6 +1281,7 @@ namespace ReBuzz.Core
                 }
             }
 
+            AudioEngine.Play();
             Modified = false;
         }
 
