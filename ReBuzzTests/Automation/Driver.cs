@@ -51,6 +51,11 @@ namespace ReBuzzTests.Automation
         private static readonly AbsoluteDirectoryPath TestDataRootPath =
             AbsoluteDirectoryPath.Value(Path.GetTempPath()).AddDirectoryName("ReBuzzTestData");
 
+        /// <summary>  
+        /// An in-memory sink used to capture and verify log messages during tests.
+        /// This allows tests to assert that specific log messages were emitted
+        /// without writing to actual log files.
+        /// </summary>
         private static readonly InMemorySink inMemorySink;
 
         /// <summary>
@@ -117,7 +122,19 @@ namespace ReBuzzTests.Automation
         private Dictionary<string, MachineCore> addedGeneratorInstances = new();
         
         private ReBuzzCoreInitialization initialization;
+
+        /// <summary>
+        /// Represents the absolute file path to the effect crash file.
+        /// </summary>
+        /// <remarks>The crash file is meant as a communication mechanism for machines to crash.
+        /// The reason it's done with a file is that we want to be able to crash during machine constructor
+        /// and there is no other way to pass that information.</remarks>
         private readonly AbsoluteFilePath crashEffectFilePath;
+
+        /// <summary>
+        /// Represents the absolute file path to the generator crash file.
+        /// </summary>
+        /// <remarks><see cref="crashEffectFilePath"/></remarks>
         private readonly AbsoluteFilePath crashGeneratorFilePath;
 
         public Driver()
@@ -460,6 +477,15 @@ namespace ReBuzzTests.Automation
             return new TestReadBuffer(result, buffer);
         }
 
+        /// <summary>
+        /// Asserts that the specified machine instance is in a crashed state.
+        /// </summary>
+        /// <param name="controller">
+        /// The <see cref="DynamicMachineController"/> representing the machine instance to be checked.
+        /// </param>
+        /// <exception cref="AssertionException">
+        /// Thrown if the machine instance is not in a crashed state.
+        /// </exception>
         public void AssertMachineIsCrashed(DynamicMachineController controller)
         {
             SongCoreMachine(controller.InstanceName).DLL.IsCrashed.Should().BeTrue();
@@ -467,11 +493,24 @@ namespace ReBuzzTests.Automation
                 .IsCrashed.Should().BeTrue();
         }
 
+        /// <summary>
+        /// Enables crashing behavior for the specified effect, simulating a scenario where the effect causes a crash.
+        /// </summary>
+        /// <param name="crashingEffect">
+        /// The instance of <see cref="DynamicMachineController"/> representing the effect to be configured for crashing.
+        /// </param>
         public void EnableEffectCrashingFor(DynamicMachineController crashingEffect)
         {
             MachineSpecificCrashFileName(crashEffectFilePath, crashingEffect).Create().Dispose();
         }
 
+        /// <summary>
+        /// Enables the crashing behavior for the specified generator, simulating a scenario where the generator causes a crash.
+        /// </summary>
+        /// <param name="crashingGenerator">
+        /// The instance of <see cref="DynamicMachineController"/> representing the generator 
+        /// for which crashing behavior should be enabled.
+        /// </param>
         public void EnableGeneratorCrashingFor(DynamicMachineController crashingGenerator)
         {
             MachineSpecificCrashFileName(crashGeneratorFilePath, crashingGenerator).Create().Dispose();
