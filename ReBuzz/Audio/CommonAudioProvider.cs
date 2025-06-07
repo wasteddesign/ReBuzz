@@ -129,8 +129,8 @@ namespace ReBuzz.Audio
                     Buffer.BlockCopy(fillBuffer, offset << 2, threadBuffer, threadBufferWriteOffset << 2, count << 2);
 
                     // Copy other output channels
-                    int stereaOutChannels = (channels - 2);
-                    for (int j = 1; j < stereaOutChannels; j++)
+                    int stereoOutChannels = channels / 2;
+                    for (int j = 1; j < stereoOutChannels; j++)
                     {
                         var fromBuffer = fillBufferChannel[j];
                         var toBuffer = threadBufferChannel[j];
@@ -239,7 +239,8 @@ namespace ReBuzz.Audio
 
         internal void FillChannel(int channel, Sample[] samples, int n)
         {
-            if (channel < 1 || channel > channels / 2)
+            // First channel (0) is the main stereo out
+            if (channel < 1 || channel >= channels / 2 || channel >= 64)
                 return;
 
             var fillChannel = fillBufferChannel[channel];

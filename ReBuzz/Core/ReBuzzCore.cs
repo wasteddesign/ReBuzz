@@ -1844,6 +1844,8 @@ namespace ReBuzz.Core
             DeleteBackup();
             lock (AudioLock)
             {
+                AudioEngine.ClearAudioBuffer();
+
                 var master = SongCore.MachinesList.First();
 
                 FileEvent?.Invoke(FileEventType.StatusUpdate, "Remove Connections...", null);

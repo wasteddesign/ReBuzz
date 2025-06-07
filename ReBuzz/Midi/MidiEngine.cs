@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using BuzzGUI.Interfaces;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace ReBuzz.Midi
 {
@@ -103,7 +104,14 @@ namespace ReBuzz.Midi
             {
                 foreach (MidiOut midiOut in midiOuts.Values)
                 {
-                    midiOut.Dispose();
+                    try
+                    {
+                        midiOut.Dispose();
+                    }
+                    catch (Exception e)
+                    {
+                        buzz.DCWriteLine(e.Message);
+                    }
                 }
 
                 midiOuts.Clear();
