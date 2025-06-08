@@ -1,7 +1,6 @@
 using Buzz.MachineInterface;
 using BuzzGUI.Interfaces;
 using ReBuzz.Core;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace ReBuzzTests.Automation.TestMachinesControllers
@@ -12,9 +11,9 @@ namespace ReBuzzTests.Automation.TestMachinesControllers
         int sampleValueLeftDivisor,
         int sampleValueRightDivisor) : ITestMachineInstanceCommand
     {
-        public void Execute(ReBuzzCore buzzCore, Dictionary<string, MachineCore> machineCores)
+        public void Execute(ReBuzzCore buzzCore, ReBuzzMachines machineCores)
         {
-            var machineCore = machineCores[controller.InstanceName];
+            var machineCore = machineCores.GetMachineAddedFromTest(controller.InstanceName);
             var globalParams = machineCore.ParameterGroups.Single(g => g.Type == ParameterGroupType.Global);
 
             // Native machine interface does not allow float values,

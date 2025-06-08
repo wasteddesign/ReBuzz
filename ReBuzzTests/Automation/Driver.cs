@@ -1,5 +1,3 @@
-using System;
-using System.IO;
 using AtmaFileSystem;
 using AtmaFileSystem.IO;
 using BuzzGUI.Common;
@@ -11,16 +9,17 @@ using FluentAssertions.Execution;
 using ReBuzz.AppViews;
 using ReBuzz.Audio;
 using ReBuzz.Core;
-using ReBuzz.FileOps;
 using ReBuzz.MachineManagement;
 using ReBuzzTests.Automation.Assertions;
 using ReBuzzTests.Automation.TestMachines;
-using System.Collections.Generic;
-using System.Linq;
 using ReBuzzTests.Automation.TestMachinesControllers;
 using Serilog;
 using Serilog.Events;
 using Serilog.Parsing;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace ReBuzzTests.Automation
 {
@@ -119,8 +118,6 @@ namespace ReBuzzTests.Automation
         /// </summary>
         private List<Action<FakeMachineDLLScanner, ReBuzzCore>> addMachineActions = [];
         
-        private Dictionary<string, MachineCore> addedGeneratorInstances = new();
-        
         private ReBuzzCoreInitialization initialization;
 
         /// <summary>
@@ -136,6 +133,8 @@ namespace ReBuzzTests.Automation
         /// </summary>
         /// <remarks><see cref="crashEffectFilePath"/></remarks>
         private readonly AbsoluteFilePath crashGeneratorFilePath;
+
+        private ReBuzzMachines reBuzzMachines;
 
         public Driver()
         {
@@ -215,6 +214,7 @@ namespace ReBuzzTests.Automation
                     reBuzzCore.Release();
                 }
             };
+            reBuzzMachines = new ReBuzzMachines(reBuzzCore);
         }
 
         public AbsoluteFilePath RandomSongPath() => 
@@ -406,37 +406,33 @@ namespace ReBuzzTests.Automation
 
         public void InsertMachineInstanceConnectedToMasterFor(DynamicMachineController controller)
         {
-            var addedInstance = InsertMachineInstanceFor(controller);
-            ConnectToMaster(addedInstance);
+            InsertMachineInstanceFor(controller);
+            ConnectToMaster(reBuzzMachines.GetMachineAddedFromTest(controller.InstanceName));
         }
 
         public void DisconnectFromMaster(DynamicMachineController controller)
         {
-            DisconnectFromMaster(SongCoreMachine(controller.InstanceName));
+            DisconnectFromMaster(reBuzzMachines.GetSongCoreMachine(controller.InstanceName));
         }
 
-        public MachineCore InsertMachineInstanceFor(DynamicMachineController controller)
+        public void InsertMachineInstanceFor(DynamicMachineController controller) //bug should not return value
         {
             var machineDll = fakeMachineDllScanner.GetMachineDLL(controller.Name);
             File.WriteAllText(machineDll.Path + ".txt", controller.InstanceName);
             CreateInstrument(machineDll, controller.InstanceName);
-            var addedInstance = reBuzzCore.SongCore.MachinesList.Last();
-            addedGeneratorInstances[controller.InstanceName] = addedInstance;
-            return addedInstance;
+            reBuzzMachines.StoreSongCoreMachine(controller.InstanceName);
         }
 
         public void Connect(
             DynamicMachineController sourceController, 
             DynamicMachineController destinationController)
         {
-            ConnectMachineInstances(
-                SongCoreMachine(sourceController.InstanceName),
-                SongCoreMachine(destinationController.InstanceName));
+            ConnectMachineInstances(reBuzzMachines.GetSongCoreMachine(sourceController.InstanceName), reBuzzMachines.GetSongCoreMachine(destinationController.InstanceName));
         }
 
         public void ExecuteMachineCommand(ITestMachineInstanceCommand command)
         {
-            command.Execute(reBuzzCore, addedGeneratorInstances);
+            command.Execute(reBuzzCore, reBuzzMachines);
         }
 
         public void AddDynamicGeneratorToGear(IDynamicTestMachineInfo info)
@@ -488,8 +484,8 @@ namespace ReBuzzTests.Automation
         /// </exception>
         public void AssertMachineIsCrashed(DynamicMachineController controller)
         {
-            SongCoreMachine(controller.InstanceName).DLL.IsCrashed.Should().BeTrue();
-            MachineManagerMachine(controller.InstanceName).MachineDLL
+            reBuzzMachines.GetSongCoreMachine(controller.InstanceName).DLL.IsCrashed.Should().BeTrue();
+            reBuzzMachines.GetMachineManagerMachine(controller.InstanceName).MachineDLL
                 .IsCrashed.Should().BeTrue();
         }
 
@@ -545,12 +541,12 @@ namespace ReBuzzTests.Automation
 
         private void ConnectToMaster(MachineCore instance)
         {
-            ConnectMachineInstances(instance, SongCoreMachine("Master"));
+            ConnectMachineInstances(instance, reBuzzMachines.GetSongCoreMachine("Master"));
         }
 
         private void DisconnectFromMaster(MachineCore instance)
         {
-            DisconnectMachineInstances(instance, SongCoreMachine("Master"));
+            DisconnectMachineInstances(instance, reBuzzMachines.GetSongCoreMachine("Master"));
         }
 
         public void SetMasterVolumeTo(double newVolume)
@@ -572,16 +568,6 @@ namespace ReBuzzTests.Automation
         {
             reBuzzCore.SongCore.DisconnectMachines(new MachineConnectionCore(source, 0, destination, 0, DefaultAmp,
                 DefaultPan, dispatcher));
-        }
-
-        private MachineCore SongCoreMachine(string name)
-        {
-            return reBuzzCore.SongCore.MachinesList.Single(m => m.Name == name);
-        }
-
-        private MachineCore MachineManagerMachine(string instanceName)
-        {
-            return reBuzzCore.MachineManager.NativeMachines.Single(kvp => kvp.Key.Name == instanceName).Key;
         }
 
         public void AssertLogContainsInvalidPointerMessage()

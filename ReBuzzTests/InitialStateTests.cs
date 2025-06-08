@@ -8,7 +8,6 @@ namespace ReBuzzTests
         public void InitializesStateAfterStart()
         {
             using var driver = new Driver();
-
             driver.Start();
 
             driver.AssertInitialStateAfterAppStart();
