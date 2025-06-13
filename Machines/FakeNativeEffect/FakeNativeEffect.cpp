@@ -41,7 +41,7 @@ std::filesystem::path GetDllFilePath()
     throw std::runtime_error("Could not get DLL Path");
 }
 
-static void DebugShow(std::string message)
+static void DebugShow(const std::string& message)
 {
   MessageBoxA(nullptr, message.c_str(), "Debug msg", 0);
 }
