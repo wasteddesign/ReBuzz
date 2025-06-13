@@ -14,11 +14,11 @@ internal class SavingSongAsSpecifiedFileTests
 
         driver.Start();
 
-        driver.SaveCurrentSongAs(DialogChoices.Cancel());
+        driver.DawCommands.SaveCurrentSongAs(DialogChoices.Cancel());
 
         driver.AssertNoErrorsReportedToUser();
         driver.AssertInitialStateAfterAppStart();
-        driver.AssertRecentFileListHasNoEntryFor(emptySongPath);
+        driver.RecentFiles.AssertHasNoEntryFor(emptySongPath);
         emptySongPath.Exists().Should().BeFalse();
     }
 
@@ -29,12 +29,12 @@ internal class SavingSongAsSpecifiedFileTests
         var emptySongPath = driver.RandomSongPath();
         driver.Start();
 
-        driver.SaveCurrentSongAs(DialogChoices.Select(emptySongPath));
-        driver.LoadSong(DialogChoices.Select(emptySongPath));
+        driver.DawCommands.SaveCurrentSongAs(DialogChoices.Select(emptySongPath));
+        driver.DawCommands.LoadSong(DialogChoices.Select(emptySongPath));
 
         driver.AssertNoErrorsReportedToUser();
         driver.AssertStateAfterLoadingAnEmptySong(emptySongPath);
-        driver.AssertRecentFileListHasEntry(0, emptySongPath);
+        driver.RecentFiles.AssertHasEntry(0, emptySongPath);
         emptySongPath.Exists().Should().BeTrue();
     }
 
@@ -45,13 +45,13 @@ internal class SavingSongAsSpecifiedFileTests
         var emptySongPath = driver.RandomSongPath();
         driver.Start();
 
-        driver.SaveCurrentSongForTheFirstTime(DialogChoices.Select(emptySongPath));
-        driver.SaveCurrentSongAs(DialogChoices.Select(emptySongPath));
-        driver.LoadSong(DialogChoices.Select(emptySongPath));
+        driver.DawCommands.SaveCurrentSongForTheFirstTime(DialogChoices.Select(emptySongPath));
+        driver.DawCommands.SaveCurrentSongAs(DialogChoices.Select(emptySongPath));
+        driver.DawCommands.LoadSong(DialogChoices.Select(emptySongPath));
 
         driver.AssertNoErrorsReportedToUser();
         driver.AssertStateAfterLoadingAnEmptySong(emptySongPath);
-        driver.AssertRecentFileListHasEntry(0, emptySongPath);
+        driver.RecentFiles.AssertHasEntry(0, emptySongPath);
     }
 
     [Test]
@@ -63,15 +63,15 @@ internal class SavingSongAsSpecifiedFileTests
         var emptySongPath3 = driver.RandomSongPath();
         driver.Start();
 
-        driver.SaveCurrentSongAs(DialogChoices.Select(emptySongPath1));
-        driver.SaveCurrentSongAs(DialogChoices.Select(emptySongPath2));
-        driver.SaveCurrentSongAs(DialogChoices.Select(emptySongPath3));
+        driver.DawCommands.SaveCurrentSongAs(DialogChoices.Select(emptySongPath1));
+        driver.DawCommands.SaveCurrentSongAs(DialogChoices.Select(emptySongPath2));
+        driver.DawCommands.SaveCurrentSongAs(DialogChoices.Select(emptySongPath3));
 
         driver.AssertNoErrorsReportedToUser();
         driver.AssertInitialStateAfterSavingEmptySong(emptySongPath3);
-        driver.AssertRecentFileListHasEntry(0, emptySongPath3);
-        driver.AssertRecentFileListHasEntry(1, emptySongPath2);
-        driver.AssertRecentFileListHasEntry(2, emptySongPath1);
+        driver.RecentFiles.AssertHasEntry(0, emptySongPath3);
+        driver.RecentFiles.AssertHasEntry(1, emptySongPath2);
+        driver.RecentFiles.AssertHasEntry(2, emptySongPath1);
         emptySongPath1.Exists().Should().BeTrue();
         emptySongPath2.Exists().Should().BeTrue();
         emptySongPath3.Exists().Should().BeTrue();

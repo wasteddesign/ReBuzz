@@ -7,9 +7,9 @@ namespace ReBuzzTests.Automation
 {
     public class ReBuzzMachines(ReBuzzCore reBuzzCore)
     {
-        private Dictionary<string, MachineCore> addedMachineInstances = new(); //bug
+        private Dictionary<string, MachineCore> addedMachineInstances = new();
 
-        public MachineCore GetSongCoreMachine(string name)
+        public MachineCore GetSongCoreMachineInstance(string name)
         {
             return reBuzzCore.SongCore.MachinesList.Single(m => m.Name == name);
         }
@@ -29,7 +29,7 @@ namespace ReBuzzTests.Automation
 
         public void StoreSongCoreMachine(string controllerInstanceName)
         {
-            var addedInstance = GetSongCoreMachine(controllerInstanceName);
+            var addedInstance = GetSongCoreMachineInstance(controllerInstanceName);
             addedMachineInstances[controllerInstanceName] = addedInstance;
         }
     }

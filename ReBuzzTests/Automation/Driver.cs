@@ -11,11 +11,8 @@ using ReBuzz.Audio;
 using ReBuzz.Core;
 using ReBuzz.MachineManagement;
 using ReBuzzTests.Automation.Assertions;
-using ReBuzzTests.Automation.TestMachines;
 using ReBuzzTests.Automation.TestMachinesControllers;
 using Serilog;
-using Serilog.Events;
-using Serilog.Parsing;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -136,6 +133,12 @@ namespace ReBuzzTests.Automation
 
         private ReBuzzMachines reBuzzMachines;
 
+        public ReBuzzCommandsDriverExtension DawCommands => new(reBuzzCore, fileNameToSaveChoice, fileNameToLoadChoice);
+        public GearDriverExtension Gear => new(GearGeneratorsDir, GearEffectsDir, addMachineActions);
+        public RecentFilesDriverExtension RecentFiles => new(fakeRegistry);
+        public MachineGraphDriverExtension MachineGraph => new(reBuzzCore, reBuzzMachines, fakeMachineDllScanner, dispatcher, DefaultPan, DefaultAmp);
+        public ReBuzzLogDriverExtension ReBuzzLog => new(inMemorySink);
+
         public Driver()
         {
             ResetGlobalState();
@@ -225,30 +228,6 @@ namespace ReBuzzTests.Automation
             reBuzzCore.ExecuteCommand(BuzzCommand.NewFile);
         }
 
-        public void LoadSong(DialogChoices.FileNameSource source)
-        {
-            fileNameToLoadChoice.SetTo(source);
-            reBuzzCore.ExecuteCommand(BuzzCommand.OpenFile);
-        }
-
-        public void SaveCurrentSongForTheFirstTime(DialogChoices.FileNameSource source)
-        {
-            fileNameToSaveChoice.SetTo(source);
-            reBuzzCore.ExecuteCommand(BuzzCommand.SaveFile);
-        }
-
-        public void SaveCurrentSong()
-        {
-            fileNameToSaveChoice.SetTo(DialogChoices.ThrowIfDialogInvoked());
-            reBuzzCore.ExecuteCommand(BuzzCommand.SaveFile);
-        }
-
-        public void SaveCurrentSongAs(DialogChoices.FileNameSource source)
-        {
-            fileNameToSaveChoice.SetTo(source);
-            reBuzzCore.ExecuteCommand(BuzzCommand.SaveFileAs);
-        }
-
         /// <summary>
         /// Sets up the directory structure for the current test
         /// </summary>
@@ -305,11 +284,6 @@ namespace ReBuzzTests.Automation
             AttemptToCleanupTestRootDirs();
         }
 
-        void IInitializationObserver.NotifyMachineManagerCreated(MachineManager machineManager)
-        {
-            TestContext.Out.WriteLine("MachineManager created");
-        }
-
         public void AssertInitialStateAfterNewFile()
         {
             InitialStateAssertions.AssertInitialState(GearDir,
@@ -343,6 +317,11 @@ namespace ReBuzzTests.Automation
                 new InitialStateAfterAppStartAssertions(),
                 new EmptySongStateWhenSongHasANameAssertions(emptySongPath));
 
+        }
+
+        void IInitializationObserver.NotifyMachineManagerCreated(MachineManager machineManager)
+        {
+            TestContext.Out.WriteLine("MachineManager created");
         }
 
         /// <summary>
@@ -389,72 +368,6 @@ namespace ReBuzzTests.Automation
             }
         }
 
-        public void AssertRecentFileListHasEntry(int index, AbsoluteFilePath songPath)
-        {
-            RecentFiles().ElementAt(index).Should().Be(songPath.ToString());
-        }
-
-        public void AssertRecentFileListHasNoEntryFor(AbsoluteFilePath songPath)
-        {
-            RecentFiles().Should().NotContain(songPath.ToString());
-        }
-
-        private IEnumerable<string> RecentFiles()
-        {
-            return fakeRegistry.ReadNumberedList<string>("File", "Recent File List");
-        }
-
-        public void InsertMachineInstanceConnectedToMasterFor(DynamicMachineController controller)
-        {
-            InsertMachineInstanceFor(controller);
-            ConnectToMaster(reBuzzMachines.GetMachineAddedFromTest(controller.InstanceName));
-        }
-
-        public void DisconnectFromMaster(DynamicMachineController controller)
-        {
-            DisconnectFromMaster(reBuzzMachines.GetSongCoreMachine(controller.InstanceName));
-        }
-
-        public void InsertMachineInstanceFor(DynamicMachineController controller) //bug should not return value
-        {
-            var machineDll = fakeMachineDllScanner.GetMachineDLL(controller.Name);
-            File.WriteAllText(machineDll.Path + ".txt", controller.InstanceName);
-            CreateInstrument(machineDll, controller.InstanceName);
-            reBuzzMachines.StoreSongCoreMachine(controller.InstanceName);
-        }
-
-        public void Connect(
-            DynamicMachineController sourceController, 
-            DynamicMachineController destinationController)
-        {
-            ConnectMachineInstances(reBuzzMachines.GetSongCoreMachine(sourceController.InstanceName), reBuzzMachines.GetSongCoreMachine(destinationController.InstanceName));
-        }
-
-        public void ExecuteMachineCommand(ITestMachineInstanceCommand command)
-        {
-            command.Execute(reBuzzCore, reBuzzMachines);
-        }
-
-        public void AddDynamicGeneratorToGear(IDynamicTestMachineInfo info)
-        {
-            AddDynamicMachineToGear(info, GearGeneratorsDir);
-        }
-
-        public void AddDynamicEffectToGear(IDynamicTestMachineInfo info)
-        {
-            AddDynamicMachineToGear(info, GearEffectsDir);
-        }
-
-        public void AddPrecompiledGeneratorToGear(ITestMachineInfo info)
-        {
-            addMachineActions.Add((scanner, reBuzz) => scanner.AddPrecompiledMachine(reBuzz, info, GearGeneratorsDir));
-        }
-
-        public void AddPrecompiledEffectToGear(ITestMachineInfo info)
-        {
-            addMachineActions.Add((scanner, reBuzz) => scanner.AddPrecompiledMachine(reBuzz, info, GearEffectsDir));
-        }
-
         public TestReadBuffer ReadStereoSamples(int count)
         {
             var workManager = new WorkManager(reBuzzCore, new WorkThreadEngine(1), 0, new EngineSettings
@@ -484,7 +397,7 @@ namespace ReBuzzTests.Automation
         /// </exception>
         public void AssertMachineIsCrashed(DynamicMachineController controller)
         {
-            reBuzzMachines.GetSongCoreMachine(controller.InstanceName).DLL.IsCrashed.Should().BeTrue();
+            reBuzzMachines.GetSongCoreMachineInstance(controller.InstanceName).DLL.IsCrashed.Should().BeTrue();
             reBuzzMachines.GetMachineManagerMachine(controller.InstanceName).MachineDLL
                 .IsCrashed.Should().BeTrue();
         }
@@ -512,13 +425,12 @@ namespace ReBuzzTests.Automation
             MachineSpecificCrashFileName(crashGeneratorFilePath, crashingGenerator).Create().Dispose();
         }
 
-        private AbsoluteFilePath MachineSpecificCrashFileName(
+        private static AbsoluteFilePath MachineSpecificCrashFileName(
             AbsoluteFilePath crashingMachineDllPath, DynamicMachineController crashingGenerator)
         {
             return crashingMachineDllPath.ChangeFileNameTo(crashingMachineDllPath.FileName()
                 .AppendBeforeExtension("_" + crashingGenerator.InstanceName));
         }
-
 
         /// <summary>
         /// Resets the global state before each test
@@ -534,76 +446,9 @@ namespace ReBuzzTests.Automation
                 .CreateLogger();
         }
 
-        private void CreateInstrument(IMachineDLL machineDll, string instanceName)
-        {
-            reBuzzCore.SongCore.CreateMachine(machineDll.Name, null!, instanceName, null!, null!, null!, -1, 0, 0);
-        }
-
-        private void ConnectToMaster(MachineCore instance)
-        {
-            ConnectMachineInstances(instance, reBuzzMachines.GetSongCoreMachine("Master"));
-        }
-
-        private void DisconnectFromMaster(MachineCore instance)
-        {
-            DisconnectMachineInstances(instance, reBuzzMachines.GetSongCoreMachine("Master"));
-        }
-
         public void SetMasterVolumeTo(double newVolume)
         {
             reBuzzCore.MasterVolume = newVolume;
-        }
-
-        private void AddDynamicMachineToGear(IDynamicTestMachineInfo info, AbsoluteDirectoryPath targetPath)
-        {
-            addMachineActions.Add((scanner, reBuzz) => scanner.AddDynamicMachine(reBuzz, info, targetPath));
-        }
-
-        private void ConnectMachineInstances(IMachine source, IMachine destination)
-        {
-            reBuzzCore.SongCore.ConnectMachines(source, destination, 0, 0, DefaultAmp, DefaultPan);
-        }
-
-        private void DisconnectMachineInstances(MachineCore source, MachineCore destination)
-        {
-            reBuzzCore.SongCore.DisconnectMachines(new MachineConnectionCore(source, 0, destination, 0, DefaultAmp,
-                DefaultPan, dispatcher));
-        }
-
-        public void AssertLogContainsInvalidPointerMessage()
-        {
-            inMemorySink.Entries.Should()
-                .ContainEquivalentOf(
-                    new LogEvent(DateTimeOffset.MaxValue, LogEventLevel.Error, null,
-                        new MessageTemplate("Invalid pointer", [new TextToken("Invalid pointer")]), []),
-                    options => options.Excluding(e => e.Timestamp));
-        }
-
-        public void AssertLogContainsCannotAccessDisposedObjectMessage()
-        {
-            inMemorySink.Entries.Should()
-                .ContainEquivalentOf(
-                    new LogEvent(DateTimeOffset.MaxValue, LogEventLevel.Error,
-                        null, new MessageTemplate(
-                            "Cannot access a disposed object.\r\nObject name: 'Microsoft.Win32.SafeHandles.SafeWaitHandle'.",
-                            [
-                                new TextToken(
-                                    "Cannot access a disposed object.\r\nObject name: 'Microsoft.Win32.SafeHandles.SafeWaitHandle'.")
-                            ]), []),
-                    options => options.Excluding(e => e.Timestamp));
-        }
-
-        public void AssertLogContainsIndexOutsideArrayBoundsMessage()
-        {
-            inMemorySink.Entries.Should()
-                .ContainEquivalentOf(
-                    new LogEvent(DateTimeOffset.MaxValue, LogEventLevel.Error,
-                        null, new MessageTemplate(
-                            "Index was outside the bounds of the array.",
-                            [
-                                new TextToken("Index was outside the bounds of the array.")
-                            ]), []),
-                    options => options.Excluding(e => e.Timestamp));
         }
     }
 }

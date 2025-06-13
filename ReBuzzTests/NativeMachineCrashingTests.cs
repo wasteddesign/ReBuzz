@@ -17,25 +17,25 @@ namespace ReBuzzTests
             var crashingGenerator = FakeNativeGeneratorController.NewInstance("crashingGen");
             var okGenerator1 = FakeNativeGeneratorController.NewInstance("okGen1");
             var okGenerator2 = FakeNativeGeneratorController.NewInstance("okGen2");
-            driver.AddPrecompiledGeneratorToGear(FakeNativeGeneratorInfo.Instance);
+            driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorInfo.Instance);
             driver.Start();
 
-            driver.InsertMachineInstanceConnectedToMasterFor(okGenerator1);
+            driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(okGenerator1);
             
             driver.EnableGeneratorCrashingFor(crashingGenerator);
-            driver.InsertMachineInstanceConnectedToMasterFor(crashingGenerator);
+            driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(crashingGenerator);
             
-            driver.InsertMachineInstanceConnectedToMasterFor(okGenerator2);
+            driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(okGenerator2);
 
-            driver.ExecuteMachineCommand(okGenerator1.SetStereoSampleValueTo(sampleFromGenerator1));
-            driver.ExecuteMachineCommand(okGenerator2.SetStereoSampleValueTo(sampleFromGenerator2));
-            driver.ExecuteMachineCommand(crashingGenerator.SetStereoSampleValueTo(sampleFromCrashedGenerator));
+            driver.MachineGraph.ExecuteMachineCommand(okGenerator1.SetStereoSampleValueTo(sampleFromGenerator1));
+            driver.MachineGraph.ExecuteMachineCommand(okGenerator2.SetStereoSampleValueTo(sampleFromGenerator2));
+            driver.MachineGraph.ExecuteMachineCommand(crashingGenerator.SetStereoSampleValueTo(sampleFromCrashedGenerator));
 
             var samples = driver.ReadStereoSamples(1);
 
             driver.AssertMachineIsCrashed(crashingGenerator);
-            driver.AssertLogContainsCannotAccessDisposedObjectMessage();
-            driver.AssertLogContainsInvalidPointerMessage();
+            driver.ReBuzzLog.AssertLogContainsCannotAccessDisposedObjectMessage();
+            driver.ReBuzzLog.AssertLogContainsInvalidPointerMessage();
             samples.AssertAreEqualTo([
                 ExpectedSampleValue.From(sampleFromGenerator1 + sampleFromGenerator2)
             ]);
@@ -51,22 +51,22 @@ namespace ReBuzzTests
             var crashingGenerator = FakeNativeGeneratorController.NewInstance("crashingGen");
             var okGenerator1 = FakeNativeGeneratorController.NewInstance("okGen1");
             var okGenerator2 = FakeNativeGeneratorController.NewInstance("okGen2");
-            driver.AddPrecompiledGeneratorToGear(FakeNativeGeneratorInfo.Instance);
+            driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorInfo.Instance);
             driver.Start();
 
-            driver.InsertMachineInstanceConnectedToMasterFor(okGenerator1);
-            driver.InsertMachineInstanceConnectedToMasterFor(crashingGenerator);
-            driver.InsertMachineInstanceConnectedToMasterFor(okGenerator2);
+            driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(okGenerator1);
+            driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(crashingGenerator);
+            driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(okGenerator2);
 
-            driver.ExecuteMachineCommand(okGenerator1.SetStereoSampleValueTo(sampleFromGenerator1));
-            driver.ExecuteMachineCommand(okGenerator2.SetStereoSampleValueTo(sampleFromGenerator2));
-            driver.ExecuteMachineCommand(crashingGenerator.SetStereoSampleValueTo(sampleFromCrashedGenerator));
+            driver.MachineGraph.ExecuteMachineCommand(okGenerator1.SetStereoSampleValueTo(sampleFromGenerator1));
+            driver.MachineGraph.ExecuteMachineCommand(okGenerator2.SetStereoSampleValueTo(sampleFromGenerator2));
+            driver.MachineGraph.ExecuteMachineCommand(crashingGenerator.SetStereoSampleValueTo(sampleFromCrashedGenerator));
 
             driver.EnableGeneratorCrashingFor(crashingGenerator);
             var samples = driver.ReadStereoSamples(1);
 
             driver.AssertMachineIsCrashed(crashingGenerator);
-            driver.AssertLogContainsIndexOutsideArrayBoundsMessage();
+            driver.ReBuzzLog.AssertLogContainsIndexOutsideArrayBoundsMessage();
             samples.AssertAreEqualTo([
                 ExpectedSampleValue.From(sampleFromGenerator1 + sampleFromGenerator2)
             ]);
@@ -79,23 +79,23 @@ namespace ReBuzzTests
             using var driver = new Driver();
             var crashingEffect = FakeNativeEffectController.NewInstance("crashingEffect");
             var okGenerator = FakeNativeGeneratorController.NewInstance("okGen");
-            driver.AddPrecompiledGeneratorToGear(FakeNativeGeneratorInfo.Instance);
-            driver.AddPrecompiledEffectToGear(FakeNativeEffectInfo.Instance);
+            driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorInfo.Instance);
+            driver.Gear.AddPrecompiledEffect(FakeNativeEffectInfo.Instance);
             driver.Start();
 
-            driver.InsertMachineInstanceFor(okGenerator);
+            driver.MachineGraph.InsertMachineInstanceFor(okGenerator);
             driver.EnableEffectCrashingFor(crashingEffect);
-            driver.InsertMachineInstanceConnectedToMasterFor(crashingEffect);
-            driver.Connect(okGenerator, crashingEffect);
+            driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(crashingEffect);
+            driver.MachineGraph.Connect(okGenerator, crashingEffect);
 
-            driver.ExecuteMachineCommand(okGenerator.SetStereoSampleValueTo(new Sample(2, 3)));
-            driver.ExecuteMachineCommand(crashingEffect.SetStereoSampleMultiplier(2));
+            driver.MachineGraph.ExecuteMachineCommand(okGenerator.SetStereoSampleValueTo(new Sample(2, 3)));
+            driver.MachineGraph.ExecuteMachineCommand(crashingEffect.SetStereoSampleMultiplier(2));
 
             var samples = driver.ReadStereoSamples(1);
 
             driver.AssertMachineIsCrashed(crashingEffect);
-            driver.AssertLogContainsCannotAccessDisposedObjectMessage();
-            driver.AssertLogContainsInvalidPointerMessage();
+            driver.ReBuzzLog.AssertLogContainsCannotAccessDisposedObjectMessage();
+            driver.ReBuzzLog.AssertLogContainsInvalidPointerMessage();
             samples.AssertAreEqualTo([ExpectedSampleValue.Zero()]);
         }
 
@@ -106,22 +106,22 @@ namespace ReBuzzTests
             var crashingEffect = FakeNativeEffectController.NewInstance("crashingEffect");
             var okGenerator = FakeNativeGeneratorController.NewInstance("okGen");
             var sampleFromGenerator = new Sample(2, 3);
-            driver.AddPrecompiledGeneratorToGear(FakeNativeGeneratorInfo.Instance);
-            driver.AddPrecompiledEffectToGear(FakeNativeEffectInfo.Instance);
+            driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorInfo.Instance);
+            driver.Gear.AddPrecompiledEffect(FakeNativeEffectInfo.Instance);
             driver.Start();
 
-            driver.InsertMachineInstanceFor(okGenerator);
-            driver.InsertMachineInstanceConnectedToMasterFor(crashingEffect);
-            driver.Connect(okGenerator, crashingEffect);
+            driver.MachineGraph.InsertMachineInstanceFor(okGenerator);
+            driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(crashingEffect);
+            driver.MachineGraph.Connect(okGenerator, crashingEffect);
 
-            driver.ExecuteMachineCommand(okGenerator.SetStereoSampleValueTo(sampleFromGenerator));
-            driver.ExecuteMachineCommand(crashingEffect.SetStereoSampleMultiplier(2));
+            driver.MachineGraph.ExecuteMachineCommand(okGenerator.SetStereoSampleValueTo(sampleFromGenerator));
+            driver.MachineGraph.ExecuteMachineCommand(crashingEffect.SetStereoSampleMultiplier(2));
 
             driver.EnableEffectCrashingFor(crashingEffect);
             var samples = driver.ReadStereoSamples(1);
 
             driver.AssertMachineIsCrashed(crashingEffect);
-            driver.AssertLogContainsIndexOutsideArrayBoundsMessage();
+            driver.ReBuzzLog.AssertLogContainsIndexOutsideArrayBoundsMessage();
             samples.AssertAreEqualTo([ExpectedSampleValue.From(sampleFromGenerator)]);
         }
     }
