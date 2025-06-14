@@ -60,8 +60,8 @@ constexpr CMachineParameter sampleValueLeftIntegral =
 {
   .Type = pt_word,                          // type
   .Name = "SampleValueLeftIntegral",        // name
-  .Description = "SampleValueLeftIntegral",	// description
-  .MinValue = -100,                         // MinValue	
+  .Description = "SampleValueLeftIntegral", // description
+  .MinValue = -100,                         // MinValue 
   .MaxValue = 100,                          // MaxValue
   .NoValue = 100+1,                         // NoValue
   .Flags = 0,                               // Flags
@@ -70,13 +70,13 @@ constexpr CMachineParameter sampleValueLeftIntegral =
 
 constexpr CMachineParameter sampleValueLeftDivisor = 
 {
-  .Type = pt_word,									        // type
+  .Type = pt_word,                          // type
   .Name = "SampleValueLeftDivisor",         // name
-  .Description = "SampleValueLeftDivisor",	// description
-  .MinValue = -100,  										    // MinValue	
-  .MaxValue = 100,											    // MaxValue
-  .NoValue = 100+1,								      		// NoValue
-  .Flags = 0,											          // Flags
+  .Description = "SampleValueLeftDivisor",  // description
+  .MinValue = -100,                         // MinValue 
+  .MaxValue = 100,                          // MaxValue
+  .NoValue = 100+1,                         // NoValue
+  .Flags = 0,                               // Flags
   .DefValue = 0                             // Default value
 };
 
@@ -84,8 +84,8 @@ constexpr CMachineParameter sampleValueRightIntegral =
 {
   .Type = pt_word,                            // type
   .Name = "SampleValueRightIntegral",         // name
-  .Description = "SampleValueRightIntegral",	// description
-  .MinValue = -100,                           // MinValue	
+  .Description = "SampleValueRightIntegral",  // description
+  .MinValue = -100,                           // MinValue 
   .MaxValue = 100,                            // MaxValue
   .NoValue = 100+1,                           // NoValue
   .Flags = 0,                                 // Flags
@@ -97,7 +97,7 @@ constexpr CMachineParameter sampleValueRightDivisor =
   .Type = pt_word,                           // type
   .Name = "SampleValueRightDivisor",         // name
   .Description = "SampleValueRightDivisor",  // description
-  .MinValue = -100,                          // MinValue	
+  .MinValue = -100,                          // MinValue 
   .MaxValue = 100,                           // MaxValue
   .NoValue = 100+1,                          // NoValue
   .Flags = 0,                                // Flags
@@ -127,20 +127,20 @@ public:
 
 CMachineInfo const                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   MacInfo = 
 {
-  .Type = MT_GENERATOR,							              // type
-  .Version = MI_VERSION,                          // version
-  .Flags = MIF_DOES_INPUT_MIXING,		              // flags
-  .minTracks = 0,										              // min tracks
-  .maxTracks = 0,										              // max tracks
-  .numGlobalParameters = std::size(pParameters),	// numGlobalParameters
-  .numTrackParameters = 0,										    // numTrackParameters
+  .Type = MT_GENERATOR,                          // type
+  .Version = MI_VERSION,                         // version
+  .Flags = MIF_DOES_INPUT_MIXING,                // flags
+  .minTracks = 0,                                // min tracks
+  .maxTracks = 0,                                // max tracks
+  .numGlobalParameters = std::size(pParameters), // numGlobalParameters
+  .numTrackParameters = 0,                       // numTrackParameters
   .Parameters = pParameters,
   .numAttributes = 0,
   .Attributes = nullptr,
   .Name = "FakeNativeGenerator",
-  .ShortName = "FakeNativeGen",					          // short name
-  .Author = "WDE", 						                    // author
-  .Commands = nullptr,                            //"Command1\nCommand2\nCommand3"
+  .ShortName = "FakeNativeGen",                  // short name
+  .Author = "WDE",                               // author
+  .Commands = nullptr,                           //"Command1\nCommand2\nCommand3"
   .pLI = nullptr
 };
 

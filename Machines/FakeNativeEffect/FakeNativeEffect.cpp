@@ -61,8 +61,8 @@ constexpr CMachineParameter sampleValueLeftMultiplier =
 {
   .Type = pt_word,                            // type
   .Name = "SampleValueLeftMultiplier",        // name
-  .Description = "SampleValueLeftMultiplier",	// description
-  .MinValue = -100,                           // MinValue	
+  .Description = "SampleValueLeftMultiplier", // description
+  .MinValue = -100,                           // MinValue
   .MaxValue = 100,                            // MaxValue
   .NoValue = 100+1,                           // NoValue
   .Flags = 0,                                 // Flags
@@ -73,8 +73,8 @@ constexpr CMachineParameter sampleValueRightMultiplier =
 {
   .Type = pt_word,                              // type
   .Name = "SampleValueRightMultiplier",         // name
-  .Description = "SampleValueRightMultiplier",	// description
-  .MinValue = -100,                             // MinValue	
+  .Description = "SampleValueRightMultiplier",  // description
+  .MinValue = -100,                             // MinValue
   .MaxValue = 100,                              // MaxValue
   .NoValue = 100+1,                             // NoValue
   .Flags = 0,                                   // Flags
@@ -100,20 +100,20 @@ public:
 
 CMachineInfo const                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   MacInfo = 
 {
-  .Type = MT_EFFECT,  							               // type
-  .Version = MI_VERSION,                           // version
-  .Flags = MIF_STEREO_EFFECT,		                   // flags
-  .minTracks = 0,										               // min tracks
-  .maxTracks = 0,										               // max tracks
-  .numGlobalParameters = std::size(pParameters),	 // numGlobalParameters
-  .numTrackParameters = 0,										     // numTrackParameters
+  .Type = MT_EFFECT,                              // type
+  .Version = MI_VERSION,                          // version
+  .Flags = MIF_STEREO_EFFECT,                     // flags
+  .minTracks = 0,                                 // min tracks
+  .maxTracks = 0,                                 // max tracks
+  .numGlobalParameters = std::size(pParameters),  // numGlobalParameters
+  .numTrackParameters = 0,                        // numTrackParameters
   .Parameters = pParameters,
   .numAttributes = 0,
   .Attributes = nullptr,
   .Name = "FakeNativeEffect",
-  .ShortName = "FakeNativeEffect",	               // short name
-  .Author = "WDE", 						                     // author
-  .Commands = nullptr,                             //"Command1\nCommand2\nCommand3"
+  .ShortName = "FakeNativeEffect",                // short name
+  .Author = "WDE",                                // author
+  .Commands = nullptr,                            //"Command1\nCommand2\nCommand3"
   .pLI = nullptr
 };
 
