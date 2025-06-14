@@ -5,9 +5,10 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:WDE.ConnectionMixer"
              mc:Ignorable="d"
-            Height="127" Width="395" FontSize="12" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
+            Height="161" Width="395" FontSize="12" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
             <RowDefinition Height="30"/>
             <RowDefinition Height="30"/>
             <RowDefinition Height="*"/>
@@ -19,7 +20,7 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="0" Text="Selected MIDI out Device" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+            <TextBlock Grid.Column="0" Text="Selected MIDI Feedback Device" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
             <TextBlock Grid.Column="1" Text="" x:Name="tbSelectedMidiOut" HorizontalAlignment="Right" VerticalAlignment="Center"></TextBlock>
         </Grid>
 
@@ -29,10 +30,19 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <TextBlock Grid.Column="0" Text="Change MIDI out Device" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+            <TextBlock Grid.Column="0" Text="Change MIDI Feedback Device" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
             <ComboBox Grid.Column="1" x:Name="bcMidiOuts" ItemsSource="{Binding Path=MidiOutDevices}"></ComboBox>
         </Grid>
-        <Grid Grid.Row="3" Margin="4,4, 8, 4">
+        <Grid Grid.Row="2" Margin="4, 4, 8, 4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" Text="Send Back To All MIDI Channels" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+            <CheckBox Grid.Column="1" VerticalAlignment="Center" x:Name="cbSendToAll"></CheckBox>
+        </Grid>
+        <Grid Grid.Row="4" Margin="4,4, 8, 4">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="90"/>

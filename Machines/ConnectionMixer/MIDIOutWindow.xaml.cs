@@ -30,10 +30,12 @@ namespace WDE.ConnectionMixer
 
         public List<VMMidiOut> MidiOutDevices { get; set; }
 
-        public MIDIOutWindow(string selectedDeviceName)
+        public MIDIOutWindow(string selectedDeviceName, bool sendBackToAllChannels)
         {
             DataContext = this;
             InitializeComponent();
+
+            cbSendToAll.IsChecked = sendBackToAllChannels;
 
             if (selectedDeviceName != null)
             {

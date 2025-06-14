@@ -1240,6 +1240,7 @@ namespace ReBuzz.Core
 
         public void SaveSongFile(string filename)
         {
+            AudioEngine.Stop();
             DeleteBackup();
 
             // Check filename
@@ -1280,6 +1281,7 @@ namespace ReBuzz.Core
                 }
             }
 
+            AudioEngine.Play();
             Modified = false;
         }
 
@@ -1844,6 +1846,8 @@ namespace ReBuzz.Core
             DeleteBackup();
             lock (AudioLock)
             {
+                AudioEngine.ClearAudioBuffer();
+
                 var master = SongCore.MachinesList.First();
 
                 FileEvent?.Invoke(FileEventType.StatusUpdate, "Remove Connections...", null);

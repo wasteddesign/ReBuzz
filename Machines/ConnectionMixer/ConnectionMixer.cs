@@ -72,7 +72,6 @@ namespace WDE.ConnectionMixer
                 }
             }
 
-            SetupMidiOutputDevice();
         }
 
         private void Song_ConnectionAdded(IMachineConnection conn)
@@ -140,34 +139,59 @@ namespace WDE.ConnectionMixer
             if (!SendParameterChangesPending)
             {
                 SendParameterChangesPending = true;
-                var t = Task.Run(() =>
+
+                for (int i = 0; i < NUM_MIXERS; i++)
                 {
-                    for (int i = 0; i < NUM_MIXERS; i++)
+                    var mcd = machineState.Mcd[i];
+                    if (MIDIHelper.IsInterpolatorActive(i, EMIDIControlType.Volume))
                     {
-                        var mcd = machineState.Mcd[i];
-                        if (MIDIHelper.IsInterpolatorActive(i, EMIDIControlType.Volume))
+                        IParameter par = this.host.Machine.ParameterGroups[1].Parameters[i * 2];
+
+                        int newamp = MIDIHelper.GetInterpolatorValue(i, EMIDIControlType.Volume);
+
+                        par.SetValue(0, newamp);
+                        if (par.Group.Machine.DLL.Info.Version >= 42)
+                            par.Group.Machine.SendControlChanges();
+                    }
+                    if (MIDIHelper.IsInterpolatorActive(i, EMIDIControlType.Pan))
+                    {
+                        IParameter par = this.host.Machine.ParameterGroups[1].Parameters[i * 2 + 1];
+
+                        int newPan = MIDIHelper.GetInterpolatorValue(i, EMIDIControlType.Pan);
+
+                        par.SetValue(0, newPan);
+                        if (par.Group.Machine.DLL.Info.Version >= 42)
+                            par.Group.Machine.SendControlChanges();
+                    }
+
+                    // Feedback parameter values back to MIDI device
+
+                    var buzz = Global.Buzz;
+                    var midiOut = buzz.GetMidiOuts().FirstOrDefault(mo => mo.Item2 == machineState.MIDIFeedbackDeviceName);
+                    if (midiOut != null)
+                    {
+                        int deviceNumber = midiOut.Item1;
+
+                        if (mcd.MIDIChannelP1 != -1)
                         {
-                            IParameter par = this.host.Machine.ParameterGroups[1].Parameters[i * 2];
-
-                            int newamp = MIDIHelper.GetInterpolatorValue(i, EMIDIControlType.Volume);
-
-                            par.SetValue(0, newamp);
-                            if (par.Group.Machine.DLL.Info.Version >= 42)
-                                par.Group.Machine.SendControlChanges();
+                            SendMIDIFeedbackData(mcd, 0, deviceNumber);
                         }
-                        if (MIDIHelper.IsInterpolatorActive(i, EMIDIControlType.Pan))
+                        if (mcd.MIDIChannelP2 != -1)
                         {
-                            IParameter par = this.host.Machine.ParameterGroups[1].Parameters[i * 2 + 1];
-
-                            int newPan = MIDIHelper.GetInterpolatorValue(i, EMIDIControlType.Pan);
-
-                            par.SetValue(0, newPan);
-                            if (par.Group.Machine.DLL.Info.Version >= 42)
-                                par.Group.Machine.SendControlChanges();
+                            SendMIDIFeedbackData(mcd, 1, deviceNumber);
+                        }
+                        if (mcd.MIDIChannelP3 != -1)
+                        {
+                            SendMIDIFeedbackData(mcd, 2, deviceNumber);
+                        }
+                        if (mcd.MIDIChannelP4 != -1)
+                        {
+                            SendMIDIFeedbackData(mcd, 3, deviceNumber);
                         }
                     }
-                    SendParameterChangesPending = false;
-                });
+                }
+
+                SendParameterChangesPending = false;
             }
         }
 
@@ -975,7 +999,8 @@ namespace WDE.ConnectionMixer
             }
 
             public int NumMixerConsoles { get; set; }
-            public string MIDIOutDeviceName { get; set; }
+            public string MIDIFeedbackDeviceName { get; set; }
+            public bool FeedbackToAllChannels { get; set; }
 
             public event PropertyChangedEventHandler PropertyChanged;
         }
@@ -992,44 +1017,8 @@ namespace WDE.ConnectionMixer
             }
         }
 
-        private void SetupMidiOutputDevice()
-        {
-            var deviceName = machineState.MIDIOutDeviceName;
-            var buzz = Global.Buzz;
-            var midiOut = buzz.GetMidiOuts().FirstOrDefault(mo => mo.Item2 == deviceName);
-            if (midiOut != null)
-            {
-                int deviceNumber = midiOut.Item1;
-
-                for (int i = 0; i < NUM_MIXERS; i++)
-                {
-                    var mcd = machineState.Mcd[i];
-                    
-                    if (mcd.MIDIChannelP1 != -1)
-                    {
-                        int data = MIDICreateOutputData(mcd, 0);
-                        buzz.SendMIDIOutput(deviceNumber, data);
-                    }
-                    if (mcd.MIDIChannelP2 != -1)
-                    {
-                        int data = MIDICreateOutputData(mcd, 1);
-                        buzz.SendMIDIOutput(deviceNumber, data);
-                    }
-                    if (mcd.MIDIChannelP3 != -1)
-                    {
-                        int data = MIDICreateOutputData(mcd, 2);
-                        buzz.SendMIDIOutput(deviceNumber, data);
-                    }
-                    if (mcd.MIDIChannelP4 != -1)
-                    {
-                        int data = MIDICreateOutputData(mcd, 3);
-                        buzz.SendMIDIOutput(deviceNumber, data);
-                    }
-                }
-            }
-        }
-
-        internal int MIDICreateOutputData(MachineConnectionData mcd, int paramNum)
+        int[] feedbackValuesPrev = [-1, -1, -1, -1];
+        internal void SendMIDIFeedbackData(MachineConnectionData mcd, int paramNum, int deviceNumber)
         {
             int midiData = -1;
 
@@ -1039,15 +1028,31 @@ namespace WDE.ConnectionMixer
                 IParameter par = machine.GetParameter(mcd.paramTable[paramNum].param);
                 if (par != null)
                 {
-                    double scale = (par.MaxValue - par.MinValue) / 127.0;
-
+                    var buzz = Global.Buzz;
                     int currentVal = par.GetValue(0);
-                    int currentValueToMIDI = (int)((currentVal - par.MinValue) / scale);
+                    if (feedbackValuesPrev[paramNum] != currentVal)
+                    {
+                        double scale = (par.MaxValue - par.MinValue) / 127.0;
+                        int currentValueToMIDI = (int)((currentVal - par.MinValue) / scale);
 
-                    midiData = MIDI.Encode(MIDI.ControlChange | mcd.MIDIChannelP1, mcd.MIDICCP1, currentValueToMIDI);
+                        if (!machineState.FeedbackToAllChannels)
+                        {
+                            midiData = MIDI.Encode(MIDI.ControlChange | mcd.MIDIChannelP1, mcd.MIDICCP1, currentValueToMIDI);
+                            buzz.SendMIDIOutput(deviceNumber, midiData);
+                        }
+                        else
+                        {
+                            for (int i = 0; i < 16; i++)
+                            {
+                                midiData = MIDI.Encode(MIDI.ControlChange | i, mcd.MIDICCP1, currentValueToMIDI);
+                                buzz.SendMIDIOutput(deviceNumber, midiData);
+                            }
+                        }
+                        
+                        feedbackValuesPrev[paramNum] = currentVal;
+                    }
                 }
             }
-            return midiData;
         }
 
         public IEnumerable<IMenuItem> Commands
@@ -1644,7 +1649,7 @@ namespace WDE.ConnectionMixer
             };
             otherMenu.Items.Add(mi2);
 
-            mi2 = new MenuItem() { Header = "_Send values to MIDI Device on song load..." };
+            mi2 = new MenuItem() { Header = "_MIDI Feedback..." };
             mi2.Click += Mi_Click_Setup_External_MIDI_Device_On_Load;
             otherMenu.Items.Add(mi2);
 
@@ -1674,11 +1679,12 @@ namespace WDE.ConnectionMixer
 
         private void Mi_Click_Setup_External_MIDI_Device_On_Load(object sender, RoutedEventArgs e)
         {
-            string decive = connectionMixerMachine.MachineState.MIDIOutDeviceName;
-            MIDIOutWindow mow = new MIDIOutWindow(decive);
+            string decive = connectionMixerMachine.MachineState.MIDIFeedbackDeviceName;
+            MIDIOutWindow mow = new MIDIOutWindow(decive, connectionMixerMachine.MachineState.FeedbackToAllChannels);
             if (mow.ShowDialog() == true)
             {
-                connectionMixerMachine.MachineState.MIDIOutDeviceName = mow.GetSelectedDeviceName();
+                connectionMixerMachine.MachineState.MIDIFeedbackDeviceName = mow.GetSelectedDeviceName();
+                connectionMixerMachine.MachineState.FeedbackToAllChannels = (bool)mow.cbSendToAll.IsChecked;
             }
         }
 
