@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using FluentAssertions.Execution;
+using AwesomeAssertions.Execution;
 using ReBuzz.Core;
 using ReBuzz.FileOps;
 

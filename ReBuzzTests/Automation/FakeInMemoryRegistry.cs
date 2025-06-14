@@ -1,4 +1,4 @@
-using FluentAssertions.Execution;
+using AwesomeAssertions.Execution;
 using ReBuzz.Core;
 using System.Collections.Generic;
 using System.Linq;

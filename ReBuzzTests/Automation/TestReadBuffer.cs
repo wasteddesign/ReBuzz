@@ -1,5 +1,5 @@
 using Buzz.MachineInterface;
-using FluentAssertions;
+using AwesomeAssertions;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;

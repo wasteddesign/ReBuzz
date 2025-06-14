@@ -1,7 +1,7 @@
 using AtmaFileSystem;
 using AtmaFileSystem.IO;
 using BuzzGUI.Interfaces;
-using FluentAssertions.Execution;
+using AwesomeAssertions.Execution;
 using ReBuzz.Core;
 using ReBuzz.FileOps;
 using ReBuzzTests.Automation.TestMachines;

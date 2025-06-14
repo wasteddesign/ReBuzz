@@ -1,5 +1,5 @@
 using AtmaFileSystem.IO;
-using FluentAssertions;
+using AwesomeAssertions;
 using ReBuzzTests.Automation;
 
 namespace ReBuzzTests;
