@@ -1,5 +1,5 @@
 using AtmaFileSystem;
-using FluentAssertions.Execution;
+using AwesomeAssertions.Execution;
 using ReBuzz.Core;
 
 namespace ReBuzzTests.Automation
@@ -16,7 +16,7 @@ namespace ReBuzzTests.Automation
         {
             return () =>
             {
-                Execute.Assertion.FailWith("Did not expect to invoke the dialog here.");
+                AssertionChain.GetOrCreate().FailWith("Did not expect to invoke the dialog here.");
                 return ChosenValue<string>.Nothing;
             };
         }

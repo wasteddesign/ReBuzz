@@ -7,6 +7,6 @@ namespace ReBuzzTests.Automation.TestMachinesControllers
     {
         void Execute(
             ReBuzzCore buzzCore,
-            Dictionary<string, MachineCore> machineCores);
+            ReBuzzMachines machineCores);
     }
 }

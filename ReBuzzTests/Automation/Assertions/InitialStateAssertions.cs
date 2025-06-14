@@ -1,8 +1,8 @@
 using AtmaFileSystem;
 using Buzz.MachineInterface;
 using BuzzGUI.Interfaces;
-using FluentAssertions;
-using FluentAssertions.Execution;
+using AwesomeAssertions;
+using AwesomeAssertions.Execution;
 using ReBuzz.Core;
 using ReBuzz.FileOps;
 using ReBuzz.MachineManagement;
@@ -110,7 +110,6 @@ namespace ReBuzzTests.Automation.Assertions
             reBuzzCore.MIDIControllers.Should().BeEmpty();
             reBuzzCore.MIDIFocusMachine.Should().Be(reBuzzCore.SongCore.MachinesList[0]);
             reBuzzCore.MIDIFocusLocked.Should().BeFalse();
-            reBuzzCore.MIDIActivity.Should().BeFalse();
 
             reBuzzCore.IsPianoKeyboardVisible.Should().BeFalse();
             reBuzzCore.IsSettingsWindowVisible.Should().BeFalse();

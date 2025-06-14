@@ -1,7 +1,7 @@
 using AtmaFileSystem;
 using BuzzGUI.Common;
 using BuzzGUI.Interfaces;
-using FluentAssertions;
+using AwesomeAssertions;
 using ReBuzz.Core;
 using ReBuzz.MachineManagement;
 using ReBuzz.ManagedMachine;

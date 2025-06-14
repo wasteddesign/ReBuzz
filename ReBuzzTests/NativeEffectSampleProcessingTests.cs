@@ -15,15 +15,15 @@ namespace ReBuzzTests
             using var driver = new Driver();
             var nativeGenerator = FakeNativeGeneratorController.NewInstance();
             var nativeEffect = FakeNativeEffectController.NewInstance();
-            driver.AddPrecompiledGeneratorToGear(FakeNativeGeneratorInfo.Instance);
-            driver.AddPrecompiledEffectToGear(FakeNativeEffectInfo.Instance);
+            driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorInfo.Instance);
+            driver.Gear.AddPrecompiledEffect(FakeNativeEffectInfo.Instance);
             driver.Start();
 
-            driver.InsertMachineInstanceConnectedToMasterFor(nativeEffect);
-            driver.InsertMachineInstanceFor(nativeGenerator);
-            driver.Connect(nativeGenerator, nativeEffect);
-            driver.ExecuteMachineCommand(nativeGenerator.SetStereoSampleValueTo(sampleFromGenerator));
-            driver.ExecuteMachineCommand(nativeEffect.SetStereoSampleMultiplier(effectMultiplier));
+            driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(nativeEffect);
+            driver.MachineGraph.InsertMachineInstanceFor(nativeGenerator);
+            driver.MachineGraph.Connect(nativeGenerator, nativeEffect);
+            driver.MachineGraph.ExecuteMachineCommand(nativeGenerator.SetStereoSampleValueTo(sampleFromGenerator));
+            driver.MachineGraph.ExecuteMachineCommand(nativeEffect.SetStereoSampleMultiplier(effectMultiplier));
 
             var samples = driver.ReadStereoSamples(1);
 
@@ -38,15 +38,15 @@ namespace ReBuzzTests
             using var driver = new Driver();
             var nativeGenerator = FakeNativeGeneratorController.NewInstance();
             var nativeEffect = FakeNativeEffectController.NewInstance();
-            driver.AddPrecompiledGeneratorToGear(FakeNativeGeneratorInfo.Instance);
-            driver.AddPrecompiledEffectToGear(FakeNativeEffectInfo.Instance);
+            driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorInfo.Instance);
+            driver.Gear.AddPrecompiledEffect(FakeNativeEffectInfo.Instance);
             driver.Start();
 
-            driver.InsertMachineInstanceConnectedToMasterFor(nativeEffect);
-            driver.InsertMachineInstanceFor(nativeGenerator);
-            driver.Connect(nativeGenerator, nativeEffect);
-            driver.ExecuteMachineCommand(nativeGenerator.SetStereoSampleValueTo(sampleFromGenerator));
-            driver.ExecuteMachineCommand(nativeEffect.SetStereoSampleMultiplier(effectMultiplier));
+            driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(nativeEffect);
+            driver.MachineGraph.InsertMachineInstanceFor(nativeGenerator);
+            driver.MachineGraph.Connect(nativeGenerator, nativeEffect);
+            driver.MachineGraph.ExecuteMachineCommand(nativeGenerator.SetStereoSampleValueTo(sampleFromGenerator));
+            driver.MachineGraph.ExecuteMachineCommand(nativeEffect.SetStereoSampleMultiplier(effectMultiplier));
 
             var samples = driver.ReadStereoSamples(2);
 
@@ -61,24 +61,24 @@ namespace ReBuzzTests
         {
             var gen1Sample = new Sample(5, 10);
             var gen2Sample = new Sample(2, 5);
-            var effectMultiplier = 2;
+            const int effectMultiplier = 2;
             using var driver = new Driver();
             var gen1Controller = FakeNativeGeneratorController.NewInstance("s1");
             var gen2Controller = FakeNativeGeneratorController.NewInstance("s2");
             var effectController = FakeNativeEffectController.NewInstance();
-            driver.AddPrecompiledGeneratorToGear(FakeNativeGeneratorController.Info);
-            driver.AddPrecompiledGeneratorToGear(FakeNativeEffectController.Info);
+            driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorController.Info);
+            driver.Gear.AddPrecompiledEffect(FakeNativeEffectController.Info);
 
             driver.Start();
 
-            driver.InsertMachineInstanceConnectedToMasterFor(effectController);
-            driver.InsertMachineInstanceFor(gen1Controller);
-            driver.InsertMachineInstanceFor(gen2Controller);
-            driver.Connect(gen1Controller, effectController);
-            driver.Connect(gen2Controller, effectController);
-            driver.ExecuteMachineCommand(gen1Controller.SetStereoSampleValueTo(gen1Sample));
-            driver.ExecuteMachineCommand(gen2Controller.SetStereoSampleValueTo(gen2Sample));
-            driver.ExecuteMachineCommand(effectController.SetStereoSampleMultiplier(effectMultiplier));
+            driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(effectController);
+            driver.MachineGraph.InsertMachineInstanceFor(gen1Controller);
+            driver.MachineGraph.InsertMachineInstanceFor(gen2Controller);
+            driver.MachineGraph.Connect(gen1Controller, effectController);
+            driver.MachineGraph.Connect(gen2Controller, effectController);
+            driver.MachineGraph.ExecuteMachineCommand(gen1Controller.SetStereoSampleValueTo(gen1Sample));
+            driver.MachineGraph.ExecuteMachineCommand(gen2Controller.SetStereoSampleValueTo(gen2Sample));
+            driver.MachineGraph.ExecuteMachineCommand(effectController.SetStereoSampleMultiplier(effectMultiplier));
 
             var samples = driver.ReadStereoSamples(1);
 
@@ -92,24 +92,24 @@ namespace ReBuzzTests
             const double masterVolume2 = 0.25;
             var gen1Sample = new Sample(5, 10);
             var gen2Sample = new Sample(2, 5);
-            var effectMultiplier = 2;
+            const int effectMultiplier = 2;
             using var driver = new Driver();
             var gen1Controller = FakeNativeGeneratorController.NewInstance("s1");
             var gen2Controller = FakeNativeGeneratorController.NewInstance("s2");
             var effectController = FakeNativeEffectController.NewInstance();
-            driver.AddPrecompiledGeneratorToGear(FakeNativeGeneratorController.Info);
-            driver.AddPrecompiledGeneratorToGear(FakeNativeEffectController.Info);
+            driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorController.Info);
+            driver.Gear.AddPrecompiledEffect(FakeNativeEffectController.Info);
 
             driver.Start();
 
-            driver.InsertMachineInstanceConnectedToMasterFor(effectController);
-            driver.InsertMachineInstanceFor(gen1Controller);
-            driver.InsertMachineInstanceFor(gen2Controller);
-            driver.Connect(gen1Controller, effectController);
-            driver.Connect(gen2Controller, effectController);
-            driver.ExecuteMachineCommand(gen1Controller.SetStereoSampleValueTo(gen1Sample));
-            driver.ExecuteMachineCommand(gen2Controller.SetStereoSampleValueTo(gen2Sample));
-            driver.ExecuteMachineCommand(effectController.SetStereoSampleMultiplier(effectMultiplier));
+            driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(effectController);
+            driver.MachineGraph.InsertMachineInstanceFor(gen1Controller);
+            driver.MachineGraph.InsertMachineInstanceFor(gen2Controller);
+            driver.MachineGraph.Connect(gen1Controller, effectController);
+            driver.MachineGraph.Connect(gen2Controller, effectController);
+            driver.MachineGraph.ExecuteMachineCommand(gen1Controller.SetStereoSampleValueTo(gen1Sample));
+            driver.MachineGraph.ExecuteMachineCommand(gen2Controller.SetStereoSampleValueTo(gen2Sample));
+            driver.MachineGraph.ExecuteMachineCommand(effectController.SetStereoSampleMultiplier(effectMultiplier));
 
             driver.SetMasterVolumeTo(masterVolume1);
             var samples1 = driver.ReadStereoSamples(1);
@@ -124,25 +124,25 @@ namespace ReBuzzTests
         public void OutputsASampleFromNativeGeneratorThroughMultipleNativeEffectsConnectedInAChain()
         {
             var genSample = new Sample(5, 10);
-            var effect1Multiplier = 2;
-            var effect2Multiplier = 3;
+            const int effect1Multiplier = 2;
+            const int effect2Multiplier = 3;
             using var driver = new Driver();
             var genController = FakeNativeGeneratorController.NewInstance("s1");
             var effect1Controller = FakeNativeEffectController.NewInstance("e1");
             var effect2Controller = FakeNativeEffectController.NewInstance("e2");
-            driver.AddPrecompiledGeneratorToGear(FakeNativeGeneratorController.Info);
-            driver.AddPrecompiledGeneratorToGear(FakeNativeEffectController.Info);
+            driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorController.Info);
+            driver.Gear.AddPrecompiledEffect(FakeNativeEffectController.Info);
 
             driver.Start();
 
-            driver.InsertMachineInstanceConnectedToMasterFor(effect2Controller);
-            driver.InsertMachineInstanceFor(effect1Controller);
-            driver.InsertMachineInstanceFor(genController);
-            driver.Connect(genController, effect1Controller);
-            driver.Connect(effect1Controller, effect2Controller);
-            driver.ExecuteMachineCommand(genController.SetStereoSampleValueTo(genSample));
-            driver.ExecuteMachineCommand(effect1Controller.SetStereoSampleMultiplier(effect1Multiplier));
-            driver.ExecuteMachineCommand(effect2Controller.SetStereoSampleMultiplier(effect2Multiplier));
+            driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(effect2Controller);
+            driver.MachineGraph.InsertMachineInstanceFor(effect1Controller);
+            driver.MachineGraph.InsertMachineInstanceFor(genController);
+            driver.MachineGraph.Connect(genController, effect1Controller);
+            driver.MachineGraph.Connect(effect1Controller, effect2Controller);
+            driver.MachineGraph.ExecuteMachineCommand(genController.SetStereoSampleValueTo(genSample));
+            driver.MachineGraph.ExecuteMachineCommand(effect1Controller.SetStereoSampleMultiplier(effect1Multiplier));
+            driver.MachineGraph.ExecuteMachineCommand(effect2Controller.SetStereoSampleMultiplier(effect2Multiplier));
 
             var samples = driver.ReadStereoSamples(1);
 

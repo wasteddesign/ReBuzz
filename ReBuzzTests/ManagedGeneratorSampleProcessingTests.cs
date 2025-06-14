@@ -22,11 +22,11 @@ namespace ReBuzzTests
         {
             using var driver = new Driver();
             var synth = SynthController.NewInstance();
-            driver.AddDynamicGeneratorToGear(SynthController.Info);
+            driver.Gear.AddDynamicGenerator(SynthController.Info);
             driver.Start();
 
-            driver.InsertMachineInstanceConnectedToMasterFor(synth);
-            driver.ExecuteMachineCommand(synth.SetStereoSampleValueTo(new Sample(0,0)));
+            driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(synth);
+            driver.MachineGraph.ExecuteMachineCommand(synth.SetStereoSampleValueTo(new Sample(0,0)));
 
             var samples = driver.ReadStereoSamples(1);
 
@@ -41,14 +41,14 @@ namespace ReBuzzTests
             using var driver = new Driver();
             var synth1Controller = SynthController.NewInstance("s1");
             var synth2Controller = SynthController.NewInstance("s2");
-            driver.AddDynamicGeneratorToGear(SynthController.Info);
+            driver.Gear.AddDynamicGenerator(SynthController.Info);
         
             driver.Start();
 
-            driver.InsertMachineInstanceConnectedToMasterFor(synth1Controller);
-            driver.InsertMachineInstanceConnectedToMasterFor(synth2Controller);
-            driver.ExecuteMachineCommand(synth1Controller.SetStereoSampleValueTo(synth1Sample));
-            driver.ExecuteMachineCommand(synth2Controller.SetStereoSampleValueTo(synth2Sample));
+            driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(synth1Controller);
+            driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(synth2Controller);
+            driver.MachineGraph.ExecuteMachineCommand(synth1Controller.SetStereoSampleValueTo(synth1Sample));
+            driver.MachineGraph.ExecuteMachineCommand(synth2Controller.SetStereoSampleValueTo(synth2Sample));
 
             var samples = driver.ReadStereoSamples(1);
 
@@ -65,14 +65,14 @@ namespace ReBuzzTests
             using var driver = new Driver();
             var synth1Controller = SynthController.NewInstance("s1");
             var synth2Controller = SynthController.NewInstance("s2");
-            driver.AddDynamicGeneratorToGear(SynthController.Info);
+            driver.Gear.AddDynamicGenerator(SynthController.Info);
         
             driver.Start();
 
-            driver.InsertMachineInstanceConnectedToMasterFor(synth1Controller);
-            driver.InsertMachineInstanceConnectedToMasterFor(synth2Controller);
-            driver.ExecuteMachineCommand(synth1Controller.SetStereoSampleValueTo(synth1Sample));
-            driver.ExecuteMachineCommand(synth2Controller.SetStereoSampleValueTo(synth2Sample));
+            driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(synth1Controller);
+            driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(synth2Controller);
+            driver.MachineGraph.ExecuteMachineCommand(synth1Controller.SetStereoSampleValueTo(synth1Sample));
+            driver.MachineGraph.ExecuteMachineCommand(synth2Controller.SetStereoSampleValueTo(synth2Sample));
             
             driver.SetMasterVolumeTo(masterVolume1);
             var samples1 = driver.ReadStereoSamples(1);
