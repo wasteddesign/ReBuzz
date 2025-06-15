@@ -1240,7 +1240,7 @@ namespace ReBuzz.Core
 
         public void SaveSongFile(string filename)
         {
-            AudioEngine.Stop();
+
             DeleteBackup();
 
             // Check filename
@@ -1269,6 +1269,7 @@ namespace ReBuzz.Core
 
             file.SetSubSections(ss);
 
+            AudioEngine.Stop();
             lock (AudioLock)
             {
                 try
