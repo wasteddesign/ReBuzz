@@ -1,4 +1,4 @@
-using FluentAssertions.Execution;
+using AwesomeAssertions.Execution;
 using ReBuzz.Core;
 using System.Collections.Generic;
 using System.Linq;
@@ -79,7 +79,7 @@ namespace ReBuzzTests.Automation
                     return (T)cachedResult;
                 }
 
-                Execute.Assertion.FailWith($"Read from in-memory registry failed: {path}, {key}");
+                AssertionChain.GetOrCreate().FailWith($"Read from in-memory registry failed: {path}, {key}");
                 return default!;
             }
         }

@@ -5,54 +5,103 @@
 #include <windef.h>
 #include <cstdlib>
 #include <cmath>
+#include <filesystem>
+#include <fstream>
 #include <iterator>
+#include <string>
+
+std::string ReadShortFileContentAndRemoveFile(std::string filePath)
+{
+  std::string content;
+  std::ifstream file(filePath);
+  file >> content;
+  file.close();
+
+  // removing because the next instance of the same machine will recreate the file
+  // with different content and we don't want confusion that
+  // the machine can reuse this file
+  std::remove(filePath.c_str());
+  return content;
+}
+
+std::filesystem::path GetDllFilePath()
+{
+    HMODULE hModule = nullptr;
+    char path[MAX_PATH];
+
+    // Use a variable inside the DLL to get its module handle
+    if (GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                          reinterpret_cast<LPCSTR>(&GetDllFilePath), &hModule))
+    {
+        if (GetModuleFileNameA(hModule, path, MAX_PATH) > 0)
+        {
+            return std::filesystem::path(std::string(path));
+        }
+    }
+    throw std::runtime_error("Could not get DLL Path");
+}
+
+static void DebugShow(const std::string& message)
+{
+  MessageBoxA(nullptr, message.c_str(), "Debug msg", 0);
+}
+
+static void AbortIfRequested(const std::string& machineName)
+{
+  _set_abort_behavior(0, _WRITE_ABORT_MSG);
+  auto path = GetDllFilePath().parent_path() / (std::string("crash_fake_machine_") + machineName);
+  if (std::filesystem::exists(path))
+  {
+    std::abort();    
+  }
+}
 
 constexpr CMachineParameter sampleValueLeftIntegral = 
-{ 
-  pt_word,                    // type
-  "SampleValueLeftIntegral",  // name
-  "SampleValueLeftIntegral",	// description
-  -100,                       // MinValue	
-  100,                        // MaxValue
-  100+1,                      // NoValue
-  0,                          // Flags
-  0                           // Default value
+{
+  .Type = pt_word,                          // type
+  .Name = "SampleValueLeftIntegral",        // name
+  .Description = "SampleValueLeftIntegral", // description
+  .MinValue = -100,                         // MinValue 
+  .MaxValue = 100,                          // MaxValue
+  .NoValue = 100+1,                         // NoValue
+  .Flags = 0,                               // Flags
+  .DefValue = 0                             // Default value
 };
 
 constexpr CMachineParameter sampleValueLeftDivisor = 
-{ 
-  pt_word,									// type
-  "SampleValueLeftDivisor", // name
-  "SampleValueLeftDivisor",	// description
-  -100,  										// MinValue	
-  100,											// MaxValue
-  100+1,										// NoValue
-  0,												// Flags
-  0                         // Default value
+{
+  .Type = pt_word,                          // type
+  .Name = "SampleValueLeftDivisor",         // name
+  .Description = "SampleValueLeftDivisor",  // description
+  .MinValue = -100,                         // MinValue 
+  .MaxValue = 100,                          // MaxValue
+  .NoValue = 100+1,                         // NoValue
+  .Flags = 0,                               // Flags
+  .DefValue = 0                             // Default value
 };
 
 constexpr CMachineParameter sampleValueRightIntegral = 
-{ 
-  pt_word,                    // type
-  "SampleValueRightIntegral", // name
-  "SampleValueRightIntegral",	// description
-  -100,                       // MinValue	
-  100,                        // MaxValue
-  100+1,                      // NoValue
-  0,                          // Flags
-  0                           // Default value
+{
+  .Type = pt_word,                            // type
+  .Name = "SampleValueRightIntegral",         // name
+  .Description = "SampleValueRightIntegral",  // description
+  .MinValue = -100,                           // MinValue 
+  .MaxValue = 100,                            // MaxValue
+  .NoValue = 100+1,                           // NoValue
+  .Flags = 0,                                 // Flags
+  .DefValue = 0                               // Default value
 };
 
 constexpr CMachineParameter sampleValueRightDivisor = 
-{ 
-  pt_word,                    // type
-  "SampleValueRightDivisor",  // name
-  "SampleValueRightDivisor",  // description
-  -100,                       // MinValue	
-  100,                        // MaxValue
-  100+1,                      // NoValue
-  0,                          // Flags
-  0                           // Default value
+{
+  .Type = pt_word,                           // type
+  .Name = "SampleValueRightDivisor",         // name
+  .Description = "SampleValueRightDivisor",  // description
+  .MinValue = -100,                          // MinValue 
+  .MaxValue = 100,                           // MaxValue
+  .NoValue = 100+1,                          // NoValue
+  .Flags = 0,                                // Flags
+  .DefValue = 0                              // Default value
 };
 
 static CMachineParameter const* pParameters[] = { 
@@ -78,21 +127,21 @@ public:
 
 CMachineInfo const                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   MacInfo = 
 {
-  MT_GENERATOR,							// type
-  MI_VERSION,               // version
-  MIF_DOES_INPUT_MIXING,		// flags
-  0,										    // min tracks
-  0,										    // max tracks
-  std::size(pParameters),		// numGlobalParameters
-  0,										    // numTrackParameters
-  pParameters,
-  0,
-  nullptr,
-  "FakeNativeGenerator",
-  "FakeNativeGen",					// short name
-  "WDE", 						        // author
-  nullptr,                  //"Command1\nCommand2\nCommand3"
-  nullptr
+  .Type = MT_GENERATOR,                          // type
+  .Version = MI_VERSION,                         // version
+  .Flags = MIF_DOES_INPUT_MIXING,                // flags
+  .minTracks = 0,                                // min tracks
+  .maxTracks = 0,                                // max tracks
+  .numGlobalParameters = std::size(pParameters), // numGlobalParameters
+  .numTrackParameters = 0,                       // numTrackParameters
+  .Parameters = pParameters,
+  .numAttributes = 0,
+  .Attributes = nullptr,
+  .Name = "FakeNativeGenerator",
+  .ShortName = "FakeNativeGen",                  // short name
+  .Author = "WDE",                               // author
+  .Commands = nullptr,                           //"Command1\nCommand2\nCommand3"
+  .pLI = nullptr
 };
 
 class mi : public CMachineInterface
@@ -103,17 +152,20 @@ public:
 
 private:
   gvals gval;
+  std::string machineName;
 };
 
 DLL_EXPORTS
 
-mi::mi()
+mi::mi() : machineName(ReadShortFileContentAndRemoveFile(GetDllFilePath().string() + ".txt"))
 {
+  AbortIfRequested(machineName);
   GlobalVals = &gval;
 }
 
 bool mi::WorkMonoToStereo(float* pin, float* pout, const int numsamples, int const mode)
 {
+  AbortIfRequested(machineName);
   for (auto i = 0 ; i < numsamples * 2 ; i+=2)
   {
     pout[i] = 
