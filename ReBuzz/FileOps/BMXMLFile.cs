@@ -508,6 +508,7 @@ namespace ReBuzz.FileOps
                 if (machine != null)
                 {
                     machine.IsMuted = machineData.IsMuted;
+                    machine.IsBypassed = machineData.IsBypassed;
                     machine.MIDIInputChannel = machineData.MIDIInputChannel;
                     machine.OverrideLatency = machineData.OverrideLatency;
                     machine.OversampleFactor = machineData.OversampleFactor;
@@ -768,6 +769,7 @@ namespace ReBuzz.FileOps
                 bmxm.Y = m.Position.Item2;
 
                 bmxm.IsMuted = m.IsMuted;
+                bmxm.IsBypassed = m.IsBypassed;
                 bmxm.MIDIInputChannel = m.MIDIInputChannel;
                 bmxm.OverrideLatency = m.OverrideLatency;
                 bmxm.OversampleFactor = m.OversampleFactor;
@@ -1137,6 +1139,7 @@ namespace ReBuzz.FileOps
         public bool GUIWindowVisible { get; set; }
         public BMXMLMachineWindow GUIWindow { get; set; }
         public BMXMLMachineWindow ParameterWindow { get; set; }
+        public bool IsBypassed { get; set; }
     }
 
     [XmlType(TypeName = "ParameterGroup")]

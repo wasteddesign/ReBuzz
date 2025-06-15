@@ -1199,6 +1199,10 @@ namespace ReBuzz.FileOps
                         {
                             machine.IsMuted = val == 1;
                         }
+                        if (itemName == "Bypass")
+                        {
+                            machine.IsBypassed = val == 1;
+                        }
                         else if (itemName == "MIDIInputChannel")
                         {
                             machine.MIDIInputChannel = val;
@@ -2066,12 +2070,17 @@ namespace ReBuzz.FileOps
                 var machine = song.Machines[i];
                 WriteString(ms, machine.Name);
 
-                int numberOfItems = 5;
+                // Update the number of properties
+                int numberOfItems = 6;
                 WriteInt(ms, numberOfItems);
 
                 WriteString(ms, "Mute"); // Name
                 WriteInt(ms, 1); // Size
                 WriteBool(ms, machine.IsMuted); // Value
+
+                WriteString(ms, "Bypass");
+                WriteInt(ms, 1);
+                WriteBool(ms, machine.IsBypassed);
 
                 WriteString(ms, "MIDIInputChannel");
                 WriteInt(ms, 4);
