@@ -144,6 +144,7 @@ namespace BuzzGUI.MachineView
                     foreach (var i in inputs) i.UpdateWirelessID();
                     break;
                 case "IsMuted":
+                case "IsBypassed":
                     PropertyChanged.Raise(this, "MachineBackgroundColor");
                     PropertyChanged.Raise(this, "NameText");
                     break;
