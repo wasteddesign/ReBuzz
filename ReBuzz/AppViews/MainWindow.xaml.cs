@@ -226,12 +226,6 @@ namespace ReBuzz
             {
                 splashScreenWindow.UpdateText("Init views");
 
-                // Machine View
-                var rd = Utils.GetUserControlXAML<ResourceDictionary>(Buzz.Theme.MachineView.Source, buzzPath);
-                MachineView = new MachineView(buzzCore, rd);
-                MachineView.MachineGraph = song;
-                MachineView.Foreground = new SolidColorBrush(Global.Buzz.ThemeColors["MV Text"]);
-                borderMachineView.Child = MachineView;
 
                 /*
                 MachineView.Loaded += (s, e2) =>
@@ -242,15 +236,24 @@ namespace ReBuzz
                 };
                 */
 
-                Buzz.ActiveView = BuzzView.MachineView;
+                
 
                 Utils.InitUtils(this);
 
                 Buzz.StartTimer();
 
-                rd = Utils.GetUserControlXAML<ResourceDictionary>(Buzz.Theme.MainWindow.Source, buzzPath);
+                var rd = Utils.GetUserControlXAML<ResourceDictionary>(Buzz.Theme.MainWindow.Source, buzzPath);
                 this.Style = rd["ThemeWindowStyle"] as Style;
                 this.Resources.MergedDictionaries.Add(rd);
+
+                // Machine View
+                rd = Utils.GetUserControlXAML<ResourceDictionary>(Buzz.Theme.MachineView.Source, buzzPath);
+                MachineView = new MachineView(buzzCore, rd);
+                MachineView.MachineGraph = song;
+                MachineView.Foreground = new SolidColorBrush(Global.Buzz.ThemeColors["MV Text"]);
+                borderMachineView.Child = MachineView;
+
+                Buzz.ActiveView = BuzzView.MachineView;
 
                 // Wavetable
                 WavetableVM = new WavetableVM();

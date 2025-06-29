@@ -8,7 +8,7 @@
         WindowStyle="ToolWindow"
         TextOptions.TextFormattingMode="{Binding TextFormattingMode}"
         Style="{DynamicResource ThemeWindowStyle}" ResizeMode="NoResize"
-        Title="Rename Machine" Height="127" Width="313">
+        Height="135" Width="313">
     <Grid Margin="4, 30, 4, 4">
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>

@@ -1,4 +1,5 @@
 ﻿using BuzzGUI.Common;
+using System;
 using System.ComponentModel;
 using System.Windows;
 
@@ -6,6 +7,7 @@ namespace ReBuzz.Common
 {
     public partial class RenameMachineWindow : Window, INotifyPropertyChanged
     {
+        private readonly bool skipInputCheck;
         private readonly string oldName;
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -18,6 +20,9 @@ namespace ReBuzz.Common
             }
             get
             {
+                if (skipInputCheck)
+                    return true;
+
                 try
                 {
                     var n = tbName.Text.Trim();
@@ -34,11 +39,18 @@ namespace ReBuzz.Common
             }
         }
 
-        public RenameMachineWindow(string name)
+        public RenameMachineWindow(string title, string name, bool skipInputValidation)
         {
+            this.skipInputCheck = skipInputValidation;
             this.oldName = name;
             DataContext = this;
             InitializeComponent();
+
+            var rd = Utils.GetUserControlXAML<ResourceDictionary>("MachineView\\MVResources.xaml", Global.BuzzPath);
+            this.Resources.MergedDictionaries.Add(rd);
+
+            this.Title = title;
+
             tbName.Text = name;
 
             btOk.Click += (sender, e) =>
@@ -51,6 +63,13 @@ namespace ReBuzz.Common
             {
                 IsInputValid = false;
             };
+        }
+
+        internal void SetStartUpLocation(int x, int y)
+        {
+            WindowStartupLocation = WindowStartupLocation.Manual;
+            Left = x;
+            Top = y;
         }
     }
 }

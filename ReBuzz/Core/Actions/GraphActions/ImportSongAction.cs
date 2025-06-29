@@ -19,6 +19,7 @@ namespace ReBuzz.Core.Actions.GraphActions
         private string filename;
         private IReBuzzFile bmxFile;
         private List<MachineCore> machines = new List<MachineCore>();
+        private List<MachineGroupCore> machineGroups = new List<MachineGroupCore>();
         private List<int> waveIndexes = new List<int>();
         private readonly IUiDispatcher dispatcher;
 
@@ -35,6 +36,7 @@ namespace ReBuzz.Core.Actions.GraphActions
         protected override void DoAction()
         {
             machines.Clear();
+            machineGroups.Clear();
             waveIndexes.Clear();
 
             lock (ReBuzzCore.AudioLock)
@@ -77,14 +79,21 @@ namespace ReBuzz.Core.Actions.GraphActions
                         new DisconnectMachinesAction(buzz, output, dispatcher).Do();
                 }
 
-                // Clear waves
-                foreach (int index in waveIndexes)
-                {
-                    buzz.SongCore.Wavetable.LoadWave(index, null, null, false);
-                }
-
                 buzz.RemoveMachine(machine);
             }
+
+            // Clear waves
+            foreach (int index in waveIndexes)
+            {
+                buzz.SongCore.Wavetable.LoadWave(index, null, null, false);
+            }
+
+            // Remove Groups
+            foreach (var g in machineGroups)
+            {
+                buzz.RemoveMachineGroup(g);
+            }
+
         }
 
         internal void AddMachine(MachineCore machineNew)
@@ -95,6 +104,11 @@ namespace ReBuzz.Core.Actions.GraphActions
         internal void AddWaveIndex(int newIndex)
         {
             waveIndexes.Add(newIndex);
+        }
+
+        internal void AddGroupMachine(MachineGroupCore group)
+        {
+            machineGroups.Add(group);
         }
     }
 }

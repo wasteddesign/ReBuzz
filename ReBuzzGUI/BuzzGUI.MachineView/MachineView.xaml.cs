@@ -13,6 +13,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Shapes;
 //using PropertyChanged;
 
 namespace BuzzGUI.MachineView
@@ -26,7 +27,7 @@ namespace BuzzGUI.MachineView
     public partial class MachineView : UserControl, INotifyPropertyChanged
     {
         IMachineGraph machineGraph;
-
+        IMachineGroupGraph machineGroupGraph;
         public IMachineGraph MachineGraph
         {
             get { return machineGraph; }
@@ -34,24 +35,33 @@ namespace BuzzGUI.MachineView
             {
                 if (machineGraph != null)
                 {
-                    machineGraph.PropertyChanged -= new System.ComponentModel.PropertyChangedEventHandler(machineGraph_PropertyChanged);
+                    machineGraph.PropertyChanged -= new PropertyChangedEventHandler(machineGraph_PropertyChanged);
                     machineGraph.MachineAdded -= new Action<IMachine>(machineGraph_MachineAdded);
                     machineGraph.MachineRemoved -= new Action<IMachine>(machineGraph_MachineRemoved);
                     machineGraph.ConnectionAdded -= new Action<IMachineConnection>(machineGraph_ConnectionAdded);
                     machineGraph.ConnectionRemoved -= new Action<IMachineConnection>(machineGraph_ConnectionRemoved);
 
+                    machineGroupGraph.MachineGroupAdded -= MachineGroupGraph_MachineGroupAdded;
+                    machineGroupGraph.MachineGroupRemoved -= MachineGroupGraph_MachineGroupRemoved;
+                    machineGroupGraph.ImportGroupedMachinePosition -= MachineGroupGraph_GroupedMachinePosition;
+
                     ClearMachines();
                 }
 
                 machineGraph = value;
+                machineGroupGraph = (IMachineGroupGraph)machineGraph;
 
                 if (machineGraph != null)
                 {
-                    machineGraph.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(machineGraph_PropertyChanged);
+                    machineGraph.PropertyChanged += new PropertyChangedEventHandler(machineGraph_PropertyChanged);
                     machineGraph.MachineAdded += new Action<IMachine>(machineGraph_MachineAdded);
                     machineGraph.MachineRemoved += new Action<IMachine>(machineGraph_MachineRemoved);
                     machineGraph.ConnectionAdded += new Action<IMachineConnection>(machineGraph_ConnectionAdded);
                     machineGraph.ConnectionRemoved += new Action<IMachineConnection>(machineGraph_ConnectionRemoved);
+
+                    machineGroupGraph.MachineGroupAdded += MachineGroupGraph_MachineGroupAdded;
+                    machineGroupGraph.MachineGroupRemoved += MachineGroupGraph_MachineGroupRemoved;
+                    machineGroupGraph.ImportGroupedMachinePosition += MachineGroupGraph_GroupedMachinePosition;
 
                     AddAllMachines();
                 }
@@ -62,6 +72,43 @@ namespace BuzzGUI.MachineView
                 if (hdRecorderWindow != null)
                     hdRecorderWindow.MachineGraph = value;
             }
+        }
+
+        private void MachineGroupGraph_GroupedMachinePosition(IMachine machine, float x, float y)
+        {
+            var mControl = Machines.FirstOrDefault(mc => mc.Machine == machine);
+            if (mControl != null)
+            {
+                mControl.OldPosition = new Tuple<float, float>(x,y);
+            }
+        }
+
+        private void MachineGroupGraph_MachineGroupRemoved(IMachineGroup g)
+        {
+            var mgc = GetMachineGroupControl(g);
+            mgc.Release();
+            machineCanvas.Children.Remove(mgc);
+
+            var r = groupToRect[mgc];
+            containerCanvas.Children.Remove(r);
+            groupToRect.Remove(mgc);
+
+            PropertyChanged.Raise(this, "Machines");
+            PropertyChanged.Raise(this, "SelectedMachines");
+        }
+
+        private void MachineGroupGraph_MachineGroupAdded(IMachineGroup obj)
+        {
+            var g = new GroupControl(this) { MachineGroup = obj, Buzz = Buzz };
+            machineCanvas.Children.Add(g);
+
+            var r = new Rectangle() { Height = 100, Width = 200, Visibility = Visibility.Collapsed };
+            r.Style = FindResource("RectangleGroupStyle") as Style;
+            containerCanvas.Children.Add(r);
+            groupToRect[g] = r;
+
+            PropertyChanged.Raise(this, "Machines");
+            PropertyChanged.Raise(this, "SelectedMachines");
         }
 
         void machineGraph_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -79,13 +126,19 @@ namespace BuzzGUI.MachineView
                 foreach (var mc in i.Inputs)
                     machineGraph_ConnectionAdded(mc);
 
+            foreach (IMachineGroup i in machineGroupGraph.MachineGroups)
+                this.MachineGroupGraph_MachineGroupAdded(i);
+
             PropertyChanged.Raise(this, "Machines");
             PropertyChanged.Raise(this, "SelectedMachines");
         }
 
         void ClearMachines()
         {
-            foreach (MachineControl mc in machineCanvas.Children)
+            foreach (MachineControl mc in Machines)
+                mc.Release();
+
+            foreach (GroupControl mc in Groups)
                 mc.Release();
 
             machineCanvas.Children.Clear();
@@ -97,7 +150,8 @@ namespace BuzzGUI.MachineView
         void machineGraph_MachineAdded(IMachine m)
         {
             machineCanvas.Children.Add(new MachineControl(this) { Machine = m });
-            PropertyChanged.Raise(this, "Machines");
+            
+            PropertyChanged.Raise(this, "Machines");    
             PropertyChanged.Raise(this, "SelectedMachines");
         }
 
@@ -105,6 +159,7 @@ namespace BuzzGUI.MachineView
         {
             var mc = GetMachineControl(m);
             mc.Release();
+
             machineCanvas.Children.Remove(mc);
             PropertyChanged.Raise(this, "Machines");
             PropertyChanged.Raise(this, "SelectedMachines");
@@ -137,9 +192,36 @@ namespace BuzzGUI.MachineView
                 src.UpdateWirelessOutputs();
         }
 
-        public IEnumerable<MachineControl> Machines { get { return machineCanvas.Children.Cast<MachineControl>(); } }
+        public IEnumerable<MachineControl> Machines {
+            get
+            {
+                List<MachineControl> mc = new List<MachineControl>();
+                foreach (var c in machineCanvas.Children)
+                {
+                    if (c is MachineControl)
+                        mc.Add((MachineControl)c);
+                }
+                return mc;
+            }
+        }
+
+        public IEnumerable<GroupControl> Groups
+        {
+            get
+            {
+                List<GroupControl> mc = new List<GroupControl>();
+                foreach (var c in machineCanvas.Children)
+                {
+                    if (c is GroupControl)
+                        mc.Add((GroupControl)c);
+                }
+                return mc;
+            }
+        }
         public IEnumerable<MachineControl> SelectedMachines { get { return Machines.Where(x => x.IsSelected); } }
+        public IEnumerable<GroupControl> SelectedGroups { get { return Groups.Where(x => x.IsSelected); } }
         public MachineControl GetMachineControl(IMachine m) { return Machines.FirstOrDefault(x => x.Machine == m); }
+        public GroupControl GetMachineGroupControl(IMachineGroup g) { return Groups.FirstOrDefault(x => x.MachineGroup == g); }
         public IEnumerable<Connection> Connections { get { return Machines.SelectMany(m => m.inputs); } }
         public bool IsSoloActive { get { return Machines.Any(m => m.Machine.IsSoloed); } }
 
@@ -153,7 +235,6 @@ namespace BuzzGUI.MachineView
         readonly ListBoxItemDragSource machineListDragSource;
         readonly ListBoxItemDragSource templateListDragSource;
         readonly ListBoxItemDragSource mdbListDragSource;
-
 
         public ParametersTab.ParametersTabVM ParametersTabVM { get; private set; }
         public MDBTab.MDBTabVM MDBTabVM { get; private set; }
@@ -202,7 +283,6 @@ namespace BuzzGUI.MachineView
                     Zoomer.Level = Settings.DefaultZoomLevel;
                     break;
             }
-
         }
 
         SimpleCommand NewMachineCommand { get; set; }
@@ -220,6 +300,7 @@ namespace BuzzGUI.MachineView
         public ICommand CreateTemplateCommand { get; private set; }
         public ICommand TemplateListParentCommand { get; private set; }
         public ICommand ArrangeCommand { get; private set; }
+        public ICommand GroupNewCommand { get; private set; }
 
         void Commands()
         {
@@ -275,7 +356,8 @@ namespace BuzzGUI.MachineView
             SelectAllCommand = new SimpleCommand
             {
                 CanExecuteDelegate = x => true,
-                ExecuteDelegate = x => { foreach (var m in Machines) m.IsSelected = true; }
+                ExecuteDelegate = x => { foreach (var m in Machines) m.IsSelected = true;
+                    foreach (var g in Groups) g.IsSelected = true; }
             };
 
             DeselectCommand = new SimpleCommand
@@ -287,7 +369,7 @@ namespace BuzzGUI.MachineView
             DeleteSelectedCommand = new SimpleCommand
             {
                 CanExecuteDelegate = x => SelectedMachines.Count() > 0,
-                ExecuteDelegate = x => { DeleteMachines(SelectedMachines.Select(m => m.Machine)); }
+                ExecuteDelegate = x => { DeleteMachines(GetSelectedAndAllGroupMachines()); DeleteGroups(SelectedGroups.Select(g => g.MachineGroup)); }
             };
 
 
@@ -308,7 +390,8 @@ namespace BuzzGUI.MachineView
                     using (new ActionGroup(machineGraph))
                     {
                         CopySelectedMachines();
-                        DeleteMachines(SelectedMachines.Select(m => m.Machine));
+                        DeleteMachines( GetSelectedAndAllGroupMachines() );
+                        DeleteGroups(SelectedGroups.Select(g => g.MachineGroup));
                     }
                 }
             };
@@ -360,6 +443,15 @@ namespace BuzzGUI.MachineView
                 }
             };
 
+            GroupNewCommand = new SimpleCommand
+            {
+                CanExecuteDelegate = x => true,
+                ExecuteDelegate = x =>
+                {
+                    Buzz.Song.CreateMachineGroup("New Group", (float)CommandCanvasPosition.X, (float)CommandCanvasPosition.Y);
+                }
+            };
+
             this.InputBindings.Add(new InputBinding(SettingsCommand, new KeyGesture(Key.E, ModifierKeys.Control)));
             this.InputBindings.Add(new InputBinding(SelectAllCommand, new KeyGesture(Key.A, ModifierKeys.Control)));
             this.InputBindings.Add(new InputBinding(DeselectCommand, new KeyGesture(Key.D, ModifierKeys.Control)));
@@ -368,6 +460,7 @@ namespace BuzzGUI.MachineView
             this.InputBindings.Add(new InputBinding(CutCommand, new KeyGesture(Key.X, ModifierKeys.Control)));
             this.InputBindings.Add(new InputBinding(CopyCommand, new KeyGesture(Key.C, ModifierKeys.Control)));
             this.InputBindings.Add(new InputBinding(PasteCommand, new KeyGesture(Key.V, ModifierKeys.Control)));
+            this.InputBindings.Add(new InputBinding(GroupNewCommand, new KeyGesture(Key.G, ModifierKeys.Control)));
         }
 
         private void ArrangeView(float snapSize)
@@ -516,7 +609,6 @@ namespace BuzzGUI.MachineView
 
         void MachineView_Loaded(object l_sender, RoutedEventArgs l_e)
         {
-
             new Dragger
             {
                 Element = this,
@@ -528,6 +620,7 @@ namespace BuzzGUI.MachineView
                     sv.ScrollToHorizontalOffset(sv.HorizontalOffset - delta.X);
                     sv.ScrollToVerticalOffset(sv.VerticalOffset - delta.Y);
                 }
+                
             };
 
             Zoomer = new Zoomer
@@ -544,6 +637,7 @@ namespace BuzzGUI.MachineView
             };
 
             List<MachineControl> oldSelection = new List<MachineControl>();
+            List<GroupControl> oldGroupSelection = new List<GroupControl>();
 
             new Dragger
             {
@@ -557,28 +651,30 @@ namespace BuzzGUI.MachineView
                     {
                         grid.Focus();
                         oldSelection = new List<MachineControl>();
+                        oldGroupSelection = new List<GroupControl>();
                     }
                     else
                     {
                         oldSelection = new List<MachineControl>(SelectedMachines);
+                        oldGroupSelection = new List<GroupControl>(SelectedGroups);
                     }
 
                     selectionLayer.BeginSelect(p);
 
-                    foreach (var m in Machines) m.IsSelected = (m.GetBounds(viewGrid).Contains(p) || oldSelection.Contains(m));
-
-
+                    foreach (var m in Machines) m.IsSelected = !(Buzz.Song.MachineToGroupDict.ContainsKey(m.Machine) && Buzz.Song.MachineToGroupDict[m.Machine].IsGrouped) && (m.GetBounds(viewGrid).Contains(p) || oldSelection.Contains(m));
+                    foreach (var g in Groups) g.IsSelected = g.GetBounds(viewGrid).Contains(p) || oldGroupSelection.Contains(g);
                 },
                 Drag = p =>
                 {
                     Rect r = selectionLayer.UpdateSelect(p);
-                    foreach (var m in Machines) m.IsSelected = (m.GetBounds(viewGrid).IntersectsWith(r) || oldSelection.Contains(m));
-
+                    foreach (var m in Machines) m.IsSelected = !(Buzz.Song.MachineToGroupDict.ContainsKey(m.Machine) && Buzz.Song.MachineToGroupDict[m.Machine].IsGrouped) && (m.GetBounds(viewGrid).IntersectsWith(r) || oldSelection.Contains(m));
+                    foreach (var g in Groups) g.IsSelected = g.GetBounds(viewGrid).IntersectsWith(r) || oldGroupSelection.Contains(g);
                 },
                 EndDrag = p =>
                 {
                     selectionLayer.EndSelect(p);
                     PropertyChanged.Raise(this, "SelectedMachines");
+                    PropertyChanged.Raise(this, "SelectedGroups");
                 }
             };
 
@@ -710,6 +806,11 @@ namespace BuzzGUI.MachineView
             foreach (var m in Machines)
                 m.IsSelected = false;
 
+            foreach (var g in Groups)
+                g.IsSelected = false;
+
+            HideGroupRect();
+
             PropertyChanged.Raise(this, "SelectedMachines");
         }
 
@@ -717,6 +818,16 @@ namespace BuzzGUI.MachineView
         {
             foreach (var m in Machines)
                 m.IsSelected = m == s ? true : (add ? m.IsSelected : false);
+
+            PropertyChanged.Raise(this, "SelectedMachines");
+        }
+
+        public void SetSelection(GroupControl s, bool add)
+        {
+            foreach (var g in Groups)
+            {
+                g.IsSelected = g == s ? true : (add ? g.IsSelected : false);
+            }
 
             PropertyChanged.Raise(this, "SelectedMachines");
         }
@@ -729,17 +840,132 @@ namespace BuzzGUI.MachineView
             PropertyChanged.Raise(this, "SelectedMachines");
         }
 
+        public void SetSelection(IEnumerable<IMachineGroup> s, bool add)
+        {
+            foreach (var m in Groups)
+                m.IsSelected = s.Contains(m.MachineGroup) ? true : (add ? m.IsSelected : false);
+
+            PropertyChanged.Raise(this, "SelectedMachines");
+        }
+
         public void BeginMoveSelectedMachines()
         {
             foreach (var m in Machines)
+            {
                 m.BeginDragPosition = MachineCanvas.GetPosition(m);
+            }
 
+            foreach (var m in SelectedMachines)
+            {
+                DrawGroupRect(m);
+            }
+        }
+
+        private void DrawGroupRect(MachineControl m)
+        {
+            // Update rect
+            if (Buzz.Song.MachineToGroupDict.ContainsKey(m.Machine))
+            {
+                var group = Buzz.Song.MachineToGroupDict[m.Machine];
+                var g = Groups.FirstOrDefault(g => g.MachineGroup == group);
+                UpdateGroupRects(g);
+                GetGroupRectangle(g).Visibility = Visibility.Visible;
+            }
+        }
+
+        public void BeginMoveSelectedGroups()
+        {
+            foreach (var g in Groups)
+            {
+                g.BeginDragPosition = MachineCanvas.GetPosition(g);
+            }
+
+            foreach (var g in SelectedGroups)
+            {
+                GetGroupRectangle(g).Visibility = Visibility.Visible;
+                UpdateGroupRects(g);
+            }
+        }
+
+        public void MoveGroupedMachines(Point delta)
+        {
+            foreach (var g in SelectedGroups)
+            {
+                foreach (var m in Machines)
+                {
+                    if (Buzz.Song.MachineToGroupDict.ContainsKey(m.Machine))
+                        if (Buzz.Song.MachineToGroupDict[m.Machine] == g.MachineGroup)
+                        {
+                            machineCanvas.Drag(m, delta);
+                            GetGroupRectangle(g).Visibility = Visibility.Visible;
+                        }
+                }
+                UpdateGroupRects(g);
+            }
+        }
+
+
+        Rectangle GetGroupRectangle(GroupControl g)
+        {
+            return groupToRect[g];
+        }
+
+        Dictionary<GroupControl, Rectangle> groupToRect = new Dictionary<GroupControl, Rectangle>();
+        double margin = 10;
+        void UpdateGroupRects(GroupControl g)
+        {  
+            if (!groupToRect.ContainsKey(g))
+            {
+                var r = new Rectangle() { Height = 100, Width = 200 };
+                r.Style = FindResource("RectangleGroupStyle") as Style;
+                containerCanvas.Children.Add(r);
+                groupToRect[g] = r;
+            }
+
+            var rect = groupToRect[g];
+            
+            Point topLeft = machineCanvas.GetRect(g).TopLeft;
+            Point bottomRight = machineCanvas.GetRect(g).BottomRight;
+
+            foreach (var m in Machines)
+            {
+                if (Buzz.Song.MachineToGroupDict.ContainsKey(m.Machine))
+                    if (Buzz.Song.MachineToGroupDict[m.Machine] == g.MachineGroup)
+                    {
+                        Point rmTopLeft = machineCanvas.GetRect(m).TopLeft;
+                        Point rmBottomRight = machineCanvas.GetRect(m).BottomRight;
+
+                        topLeft.X = rmTopLeft.X < topLeft.X ? rmTopLeft.X : topLeft.X;
+                        topLeft.Y = rmTopLeft.Y < topLeft.Y ? rmTopLeft.Y : topLeft.Y;
+
+                        bottomRight.X = rmBottomRight.X > bottomRight.X ? rmBottomRight.X : bottomRight.X;
+                        bottomRight.Y = rmBottomRight.Y > bottomRight.Y ? rmBottomRight.Y : bottomRight.Y;
+                    }   
+            }
+
+            rect.Width = bottomRight.X - topLeft.X + 2 * margin;
+            rect.Height = bottomRight.Y - topLeft.Y + 2 * margin;
+            Canvas.SetTop(rect, topLeft.Y - margin);
+            Canvas.SetLeft(rect, topLeft.X - margin);
         }
 
         public void MoveSelectedMachines(Point delta)
         {
             foreach (var m in SelectedMachines)
+            {
                 machineCanvas.Drag(m, delta);
+
+                DrawGroupRect(m);
+            }
+        }
+
+        public void MoveSelectedGroups(Point delta)
+        {
+            foreach (var g in SelectedGroups)
+            {
+                machineCanvas.Drag(g, delta);
+                UpdateGroupRects(g);
+            }
         }
 
         public void MoveSelectedMachines(IEnumerable<Point> deltas)
@@ -758,12 +984,83 @@ namespace BuzzGUI.MachineView
                 mm.Add(new Tuple<IMachine, Tuple<float, float>>(m.Machine, new Tuple<float, float>((float)p.X, (float)p.Y)));
             }
 
+            HideGroupRect();
+
             machineGraph.MoveMachines(mm);
+        }
+
+        public void EndMoveGroupedMachines()
+        {
+            List<Tuple<IMachine, Tuple<float, float>>> mm = new List<Tuple<IMachine, Tuple<float, float>>>();
+            List<Tuple<IMachine, Tuple<float, float>>> mmOld = new List<Tuple<IMachine, Tuple<float, float>>>();
+
+            foreach (var m in Machines)
+                foreach (var g in SelectedGroups)
+                {
+                    if (Buzz.Song.MachineToGroupDict.ContainsKey(m.Machine))
+                    {
+                        if (Buzz.Song.MachineToGroupDict[m.Machine] == g.MachineGroup)
+                        {
+                            Point originalP = new Point(m.Machine.Position.Item1, m.Machine.Position.Item2);
+                            Point p = MachineCanvas.GetPosition(m);
+                            Point delta = (Point)(p - originalP);
+
+                            m.OldPosition = new Tuple<float, float>(m.OldPosition.Item1 + (float)delta.X, m.OldPosition.Item2 + (float)delta.Y);
+                            mm.Add(new Tuple<IMachine, Tuple<float, float>>(m.Machine, new Tuple<float, float>((float)p.X, (float)p.Y)));
+                            if (g.MachineGroup.IsGrouped)
+                                mmOld.Add(new Tuple<IMachine, Tuple<float, float>>(m.Machine, new Tuple<float, float>((float)m.OldPosition.Item1, (float)m.OldPosition.Item2)));
+                            else
+                                mmOld.Add(new Tuple<IMachine, Tuple<float, float>>(m.Machine, new Tuple<float, float>((float)p.X, (float)p.Y)));
+                        }
+                    }
+                }
+
+            HideGroupRect();
+
+            machineGraph.MoveMachines(mm);
+            machineGroupGraph.UpdateGroupedMachinesPositions(mmOld);
+        }
+
+        internal void HideGroupRect()
+        {
+            foreach (var g in Groups)
+            {
+                GetGroupRectangle(g).Visibility = Visibility.Collapsed;
+            }
+        }
+
+        internal void HideOtherGroupRect(GroupControl group)
+        {
+            foreach (var g in Groups)
+            {
+                if (g != group)
+                    GetGroupRectangle(g).Visibility = Visibility.Collapsed;
+            }
+        }
+
+        public void EndMoveSelectedGroups()
+        {
+            List<Tuple<IMachineGroup, Tuple<float, float>>> mm = new List<Tuple<IMachineGroup, Tuple<float, float>>>();
+
+            foreach (var g in SelectedGroups)
+            {
+                Point p = MachineCanvas.GetPosition(g);
+                mm.Add(new Tuple<IMachineGroup, Tuple<float, float>>(g.MachineGroup, new Tuple<float, float>((float)p.X, (float)p.Y)));
+            }
+            machineGroupGraph.MoveMachineGroups(mm);
+
+            HideGroupRect();
         }
 
         public void BringToTop(IEnumerable<IMachine> m)
         {
             foreach (var x in Machines.Where(x => m.Contains(x.Machine)))
+                x.BringToTop();
+        }
+
+        public void BringToTop(IEnumerable<IMachineGroup> g)
+        {
+            foreach (var x in Groups.Where(x => g.Contains(x.MachineGroup)))
                 x.BringToTop();
         }
 
@@ -958,6 +1255,12 @@ namespace BuzzGUI.MachineView
             }
         }
 
+        internal void DeleteGroups(IEnumerable<IMachineGroup> groups)
+        {
+
+            machineGroupGraph.DeleteMachineGroups(groups);
+        }
+
         internal void DisconnectMachine(IMachine m)
         {
             if (m.Inputs.Count == 0 && m.Outputs.Count == 0) return;
@@ -987,13 +1290,26 @@ namespace BuzzGUI.MachineView
 
         }
 
+        IEnumerable<IMachine> GetSelectedAndAllGroupMachines()
+        {
+            var sm = SelectedMachines.Select(m => m.Machine);
+            var sg = SelectedGroups.Select(g => g.MachineGroup);
+
+            // Make sure all machines in groups are inluded.
+            foreach (var group in sg)
+            {
+                sm = sm.Union(group.Machines);
+            }
+            return sm;
+        }
+
         void CopySelectedMachines()
         {
             try
             {
                 Mouse.OverrideCursor = Cursors.Wait;
 
-                var t = new BuzzGUI.Common.Templates.Template(SelectedMachines.Select(m => m.Machine), BuzzGUI.Common.Templates.TemplatePatternMode.PatternsAndSequences, BuzzGUI.Common.Templates.TemplateWavetableMode.NoWavetable);
+                var t = new BuzzGUI.Common.Templates.Template(GetSelectedAndAllGroupMachines(), SelectedGroups.Select(g => g.MachineGroup), BuzzGUI.Common.Templates.TemplatePatternMode.PatternsAndSequences, BuzzGUI.Common.Templates.TemplateWavetableMode.NoWavetable);
 
                 var ms = new MemoryStream();
                 t.Save(ms);
@@ -1010,7 +1326,6 @@ namespace BuzzGUI.MachineView
             {
                 Mouse.OverrideCursor = null;
             }
-
         }
 
         void PasteMachines(Point pos)
@@ -1024,9 +1339,11 @@ namespace BuzzGUI.MachineView
                 if (BuzzGUI.Common.Templates.Template.IsValidTemplateString(s))
                 {
                     var t = BuzzGUI.Common.Templates.Template.LoadFromString(s);
-                    var newmachines = t.Paste(machineGraph, pos);
-                    SetSelection(newmachines, false);
-                    BringToTop(newmachines);
+                    var newmachines = t.Paste(machineGraph, machineGroupGraph, pos);
+                    SetSelection(newmachines.Item1, false);
+                    SetSelection(newmachines.Item2, false);
+                    BringToTop(newmachines.Item1);
+                    BringToTop(newmachines.Item2);
                 }
                 else if (BuzzGUI.Common.Presets.Preset.IsValidPresetString(s))
                 {
@@ -1046,7 +1363,6 @@ namespace BuzzGUI.MachineView
             {
                 Mouse.OverrideCursor = null;
             }
-
         }
 
         internal void CloneSelectedMachines(bool includepatandseq)
@@ -1054,13 +1370,15 @@ namespace BuzzGUI.MachineView
             try
             {
                 Mouse.OverrideCursor = Cursors.Wait;
-                var t = new BuzzGUI.Common.Templates.Template(SelectedMachines.Select(m => m.Machine),
+                var t = new BuzzGUI.Common.Templates.Template(GetSelectedAndAllGroupMachines(), SelectedGroups.Select(g => g.MachineGroup),
                     includepatandseq ? BuzzGUI.Common.Templates.TemplatePatternMode.PatternsAndSequences : BuzzGUI.Common.Templates.TemplatePatternMode.NoPatterns,
                     BuzzGUI.Common.Templates.TemplateWavetableMode.NoWavetable);
 
-                var newmachines = t.Paste(machineGraph, new Point(double.NaN, double.NaN));
-                SetSelection(newmachines, false);
-                BringToTop(newmachines);
+                var newmachines = t.Paste(machineGraph, machineGroupGraph, new Point(double.NaN, double.NaN));
+                SetSelection(newmachines.Item1, false);
+                SetSelection(newmachines.Item2, false);
+                BringToTop(newmachines.Item1);
+                BringToTop(newmachines.Item2);
             }
             catch (Exception e)
             {
@@ -1070,8 +1388,6 @@ namespace BuzzGUI.MachineView
             {
                 Mouse.OverrideCursor = null;
             }
-
-
         }
 
         // NOTE: this is used to create both instruments and machines
@@ -1123,8 +1439,15 @@ namespace BuzzGUI.MachineView
         internal void CreateTemplate()
         {
             var sm = SelectedMachines.Select(m => m.Machine);
+            var sg = SelectedGroups.Select(g => g.MachineGroup);
 
-            CreateTemplateWindow w = new CreateTemplateWindow(sm, TemplateList.Items != null ? TemplateList.Items.Select(t => t.DisplayName) : new string[] { })
+            // Make sure all machine in groups are inluded.
+            foreach (var group in sg)
+            {
+                sm = sm.Union(group.Machines);
+            }
+
+            CreateTemplateWindow w = new CreateTemplateWindow(sm, sg, TemplateList.Items != null ? TemplateList.Items.Select(t => t.DisplayName) : new string[] { })
             {
                 Resources = this.Resources.MergedDictionaries[0],
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
@@ -1133,10 +1456,9 @@ namespace BuzzGUI.MachineView
             new WindowInteropHelper(w).Owner = ((HwndSource)PresentationSource.FromVisual(this)).Handle;
             if ((bool)w.ShowDialog())
             {
-                var t = new BuzzGUI.Common.Templates.Template(sm, CreateTemplateWindow.PatternMode, CreateTemplateWindow.WavetableMode);
+                var t = new BuzzGUI.Common.Templates.Template(sm, sg, CreateTemplateWindow.PatternMode, CreateTemplateWindow.WavetableMode);
                 TemplateList.SaveTemplate(w.TemplateName, t, CreateTemplateWindow.WavetableMode == Common.Templates.TemplateWavetableMode.WaveFiles ? MachineGraph.Buzz.Song.Wavetable : null);
             }
-
         }
 
         internal void PasteTemplate(string filename, Point pos, IMachine machineToReplace = null)
@@ -1159,10 +1481,12 @@ namespace BuzzGUI.MachineView
                         DeleteMachines(connected);
                         DisconnectMachine(machineToReplace);
 
-                        var newmachines = t.Paste(machineGraph, pos, machineToReplace).Concat(Enumerable.Repeat(machineToReplace, 1));
+                        var mg = t.Paste(machineGraph, machineGroupGraph, pos, machineToReplace);
+                        var newmachines = mg.Item1.Concat(Enumerable.Repeat(machineToReplace, 1));
                         SetSelection(newmachines, false);
                         BringToTop(newmachines);
-
+                        SetSelection(mg.Item2, false);
+                        BringToTop(mg.Item2);
                     }
 
 
@@ -1170,9 +1494,11 @@ namespace BuzzGUI.MachineView
                 else
                 {
                     var t = BuzzGUI.Common.Templates.Template.Load(filename);
-                    var newmachines = t.Paste(machineGraph, pos);
-                    SetSelection(newmachines, false);
-                    BringToTop(newmachines);
+                    var newmachines = t.Paste(machineGraph, machineGroupGraph, pos);
+                    SetSelection(newmachines.Item1, false);
+                    SetSelection(newmachines.Item2, false);
+                    BringToTop(newmachines.Item1);
+                    BringToTop(newmachines.Item2);
                 }
             }
 
@@ -1184,7 +1510,6 @@ namespace BuzzGUI.MachineView
             {
                 Mouse.OverrideCursor = null;
             }
-
         }
 
 
@@ -1350,6 +1675,92 @@ namespace BuzzGUI.MachineView
         void Hyperlink_Click(object sender, RoutedEventArgs e)
         {
             System.Diagnostics.Process.Start((sender as Hyperlink).NavigateUri.ToString());
+        }
+
+        internal void GroupMachines(GroupControl groupControl, bool moveLocal = false)
+        {
+            if (groupControl.MachineGroup.IsGrouped)
+                return;
+
+            var gp = MachineCanvas.GetPosition(groupControl);
+            List<Tuple<IMachine, Tuple<float, float>>> machinesToMove = new List<Tuple<IMachine, Tuple<float, float>>>();
+            foreach (var mg in Buzz.Song.MachineToGroupDict.ToArray())
+            {
+                if (mg.Value == groupControl.MachineGroup)
+                {
+                    var mc = Machines.FirstOrDefault(m => m.Machine == mg.Key);
+                    if (mc != null)
+                    {
+                        if (!moveLocal)
+                        {
+                            //mc.OldPosition = mc.Machine.Position;
+                        }
+                        machinesToMove.Add(new Tuple<IMachine, Tuple<float, float>>(mc.Machine, new Tuple<float, float>((float)gp.X, (float)gp.Y)));
+                    }
+                }
+            }
+
+            if (moveLocal)
+            {
+                groupControl.MachineGroup.IsGrouped = true;
+                foreach (var mp in machinesToMove)
+                {
+                    var m = GetMachineControl(mp.Item1);
+                    MachineCanvas.SetPosition(m, new Point(mp.Item2.Item1, mp.Item2.Item2));
+                }
+            }
+            else
+            {
+                using (new ActionGroup(machineGraph))
+                {
+                    Buzz.Song.GroupMachines(groupControl.MachineGroup, true);
+                    Global.Buzz.Song.MoveMachines(machinesToMove);
+                }
+            }
+
+            GetGroupRectangle(groupControl).Visibility = Visibility.Collapsed;
+        }
+
+        internal void UnGroupMachines(GroupControl groupControl, bool moveLocal = false)
+        {
+            if (!groupControl.MachineGroup.IsGrouped)
+                return;
+
+            var gp = MachineCanvas.GetPosition(groupControl);
+            List<Tuple<IMachine, Tuple<float, float>>> machinesToMove = new List<Tuple<IMachine, Tuple<float, float>>>();
+            foreach (var mg in Buzz.Song.MachineToGroupDict.ToArray())
+            {
+                if (mg.Value == groupControl.MachineGroup)
+                {
+                    var mc = Machines.FirstOrDefault(m => m.Machine == mg.Key);
+                    if (mc != null)
+                    {
+                        machinesToMove.Add(new Tuple<IMachine, Tuple<float, float>>(mc.Machine, mc.OldPosition));
+                    }
+                }
+            }
+                
+            if (moveLocal)
+            {
+                groupControl.MachineGroup.IsGrouped = false;
+                foreach (var mp in machinesToMove)
+                {
+                    var m = GetMachineControl(mp.Item1);
+                    MachineCanvas.SetPosition(m, new Point(mp.Item2.Item1, mp.Item2.Item2));
+                }
+            }
+            else
+            {
+                using (new ActionGroup(machineGraph))
+                {
+                    Buzz.Song.GroupMachines(groupControl.MachineGroup, false);
+                    Global.Buzz.Song.MoveMachines(machinesToMove);
+                }
+            }
+
+            HideOtherGroupRect(groupControl);
+            GetGroupRectangle(groupControl).Visibility = Visibility.Visible;
+            UpdateGroupRects(groupControl);
         }
 
         Connection MouseOverConnection

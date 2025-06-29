@@ -8,8 +8,10 @@ using ReBuzz.Core.Actions.GraphActions;
 using ReBuzz.MachineManagement;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -83,8 +85,9 @@ namespace ReBuzz.FileOps
             XTAP = 0x58544150, // Link pattern to editor machine
             TAP2 = 0x32544150, // Experimental pattern editor data. Dropped?
             IUGB = 0x49554742, // Ok, SubSections
-            RBSG = 0x52425347,  // ReBuzz Song Settings
-            XQES = 0x58514553  // Sequence properties
+            RBSG = 0x52425347, // ReBuzz Song Settings
+            XQES = 0x58514553, // Sequence properties
+            MGRP = 0x5052474D  // Machine groups
         }
 
         public BMXFile(ReBuzzCore buzz, string buzzPath, IUiDispatcher dispatcher, IKeyboard keyboard)
@@ -127,6 +130,7 @@ namespace ReBuzz.FileOps
                     LoadReBuzzSongSettings();
                 LoadDialogProperties();
                 LoadXQES();
+                LoadMGRP(x, y, import);
 
                 foreach (var machine in machines)
                 {
@@ -1177,7 +1181,9 @@ namespace ReBuzz.FileOps
                 for (int i = 0; i < machineCount; i++)
                 {
                     string machineName = ReadString(fs);
-                    MachineCore machine = machines.FirstOrDefault(m => m.Name == machineName) ;
+                    machineName = importDictionaryAll.ContainsKey(machineName) ? importDictionaryAll[machineName] : machineName;
+
+                    MachineCore machine = machines.FirstOrDefault(m => m.Name == machineName);
 
                     int numberOfItems = ReadInt(fs);
 
@@ -1264,6 +1270,65 @@ namespace ReBuzz.FileOps
                 }
             }
             return true;
+        }
+
+        void LoadMGRP(float xOffset, float yOffset, bool import)
+        {
+            Section section;
+            if (sections.TryGetValue(SectionType.MGRP, out section))
+            {
+                FileOpsEvent(FileEventType.StatusUpdate, "Load Machine Groups...");
+
+                fs.Position = section.Offset;
+                var songCore = buzz.SongCore;
+
+                int version = ReadByte(fs);
+                if (version != 1)
+                    return;
+
+                int numGroups = ReadInt(fs);
+
+                for (int i = 0; i < numGroups; i++)
+                {
+                    string name = ReadString(fs);
+                    name = songCore.GetNewGroupName(name);
+                    float x = ReadFloat(fs) + xOffset;
+                    float y = ReadFloat(fs) + yOffset;
+                    bool isGrouped = ReadByte(fs) == 1;
+                    string inputMachineName = ReadString(fs);
+                    inputMachineName = importDictionaryNonHidden.ContainsKey(inputMachineName) ? importDictionaryNonHidden[inputMachineName] : inputMachineName;
+                    string outputMachineName = ReadString(fs);
+                    outputMachineName = importDictionaryNonHidden.ContainsKey(outputMachineName) ? importDictionaryNonHidden[outputMachineName] : outputMachineName;
+
+                    var group = buzz.CreateMachineGroup(name, x, y);
+                    group.IsGrouped = isGrouped;
+                    group.MainInputMachine = songCore.Machines.FirstOrDefault(m => m.Name == inputMachineName);
+                    group.MainOutputMachine = songCore.Machines.FirstOrDefault(m => m.Name == outputMachineName);
+
+                    int numMachinesInGroup = ReadInt(fs);
+
+                    for (int j = 0; j < numMachinesInGroup; j++)
+                    {
+                        name = ReadString(fs);
+                        if (importDictionaryNonHidden.ContainsKey(name))
+                            name = importDictionaryNonHidden[name];
+                        x = ReadFloat(fs) + xOffset;
+                        y = ReadFloat(fs) + yOffset;
+                        var machine = songCore.Machines.FirstOrDefault(m => m.Name == name);
+                        if (machine != null)
+                        {
+                            songCore.AddMachineToGroup(machine, group);
+                            songCore.UpdateGroupedMachinesPositions([new Tuple<IMachine, Tuple<float, float>>(machine, new Tuple<float, float>(x, y))]);
+                            songCore.InvokeImportGroupedMachinePositions(machine, x, y);
+                        }
+                    }
+
+                    if (import)
+                    {
+                        importAction.AddGroupMachine(group);
+                    }
+                }
+            }
         }
 
         void LoadReBuzzSongSettings()
@@ -1562,6 +1627,7 @@ namespace ReBuzz.FileOps
             CreateTAP2Section();
             CreateDialogPropertiesSection();
             CreateXQESSection();
+            CreateMGRPSection();
 
             uint offset = 4;                                // Buzz magic
             offset += 4;                                    // Number of sections
@@ -2119,6 +2185,48 @@ namespace ReBuzz.FileOps
                 WriteBool(ms, seq.IsDisabled);
             }
             AddSection(ms.ToArray(), SectionType.XQES);
+        }
+
+        void CreateMGRPSection()
+        {
+            MemoryStream ms = new MemoryStream();
+            var song = buzz.SongCore;
+
+            WriteByte(ms, 1);   // Version
+
+            // Number of groups
+            int numGroups = song.MachineGroups.Count;
+            WriteInt(ms, numGroups);
+
+            foreach (var g in song.MachineGroups)
+            {                
+                WriteString(ms, g.Name);
+                WriteFloat(ms, g.Position.Item1);   // X
+                WriteFloat(ms, g.Position.Item2);   // Y
+                WriteBool(ms, g.IsGrouped);
+                WriteString(ms, g.MainInputMachine != null ? g.MainInputMachine.Name : "");
+                WriteString(ms, g.MainOutputMachine != null ? g.MainOutputMachine.Name : "");
+
+                var kvMachinesInGroup = song.MachineToGroupDict.ToArray().Where(mg => mg.Value == g).ToArray();
+                int numMachines = kvMachinesInGroup.Count();
+                WriteInt(ms, numMachines);
+
+                for (int i = 0; i < numMachines; i++)
+                {
+                    var kvMachineGroup = kvMachinesInGroup[i];
+                    var machine = kvMachineGroup.Key;
+                    WriteString(ms, machine.Name);
+
+                    Tuple<float, float> pos = machine.Position;
+                    if (song.GroupedMachinePositions.ContainsKey(machine))
+                    {
+                        pos = song.GroupedMachinePositions[machine];
+                    }
+                    WriteFloat(ms, pos.Item1);   // X
+                    WriteFloat(ms, pos.Item2);   // Y
+                }
+            }
+            AddSection(ms.ToArray(), SectionType.MGRP);
         }
 
         void CreateWaveTableSection()

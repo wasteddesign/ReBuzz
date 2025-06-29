@@ -8,11 +8,23 @@
   <ResourceDictionary.MergedDictionaries>
     <ResourceDictionary Source="MVResources.xaml"/>
     <ResourceDictionary Source="MachineControl.xaml"/>
+	<ResourceDictionary Source="GroupControl.xaml"/>
     <ResourceDictionary Source="AmpControl.xaml"/>
   </ResourceDictionary.MergedDictionaries>
 
+
   <Style TargetType="{x:Type local:AmpControl}" BasedOn="{StaticResource ConnectionAmpControlStyleBase}"/>
   <Style x:Key="MachineConnectionTriangleStyle" TargetType="{x:Type Control}" BasedOn="{StaticResource MachineConnectionTriangleStyleBase}"/>
+  
+  <Style x:Key="RectangleGroupStyle" TargetType="{x:Type Rectangle}">
+    <Setter Property="RadiusX" Value="9"/>
+	<Setter Property="RadiusY" Value="9"/>
+	<Setter Property="Fill" Value="Transparent"/>
+	<Setter Property="Stroke" Value="White"/>
+	<Setter Property="Opacity" Value="0.5"/>
+	<Setter Property="StrokeDashArray" Value="8,4"/>
+	<Setter Property="IsHitTestVisible" Value="False"/>
+  </Style>
   
   <Style x:Key="BackgroundGridStyle" TargetType="{x:Type Grid}" BasedOn="{StaticResource BackgroundGridStyleBase}">
     <Setter Property="Background">
@@ -31,7 +43,6 @@
 			</BeginStoryboard>
 		</EventTrigger>     	
 	</Style.Triggers>
-	
   </Style>
 
   <Style TargetType="{x:Type local:MachineControl}" BasedOn="{StaticResource MachineControlStyleBase}">
@@ -73,6 +84,10 @@
 	  
 	  
     </Style.Triggers>
+  </Style>
+  
+    <Style TargetType="{x:Type local:GroupControl}" BasedOn="{StaticResource GroupControlStyleBase}">
+        <Setter Property="ThemeGroupImageSource" Value="gfx/control.png"/>
   </Style>
 
   <Style x:Key="MachineConnectionPathStyle" TargetType="{x:Type Shape}">

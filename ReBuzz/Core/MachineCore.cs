@@ -916,14 +916,13 @@ namespace ReBuzz.Core
                     OpenParameterWindow();
                     break;
                 case MachineDialog.Rename:
+                    var renameWindow = new RenameMachineWindow("Rename Machine", name, false);
+                    renameWindow.SetStartUpLocation(x, y);
 
-                    var renameWindow = new RenameMachineWindow(name);
-                    var rd = Utils.GetUserControlXAML<ResourceDictionary>("MachineView\\MVResources.xaml", buzzPath);
-                    renameWindow.Resources.MergedDictionaries.Add(rd);
                     if (renameWindow.ShowDialog() == true)
                     {
                         var newName = renameWindow.tbName.Text.Trim();
-                        (graph.Buzz as ReBuzzCore).RenameMachine(this, newName);
+                        (graph.Buzz as ReBuzzCore).SongCore.RenameMachineUndoable(this, newName);
                     }
                     break;
                 case MachineDialog.Delay:

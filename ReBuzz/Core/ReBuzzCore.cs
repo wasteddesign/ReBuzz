@@ -1205,6 +1205,7 @@ namespace ReBuzz.Core
                 {
                     masterLoading = false;
                 });
+
                 //Playing = playing;
             }
         }
@@ -1907,6 +1908,8 @@ namespace ReBuzz.Core
                 // Clear pattern and sequece
                 master.PatternsList.Clear();
                 SetPatternEditorPattern(null);
+
+                SongCore.RemoveAllGroups();
                 FileEvent?.Invoke(FileEventType.Close, "Done.", null);
             }
 
@@ -2052,13 +2055,33 @@ namespace ReBuzz.Core
 
         internal void NotifyFileEvent(FileEventType type, string eventText, object o)
         {
-            FileEvent.Invoke(type, eventText, o);
+            FileEvent?.Invoke(type, eventText, o);
         }
 
         internal void DCWriteErrorLine(string s)
         {
             s = s.Replace("/x01", "");
             Log.Error(s);
+        }
+
+        internal MachineGroupCore CreateMachineGroup(string name, float x, float y)
+        {
+            var group = new MachineGroupCore(songCore);
+            group.Position = new Tuple<float, float>(x, y);
+            group.Name = name;
+            songCore.MachineGroupsList.Add(group);
+            songCore.InvokeMachineGroupAdded(group);
+            return group;
+        }
+
+        internal void RemoveMachineGroup(MachineGroupCore group)
+        {
+            group.machines.Clear();
+
+            songCore.MachineGroupsList.Remove(group);
+            songCore.InvokeMachineGroupRemoved(group);
+
+            songCore.RemoveGroupFromDictionary(group);
         }
     }
 

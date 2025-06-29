@@ -34,7 +34,7 @@ namespace BuzzGUI.MachineView
             selecting = true;
         }
 
-        public Rect UpdateSelect(Point p)
+        public Rect  UpdateSelect(Point p)
         {
             if (!selecting)
                 return new Rect();

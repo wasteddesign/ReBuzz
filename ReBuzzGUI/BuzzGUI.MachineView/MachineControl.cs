@@ -193,6 +193,8 @@ namespace BuzzGUI.MachineView
         public ICommand CloneCommand { get; private set; }
         public ICommand SetMIDIInputChannelCommand { get; private set; }
         public ICommand SearchOnlineCommand { get; private set; }
+        public ICommand GroupAddCommand { get; private set; }
+        public ICommand GroupRemoveCommand { get; private set; }
 
         void Commands()
         {
@@ -303,8 +305,9 @@ namespace BuzzGUI.MachineView
                         }
                     }
                     else
-                    {
-                        machine.ShowDialog((MachineDialog)d, (int)p.X, (int)p.Y);
+                    {   
+                        Point pos = PointToScreen(p);
+                        machine.ShowDialog((MachineDialog)d, (int)pos.X, (int)pos.Y);
                     }
                 }
             };
@@ -342,8 +345,47 @@ namespace BuzzGUI.MachineView
                         };
                         Process.Start(ps);
                     }
-                    //Process.Start("http://jeskola.net/buzz/search/search.php?searchtarget=" + (machine.DLL.Info.Type == MachineType.Generator ? "generators" : "effects") + "&searchstring=" + w[0]);
+                }
+            };
 
+            GroupAddCommand = new SimpleCommand
+            {
+                CanExecuteDelegate = x => true,
+                ExecuteDelegate = x =>
+                {
+                    var d = (GroupControl)x;
+                    view.Buzz.Song.AddMachineToGroup(Machine, d.MachineGroup);
+
+                    // Save current position
+                    Global.Buzz.Song.UpdateGroupedMachinesPositions([new Tuple<IMachine, Tuple<float,float>>(Machine, Machine.Position)]);
+
+                    if (d.MachineGroup.IsGrouped)
+                    {
+                        var gp = MachineCanvas.GetPosition(d);
+                        List<Tuple<IMachine, Tuple<float, float>>> machinesToMove = new List<Tuple<IMachine, Tuple<float, float>>>();
+
+                        OldPosition = Machine.Position;
+                        machinesToMove.Add(new Tuple<IMachine, Tuple<float, float>>(Machine, new Tuple<float, float>((float)gp.X, (float)gp.Y)));
+                        Visibility = Visibility.Collapsed;
+
+                        Global.Buzz.Song.MoveMachines(machinesToMove);
+                    }
+                }
+            };
+
+            GroupRemoveCommand = new SimpleCommand
+            {
+                CanExecuteDelegate = x =>
+                {
+                    if (view.Buzz.Song.MachineToGroupDict.ContainsKey(Machine))
+                        return true;
+                    else
+                        return false;
+                },
+                ExecuteDelegate = x =>
+                {
+                    var d = (GroupControl)x;
+                    view.Buzz.Song.RemoveMachineFromGroup(Machine);
                 }
             };
 
@@ -393,6 +435,18 @@ namespace BuzzGUI.MachineView
             {
                 bool g = machine.DLL.Info.Type == MachineType.Generator;
 
+                var groupsMenu = new MenuItemVM() { Text = "Groups" };
+                var groupsAdd = new MenuItemVM() { Text = "Add To Group" };
+                var groupsRemove = new MenuItemVM() { Text = "Remove From Group", Command = GroupRemoveCommand };
+
+                List<MenuItemVM> availableGroups = new List<MenuItemVM>();
+                foreach (var group in view.Groups)
+                    availableGroups.Add(new MenuItemVM() { Text = group.MachineGroup.Name, CommandParameter = group, Command = GroupAddCommand });
+
+                groupsAdd.Children = availableGroups;
+
+                groupsMenu.Children = [groupsAdd, groupsRemove];
+
                 var l = new List<IMenuItem>()
                 {
                     new MenuItemVM() { Text = "Mute", Command = MuteCommand, IsCheckable = true, StaysOpenOnClick = true, IsChecked = machine.IsMuted },
@@ -417,6 +471,8 @@ namespace BuzzGUI.MachineView
                     new MenuItemVM() { Text = "Cut", Command = view.CutCommand, GestureText = "Ctrl+X" },
                     new MenuItemVM() { Text = "Copy", Command = view.CopyCommand, GestureText = "Ctrl+C" },
                     new MenuItemVM() { Text = "Paste", Command = view.PasteCommand, GestureText = "Ctrl+V" },
+                    new MenuItemVM() { IsSeparator = true },
+                    groupsMenu,
                     new MenuItemVM() { IsSeparator = true },
                     new MenuItemVM() { Text = "Search Online", Command = SearchOnlineCommand },
                 };
@@ -511,8 +567,7 @@ namespace BuzzGUI.MachineView
                 c.UpdateVisuals();
         }
 
-        static int ZIndex = 0;
-        public void BringToTop() { Panel.SetZIndex(this, ++ZIndex); }
+        public void BringToTop() { Panel.SetZIndex(this, ++MachineCanvas.ZIndex); }
 
 
         internal Point BeginDragPosition { get; set; }
@@ -684,7 +739,9 @@ namespace BuzzGUI.MachineView
 
             // connect
             MachineControl dstMachine = null;
+            GroupControl dstGroupMachine = null;
             Connection tempConnection = null;
+            bool isGroupedTargetOld = false;
 
             new Dragger
             {
@@ -704,6 +761,27 @@ namespace BuzzGUI.MachineView
                     dstMachine = c.GetMachineAtPoint(p);
                     if (dstMachine == null || dstMachine == this)
                     {
+                        // Group the previous one if needed.
+                        var dstGroupMachineNew = c.GetMachineGroupAtPoint(p);
+                        if (dstGroupMachineNew != null && dstGroupMachine != null && dstGroupMachineNew != dstGroupMachine)
+                        {
+                            if (isGroupedTargetOld)
+                            {
+                                view.GroupMachines(dstGroupMachine, true);
+                            }
+                            dstGroupMachine = null;
+                        }
+                        // Mouse is on top of group machine
+                        if (dstGroupMachineNew != null && dstGroupMachine != dstGroupMachineNew)
+                        {
+                            dstGroupMachine = dstGroupMachineNew;
+                            isGroupedTargetOld = dstGroupMachine.MachineGroup.IsGrouped;
+                            if (isGroupedTargetOld)
+                            {
+                                view.UnGroupMachines(dstGroupMachine, true);
+                            }
+                        }
+
                         Mouse.OverrideCursor = null;
                     }
                     else
@@ -735,15 +813,25 @@ namespace BuzzGUI.MachineView
                         if (view.MachineGraph.CanConnectMachines(Machine, dstMachine.Machine))
                             view.MachineGraph.ConnectMachines(Machine, dstMachine.Machine, sc, dc, 0x4000, 0x4000);
                     }
+
+                    if (isGroupedTargetOld && dstGroupMachine != null)
+                    {
+                        view.GroupMachines(dstGroupMachine, true);
+                    }
+                    dstGroupMachine = null;
                 },
                 CancelDrag = () =>
                 {
                     tempConnection.RemoveVisuals();
                     tempConnection = null;
                     Mouse.OverrideCursor = null;
+
+                    if (isGroupedTargetOld && dstGroupMachine != null)
+                    {
+                        view.GroupMachines(dstGroupMachine, true);
+                    }
+                    dstGroupMachine = null;
                 }
-
-
             };
 
             this.KeyDown += (sender, e) =>
@@ -979,6 +1067,9 @@ namespace BuzzGUI.MachineView
                 return Colors.LightCyan;
             }
         }
+
+        Tuple<float, float> oldPosition = new Tuple<float, float>(0,0);
+        public Tuple<float, float> OldPosition { get => oldPosition; internal set => oldPosition = value; }
 
         internal static BuzzGUI.Common.Templates.Template CachedTemplate;
 

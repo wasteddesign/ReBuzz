@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Xml;
+using System.Xml.Linq;
 using System.Xml.Serialization;
 using static ReBuzz.FileOps.BMXFile;
 
@@ -537,6 +538,47 @@ namespace ReBuzz.FileOps
                 }
             }
 
+            var songCore = buzz.SongCore;
+            // Machine Groups
+            FileOpsEvent(FileEventType.StatusUpdate, "Load Machine Groups...");
+            foreach (var machineGroup in songData.MachineGroup)
+            {
+                string name = GetImportedName(XmlConvert.DecodeName(machineGroup.Name));
+                name =  songCore.GetNewGroupName(name);
+                float x = machineGroup.X + xOffset;
+                float y = machineGroup.Y + yOffset;
+                bool isGrouped = machineGroup.IsGrouped;
+
+                var group = buzz.CreateMachineGroup(name, x, y);
+                name = machineGroup.MainInputMachineName;
+                name = name != null && importDictionaryNonHidden.ContainsKey(name) ? importDictionaryNonHidden[name] : name;
+                group.MainInputMachine = songCore.Machines.FirstOrDefault(m => m.Name == name);
+                name = machineGroup.MainOutputMachineName;
+                name = name != null && importDictionaryNonHidden.ContainsKey(name) ? importDictionaryNonHidden[name] : name;
+                group.MainOutputMachine = songCore.Machines.FirstOrDefault(m => m.Name == name);
+                group.IsGrouped = isGrouped;
+
+                foreach (var mgm in machineGroup.Machines)
+                {
+                    name = mgm.Name;
+                    name = importDictionaryNonHidden.ContainsKey(name) ? importDictionaryNonHidden[name] : name;
+                    x = mgm.X + xOffset;
+                    y = mgm.Y + yOffset;
+                    var machine = songCore.Machines.FirstOrDefault(m => m.Name == name);
+                    if (machine != null)
+                    {
+                        songCore.AddMachineToGroup(machine, group);
+                        songCore.InvokeImportGroupedMachinePositions(machine, x, y);
+                        songCore.GroupedMachinePositions.Add(machine, new Tuple<float, float>(x, y));
+                    }
+                }
+
+                if (import)
+                {
+                    importAction.AddGroupMachine(group);
+                }
+            }
+
             // Info text
             buzz.InfoText = songData.InfoText;
 
@@ -1037,6 +1079,42 @@ namespace ReBuzz.FileOps
 
             file.MachineConnections = bMXMLMachineConnections.ToArray();
 
+            
+            List<BMXMLMachineGroup> bMXMLMachineGroups = new List<BMXMLMachineGroup>();
+            // Machine Groups
+            foreach (var machineGroup in buzz.SongCore.MachineGroups)
+            {
+                BMXMLMachineGroup group = new BMXMLMachineGroup();
+                group.Name = machineGroup.Name;
+                group.X = machineGroup.Position.Item1;
+                group.Y = machineGroup.Position.Item2;
+                group.IsGrouped = machineGroup.IsGrouped;
+                group.MainInputMachineName = machineGroup.MainInputMachine != null ? machineGroup.MainInputMachine.Name : null;
+                group.MainOutputMachineName = machineGroup.MainOutputMachine != null ? machineGroup.MainOutputMachine.Name : null;
+
+                List<BMXMLMachineGroupMachine> mgms = new List<BMXMLMachineGroupMachine>();
+
+                foreach (var mgmbuzz in buzz.SongCore.MachineToGroupDict.Where(kv => kv.Value == machineGroup))
+                {
+                    BMXMLMachineGroupMachine mgm = new BMXMLMachineGroupMachine();
+                    var machine = mgmbuzz.Key;
+                    mgm.Name = machine.Name;
+
+                    Tuple<float, float> pos = machine.Position;
+                    if (buzz.SongCore.GroupedMachinePositions.ContainsKey(machine))
+                    {
+                        pos = buzz.SongCore.GroupedMachinePositions[machine];
+                    }
+
+                    mgm.X = pos.Item1;
+                    mgm.Y = pos.Item2;
+                    mgms.Add(mgm);
+                }
+                group.Machines = mgms.ToArray();
+                bMXMLMachineGroups.Add(group);
+            }
+
+            file.MachineGroup = bMXMLMachineGroups.ToArray();
 
             // SubSections
             List<BMXMLSubSection> bMXMLSubSections = new List<BMXMLSubSection>();
@@ -1102,6 +1180,8 @@ namespace ReBuzz.FileOps
 
         public BMXMLMachine[] Machines { get; set; }
 
+        public BMXMLMachineGroup[] MachineGroup { get; set; }
+
         public BMXMLSequence[] Sequences { get; set; }
         public BMXMLWave[] Waves { get; set; }
 
@@ -1140,6 +1220,27 @@ namespace ReBuzz.FileOps
         public BMXMLMachineWindow GUIWindow { get; set; }
         public BMXMLMachineWindow ParameterWindow { get; set; }
         public bool IsBypassed { get; set; }
+    }
+
+    [XmlType(TypeName = "MachineGroup")]
+    public class BMXMLMachineGroup
+    {
+        public string Name { get; set; }
+        public float X { get; set; }
+        public float Y { get; set; }
+        public bool IsGrouped { get; set; }
+        public string MainInputMachineName { get; set; }
+        public string MainOutputMachineName { get; set; }
+
+        public BMXMLMachineGroupMachine[] Machines { get; set; }
+    }
+
+    [XmlType(TypeName = "MachineGroupMachine")]
+    public class BMXMLMachineGroupMachine
+    {
+        public string Name { get; set; }
+        public float X { get; set; }
+        public float Y { get; set; }
     }
 
     [XmlType(TypeName = "ParameterGroup")]
