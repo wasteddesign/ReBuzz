@@ -1684,6 +1684,7 @@ namespace BuzzGUI.MachineView
 
             var gp = MachineCanvas.GetPosition(groupControl);
             List<Tuple<IMachine, Tuple<float, float>>> machinesToMove = new List<Tuple<IMachine, Tuple<float, float>>>();
+            List<Tuple<IMachine, Tuple<float, float>>> machinesToMoveOld = new List<Tuple<IMachine, Tuple<float, float>>>();
             foreach (var mg in Buzz.Song.MachineToGroupDict.ToArray())
             {
                 if (mg.Value == groupControl.MachineGroup)
@@ -1693,9 +1694,10 @@ namespace BuzzGUI.MachineView
                     {
                         if (!moveLocal)
                         {
-                            //mc.OldPosition = mc.Machine.Position;
+                            mc.OldPosition = mc.Machine.Position;
                         }
                         machinesToMove.Add(new Tuple<IMachine, Tuple<float, float>>(mc.Machine, new Tuple<float, float>((float)gp.X, (float)gp.Y)));
+                        machinesToMoveOld.Add(new Tuple<IMachine, Tuple<float, float>>(mc.Machine, new Tuple<float, float>((float)mc.OldPosition.Item1, (float)mc.OldPosition.Item2)));
                     }
                 }
             }
@@ -1714,6 +1716,8 @@ namespace BuzzGUI.MachineView
                 using (new ActionGroup(machineGraph))
                 {
                     Buzz.Song.GroupMachines(groupControl.MachineGroup, true);
+                    // Ensure old positions are saved correctly
+                    Global.Buzz.Song.UpdateGroupedMachinesPositions(machinesToMoveOld);
                     Global.Buzz.Song.MoveMachines(machinesToMove);
                 }
             }
