@@ -406,11 +406,12 @@ namespace ReBuzzTests.Automation
         /// Enables crashing behavior for the specified effect, simulating a scenario where the effect causes a crash.
         /// </summary>
         /// <param name="crashingEffect">
-        /// The instance of <see cref="DynamicMachineController"/> representing the effect to be configured for crashing.
+        ///     The instance of <see cref="DynamicMachineController"/> representing the effect to be configured for crashing.
         /// </param>
-        public void EnableEffectCrashingFor(DynamicMachineController crashingEffect)
+        /// <param name="methodToCrashOn"></param>
+        public void EnableEffectCrashingFor(DynamicMachineController crashingEffect, string methodToCrashOn)
         {
-            MachineSpecificCrashFileName(crashEffectFilePath, crashingEffect).Create().Dispose();
+            MachineSpecificCrashFileName(crashEffectFilePath, crashingEffect).WriteAllText(methodToCrashOn);
         }
 
         /// <summary>
@@ -420,9 +421,11 @@ namespace ReBuzzTests.Automation
         /// The instance of <see cref="DynamicMachineController"/> representing the generator 
         /// for which crashing behavior should be enabled.
         /// </param>
-        public void EnableGeneratorCrashingFor(DynamicMachineController crashingGenerator)
+        /// <param name="methodToCrashOn"></param>
+        public void EnableGeneratorCrashingFor(DynamicMachineController crashingGenerator, string methodToCrashOn)
         {
-            MachineSpecificCrashFileName(crashGeneratorFilePath, crashingGenerator).Create().Dispose();
+            //bug use init actions
+            MachineSpecificCrashFileName(crashGeneratorFilePath, crashingGenerator).WriteAllText(methodToCrashOn);
         }
 
         private static AbsoluteFilePath MachineSpecificCrashFileName(

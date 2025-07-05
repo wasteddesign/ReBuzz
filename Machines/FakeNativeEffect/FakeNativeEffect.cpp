@@ -9,77 +9,12 @@
 #include <fstream>
 #include <iterator>
 #include <string>
+#include <sstream>
+#include <string>
+#include "../FakeNativeMachineLib/lib.hpp"
 
-std::string ReadShortFileContentAndRemoveFile(std::string filePath)
-{
-  std::string content;
-  std::ifstream file(filePath);
-  file >> content;
-  file.close();
-
-  // removing because the next instance of the same machine will recreate the file
-  // with different content and we don't want confusion that
-  // the machine can reuse this file
-  std::remove(filePath.c_str());
-  return content;
-}
-
-std::filesystem::path GetDllFilePath()
-{
-    HMODULE hModule = nullptr;
-    char path[MAX_PATH];
-
-    // Use a variable inside the DLL to get its module handle
-    if (GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-                          reinterpret_cast<LPCSTR>(&GetDllFilePath), &hModule))
-    {
-        if (GetModuleFileNameA(hModule, path, MAX_PATH) > 0)
-        {
-            return std::filesystem::path(std::string(path));
-        }
-    }
-    throw std::runtime_error("Could not get DLL Path");
-}
-
-static void DebugShow(const std::string& message)
-{
-  MessageBoxA(nullptr, message.c_str(), "Debug msg", 0);
-}
-
-static void AbortIfRequested(const std::string& machineName)
-{
-  _set_abort_behavior(0, _WRITE_ABORT_MSG);
-  auto path = GetDllFilePath().parent_path() / (std::string("crash_fake_machine_") + machineName);
-  if (std::filesystem::exists(path))
-  {
-    std::abort();    
-  }
-}
-
-
-constexpr CMachineParameter sampleValueLeftMultiplier = 
-{
-  .Type = pt_word,                            // type
-  .Name = "SampleValueLeftMultiplier",        // name
-  .Description = "SampleValueLeftMultiplier", // description
-  .MinValue = -100,                           // MinValue
-  .MaxValue = 100,                            // MaxValue
-  .NoValue = 100+1,                           // NoValue
-  .Flags = 0,                                 // Flags
-  .DefValue = 0                               // Default value
-};
-
-constexpr CMachineParameter sampleValueRightMultiplier = 
-{
-  .Type = pt_word,                              // type
-  .Name = "SampleValueRightMultiplier",         // name
-  .Description = "SampleValueRightMultiplier",  // description
-  .MinValue = -100,                             // MinValue
-  .MaxValue = 100,                              // MaxValue
-  .NoValue = 100+1,                             // NoValue
-  .Flags = 0,                                   // Flags
-  .DefValue = 0                                 // Default value
-};
+FAKE_MACHINE_SLIDER(sampleValueLeftMultiplier, SampleValueLeftMultiplier);
+FAKE_MACHINE_SLIDER(sampleValueRightMultiplier, SampleValueRightMultiplier);
 
 static CMachineParameter const* pParameters[] = { 
   // global
@@ -122,6 +57,23 @@ class mi : public CMachineInterface
 public:
   mi();
   bool Work(float* psamples, int numsamples, const int mode) override;
+  ~mi() override;
+  void Init(CMachineDataInput* const pi) override;
+  void Tick() override;
+  void Stop() override;
+  void Save(CMachineDataOutput* const po) override;
+  void AttributesChanged() override;
+  void Command(const int i) override;
+  void SetNumTracks(const int n) override;
+  void MuteTrack(const int i) override;
+  bool IsTrackMuted(const int i) const override;
+  void MidiNote(const int channel, const int value, const int velocity) override;
+  void Event(const dword data) override;
+  const char* DescribeValue(const int param, const int value) override;
+  const CEnvelopeInfo** GetEnvelopeInfos() override;
+  bool PlayWave(const int wave, const int note, const float volume) override;
+  void StopWave() override;
+  int GetWaveEnvPlayPos(const int env) override;
 
 private:
   gvals gval;
@@ -130,15 +82,9 @@ private:
 
 DLL_EXPORTS
 
-mi::mi() : machineName(ReadShortFileContentAndRemoveFile(GetDllFilePath().string() + ".txt"))
-{
-  AbortIfRequested(machineName);
-  GlobalVals = &gval;
-}
-
 bool mi:: Work(float* psamples, int numsamples, const int mode)
 {
-  AbortIfRequested(machineName);
+  AbortIfRequested(machineName, __func__);
   for (auto i = 0 ; i < numsamples*2 ; i+=2)
   {
     psamples[i] = psamples[i] * gval.sampleValueLeftMultiplier;
@@ -148,3 +94,109 @@ bool mi:: Work(float* psamples, int numsamples, const int mode)
   return true;
 }
 
+mi::mi() : machineName(ReadMachineName())
+{
+  AbortIfRequested(machineName, "constructor");
+  GlobalVals = &gval;
+}
+
+void mi::AttributesChanged()
+{
+  AbortIfRequested(machineName, __func__);
+  CMachineInterface::AttributesChanged();
+}
+
+void mi::Command(const int i)
+{
+  AbortIfRequested(machineName, __func__);
+  CMachineInterface::Command(i);
+}
+
+void mi::SetNumTracks(const int n)
+{
+  AbortIfRequested(machineName, __func__);
+  CMachineInterface::SetNumTracks(n);
+}
+
+void mi::MuteTrack(const int i)
+{
+  AbortIfRequested(machineName, __func__);
+  CMachineInterface::MuteTrack(i);
+}
+
+bool mi::IsTrackMuted(const int i) const
+{
+  AbortIfRequested(machineName, __func__);
+  return CMachineInterface::IsTrackMuted(i);
+}
+
+void mi::Event(const dword data)
+{
+  AbortIfRequested(machineName, __func__);
+  CMachineInterface::Event(data);
+}
+
+const char* mi::DescribeValue(const int param, const int value)
+{
+  AbortIfRequested(machineName, __func__);
+  return CMachineInterface::DescribeValue(param, value);
+}
+
+const CEnvelopeInfo** mi::GetEnvelopeInfos()
+{
+  AbortIfRequested(machineName, __func__);
+  return CMachineInterface::GetEnvelopeInfos();
+}
+
+bool mi::PlayWave(const int wave, const int note, const float volume)
+{
+  AbortIfRequested(machineName, __func__);
+  return CMachineInterface::PlayWave(wave, note, volume);
+}
+
+void mi::StopWave()
+{
+  AbortIfRequested(machineName, __func__);
+  CMachineInterface::StopWave();
+}
+
+int mi::GetWaveEnvPlayPos(const int env)
+{
+  AbortIfRequested(machineName, __func__);
+  return CMachineInterface::GetWaveEnvPlayPos(env);
+}
+
+mi::~mi()
+{
+  
+}
+
+void mi::Init(CMachineDataInput* const input)
+{
+  AbortIfRequested(machineName, __func__);
+  CMachineInterface::Init(input);
+}
+
+void mi::Tick()
+{
+  AbortIfRequested(machineName, __func__);
+  CMachineInterface::Tick();
+}
+
+void mi::Stop()
+{
+  AbortIfRequested(machineName, __func__);
+  CMachineInterface::Stop();
+}
+
+void mi::Save(CMachineDataOutput* const output)
+{
+  AbortIfRequested(machineName, __func__);
+  CMachineInterface::Save(output);
+}
+
+void mi::MidiNote(int const channel, int const value, int const velocity)
+{
+  AbortIfRequested(machineName, __func__);
+  CMachineInterface::MidiNote(channel, value, velocity);
+}
