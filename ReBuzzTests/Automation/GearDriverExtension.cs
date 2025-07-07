@@ -79,7 +79,6 @@ namespace ReBuzzTests.Automation
         /// <param name="methodToCrashOn"></param>
         public void EnableGeneratorCrashingFor(DynamicMachineController crashingGenerator, string methodToCrashOn)
         {
-            //bug use init actions
             MachineSpecificCrashFileName(crashGeneratorFilePath, crashingGenerator).WriteAllText(methodToCrashOn);
         }
 
