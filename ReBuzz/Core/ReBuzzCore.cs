@@ -1850,6 +1850,9 @@ namespace ReBuzz.Core
             {
                 AudioEngine.ClearAudioBuffer();
 
+                // Remove groups
+                SongCore.RemoveAllGroups();
+
                 var master = SongCore.MachinesList.First();
 
                 FileEvent?.Invoke(FileEventType.StatusUpdate, "Remove Connections...", null);
@@ -1909,7 +1912,6 @@ namespace ReBuzz.Core
                 master.PatternsList.Clear();
                 SetPatternEditorPattern(null);
 
-                SongCore.RemoveAllGroups();
                 FileEvent?.Invoke(FileEventType.Close, "Done.", null);
             }
 

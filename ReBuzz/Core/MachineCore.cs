@@ -338,7 +338,7 @@ namespace ReBuzz.Core
                 baseOctave = value;
                 baseOctave = baseOctave < 0 ? 0 : baseOctave;
                 baseOctave = baseOctave > 9 ? 9 : baseOctave;
-                PropertyChanged.Raise(this, "BaseOctave");
+                dispatcher.Invoke(() => PropertyChanged.Raise(this, "BaseOctave") );
             }
         }
 
