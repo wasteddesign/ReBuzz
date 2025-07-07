@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         WindowStyle="ToolWindow"
         TextOptions.TextFormattingMode="{Binding TextFormattingMode}"
-        Style="{DynamicResource ThemeWindowStyle}" ResizeMode="NoResize"
+        Style="{DynamicResource ThemeWindowStyle}" ResizeMode="NoResize" Topmost="True"
         Height="135" Width="313">
     <Grid Margin="4, 30, 4, 4">
         <Grid.RowDefinitions>

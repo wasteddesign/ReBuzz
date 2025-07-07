@@ -113,8 +113,8 @@ namespace BuzzGUI.MachineView
             {
                 if (machine != null)
                 {
-                    machine.PropertyChanged -= new System.ComponentModel.PropertyChangedEventHandler(machine_PropertyChanged);
-                    machine.DLL.PropertyChanged -= new PropertyChangedEventHandler(DLL_PropertyChanged);
+                    machine.PropertyChanged -= machine_PropertyChanged;
+                    machine.DLL.PropertyChanged -= DLL_PropertyChanged;
                 }
 
                 machine = value;
@@ -122,8 +122,8 @@ namespace BuzzGUI.MachineView
 
                 if (machine != null)
                 {
-                    machine.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(machine_PropertyChanged);
-                    machine.DLL.PropertyChanged += new PropertyChangedEventHandler(DLL_PropertyChanged);
+                    machine.PropertyChanged += machine_PropertyChanged;
+                    machine.DLL.PropertyChanged += DLL_PropertyChanged;
                 }
             }
 
@@ -354,22 +354,8 @@ namespace BuzzGUI.MachineView
                 ExecuteDelegate = x =>
                 {
                     var d = (GroupControl)x;
-                    view.Buzz.Song.AddMachineToGroup(Machine, d.MachineGroup);
 
-                    // Save current position
-                    Global.Buzz.Song.UpdateGroupedMachinesPositions([new Tuple<IMachine, Tuple<float,float>>(Machine, Machine.Position)]);
-
-                    if (d.MachineGroup.IsGrouped)
-                    {
-                        var gp = MachineCanvas.GetPosition(d);
-                        List<Tuple<IMachine, Tuple<float, float>>> machinesToMove = new List<Tuple<IMachine, Tuple<float, float>>>();
-
-                        OldPosition = Machine.Position;
-                        machinesToMove.Add(new Tuple<IMachine, Tuple<float, float>>(Machine, new Tuple<float, float>((float)gp.X, (float)gp.Y)));
-                        Visibility = Visibility.Collapsed;
-
-                        Global.Buzz.Song.MoveMachines(machinesToMove);
-                    }
+                    view.GroupSelectedMachines(d);
                 }
             };
 
@@ -385,7 +371,8 @@ namespace BuzzGUI.MachineView
                 ExecuteDelegate = x =>
                 {
                     var d = (GroupControl)x;
-                    view.Buzz.Song.RemoveMachineFromGroup(Machine);
+                    view.UnGroupSelectedMachines(d);
+
                 }
             };
 
@@ -534,18 +521,18 @@ namespace BuzzGUI.MachineView
         {
             this.DataContext = this;
             this.view = view;
-            this.Loaded += new RoutedEventHandler(MachineControl_Loaded);
-            this.GotFocus += new RoutedEventHandler(MachineControl_GotFocus);
-            MachineView.Settings.PropertyChanged += new PropertyChangedEventHandler(Settings_PropertyChanged);
+            this.Loaded += MachineControl_Loaded;
+            this.GotFocus += MachineControl_GotFocus;
+            MachineView.Settings.PropertyChanged += Settings_PropertyChanged;
             this.AllowDrop = true;
 
             Commands();
         }
 
-
         public void Release()
         {
-            MachineView.Settings.PropertyChanged -= new PropertyChangedEventHandler(Settings_PropertyChanged);
+            this.GotFocus -= MachineControl_GotFocus;
+            MachineView.Settings.PropertyChanged -= Settings_PropertyChanged;
             Machine = null;
 
             foreach (var c in inputs)
@@ -674,7 +661,6 @@ namespace BuzzGUI.MachineView
                 {
                     view.EndMoveSelectedMachines();
                 }
-
             };
 
             // rotate

@@ -324,26 +324,31 @@ namespace BuzzGUI.MachineView
         {   
             this.DataContext = this;
             this.view = view;
-            this.Loaded += new RoutedEventHandler(GroupControl_Loaded);
-            this.GotFocus += new RoutedEventHandler(GroupControl_GotFocus);
-            MachineView.Settings.PropertyChanged += new PropertyChangedEventHandler(Settings_PropertyChanged);
+            this.Loaded += GroupControl_Loaded;
+            this.GotFocus += GroupControl_GotFocus;
+            MachineView.Settings.PropertyChanged += Settings_PropertyChanged;
             this.AllowDrop = true;
 
             Commands();
 
             dtLED = new DispatcherTimer() { Interval = TimeSpan.FromSeconds(1 / 30.0) };
-            dtLED.Tick += (sender, e) =>
-            {
-                PropertyChanged?.Raise(this, HasSkinLED ? "IsSkinLEDActive" : "IsLEDActive");
-            };
+            dtLED.Tick += DtLED_Tick;
+
             dtLED.Start();
         }
 
+        private void DtLED_Tick(object? sender, EventArgs e)
+        {
+            PropertyChanged?.Raise(this, HasSkinLED ? "IsSkinLEDActive" : "IsLEDActive");
+        }
 
         public void Release()
         {
-            MachineView.Settings.PropertyChanged -= new PropertyChangedEventHandler(Settings_PropertyChanged);
+            MachineGroup = null;
+            this.GotFocus -= GroupControl_GotFocus;
+            MachineView.Settings.PropertyChanged -= Settings_PropertyChanged;
             dtLED?.Stop();
+            dtLED.Tick -= DtLED_Tick;
         }
 
         void UpdatePosition()
@@ -764,12 +769,12 @@ namespace BuzzGUI.MachineView
         public bool HasSkinLED { get { return false; } }
         public bool IsLEDActive { get
             {
-                return IsChildMachineActibve();
+                return IsChildMachineActive();
             }
         }
-        public bool IsSkinLEDActive { get { return IsChildMachineActibve(); } }
+        public bool IsSkinLEDActive { get { return IsChildMachineActive(); } }
 
-        private bool IsChildMachineActibve()
+        private bool IsChildMachineActive()
         {
             bool isActive = false;
             var list = view.Buzz.Song.MachineToGroupDict;
