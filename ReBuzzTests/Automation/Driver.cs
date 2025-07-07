@@ -134,7 +134,13 @@ namespace ReBuzzTests.Automation
         private ReBuzzMachines reBuzzMachines;
 
         public ReBuzzCommandsDriverExtension DawCommands => new(reBuzzCore, fileNameToSaveChoice, fileNameToLoadChoice);
-        public GearDriverExtension Gear => new(GearGeneratorsDir, GearEffectsDir, addMachineActions);
+
+        public GearDriverExtension Gear =>
+            new(GearGeneratorsDir,
+                GearEffectsDir,
+                addMachineActions,
+                crashGeneratorFilePath,
+                crashEffectFilePath);
         public RecentFilesDriverExtension RecentFiles => new(fakeRegistry);
         public MachineGraphDriverExtension MachineGraph => new(reBuzzCore, reBuzzMachines, fakeMachineDllScanner, dispatcher, DefaultPan, DefaultAmp);
         public ReBuzzLogDriverExtension ReBuzzLog => new(inMemorySink);
@@ -400,39 +406,6 @@ namespace ReBuzzTests.Automation
             reBuzzMachines.GetSongCoreMachineInstance(controller.InstanceName).DLL.IsCrashed.Should().BeTrue();
             reBuzzMachines.GetMachineManagerMachine(controller.InstanceName).MachineDLL
                 .IsCrashed.Should().BeTrue();
-        }
-
-        /// <summary>
-        /// Enables crashing behavior for the specified effect, simulating a scenario where the effect causes a crash.
-        /// </summary>
-        /// <param name="crashingEffect">
-        ///     The instance of <see cref="DynamicMachineController"/> representing the effect to be configured for crashing.
-        /// </param>
-        /// <param name="methodToCrashOn"></param>
-        public void EnableEffectCrashingFor(DynamicMachineController crashingEffect, string methodToCrashOn)
-        {
-            MachineSpecificCrashFileName(crashEffectFilePath, crashingEffect).WriteAllText(methodToCrashOn);
-        }
-
-        /// <summary>
-        /// Enables the crashing behavior for the specified generator, simulating a scenario where the generator causes a crash.
-        /// </summary>
-        /// <param name="crashingGenerator">
-        /// The instance of <see cref="DynamicMachineController"/> representing the generator 
-        /// for which crashing behavior should be enabled.
-        /// </param>
-        /// <param name="methodToCrashOn"></param>
-        public void EnableGeneratorCrashingFor(DynamicMachineController crashingGenerator, string methodToCrashOn)
-        {
-            //bug use init actions
-            MachineSpecificCrashFileName(crashGeneratorFilePath, crashingGenerator).WriteAllText(methodToCrashOn);
-        }
-
-        private static AbsoluteFilePath MachineSpecificCrashFileName(
-            AbsoluteFilePath crashingMachineDllPath, DynamicMachineController crashingGenerator)
-        {
-            return crashingMachineDllPath.ChangeFileNameTo(crashingMachineDllPath.FileName()
-                .AppendBeforeExtension("_" + crashingGenerator.InstanceName));
         }
 
         /// <summary>
