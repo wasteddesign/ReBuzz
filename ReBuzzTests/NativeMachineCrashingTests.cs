@@ -7,8 +7,13 @@ namespace ReBuzzTests
 {
     public class NativeMachineCrashingTests
     {
-        [Test]
-        public void DoesNotOutputSamplesFromGeneratorCrashedOnLoadingNewInstance()
+        [TestCase(MethodsToCrashOn.Constructor)]
+        [TestCase(MethodsToCrashOn.Init)]
+        [TestCase(MethodsToCrashOn.AttributesChanged)]
+        [TestCase(MethodsToCrashOn.SetNumTracks)]
+        [TestCase(MethodsToCrashOn.Tick)]
+        [TestCase(MethodsToCrashOn.GetEnvelopeInfos)]
+        public void DoesNotOutputSamplesFromGeneratorCrashedDuringInitialization(string methodToCrash)
         {
             var sampleFromGenerator1 = new Sample(2, 3);
             var sampleFromGenerator2 = new Sample(7, 6);
@@ -20,11 +25,9 @@ namespace ReBuzzTests
             driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorInfo.Instance);
             driver.Start();
 
+            driver.Gear.EnableGeneratorCrashingFor(crashingGenerator, methodToCrash);
             driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(okGenerator1);
-            
-            driver.EnableGeneratorCrashingFor(crashingGenerator);
             driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(crashingGenerator);
-            
             driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(okGenerator2);
 
             driver.MachineGraph.ExecuteMachineCommand(okGenerator1.SetStereoSampleValueTo(sampleFromGenerator1));
@@ -42,7 +45,7 @@ namespace ReBuzzTests
         }
 
         [Test]
-        public void DoesNotOutputSamplesFromCrashedGenerators()
+        public void DoesNotOutputSamplesFromGeneratorsCrashedWhileExecutingWorkMonoToStereo()
         {
             var sampleFromGenerator1 = new Sample(2, 3);
             var sampleFromGenerator2 = new Sample(7, 6);
@@ -54,6 +57,7 @@ namespace ReBuzzTests
             driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorInfo.Instance);
             driver.Start();
 
+            driver.Gear.EnableGeneratorCrashingFor(crashingGenerator, MethodsToCrashOn.WorkMonoToStereo);
             driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(okGenerator1);
             driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(crashingGenerator);
             driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(okGenerator2);
@@ -62,7 +66,6 @@ namespace ReBuzzTests
             driver.MachineGraph.ExecuteMachineCommand(okGenerator2.SetStereoSampleValueTo(sampleFromGenerator2));
             driver.MachineGraph.ExecuteMachineCommand(crashingGenerator.SetStereoSampleValueTo(sampleFromCrashedGenerator));
 
-            driver.EnableGeneratorCrashingFor(crashingGenerator);
             var samples = driver.ReadStereoSamples(1);
 
             driver.AssertMachineIsCrashed(crashingGenerator);
@@ -70,11 +73,15 @@ namespace ReBuzzTests
             samples.AssertAreEqualTo([
                 ExpectedSampleValue.From(sampleFromGenerator1 + sampleFromGenerator2)
             ]);
-
         }
 
-        [Test]
-        public void DoesNotRouteSoundThroughEffectsCrashedOnLoadingNewInstance()
+        [TestCase(MethodsToCrashOn.Constructor)]
+        [TestCase(MethodsToCrashOn.Init)]
+        [TestCase(MethodsToCrashOn.AttributesChanged)]
+        [TestCase(MethodsToCrashOn.SetNumTracks)]
+        [TestCase(MethodsToCrashOn.Tick)]
+        [TestCase(MethodsToCrashOn.GetEnvelopeInfos)]
+        public void DoesNotRouteSoundThroughEffectsCrashedDuringInitialization(string methodToCrashOn)
         {
             using var driver = new Driver();
             var crashingEffect = FakeNativeEffectController.NewInstance("crashingEffect");
@@ -83,8 +90,8 @@ namespace ReBuzzTests
             driver.Gear.AddPrecompiledEffect(FakeNativeEffectInfo.Instance);
             driver.Start();
 
+            driver.Gear.EnableEffectCrashingFor(crashingEffect, methodToCrashOn);
             driver.MachineGraph.InsertMachineInstanceFor(okGenerator);
-            driver.EnableEffectCrashingFor(crashingEffect);
             driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(crashingEffect);
             driver.MachineGraph.Connect(okGenerator, crashingEffect);
 
@@ -110,6 +117,7 @@ namespace ReBuzzTests
             driver.Gear.AddPrecompiledEffect(FakeNativeEffectInfo.Instance);
             driver.Start();
 
+            driver.Gear.EnableEffectCrashingFor(crashingEffect, MethodsToCrashOn.Work);
             driver.MachineGraph.InsertMachineInstanceFor(okGenerator);
             driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(crashingEffect);
             driver.MachineGraph.Connect(okGenerator, crashingEffect);
@@ -117,7 +125,6 @@ namespace ReBuzzTests
             driver.MachineGraph.ExecuteMachineCommand(okGenerator.SetStereoSampleValueTo(sampleFromGenerator));
             driver.MachineGraph.ExecuteMachineCommand(crashingEffect.SetStereoSampleMultiplier(2));
 
-            driver.EnableEffectCrashingFor(crashingEffect);
             var samples = driver.ReadStereoSamples(1);
 
             driver.AssertMachineIsCrashed(crashingEffect);

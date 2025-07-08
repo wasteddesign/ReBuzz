@@ -6,7 +6,6 @@
     * machines crashing in destructors
 * Error cases
 	* When machine type in the DLL is invalid (e.g. 96)
-	* When a machine fails to load (state should not be corrupted)
 	* When loading a machine without any parameters defined, expected an exception
 * Native machines
 	* Effects (mono/mono to stereo)
