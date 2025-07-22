@@ -149,7 +149,14 @@ namespace ReBuzz.FileOps
                         }
 
                         // Notify import finished and machine name changes
-                        buzz.MachineManager.ImportFinished(machine, importDictionaryNonHidden);
+                        try
+                        {
+                            buzz.MachineManager.ImportFinished(machine, importDictionaryNonHidden);
+                        }
+                        catch (Exception e)
+                        {
+                            buzz.DCWriteErrorLine("Exception calling ImportFinished for " + machine.DLL.Name + "\n" + e.Message);
+                        }
                     }
                 }
 
@@ -310,6 +317,7 @@ namespace ReBuzz.FileOps
             Dictionary<MachineCore, MachineInitData> dictInitData = new Dictionary<MachineCore, MachineInitData>();
 
             ushort machineCount = ReadUShort(fs);
+            bool superOldSong = machines.Count == 0;
 
             for (int j = 0; j < machineCount; j++)
             {
@@ -320,7 +328,7 @@ namespace ReBuzz.FileOps
                 int dataSize;
                 ushort attributeCount, tracks;
 
-                MachineCore machineProto = machines[j];// GetMachine(name);
+                MachineCore machineProto = j < machines.Count ? machines[j] : GetMachine(name);
                 machines.Remove(machineProto);
                 machines.Insert(j, machineProto); // Reposition these accoring to machine order in bmx
                 type = ReadByte(fs);
@@ -344,9 +352,17 @@ namespace ReBuzz.FileOps
                         machineDLL = buzz.MachineDLLs[machineLibrary] as MachineDLL;
                         machineProto.MachineDLL = machineDLL;
                         machineProto.MachineDLL.MachineInfo.Type = (MachineType)type;
+
+                        if (superOldSong)
+                        {
+                            machineProto = FetchMissingMachineInformation(machineProto);
+                        }    
                     }
                     else
                     {
+                        if (superOldSong)
+                            throw new Exception("To load this song, you need to have following machine in your Gear forlder: " + machineLibrary);
+
                         machineDLL = new MachineDLL();
                         machineDLL.Name = machineLibrary;
                         machineDLL.IsMissing = true;
@@ -466,6 +482,7 @@ namespace ReBuzz.FileOps
                         machineNew.ParameterGroupsList = new List<ParameterGroup>() { machineNew.ParameterGroupsList[0] };
                         AddGroup(machineProto, machineNew, 1);
                         AddGroup(machineProto, machineNew, 2);
+                        
                     }
                     else if (!machineNew.DLL.IsMissing)
                     {
@@ -505,6 +522,16 @@ namespace ReBuzz.FileOps
             // Native control machines need to have all machines "visible" before calling init
             InitMachines(dictInitData.Where(kv => !kv.Key.DLL.Info.Flags.HasFlag(MachineInfoFlags.CONTROL_MACHINE)), useMultithreading);
             InitMachines(dictInitData.Where(kv => kv.Key.DLL.Info.Flags.HasFlag(MachineInfoFlags.CONTROL_MACHINE)), useMultithreading);
+        }
+
+        private MachineCore FetchMissingMachineInformation(MachineCore machineProto)
+        {
+            machineProto.MachineDLL = machineProto.MachineDLL.Clone();
+            string machineLib = machineProto.DLL.Name;
+
+            buzz.MachineManager.FetchNativeMachineInfo(machineProto);
+
+            return machineProto;
         }
 
         internal void InitMachines(IEnumerable<KeyValuePair<MachineCore, MachineInitData>> dictInitData, bool multiThread)

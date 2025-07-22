@@ -286,7 +286,7 @@ namespace ReBuzz.MachineManagement
 
             if (machine.DLL.IsCrashed)
             {
-                ValidateMachineStructures(machine);
+                ValidateMachineStructures(machine, trackCount);
             }
         }
 
@@ -330,14 +330,14 @@ namespace ReBuzz.MachineManagement
 
             if (machine.DLL.IsCrashed)
             {
-                ValidateMachineStructures(machine);
+                ValidateMachineStructures(machine, trackCount);
             }
 
             machine.Ready = true;
             machine.MachineDLL.IsLoaded = true;
         }
 
-        private void ValidateMachineStructures(MachineCore machine)
+        private void ValidateMachineStructures(MachineCore machine, int trackCount)
         {
             if (machine.ParameterGroupsList.Count == 1)
             {
@@ -347,6 +347,50 @@ namespace ReBuzz.MachineManagement
             {
                 machine.ParameterGroupsList.Add(new ParameterGroup(machine, ParameterGroupType.Track));
             }
+        }
+
+        internal void FetchNativeMachineInfo(MachineCore machine)
+        {
+            NativeMachineHost nativeMachineHost;
+            if (IsSingleProcessMode)
+            {
+                if (machine.MachineDLL.Is64Bit)
+                {
+                    if (nativeMachineHostSingleProcess64 == null)
+                    {
+                        nativeMachineHostSingleProcess64 = new NativeMachineHost("ReBuzzConnectID", buzzPath, dispatcher);
+                        nativeMachineHostSingleProcess64.InitHost(Buzz, machine.MachineDLL.Is64Bit);
+                    }
+                    nativeMachineHost = nativeMachineHostSingleProcess64;
+                }
+                else
+                {
+                    if (nativeMachineHostSingleProcess32 == null)
+                    {
+                        nativeMachineHostSingleProcess32 = new NativeMachineHost("ReBuzzConnectID", buzzPath, dispatcher);
+                        nativeMachineHostSingleProcess32.InitHost(Buzz, machine.MachineDLL.Is64Bit);
+                    }
+                    nativeMachineHost = nativeMachineHostSingleProcess32;
+                }
+            }
+            else
+            {
+                nativeMachineHost = new NativeMachineHost("ReBuzzConnectID", buzzPath, dispatcher);
+                nativeMachineHost.InitHost(Buzz, machine.MachineDLL.Is64Bit);
+            }
+
+            var uiMessage = nativeMachineHost.UIMessage;
+            var audioMessage = nativeMachineHost.AudioMessage;
+
+            // Send wavetable info before new?
+            audioMessage.AudioBeginBlock(machine, buzz.Song.Wavetable as WavetableCore);
+
+            uiMessage.SendMessageBuzzInitSync(Buzz.MainWindowHandle, machine.MachineDLL.Is64Bit);
+            uiMessage.UIDSPInitSync(ReBuzzCore.masterInfo.SamplesPerSec);
+
+            uiMessage.UILoadLibrarySync(buzz, machine, machine.DLL.Name, machine.DLL.Path);
+
+            nativeMachineHost.Dispose();
         }
 
         internal IMachineDLL GetPatternEditorDLL(MachineCore machine)

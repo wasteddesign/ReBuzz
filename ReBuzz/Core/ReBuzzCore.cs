@@ -364,7 +364,7 @@ namespace ReBuzz.Core
                             MachineManager.GotMidiFocus(midiFocusMachine as MachineCore);
                         }
 
-                        PropertyChanged.Raise(this, "MIDIFocusMachine");
+                        dispatcher.Invoke(() => PropertyChanged.Raise(this, "MIDIFocusMachine"));
                     }
                 }
             }
