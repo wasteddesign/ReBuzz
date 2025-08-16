@@ -1537,3 +1537,46 @@ void *CMICallbacks::GetMachineModuleHandle(CMachine *pmac)
 	MICB1(pmac);
 	return NULL;
 }
+
+int CMICallbacksNext::GetMachineBaseOctave(CMachine* pmac)
+{
+	MICB1(pmac);
+	if (pmac == NULL)
+		return GetBaseOctave();
+
+	IPC::Message m(IPC::HostGetMachineBaseOctave);
+	m.WritePtr(pmac);
+	IPC::Message reply;
+	DoCallback(m, reply);
+
+	IPC::MessageReader r(reply);
+	return r.ReadDWORD();
+}
+
+void CMICallbacksNext::SetMachineBaseOctave(CMachine* pmac, int octave)
+{
+	MICB2(pmac, octave);
+	if (pmac == NULL)
+		return;
+
+	IPC::Message m(IPC::HostSetMachineBaseOctave);
+	m.WritePtr(pmac);
+	m.WritePtr(octave);
+	IPC::Message reply;
+	DoCallback(m, reply);
+}
+
+int CMICallbacksNext::GetExtendedHostVersion()
+{
+	return MI_NEXT_VERSION;
+}
+
+void CMICallbacksNext::SetMachineInterfaceNext(CMachineInterfaceNext* pex, CMachineInfoNext* info)
+{
+	MICB1(pex);
+
+	CMachineCallbacks* pmcb = (CMachineCallbacks*)this;
+	pmcb->pMachine->pInterfaceNext = pex;
+
+	// ToDo: send info to host
+}

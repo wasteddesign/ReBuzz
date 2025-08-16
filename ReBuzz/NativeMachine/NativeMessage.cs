@@ -1125,11 +1125,39 @@ namespace ReBuzz.NativeMachine
                                     ret = machine.Inputs.Count;
                                 }
                             }
-                            SetMessageDataPtr(ret);
+                            SetMessageData(ret);
                             DoReplyMessage();
                         }
                         break;
-                        
+                    case HostMessages.HostGetMachineBaseOctave:
+                        {
+                            long hostMachineId = GetMessageData<long>();
+                            Reset();
+
+                            var buzz = Global.Buzz as ReBuzzCore;
+                            MachineCore machine = buzz.SongCore.MachinesList.FirstOrDefault(m => m.CMachineHost == hostMachineId);
+
+                            int ret = machine != null ? machine.BaseOctave: 4;
+
+                            SetMessageData(ret);
+                            DoReplyMessage();
+                        }
+                        break;
+                    case HostMessages.HostSetMachineBaseOctave:
+                        {
+                            long hostMachineId = GetMessageData<long>();
+                            int octave = GetMessageData<int>();
+                            Reset();
+
+                            var buzz = Global.Buzz as ReBuzzCore;
+                            MachineCore machine = buzz.SongCore.MachinesList.FirstOrDefault(m => m.CMachineHost == hostMachineId);
+
+                            if (machine != null)
+                                machine.BaseOctave = octave;
+
+                            DoReplyMessage();
+                        }
+                        break;
                 }
             }
         }

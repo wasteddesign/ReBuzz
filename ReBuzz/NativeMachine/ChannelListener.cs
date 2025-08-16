@@ -11,7 +11,6 @@ namespace ReBuzz.NativeMachine
         public ChannelType Channel { get; }
         private readonly NativeMessage msg;
         Thread threadPing;
-        //Task taskPing;
 
         public EventWaitHandle WaitHandlePing { get; }
         public EventWaitHandle WaitHandlePong { get; }
@@ -36,8 +35,6 @@ namespace ReBuzz.NativeMachine
             threadPing = new Thread(this.ThreadTaskPing);
             threadPing.Priority = priority;
             threadPing.Start();
-
-            //taskPing = Task.Factory.StartNew(ThreadTaskPing, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Current);
         }
 
         private void ThreadTaskPing()
@@ -71,12 +68,7 @@ namespace ReBuzz.NativeMachine
             {
                 threadPing.Join();
             }
-            /*
-            if (taskPing != null && !taskPing.IsCompleted)
-            {
-                taskPing.Wait();
-            }
-            */
+
             WaitHandlePing.Dispose();
             WaitHandlePong.Dispose();
         }

@@ -104,7 +104,9 @@ namespace ReBuzz.NativeMachine
         HostGetConnection,
         HostGetConnectionSource,
         HostGetConnectionDestination,
-        HostGetConnectionCount
+        HostGetConnectionCount,
+        HostGetMachineBaseOctave,
+        HostSetMachineBaseOctave
     };
 
     public enum MIDIMessages

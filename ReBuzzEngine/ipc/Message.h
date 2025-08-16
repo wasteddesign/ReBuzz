@@ -108,7 +108,9 @@ enum HostMessages
 	HostGetConnection,
 	HostGetConnectionSource,
 	HostGetConnectionDestination,
-	HostGetConnectionCount
+	HostGetConnectionCount,
+	HostGetMachineBaseOctave,
+	HostSetMachineBaseOctave
 };
 
 enum MIDIMessages
