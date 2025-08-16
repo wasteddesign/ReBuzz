@@ -6,8 +6,10 @@ using BuzzGUI.MachineView;
 using BuzzGUI.ParameterWindow;
 using ReBuzz.Common;
 using ReBuzz.Common.Interfaces;
+using ReBuzz.MachineManagement;
 using ReBuzz.ManagedMachine;
 using ReBuzz.NativeMachine;
+using Serilog.Core;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -463,6 +465,8 @@ namespace ReBuzz.Core
         {
             this.buzzPath = buzzPath;
             graph = machineGraph;
+
+            baseOctave = Global.GeneralSettings.DefaultMachineBaseOctave;
 
             parameterGroups = new List<ParameterGroup>();
             parameterGroups.Add(ParameterGroup.CreateInputGroup(this, dispatcher)); // Inputs
@@ -1034,7 +1038,16 @@ namespace ReBuzz.Core
                 }
                 else
                 {
-                    p.SetValue(0, p.NoValue);
+                    // Might fix some old machines...
+                    if (p.Type == ParameterType.Note && DLL.Info.Version <= MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_12)
+                    {
+                        // Is this the default note?
+                        p.SetValue(0, BuzzNote.Parse("C-4"));
+                    }
+                    else
+                    {
+                        p.SetValue(0, p.NoValue);
+                    }
                 }
             }
 

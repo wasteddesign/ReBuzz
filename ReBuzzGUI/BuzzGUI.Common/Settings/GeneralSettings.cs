@@ -27,5 +27,8 @@
 
         //[BuzzSetting(true, Description = "Use multiple threads to initialize machines when loading a song.")]
         //public bool MultithreadSongLoading { get; set; }
+
+        [BuzzSetting(4, Minimum = 2, Maximum = 6, Description = "Default machine base octave.")]
+        public int DefaultMachineBaseOctave { get; set; }
     }
 }

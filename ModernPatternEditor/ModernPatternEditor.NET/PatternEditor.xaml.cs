@@ -565,21 +565,15 @@ namespace WDE.ModernPatternEditor
                     }
                     else if (e.Key == Key.Divide)
                     {
-                        if (SelectedMachine != null && SelectedMachine.BaseOctave > 0)
-                            SelectedMachine.BaseOctave--;
-
-                        //if (SelectedMachine != null && SelectedMachine.Machine.BaseOctave > 0)
-                        //    SelectedMachine.Machine.BaseOctave--;
+                        if (SelectedMachine != null && SelectedMachine.Machine.BaseOctave > 0)
+                            SelectedMachine.Machine.BaseOctave--;
 
                         e.Handled = true;
                     }
                     else if (e.Key == Key.Multiply)
                     {
-                        if (SelectedMachine != null && SelectedMachine.BaseOctave < 9)
-                            SelectedMachine.BaseOctave++;
-
-                        //if (SelectedMachine != null && SelectedMachine.Machine.BaseOctave < 9)
-                        //    SelectedMachine.Machine.BaseOctave++;
+                        if (SelectedMachine != null && SelectedMachine.Machine.BaseOctave < 9)
+                            SelectedMachine.Machine.BaseOctave++;
 
                         e.Handled = true;
                     }

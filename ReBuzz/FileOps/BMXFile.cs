@@ -1252,6 +1252,10 @@ namespace ReBuzz.FileOps
                         {
                             machine.IsWireless = val == 1;
                         }
+                        else if (itemName == "BaseOctave")
+                        {
+                            machine.BaseOctave = val;
+                        }
                     }
                 }
             }
@@ -2164,7 +2168,7 @@ namespace ReBuzz.FileOps
                 WriteString(ms, machine.Name);
 
                 // Update the number of properties
-                int numberOfItems = 6;
+                int numberOfItems = 7;
                 WriteInt(ms, numberOfItems);
 
                 WriteString(ms, "Mute"); // Name
@@ -2190,6 +2194,10 @@ namespace ReBuzz.FileOps
                 WriteString(ms, "Wireless");
                 WriteInt(ms, 1);
                 WriteBool(ms, machine.IsWireless);
+
+                WriteString(ms, "BaseOctave");
+                WriteInt(ms, 4);
+                WriteInt(ms, machine.BaseOctave);
             }
             AddSection(ms.ToArray(), SectionType.XCAM);
         }
