@@ -874,7 +874,15 @@ void AudioReceive(IPC::Message const &msg, IPC::Message &reply)
 			}
 		}
 		break;
+		case IPC::AudioGetLatency:
+			{	
+				CMachine* pmac = (CMachine*)r.ReadPtr();
+				int latency = pmac->pInterfaceEx->GetLatency();
+				reply.Write(latency);
+			}
+		break;
 	}
+
 }
 
 void MIDIReceive(IPC::Message const &msg, IPC::Message &reply)

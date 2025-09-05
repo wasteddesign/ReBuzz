@@ -1,21 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Runtime;
-using System.Runtime.InteropServices;
-using System.Threading;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Interop;
-using System.Windows.Media;
-using System.Windows.Threading;
-using System.Xml.Linq;
-using Buzz.MachineInterface;
+﻿using Buzz.MachineInterface;
 using BuzzGUI.Common;
 using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
@@ -29,6 +12,24 @@ using ReBuzz.MachineManagement;
 using ReBuzz.Midi;
 using ReBuzz.Properties;
 using Serilog;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Runtime;
+using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Interop;
+using System.Windows.Media;
+using System.Windows.Threading;
+using System.Xml.Linq;
 using Timer = System.Timers.Timer;
 
 namespace ReBuzz.Core
@@ -790,6 +791,11 @@ namespace ReBuzz.Core
                 }
             }
             */
+
+            if (e.PropertyName == "MachineDelayCompensation")
+            {
+                UpdateMachineDelayCompensation();
+            }
         }
 
         private void DeleteBackup()
@@ -1729,6 +1735,9 @@ namespace ReBuzz.Core
                     // Make visible in UI
                     SongCore.InvokeMachineAdded(machine);
                 }
+
+                if (machine.Ready)
+                    machine.Latency = MachineManager.GetMachineLatency(machine);
             }
         }
 
@@ -2084,6 +2093,48 @@ namespace ReBuzz.Core
             songCore.InvokeMachineGroupRemoved(group);
 
             songCore.RemoveGroupFromDictionary(group);
+        }
+
+        internal int totalLatency = 0;
+        internal void UpdateMachineDelayCompensation()
+        {
+            totalLatency = HandleLatencyCalcRecursive(songCore.Machines[0] as MachineCore);
+        }
+
+        internal int HandleLatencyCalcRecursive(MachineCore machine)
+        {
+            int maxLatency = 0;
+            Dictionary<MachineCore, int> inputMachineLatency = new Dictionary<MachineCore, int>();
+
+            // Get cumulative latency from all inputs
+            foreach (var input in machine.Inputs)
+            {
+                var sourceMachine = input.Source as MachineCore;
+                int cumulativeInputLatency = HandleLatencyCalcRecursive(sourceMachine);
+                maxLatency = Math.Max(cumulativeInputLatency, maxLatency);
+                inputMachineLatency.Add(sourceMachine, cumulativeInputLatency);
+            }
+
+            // All inputs handled (if any). Add latency to inputs that are have lower latency than max.
+            foreach (var input in machine.Inputs)
+            {
+                var inputMachine = input.Source as MachineCore;
+                var inputConnectionCore = input as MachineConnectionCore;
+                int addLatency = 0;
+                if (Global.EngineSettings.MachineDelayCompensation)
+                {
+                    addLatency = maxLatency - inputMachineLatency[inputMachine];
+                    if (addLatency < 0) addLatency = 0;
+                }
+                inputConnectionCore.UpdateLatencyBuffers(addLatency);
+            }
+
+            int machineLatency = machine.OverrideLatency >= 0 ? machine.OverrideLatency : machine.Latency;
+
+            if (machine.IsBypassed)
+                machineLatency = 0;
+
+            return Global.EngineSettings.MachineDelayCompensation ? maxLatency + machineLatency : 0;
         }
     }
 

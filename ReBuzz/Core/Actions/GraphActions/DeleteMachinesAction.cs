@@ -145,7 +145,7 @@ namespace ReBuzz.Core.Actions.GraphActions
             Dictionary<ISequence, int> SeqOrderdict = new Dictionary<ISequence, int>();
 
             // Create machines
-            foreach (var machineData in deleteMachineDatas.OrderBy(md => md.sequences.Keys.OrderBy(o => o).First()))
+            foreach (var machineData in deleteMachineDatas.OrderBy(md => md.sequences.Count > 0 ? md.sequences.Keys.OrderBy(o => o).First() : 0))
             {
                 var machine = buzz.CreateMachine(
                     machineData.MachineLib, machineData.Instrument, machineData.Name, machineData.Data,
@@ -213,13 +213,16 @@ namespace ReBuzz.Core.Actions.GraphActions
                 }
             }
 
-            // Order Seqences
-            foreach (var seq in buzz.SongCore.SequencesList.ToArray())
+            if (SeqOrderdict.Count > 0)
             {
-                int index = SeqOrderdict[seq];
-                var seqSwap = buzz.SongCore.SequencesList[index];
-                if (seq != seqSwap)
-                    buzz.SongCore.SwapSequences(seq, seqSwap);
+                // Order Seqences
+                foreach (var seq in buzz.SongCore.SequencesList.ToArray())
+                {
+                    int index = SeqOrderdict[seq];
+                    var seqSwap = buzz.SongCore.SequencesList[index];
+                    if (seq != seqSwap)
+                        buzz.SongCore.SwapSequences(seq, seqSwap);
+                }
             }
 
             // Create connections

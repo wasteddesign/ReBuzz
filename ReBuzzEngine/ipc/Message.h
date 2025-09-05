@@ -66,6 +66,7 @@ enum AudioMessages
 	AudioWorkMonoToStereo,
 	AudioInput,
 	AudioMultiWork,
+	AudioGetLatency
 };
 
 enum HostMessages
@@ -110,7 +111,8 @@ enum HostMessages
 	HostGetConnectionDestination,
 	HostGetConnectionCount,
 	HostGetMachineBaseOctave,
-	HostSetMachineBaseOctave
+	HostSetMachineBaseOctave,
+	HostGetTotalLatency
 };
 
 enum MIDIMessages

@@ -1529,7 +1529,12 @@ CMachine *CMICallbacks::GetConnectionDestination(CMachineConnection *pmc, int &c
 
 int CMICallbacks::GetTotalLatency()
 {
-	return 0;
+	IPC::Message m(IPC::HostGetTotalLatency);
+	IPC::Message reply;
+	DoCallback(m, reply);
+
+	IPC::MessageReader r(reply);
+	return r.ReadDWORD();
 }
 
 void *CMICallbacks::GetMachineModuleHandle(CMachine *pmac)

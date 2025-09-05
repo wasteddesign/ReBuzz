@@ -58,6 +58,7 @@ namespace ReBuzz.MachineManagement
         // Adjust these to support old machines
         public static readonly int BUZZ_MACHINE_INTERFACE_VERSION_12 = 12;
         public static readonly int BUZZ_MACHINE_INTERFACE_VERSION_15 = 15; //buzz v1.2
+        public static readonly int BUZZ_MACHINE_INTERFACE_VERSION_27 = 27;
         public static readonly int BUZZ_MACHINE_INTERFACE_VERSION_42 = 42;
 
         readonly Dictionary<MachineCore, NativeMachineHost> nativeMachines = new Dictionary<MachineCore, NativeMachineHost>();
@@ -130,6 +131,7 @@ namespace ReBuzz.MachineManagement
 
                 buzz.AddMachine(machine);
 
+                machine.OversampleFactor = buzz.Gear.OversampleFactor(machine.DLL.Name);
                 machine.updateWaveInfo = true;
                 return machine;
             }
@@ -335,6 +337,26 @@ namespace ReBuzz.MachineManagement
 
             machine.Ready = true;
             machine.MachineDLL.IsLoaded = true;
+
+            machine.Latency = GetMachineLatency(machine);
+        }
+
+        internal int GetMachineLatency(MachineCore machine)
+        {
+            int latency = 0;
+            if (machine.DLL.Info.Type == MachineType.Effect)
+            {
+                if (managedMachines.ContainsKey(machine))
+                {
+                    latency = managedMachines[machine].Latency;
+                }
+                else if (nativeMachines.ContainsKey(machine) && machine.DLL.Info.Version >= BUZZ_MACHINE_INTERFACE_VERSION_27)
+                {
+                    latency = nativeMachines[machine].AudioMessage.AudioGetLatency(machine);
+                }
+            }
+
+            return latency;
         }
 
         private void ValidateMachineStructures(MachineCore machine, int trackCount)

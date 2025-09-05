@@ -115,7 +115,7 @@ namespace ReBuzz.NativeMachine
 
                     Reset();
                     SetMessageData((int)AudioMessages.AudioTick);
-                    WriteMasterInfo();
+                    WriteMasterInfo(machine);
                     SetMessageDataPtr(machine.CMachinePtr);
                     SetMessageData(globalVals.Count);
                     SetMessageData(globalVals.ToArray());
@@ -151,7 +151,7 @@ namespace ReBuzz.NativeMachine
                 {
                     Reset();
                     SetMessageData((int)AudioMessages.AudioWork);
-                    WriteMasterInfo();
+                    WriteMasterInfo(machine);
                     SetMessageDataPtr(machine.CMachinePtr);
                     SetMessageData(numChannels);
                     SetMessageData(numSamples * numChannels);
@@ -205,7 +205,7 @@ namespace ReBuzz.NativeMachine
                 {
                     Reset();
                     SetMessageData((int)AudioMessages.AudioWorkMonoToStereo);
-                    WriteMasterInfo();
+                    WriteMasterInfo(machine);
                     SetMessageDataPtr(machine.CMachinePtr);
                     SetMessageData(nSamples);
                     SetMessageData((int)mode);
@@ -374,7 +374,7 @@ namespace ReBuzz.NativeMachine
                 {
                     Reset();
                     SetMessageData((int)AudioMessages.AudioMultiWork);
-                    WriteMasterInfo();
+                    WriteMasterInfo(machine);
                     SetMessageDataPtr(machine.CMachinePtr);
                     SetMessageData(numSamples);
                     SetMessageData(samplesIn.Count);
@@ -429,6 +429,28 @@ namespace ReBuzz.NativeMachine
                 MachineCrashed(machine, e);
                 return false;
             }
+        }
+
+        internal int AudioGetLatency(MachineCore machine)
+        {
+            int latency = 0;
+            try
+            {
+                lock (AudioMessageLock)
+                {
+                    Reset();
+                    SetMessageData((int)AudioMessages.AudioGetLatency);
+                    SetMessageDataPtr(machine.CMachinePtr);
+                    DoSendMessage(machine);
+                    latency = GetMessageData<int>();
+                }
+            }
+            catch (Exception e)
+            {
+                 MachineCrashed(machine, e);
+            }
+
+            return latency;
         }
     }
 }
