@@ -285,7 +285,7 @@ namespace ReBuzzTests.Automation.Assertions
             machine.Latency.Should().Be(0);
             machine.MIDIInputChannel.Should().Be(-1);
             machine.Outputs.Should().BeEmpty();
-            machine.OverrideLatency.Should().Be(0);
+            machine.OverrideLatency.Should().Be(-1);
             machine.OversampleFactor.Should().Be(1);
 
             machine.ParameterGroups.Should().HaveCount(3);
