@@ -111,6 +111,15 @@ namespace ReBuzz.FileOps
             });
             return m != null ? true : false;
         }
+
+        internal int OversampleFactor(string name)
+        {
+            var machine = Machine.FirstOrDefault(m => m.Name == name);
+            if (machine != null)
+                return machine.OversampleFactor;
+            else
+                return 1;
+        }
     }
 
     public class Machine

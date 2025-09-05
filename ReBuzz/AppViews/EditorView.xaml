@@ -10,7 +10,6 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <WrapPanel Margin="4,0,4,0" Grid.Row="1" Visibility="Visible">
@@ -23,6 +22,6 @@
             <Button Name="btDefThis" Margin="4,4,0,4" Padding="4,0,4,0" ToolTip="Make default for this machine" Content="Def This"></Button>
             <Button Name="btDefAll" Margin="4,4,0,4" Padding="4,0,4,0" ToolTip="Make default" Content="Def All"></Button>
         </WrapPanel>
-        <Grid x:Name="editorBorder" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Row="3"></Grid>
+        <Grid x:Name="editorBorder" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Row="2"></Grid>
     </Grid>
 </UserControl>
