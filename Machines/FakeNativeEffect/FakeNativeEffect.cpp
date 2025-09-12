@@ -52,7 +52,7 @@ CMachineInfo const                                                              
   .pLI = nullptr
 };
 
-class mi : public CMachineInterface
+class mi : public CMachineInterface, CMachineInterfaceEx
 {
 public:
   mi();
@@ -173,6 +173,7 @@ mi::~mi()
 
 void mi::Init(CMachineDataInput* const input)
 {
+  pCB->SetMachineInterfaceEx(this);
   AbortIfRequested(machineName, __func__);
   CMachineInterface::Init(input);
 }
