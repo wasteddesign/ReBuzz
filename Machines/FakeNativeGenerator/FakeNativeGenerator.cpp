@@ -11,10 +11,11 @@
 #include <string>
 #include "../FakeNativeMachineLib/lib.hpp"
 
-FAKE_MACHINE_SLIDER(sampleValueLeftIntegral, SampleValueLeftIntegral);
-FAKE_MACHINE_SLIDER(sampleValueLeftDivisor, SampleValueLeftDivisor);
-FAKE_MACHINE_SLIDER(sampleValueRightIntegral, SampleValueRightIntegral);
-FAKE_MACHINE_SLIDER(sampleValueRightDivisor, SampleValueRightDivisor);
+FAKE_MACHINE_INT_SLIDER(sampleValueLeftIntegral, SampleValueLeftIntegral);
+FAKE_MACHINE_INT_SLIDER(sampleValueLeftDivisor, SampleValueLeftDivisor);
+FAKE_MACHINE_INT_SLIDER(sampleValueRightIntegral, SampleValueRightIntegral);
+FAKE_MACHINE_INT_SLIDER(sampleValueRightDivisor, SampleValueRightDivisor);
+FAKE_MACHINE_SWITCH_SLIDER(debugShowEnabled, DebugShowEnabled);
 
 static CMachineParameter const* pParameters[] = { 
   // global
@@ -22,6 +23,7 @@ static CMachineParameter const* pParameters[] = {
   &sampleValueLeftDivisor,
   &sampleValueRightIntegral,
   &sampleValueRightDivisor,
+  &debugShowEnabled
 };
 
 #pragma pack(1)
@@ -33,6 +35,7 @@ public:
   word sampleValueLeftDivisor;
   word sampleValueRightIntegral;
   word sampleValueRightDivisor;
+  byte debugShowEnabled;
 };
 
 #pragma pack()
@@ -88,6 +91,7 @@ DLL_EXPORTS
 
 bool mi::WorkMonoToStereo(float* pin, float* pout, const int numsamples, int const mode)
 {
+  DebugShow(machineName, __func__, gval.debugShowEnabled);
   AbortIfRequested(machineName, __func__);
   for (auto i = 0 ; i < numsamples * 2 ; i+=2)
   {
@@ -96,6 +100,8 @@ bool mi::WorkMonoToStereo(float* pin, float* pout, const int numsamples, int con
     pout[i+1] = 
       static_cast<float>(gval.sampleValueRightIntegral)/static_cast<float>(gval.sampleValueRightDivisor);
   }
+
+  DebugShow(machineName, "Wrote " + std::to_string(numsamples) + " samples. First: " + std::to_string(pout[0]) + ", last: " + std::to_string(pout[(numsamples * 2) - 1]), gval.debugShowEnabled);
 
   return true;
 }
@@ -185,6 +191,7 @@ void mi::Init(CMachineDataInput* const input)
 
 void mi::Tick()
 {
+  DebugShow(machineName, __func__, gval.debugShowEnabled);
   AbortIfRequested(machineName, __func__);
   CMachineInterface::Tick();
 }

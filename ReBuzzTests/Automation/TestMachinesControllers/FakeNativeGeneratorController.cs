@@ -1,5 +1,6 @@
 ﻿using Buzz.MachineInterface;
 using ReBuzzTests.Automation.TestMachines;
+using static ReBuzz.Common.PreferencesWindow;
 
 namespace ReBuzzTests.Automation.TestMachinesControllers
 {
@@ -18,6 +19,11 @@ namespace ReBuzzTests.Automation.TestMachinesControllers
         {
             return new NativeSetOutputSampleValuesCommand(this, sample, sampleValueLeftDivisor,
                 sampleValueRightDivisor);
+        }
+
+        public ITestMachineInstanceCommand SetDebugShow(bool isEnabled)
+        {
+            return new SetDebugShowCommand(this, isEnabled);
         }
     }
 }
