@@ -289,7 +289,7 @@ namespace ReBuzz.Audio
                 {
                     // Update trigger event
                     var te = seq.TriggerEventInfo;
-                    if (te != null)
+                    if (te != null && te.se.Type == SequenceEventType.PlayPattern)
                     {
                         var pattern = te.se.Pattern as PatternCore;
                         if (!te.started)

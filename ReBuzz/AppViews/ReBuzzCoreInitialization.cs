@@ -49,7 +49,7 @@ namespace ReBuzz.AppViews
 
         internal void StartReBuzzEngineStep3(EngineSettings engineSettings, IInitializationObserver observer)
         {
-            var machineManager = new MachineManager(buzz.SongCore, engineSettings, buzzPath, dispatcher, keyboard);
+            var machineManager = new MachineManager(buzz.SongCore, engineSettings, buzzPath, dispatcher);
             buzz.MachineManager = machineManager;
 
             buzz.AudioEngine = new

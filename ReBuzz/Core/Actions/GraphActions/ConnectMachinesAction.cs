@@ -56,7 +56,7 @@ namespace ReBuzz.Core.Actions.GraphActions
                     ParameterGroup.AddInputs(mcc, mcdst.ParameterGroupsList[0]);
                     buzz.SongCore.InvokeConnectionAdded(mcc);
                 }
-
+                buzz.UpdateMachineDelayCompensation();
             }
         }
 
@@ -76,6 +76,7 @@ namespace ReBuzz.Core.Actions.GraphActions
                         buzz.SongCore.InvokeConnectionRemoved(connection);
                     }
                 }
+                buzz.UpdateMachineDelayCompensation();
             }
         }
     }

@@ -470,7 +470,7 @@ namespace WDE.ModernPatternEditor
                                 if (i >= 0)
                                 {
                                     //action = EditNote(pc, BuzzNote.FromMIDINote(Math.Min(i + Editor.SelectedRootNote + 12 * pattern.Pattern.Machine.BaseOctave, BuzzNote.ToMIDINote(BuzzNote.Max))));
-                                    action = EditNote(pc, BuzzNote.FromMIDINote(Math.Min(i + Editor.SelectedRootNote + 12 * Editor.SelectedMachine.BaseOctave, BuzzNote.ToMIDINote(BuzzNote.Max))));
+                                    action = EditNote(pc, BuzzNote.FromMIDINote(Math.Min(i + Editor.SelectedRootNote + 12 * Editor.SelectedMachine.Machine.BaseOctave, BuzzNote.ToMIDINote(BuzzNote.Max))));
                                     movecursor = true;
                                     play = true;
                                 }
@@ -1324,6 +1324,11 @@ namespace WDE.ModernPatternEditor
             if (pattern == null || pattern.ColumnSets.Count == 0) return;
 
             var p = Pattern.CursorPosition;
+            if (p.ColumnSet >= Pattern.ColumnSets.Count)
+            {
+                p = p.LastColumnSet;
+                Pattern.CursorPosition = p;
+            }
             var r = GetDigitRect(p);
             r.Inflate(1, 0);    // make cursor a little wider
             var col = pattern.GetColumn(p);

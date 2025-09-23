@@ -32,7 +32,7 @@ namespace ReBuzz.Core
                         return pe.Pattern;
                 }
 
-                if (TriggerEventInfo != null && TriggerEventInfo.se.Pattern.PlayPosition != int.MinValue)
+                if (TriggerEventInfo != null && TriggerEventInfo.se.Pattern != null && TriggerEventInfo.se.Pattern.PlayPosition != int.MinValue)
                 {
                     return TriggerEventInfo.se.Pattern;
                 }
@@ -215,13 +215,16 @@ namespace ReBuzz.Core
         internal TriggerEventData TriggerEventInfo { get; set; }
         public void TriggerEvent(int time, SequenceEvent e, bool loop)
         {
-            if (time != 0 && e != null)
+            lock (ReBuzzCore.AudioLock)
             {
-                TriggerEventInfo = new TriggerEventData(time, e, loop, false);
-            }
-            else
-            {
-                TriggerEventInfo = null;
+                if (time != 0 && e != null)
+                {
+                    TriggerEventInfo = new TriggerEventData(time, e, loop, false);
+                }
+                else
+                {
+                    TriggerEventInfo = null;
+                }
             }
         }
 

@@ -1,17 +1,9 @@
 ﻿using Buzz.MachineInterface;
 using BuzzGUI.Common;
-using BuzzGUI.Common.Templates;
 using BuzzGUI.Interfaces;
 using ModernSequenceEditor.Interfaces;
 using Sanford.Multimedia.Midi;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics.Eventing.Reader;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -177,18 +169,8 @@ namespace WDE.ModernSequenceEditorHorizontal
             PatternVisualCache.Clear();
         }
 
-        //protected override void OnRender(DrawingContext dc)
         private void DrawElements()
         {
-            //DebugConsole.WriteLine("PatternElement.OnRender " + IsVisible.ToString());
-            /*
-			if (!IsVisible)
-			{
-				renderPending = true;
-				return;
-			}
-			*/
-
             if (brushSet[0] == null)
             {
                 brushSet[0] = new BrushSet(tc.TryFindResource("PatternBoxBrush") as SolidColorBrush);
@@ -290,7 +272,7 @@ namespace WDE.ModernSequenceEditorHorizontal
                 }
             }
 
-            rectPlayAnim = new Rectangle() { Width = w - 2, Height = 0, Margin = new Thickness(1, 1, 1, 1), ClipToBounds = true, SnapsToDevicePixels = true };
+            rectPlayAnim = new Rectangle() { Width = 0, Height = h - 2, Margin = new Thickness(1, 1, 1, 1), ClipToBounds = true, SnapsToDevicePixels = true };
             rectPlayAnim.IsHitTestVisible = false;
 
             this.Children.Add(rectPlayAnim);
@@ -415,7 +397,7 @@ namespace WDE.ModernSequenceEditorHorizontal
                 dtAnimTimer.Stop();
 
             if (rectPlayAnim != null)
-                rectPlayAnim.Height = 0;
+                rectPlayAnim.Width = 0;
         }
 
         internal void PlayAnimation(bool loop)
@@ -439,7 +421,7 @@ namespace WDE.ModernSequenceEditorHorizontal
                 if (tc.Sequence.PlayingPattern == se.Pattern || se.Pattern.IsPlayingSolo)
                 {
                     patternAnimationStarted = true;
-                    rectPlayAnim.Width = w;
+                    rectPlayAnim.Height = h;
                     if (se.Pattern.PlayPosition > 0)
                         rectPlayAnim.Width = (se.Pattern.PlayPosition / (double)PatternEvent.TimeBase) * viewSettings.TickWidth;
                 }
@@ -837,6 +819,8 @@ namespace WDE.ModernSequenceEditorHorizontal
 
         internal void Release()
         {
+            if (dtAnimTimer != null)
+                dtAnimTimer.Stop();
             SequenceEditor.Settings.PropertyChanged -= Settings_PropertyChanged;
             this.MouseRightButtonDown -= PatternElement_MouseRightButtonDown;
             tc.Editor.PropertyChanged -= Editor_PropertyChanged;
@@ -847,16 +831,10 @@ namespace WDE.ModernSequenceEditorHorizontal
             tc.Editor.PropertyChanged -= Editor_PropertyChanged;
             Children.Clear();
             this.tc = null;
-            this.viewSettings = null;
 
             eventHintCanvas = null;
             macCanvas = null;
         }
-
-        //PatternVisual childVisual;
-
-        //protected override int VisualChildrenCount { get { return childVisual != null ? 1 : 0; } }
-        //protected override Visual GetVisualChild(int index) { if (childVisual == null) throw new ArgumentOutOfRangeException(); else return childVisual; }
     }
 
     public enum PatternPlayMode { Stop, Play, Looping };

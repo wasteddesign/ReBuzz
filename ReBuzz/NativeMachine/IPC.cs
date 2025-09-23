@@ -62,6 +62,7 @@ namespace ReBuzz.NativeMachine
         AudioWorkMonoToStereo,
         AudioInput,
         AudioMultiWork,
+        AudioGetLatency
     };
 
     public enum HostMessages
@@ -104,7 +105,10 @@ namespace ReBuzz.NativeMachine
         HostGetConnection,
         HostGetConnectionSource,
         HostGetConnectionDestination,
-        HostGetConnectionCount
+        HostGetConnectionCount,
+        HostGetMachineBaseOctave,
+        HostSetMachineBaseOctave,
+        HostGetTotalLatency
     };
 
     public enum MIDIMessages

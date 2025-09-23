@@ -58,7 +58,25 @@ namespace BuzzGUI.SequenceEditor
 			dc.Close();
 			
 		}
+    }
 
+    public class VisualHost : UIElement
+    {
+        public Visual Visual { get; set; }
 
-	}
+        public VisualHost()
+        {
+            IsHitTestVisible = false;
+        }
+
+        protected override int VisualChildrenCount
+        {
+            get { return Visual != null ? 1 : 0; }
+        }
+
+        protected override Visual GetVisualChild(int index)
+        {
+            return Visual;
+        }
+    }
 }

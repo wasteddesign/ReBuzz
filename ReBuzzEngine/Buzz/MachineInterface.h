@@ -316,6 +316,7 @@ public:
 	// MI_VERSION 16
 
 	virtual int GetHostVersion();	// available if GetNearestWaveLevel(-2, -2) returns non-zero, returns MI_VERSION of host
+									// if GetNearestWaveLevel(-3, -3) returns non-zero, host is ReBuzz
 
 	// if host version >= 2
 	virtual int GetSongPosition();

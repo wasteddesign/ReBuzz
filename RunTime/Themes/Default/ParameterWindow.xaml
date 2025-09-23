@@ -1,9 +1,9 @@
-﻿<Window 
+﻿<l:ParameterWindow  
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:l="clr-namespace:BuzzGUI.ParameterWindow;assembly=BuzzGUI.ParameterWindow"
     xmlns:bgc="clr-namespace:BuzzGUI.Common;assembly=BuzzGUI.Common"
-    Height="300" Width="410" WindowStyle="ToolWindow" ShowInTaskbar="False" SizeToContent="Height"
+    Height="300" MinWidth="410" WindowStyle="ToolWindow" ShowInTaskbar="False" SizeToContent="WidthAndHeight"
 		UseLayoutRounding="True" TextOptions.TextFormattingMode="{Binding TextFormattingMode}"
 		
     >
@@ -150,7 +150,11 @@
     </Style>
   </Window.Style>
   
-  
+  	  <TabControl SelectedItem="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=Window},
+                                     Path=SelectedTabItem, Mode=OneWayToSource}">
+    <!-- The binding on SelectedItem is required so that the auto-sizing code can keep track of the
+         currently selected tab. -->
+		<TabItem Header="Parameters" l:ParameterWindow.TabSizeMode="WidthAndHeight">
   <Grid Margin="8">
 
     <Grid.RowDefinitions>
@@ -278,5 +282,9 @@
     </ScrollViewer>
 
   </Grid>
-  
-</Window>
+  	</TabItem>
+	<TabItem Header="Editor" IsEnabled="{Binding HasEditorTemplate}" l:ParameterWindow.TabSizeMode="WidthAndHeight">
+      <Control Template="{Binding EditorTemplate}"/>
+    </TabItem>
+	</TabControl>
+</l:ParameterWindow>

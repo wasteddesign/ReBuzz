@@ -58,6 +58,7 @@ namespace ReBuzz.MachineManagement
         // Adjust these to support old machines
         public static readonly int BUZZ_MACHINE_INTERFACE_VERSION_12 = 12;
         public static readonly int BUZZ_MACHINE_INTERFACE_VERSION_15 = 15; //buzz v1.2
+        public static readonly int BUZZ_MACHINE_INTERFACE_VERSION_27 = 27;
         public static readonly int BUZZ_MACHINE_INTERFACE_VERSION_42 = 42;
 
         readonly Dictionary<MachineCore, NativeMachineHost> nativeMachines = new Dictionary<MachineCore, NativeMachineHost>();
@@ -130,6 +131,7 @@ namespace ReBuzz.MachineManagement
 
                 buzz.AddMachine(machine);
 
+                machine.OversampleFactor = buzz.Gear.OversampleFactor(machine.DLL.Name);
                 machine.updateWaveInfo = true;
                 return machine;
             }
@@ -286,7 +288,7 @@ namespace ReBuzz.MachineManagement
 
             if (machine.DLL.IsCrashed)
             {
-                ValidateMachineStructures(machine);
+                ValidateMachineStructures(machine, trackCount);
             }
         }
 
@@ -330,14 +332,34 @@ namespace ReBuzz.MachineManagement
 
             if (machine.DLL.IsCrashed)
             {
-                ValidateMachineStructures(machine);
+                ValidateMachineStructures(machine, trackCount);
             }
 
             machine.Ready = true;
             machine.MachineDLL.IsLoaded = true;
+
+            machine.Latency = GetMachineLatency(machine);
         }
 
-        private void ValidateMachineStructures(MachineCore machine)
+        internal int GetMachineLatency(MachineCore machine)
+        {
+            int latency = 0;
+            if (machine.DLL.Info.Type == MachineType.Effect)
+            {
+                if (managedMachines.ContainsKey(machine))
+                {
+                    latency = managedMachines[machine].Latency;
+                }
+                else if (nativeMachines.ContainsKey(machine) && machine.DLL.Info.Version >= BUZZ_MACHINE_INTERFACE_VERSION_27)
+                {
+                    latency = nativeMachines[machine].AudioMessage.AudioGetLatency(machine);
+                }
+            }
+
+            return latency;
+        }
+
+        private void ValidateMachineStructures(MachineCore machine, int trackCount)
         {
             if (machine.ParameterGroupsList.Count == 1)
             {
@@ -347,6 +369,50 @@ namespace ReBuzz.MachineManagement
             {
                 machine.ParameterGroupsList.Add(new ParameterGroup(machine, ParameterGroupType.Track));
             }
+        }
+
+        internal void FetchNativeMachineInfo(MachineCore machine)
+        {
+            NativeMachineHost nativeMachineHost;
+            if (IsSingleProcessMode)
+            {
+                if (machine.MachineDLL.Is64Bit)
+                {
+                    if (nativeMachineHostSingleProcess64 == null)
+                    {
+                        nativeMachineHostSingleProcess64 = new NativeMachineHost("ReBuzzConnectID", buzzPath, dispatcher);
+                        nativeMachineHostSingleProcess64.InitHost(Buzz, machine.MachineDLL.Is64Bit);
+                    }
+                    nativeMachineHost = nativeMachineHostSingleProcess64;
+                }
+                else
+                {
+                    if (nativeMachineHostSingleProcess32 == null)
+                    {
+                        nativeMachineHostSingleProcess32 = new NativeMachineHost("ReBuzzConnectID", buzzPath, dispatcher);
+                        nativeMachineHostSingleProcess32.InitHost(Buzz, machine.MachineDLL.Is64Bit);
+                    }
+                    nativeMachineHost = nativeMachineHostSingleProcess32;
+                }
+            }
+            else
+            {
+                nativeMachineHost = new NativeMachineHost("ReBuzzConnectID", buzzPath, dispatcher);
+                nativeMachineHost.InitHost(Buzz, machine.MachineDLL.Is64Bit);
+            }
+
+            var uiMessage = nativeMachineHost.UIMessage;
+            var audioMessage = nativeMachineHost.AudioMessage;
+
+            // Send wavetable info before new?
+            audioMessage.AudioBeginBlock(machine, buzz.Song.Wavetable as WavetableCore);
+
+            uiMessage.SendMessageBuzzInitSync(Buzz.MainWindowHandle, machine.MachineDLL.Is64Bit);
+            uiMessage.UIDSPInitSync(ReBuzzCore.masterInfo.SamplesPerSec);
+
+            uiMessage.UILoadLibrarySync(buzz, machine, machine.DLL.Name, machine.DLL.Path);
+
+            nativeMachineHost.Dispose();
         }
 
         internal IMachineDLL GetPatternEditorDLL(MachineCore machine)

@@ -2,11 +2,8 @@
 using BuzzGUI.Common.InterfaceExtensions;
 using BuzzGUI.Interfaces;
 using BuzzGUI.MachineView.SignalAnalysis;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -257,7 +254,6 @@ namespace BuzzGUI.MachineView
                 }
             };
 
-
             ShowDialogCommand = new SimpleCommand
             {
                 CanExecuteDelegate = x => true,
@@ -305,7 +301,7 @@ namespace BuzzGUI.MachineView
                         }
                     }
                     else
-                    {   
+                    {
                         Point pos = PointToScreen(p);
                         machine.ShowDialog((MachineDialog)d, (int)pos.X, (int)pos.Y);
                     }
@@ -1054,7 +1050,7 @@ namespace BuzzGUI.MachineView
             }
         }
 
-        Tuple<float, float> oldPosition = new Tuple<float, float>(0,0);
+        Tuple<float, float> oldPosition = new Tuple<float, float>(0, 0);
         public Tuple<float, float> OldPosition { get => oldPosition; internal set => oldPosition = value; }
 
         internal static BuzzGUI.Common.Templates.Template CachedTemplate;

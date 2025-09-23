@@ -1125,11 +1125,47 @@ namespace ReBuzz.NativeMachine
                                     ret = machine.Inputs.Count;
                                 }
                             }
-                            SetMessageDataPtr(ret);
+                            SetMessageData(ret);
                             DoReplyMessage();
                         }
                         break;
-                        
+                    case HostMessages.HostGetMachineBaseOctave:
+                        {
+                            long hostMachineId = GetMessageData<long>();
+                            Reset();
+
+                            var buzz = Global.Buzz as ReBuzzCore;
+                            MachineCore machine = buzz.SongCore.MachinesList.FirstOrDefault(m => m.CMachineHost == hostMachineId);
+
+                            int ret = machine != null ? machine.BaseOctave: 4;
+
+                            SetMessageData(ret);
+                            DoReplyMessage();
+                        }
+                        break;
+                    case HostMessages.HostSetMachineBaseOctave:
+                        {
+                            long hostMachineId = GetMessageData<long>();
+                            int octave = GetMessageData<int>();
+                            Reset();
+
+                            var buzz = Global.Buzz as ReBuzzCore;
+                            MachineCore machine = buzz.SongCore.MachinesList.FirstOrDefault(m => m.CMachineHost == hostMachineId);
+
+                            if (machine != null)
+                                machine.BaseOctave = octave;
+
+                            DoReplyMessage();
+                        }
+                        break;
+                    case HostMessages.HostGetTotalLatency:
+                        {
+                            var buzz = Global.Buzz as ReBuzzCore;
+                            Reset();
+                            SetMessageData(buzz.totalLatency);
+                            DoReplyMessage();
+                        }
+                        break;
                 }
             }
         }
@@ -1444,9 +1480,23 @@ namespace ReBuzz.NativeMachine
         internal abstract void Notify();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void WriteMasterInfo()
+        internal void WriteMasterInfo(MachineCore machine)
         {
-            SetMessageData(WorkManager.MasterInfoData);
+            int oversample = machine.oversampleFactorOnTick - 1;
+            if (oversample > 0)
+            {
+                WorkManager.MasterInfoStruct.SamplesPerTick <<= oversample;
+                WorkManager.MasterInfoStruct.SamplesPerSec <<= oversample;
+                WorkManager.MasterInfoData = Utils.SerializeValueTypeChangePointer(WorkManager.MasterInfoStruct, ref WorkManager.MasterInfoData);
+                SetMessageData(WorkManager.MasterInfoData);
+                WorkManager.MasterInfoStruct.SamplesPerTick >>= oversample;
+                WorkManager.MasterInfoStruct.SamplesPerSec >>= oversample;
+                WorkManager.MasterInfoData = Utils.SerializeValueTypeChangePointer(WorkManager.MasterInfoStruct, ref WorkManager.MasterInfoData);
+            }
+            else
+            {
+                SetMessageData(WorkManager.MasterInfoData);
+            }
             return;
         }
 

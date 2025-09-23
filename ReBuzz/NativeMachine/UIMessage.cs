@@ -218,7 +218,7 @@ namespace ReBuzz.NativeMachine
                 {
                     Reset();
                     SetMessageData((int)UIMessages.UIInit);
-                    WriteMasterInfo();
+                    WriteMasterInfo(machine);
                     SetMessageDataPtr(machine.CMachinePtr);
                     SetMessageData(machine.CMachineHost);
                     SetMessageData(data.Length);

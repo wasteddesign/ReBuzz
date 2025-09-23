@@ -514,6 +514,7 @@ namespace ReBuzz.FileOps
                     machine.OverrideLatency = machineData.OverrideLatency;
                     machine.OversampleFactor = machineData.OversampleFactor;
                     machine.IsWireless = machineData.IsWireless;
+                    machine.BaseOctave = machineData.BaseOctave;
                 }
             }
 
@@ -816,6 +817,7 @@ namespace ReBuzz.FileOps
                 bmxm.OverrideLatency = m.OverrideLatency;
                 bmxm.OversampleFactor = m.OversampleFactor;
                 bmxm.IsWireless = m.IsWireless;
+                bmxm.BaseOctave = m.BaseOctave;
 
                 if (m.EditorMachine != null)
                 {
@@ -1215,6 +1217,7 @@ namespace ReBuzz.FileOps
         public int OverrideLatency { get; set; }
         public int OversampleFactor { get; set; }
         public bool IsWireless { get; set; }
+        public int BaseOctave { get; set; }
         public bool ParameterWindowVisible { get; set; }
         public bool GUIWindowVisible { get; set; }
         public BMXMLMachineWindow GUIWindow { get; set; }
