@@ -6,8 +6,10 @@ using BuzzGUI.MachineView;
 using BuzzGUI.ParameterWindow;
 using ReBuzz.Common;
 using ReBuzz.Common.Interfaces;
+using ReBuzz.MachineManagement;
 using ReBuzz.ManagedMachine;
 using ReBuzz.NativeMachine;
+using Serilog.Core;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -22,6 +24,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Threading;
 
 namespace ReBuzz.Core
 {
@@ -178,7 +181,7 @@ namespace ReBuzz.Core
         public Tuple<float, float> Position { get => position; set { position = value; PropertyChanged.Raise(this, "Position"); graph.Buzz.SetModifiedFlag(); } }
 
         int overSampleFactor = 1;
-        public int OversampleFactor { get => overSampleFactor; set { overSampleFactor = value; PropertyChanged.Raise(this, "OversampleFactor"); graph.Buzz.SetModifiedFlag(); } }
+        public int OversampleFactor { get => overSampleFactor; set { overSampleFactor = Math.Max(1, Math.Min(2, value)); PropertyChanged.Raise(this, "OversampleFactor"); graph.Buzz.SetModifiedFlag(); } }
 
         int midiInputChannel = -1;
         public int MIDIInputChannel { get => midiInputChannel; set { midiInputChannel = value; PropertyChanged.Raise(this, "MIDIInputChannel"); graph.Buzz.SetModifiedFlag(); } }
@@ -199,8 +202,9 @@ namespace ReBuzz.Core
             }
         }
 
-        readonly List<string> envelopeNames = new List<string>();
-        public ReadOnlyCollection<string> EnvelopeNames { get => envelopeNames.ToReadOnlyCollection(); }
+        internal Dictionary<string, Envelope> envelopes = new Dictionary<string, Envelope>();
+
+        public ReadOnlyCollection<string> EnvelopeNames { get => envelopes.Keys.ToReadOnlyCollection(); }
 
         List<PatternCore> patterns = new List<PatternCore>();
         public ReadOnlyCollection<IPattern> Patterns
@@ -264,6 +268,7 @@ namespace ReBuzz.Core
             set
             {
                 bypassed = value; PropertyChanged.Raise(this, "IsBypassed");
+                (graph.Buzz as ReBuzzCore).UpdateMachineDelayCompensation();
                 graph.Buzz.SetModifiedFlag();
             }
         }
@@ -309,11 +314,33 @@ namespace ReBuzz.Core
             LastEngineThread = EngineThreadId;
         }
 
-        readonly int latency = 0;
-        public int Latency { get => latency; }
+        private int latency = 0;
+        public int Latency { get => latency;
+            set
+            {
+                latency = value;
+                if (Global.EngineSettings.MachineDelayCompensation)
+                {
+                    var bc = graph.Buzz as ReBuzzCore;
+                    bc.UpdateMachineDelayCompensation();
+                    PropertyChanged.Raise(this, " Latency");
+                }
+            }
+        }
 
-        int overrideLatency = 0;
-        public int OverrideLatency { get => overrideLatency; set => overrideLatency = value; }
+        int overrideLatency = -1;
+        public int OverrideLatency { get => overrideLatency;
+            set
+            {
+                overrideLatency = Math.Min(value, 10000);
+                if (Global.EngineSettings.MachineDelayCompensation)
+                {
+                    var bc = graph.Buzz as ReBuzzCore;
+                    bc.UpdateMachineDelayCompensation();
+                    PropertyChanged.Raise(this, "OverrideLatency");
+                }
+            }
+        }
 
         //IMachineDLL patternEditorDLL;
         public IMachineDLL PatternEditorDLL
@@ -336,7 +363,7 @@ namespace ReBuzz.Core
                 baseOctave = value;
                 baseOctave = baseOctave < 0 ? 0 : baseOctave;
                 baseOctave = baseOctave > 9 ? 9 : baseOctave;
-                PropertyChanged.Raise(this, "BaseOctave");
+                dispatcher.Invoke(() => PropertyChanged.Raise(this, "BaseOctave") );
             }
         }
 
@@ -462,6 +489,8 @@ namespace ReBuzz.Core
             this.buzzPath = buzzPath;
             graph = machineGraph;
 
+            baseOctave = Global.GeneralSettings.DefaultMachineBaseOctave;
+
             parameterGroups = new List<ParameterGroup>();
             parameterGroups.Add(ParameterGroup.CreateInputGroup(this, dispatcher)); // Inputs
 
@@ -478,7 +507,18 @@ namespace ReBuzz.Core
                 CanExecuteDelegate = x => true,
                 ExecuteDelegate = x =>
                 {
-                    (Graph.Buzz as ReBuzzCore).MachineManager.Command(this, (int)x);
+                    // Wait a small amount of time to let context menu close. Use DispatcherTimer to ensure we are in UI thread.
+                    DispatcherTimer dt = new DispatcherTimer();
+                    dt.Interval = TimeSpan.FromMilliseconds(200);
+                    dt.Tick += (sender, e) =>
+                    {
+                        dt.Stop();
+                        (Graph.Buzz as ReBuzzCore).MachineManager.Command(this, (int)x);
+
+                        // Update machine latency if instrument or something else changed
+                        Latency = (graph.Buzz as ReBuzzCore).MachineManager.GetMachineLatency(this);
+                    };
+                    dt.Start();
                 }
             };
             this.dispatcher = dispatcher;
@@ -570,6 +610,14 @@ namespace ReBuzz.Core
             if (!Ready)
                 return;
 
+#if DEBUG
+            if (Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                this.MachineDLL.IsCrashed = true;
+                return;
+            }
+#endif
+
             if (!DLL.IsManaged)
             {
                 var me = CMachineEventType.FirstOrDefault(e => e.Type == BEventType.DoubleClickMachine);
@@ -612,7 +660,7 @@ namespace ReBuzz.Core
 
         internal MachineGUIHostWindow MachineGUIWindow { get => machineGUIWindow; }
         MachineGUIHostWindow machineGUIWindow;
-        Window parameterWindow;
+        ParameterWindow parameterWindow;
 
         internal void OpenParameterWindow(Rect rect = default)
         {
@@ -621,7 +669,7 @@ namespace ReBuzz.Core
                 ParameterWindowVM pWindowVM = new ParameterWindowVM();
                 pWindowVM.Machine = this;
 
-                parameterWindow = Utils.GetUserControlXAML<Window>("ParameterWindow.xaml", buzzPath);
+                parameterWindow = Utils.GetUserControlXAML<ParameterWindow>("ParameterWindow.xaml", buzzPath);
                 Window window = (Window)HwndSource.FromHwnd(graph.Buzz.MachineViewHWND).RootVisual;
                 parameterWindow.Owner = window;
 
@@ -643,8 +691,10 @@ namespace ReBuzz.Core
                 parameterWindow.Width = rect.Width;
                 parameterWindow.Height = rect.Height;
             }
-            parameterWindow.Show();
 
+            parameterWindow.Show();
+            parameterWindow.InvalidateMeasure();
+            parameterWindow.UpdateLayout();
         }
 
         internal void OpenWindowedGUI(Rect rect = default)
@@ -898,14 +948,13 @@ namespace ReBuzz.Core
                     OpenParameterWindow();
                     break;
                 case MachineDialog.Rename:
+                    var renameWindow = new RenameMachineWindow("Rename Machine", name, false);
+                    renameWindow.SetStartUpLocation(x, y);
 
-                    var renameWindow = new RenameMachineWindow(name);
-                    var rd = Utils.GetUserControlXAML<ResourceDictionary>("MachineView\\MVResources.xaml", buzzPath);
-                    renameWindow.Resources.MergedDictionaries.Add(rd);
                     if (renameWindow.ShowDialog() == true)
                     {
                         var newName = renameWindow.tbName.Text.Trim();
-                        (graph.Buzz as ReBuzzCore).RenameMachine(this, newName);
+                        (graph.Buzz as ReBuzzCore).SongCore.RenameMachineUndoable(this, newName);
                     }
                     break;
                 case MachineDialog.Delay:
@@ -1017,7 +1066,16 @@ namespace ReBuzz.Core
                 }
                 else
                 {
-                    p.SetValue(0, p.NoValue);
+                    // Might fix some old machines...
+                    if (p.Type == ParameterType.Note && DLL.Info.Version <= MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_12)
+                    {
+                        // Is this the default note?
+                        p.SetValue(0, BuzzNote.Parse("C-4"));
+                    }
+                    else
+                    {
+                        p.SetValue(0, p.NoValue);
+                    }
                 }
             }
 
@@ -1171,7 +1229,7 @@ namespace ReBuzz.Core
             return stereoSamples;
         }
 
-        internal void UpdateOutputs(Sample[] samples, bool denormal = true)
+        internal void UpdateOutputs(Sample[] samples, int nSamples, bool denormal = true)
         {
             foreach (var output in Outputs)
             {
@@ -1180,7 +1238,7 @@ namespace ReBuzz.Core
                 {
                     Utils.FlushDenormalToZero(samples);
                 }
-                outputCore.UpdateBuffer(samples);
+                outputCore.UpdateBuffer(samples, nSamples);
             }
         }
 
@@ -1237,7 +1295,7 @@ namespace ReBuzz.Core
             return channels;
         }
 
-        internal void UpdateOutputs(List<Sample[]> multiSamplesOut)
+        internal void UpdateOutputs(List<Sample[]> multiSamplesOut, int nSamples)
         {
             foreach (var output in Outputs)
             {
@@ -1247,7 +1305,7 @@ namespace ReBuzz.Core
                 {
                     Sample[] samples = multiSamplesOut[outputCore.SourceChannel];
                     Utils.FlushDenormalToZero(samples);
-                    outputCore.UpdateBuffer(samples);
+                    outputCore.UpdateBuffer(samples, nSamples);
                 }
             }
         }
@@ -1286,6 +1344,7 @@ namespace ReBuzz.Core
         internal long performanceBranchCount;
         internal Dictionary<int, int> remappedLoadedMachineParameterIndexes;
         internal IMachineGUI gui;
+        internal int oversampleFactorOnTick = 1;    // Changes value on Tick
         private readonly string buzzPath;
         private readonly IUiDispatcher dispatcher;
 
@@ -1311,6 +1370,11 @@ namespace ReBuzz.Core
                     p.ClearEvents();
                 }
             }
+        }
+
+        internal void AttributesChanged()
+        {
+            PropertyChanged.Raise(this, "Attributes");
         }
     }
 }

@@ -29,7 +29,7 @@ namespace WDE.ModernPatternEditor
         ISong song;
 
         internal MPEPatternDatabase MPEPatternsDB;
-        internal PatternClipboard clipboard = new PatternClipboard();
+        internal static PatternClipboard clipboard = new PatternClipboard();
         internal PlayRecordManager playRecordManager;
         internal ChordsWindow chordsWindow;
 
@@ -438,7 +438,7 @@ namespace WDE.ModernPatternEditor
                 ExecuteDelegate = x =>
                 {
                     DoAction(new CreatePatternAction(SelectedMachine.Machine, SelectedMachine.Machine.GetNewPatternName(),
-                        SelectedMachine.SelectedPattern != null ? SelectedMachine.SelectedPattern.Pattern.Length : 16));
+                        SelectedMachine.SelectedPattern != null ? SelectedMachine.SelectedPattern.Pattern.Length : Global.GeneralSettings.PatternLength));
                     patternControl.Focus();
                 }
             };
@@ -565,21 +565,15 @@ namespace WDE.ModernPatternEditor
                     }
                     else if (e.Key == Key.Divide)
                     {
-                        if (SelectedMachine != null && SelectedMachine.BaseOctave > 0)
-                            SelectedMachine.BaseOctave--;
-
-                        //if (SelectedMachine != null && SelectedMachine.Machine.BaseOctave > 0)
-                        //    SelectedMachine.Machine.BaseOctave--;
+                        if (SelectedMachine != null && SelectedMachine.Machine.BaseOctave > 0)
+                            SelectedMachine.Machine.BaseOctave--;
 
                         e.Handled = true;
                     }
                     else if (e.Key == Key.Multiply)
                     {
-                        if (SelectedMachine != null && SelectedMachine.BaseOctave < 9)
-                            SelectedMachine.BaseOctave++;
-
-                        //if (SelectedMachine != null && SelectedMachine.Machine.BaseOctave < 9)
-                        //    SelectedMachine.Machine.BaseOctave++;
+                        if (SelectedMachine != null && SelectedMachine.Machine.BaseOctave < 9)
+                            SelectedMachine.Machine.BaseOctave++;
 
                         e.Handled = true;
                     }
@@ -1189,7 +1183,7 @@ namespace WDE.ModernPatternEditor
             // This limits the amount of messages.
             if (songTime.PosInTick == 0)
             {
-                foreach( var pattern in changedPatternsSinceLastTick.Keys.ToList())
+                foreach( var pattern in changedPatternsSinceLastTick.Keys)
                 {
                     pattern.NotifyPatternChanged();
                     changedPatternsSinceLastTick.TryRemove(pattern, out bool result);

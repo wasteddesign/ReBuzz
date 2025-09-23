@@ -65,6 +65,7 @@ namespace ReBuzz.Core.Actions.GraphActions
                 }
 
                 ((MachineConnectionCore)mc).ClearEvents();
+                buzz.UpdateMachineDelayCompensation();
             }
         }
 
@@ -95,6 +96,7 @@ namespace ReBuzz.Core.Actions.GraphActions
                 {
                     buzz.SongCore.InvokeConnectionAdded(mc);
                 }
+                buzz.UpdateMachineDelayCompensation();
             }
         }
     }

@@ -1,22 +1,27 @@
-﻿using System;
+﻿using BuzzGUI.Common;
+using BuzzGUI.Common.Actions;
+using BuzzGUI.Common.Actions.MachineActions;
+using BuzzGUI.Common.Actions.PatternActions;
+using BuzzGUI.Common.Actions.SequenceActions;
+using BuzzGUI.Common.Actions.SongActions;
+using BuzzGUI.Common.InterfaceExtensions;
+using BuzzGUI.Interfaces;
+using BuzzGUI.SequenceEditor.Actions;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Interop;
-using System.ComponentModel;
-using System.IO;
-using BuzzGUI.Interfaces;
-using BuzzGUI.Common;
-using BuzzGUI.Common.InterfaceExtensions;
-using BuzzGUI.Common.Actions;
-using BuzzGUI.Common.Actions.SongActions;
-using BuzzGUI.Common.Actions.SequenceActions;
-using BuzzGUI.Common.Actions.MachineActions;
-using BuzzGUI.SequenceEditor.Actions;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
+using System.Windows.Shapes;
+using System.Windows.Threading;
+using static BuzzGUI.SequenceEditor.TrackHeaderControl;
 //using WDE.Info; // Info
 
 namespace BuzzGUI.SequenceEditor
@@ -382,6 +387,11 @@ namespace BuzzGUI.SequenceEditor
 		public ICommand ExportSongMIDICommand { get; private set; }
         public ICommand ImportMIDITrackCommand { get; private set; }
 
+        DispatcherTimer DispatcherTimerHold { get; set; }
+        HoldDragHelper HoldSequenceEventHelper { get; set; }
+
+        public bool ControlPressed { get; }
+
 
         public SequenceEditor(IBuzz buzz, ResourceDictionary rd)
 		{
@@ -406,7 +416,53 @@ namespace BuzzGUI.SequenceEditor
 
 			trackViewGrid.Visibility = Visibility.Collapsed;
 
-			trackSV.ScrollChanged += (sender, e) => 
+            DispatcherTimerHold = new DispatcherTimer();
+            DispatcherTimerHold.Interval = TimeSpan.FromMilliseconds(500);
+            DispatcherTimerHold.Tick += (sender, e) =>
+            {
+                DispatcherTimerHold.Stop();
+
+                Point p = Mouse.GetPosition(trackStack);
+                int row = GetRowAt(p.Y);
+                int time = GetTimeAt(p.X);
+                int snapTime = SequenceEditor.ViewSettings.TimeSignatureList.Snap(time, int.MaxValue);
+
+                while (snapTime >= 0)
+                {
+                    snapTime = SequenceEditor.ViewSettings.TimeSignatureList.Snap(snapTime, int.MaxValue);
+                    if (SelectedSequence.Events.ContainsKey(snapTime))
+                        break;
+
+                    snapTime--;
+                }
+
+                if (snapTime >= 0)
+                {
+                    HoldSequenceEventHelper.Reset(SelectedSequence, row, Song);
+                    HoldSequenceEventHelper.IsHolding = true;
+                    HoldSequenceEventHelper.SetDraggedSequenceEvent(snapTime);
+                    HoldSequenceEventHelper.SetDragOffset(time - snapTime);
+                    Mouse.OverrideCursor = Cursors.Hand;
+                    selectionLayer.EndSelect();
+                }
+            };
+
+            HoldSequenceEventHelper = new HoldDragHelper();
+            PatResizeHelper = new PatternResizeHelper();
+
+            // Animate PatResizeHelper
+            var myDoubleAnimation = new DoubleAnimation();
+            myDoubleAnimation.From = 0.0;
+            myDoubleAnimation.To = 1000.0;
+            myDoubleAnimation.Duration = new Duration(TimeSpan.FromSeconds(60));
+            myDoubleAnimation.AutoReverse = true;
+            Storyboard myStoryboard = new Storyboard();
+            myStoryboard.Children.Add(myDoubleAnimation);
+            Storyboard.SetTargetName(myDoubleAnimation, resizeRect.Name);
+            Storyboard.SetTargetProperty(myDoubleAnimation, new PropertyPath(Rectangle.StrokeDashOffsetProperty));
+            myStoryboard.Begin(resizeRect);
+
+            trackSV.ScrollChanged += (sender, e) => 
 			{
 				timelineSV.ScrollToHorizontalOffset(e.HorizontalOffset);
 				markerSV.ScrollToHorizontalOffset(e.HorizontalOffset);
@@ -432,7 +488,12 @@ namespace BuzzGUI.SequenceEditor
 			{
 				if (SelectedSequence == null) return;
 
-				if (Keyboard.Modifiers == ModifierKeys.None || Keyboard.Modifiers == ModifierKeys.Shift)
+                if (e.Key == Key.LeftCtrl || e.Key == Key.LeftCtrl)
+                {
+                    PropertyChanged.Raise(this, "ControlPressed");
+                }
+
+                if (Keyboard.Modifiers == ModifierKeys.None || Keyboard.Modifiers == ModifierKeys.Shift)
 				{
 					if (e.Key == Key.Right)
 					{
@@ -856,65 +917,170 @@ namespace BuzzGUI.SequenceEditor
 			this.InputBindings.Add(new InputBinding(UndoCommand, new KeyGesture(Key.Z, ModifierKeys.Control)));
 			this.InputBindings.Add(new InputBinding(RedoCommand, new KeyGesture(Key.Y, ModifierKeys.Control)));
 
-			new Dragger
-			{
-				Element = trackViewGrid,
-				Gesture = new DragMouseGesture { Button = MouseButton.Left },
-				Mode = DraggerMode.Absolute,
-				BeginDrag = (p, alt, cc) =>
-				{
-					trackViewGrid.Focus();
-					int row = GetRowAt(p.Y);
-					int time = GetTimeAt(p.X);
-					MoveCursor(time, row);
-					selectionLayer.BeginSelect(new Point(time, row));
-				},
-				Drag = p =>
-				{
-					int row = GetRowAt(p.Y);
-					int time = GetTimeAt(p.X);
-					selectionLayer.UpdateSelect(new Point(time, row));
-				},
-				EndDrag = p =>
-				{
-					selectionLayer.EndSelect();
-				}
-			};
+            new Dragger
+            {
+                Element = trackViewGrid,
+                Gesture = new DragMouseGesture { Button = MouseButton.Left },
+                Mode = DraggerMode.Absolute,
+                BeginDrag = (p, alt, cc) =>
+                {
+                    trackViewGrid.Focus();
+                    int row = GetRowAt(p.Y);
+                    int time = GetTimeAt(p.X);
+                    MoveCursor(time, row);
+                    selectionLayer.BeginSelect(new Point(time, row));
 
-			trackViewGrid.MouseLeftButtonDown += (sender, e) =>
-			{
-				if (e.ClickCount == 2)
-				{
-					if (CursorPattern == null)
-					{
-						using (new ActionGroup(viewSettings.EditContext.ActionStack))
-						{
-							string pname = SelectedSequence.Machine.GetNewPatternName();
-							Do(new CreatePatternAction(SelectedSequence.Machine, pname, 16));
-							Do(new SetEventAction(SelectedSequence, CursorTime, new SequenceEvent(SequenceEventType.PlayPattern, SelectedSequence.Machine.Patterns.First(p => p.Name == pname))));
-						}
-					}
-					else if (!Settings.AutoSelectPattern)
-					{
-						if (SelectPatternCommand.CanExecute(null)) SelectPatternCommand.Execute(null);
-					}
+                    HoldSequenceEventHelper.IsHolding = false;
+                    if (GetSequenceEventAt(time, row) != null)
+                        DispatcherTimerHold.Start();
+                },
+                Drag = p =>
+                {
+                    DispatcherTimerHold.Stop();
 
-					e.Handled = true;
-				}
-			};
+                    int row = GetRowAt(p.Y);
+                    int time = GetTimeAt(p.X);
 
-			trackViewGrid.MouseRightButtonDown += (sender, e) =>
-			{
-				var p = e.GetPosition(trackViewGrid);
-				trackViewGrid.Focus();
-				int row = GetRowAt(p.Y);
-				int time = GetTimeAt(p.X);
-				MoveCursor(time, row);
+                    if (HoldSequenceEventHelper.IsHolding)
+                    {
+                        HoldSequenceEventHelper.Update(time, row);
+                        Point po = Mouse.GetPosition(trackSV);
+                        if (po.Y > trackSV.ActualHeight - SystemParameters.HorizontalScrollBarHeight && PatResizeHelper.DelayCompleted)
+                        {
+                            trackSV.ScrollToVerticalOffset(trackSV.VerticalOffset + viewSettings.TickWidth * Settings.ResizeSnap);
+                            UpdateWidth();
+                            PatResizeHelper.StartDelay();
+                        }
+                        else if (po.Y < 0 && PatResizeHelper.DelayCompleted)
+                        {
 
-				PropertyChanged.Raise(this, "EnableColorMenu");
-			};
+                            trackSV.ScrollToVerticalOffset(trackSV.VerticalOffset - viewSettings.TickWidth * Settings.ResizeSnap);
+                            UpdateWidth();
+                            PatResizeHelper.StartDelay();
+                        }
+                    }
+                    else
+                    {
+                        selectionLayer.UpdateSelect(new Point(time, row));
+                    }
+                },
+                EndDrag = p =>
+                {
+                    selectionLayer.EndSelect();
+                    DispatcherTimerHold.Stop();
+                    HoldSequenceEventHelper.IsHolding = false;
+                    Mouse.OverrideCursor = null;
+                }
+            };
 
-			this.SizeChanged += (sender, e) =>
+            trackViewGrid.MouseLeftButtonDown += (sender, e) =>
+            {
+                if (CursorRow < 0) return;
+
+                if (e.ClickCount == 2 && Keyboard.Modifiers != ModifierKeys.Shift && Keyboard.Modifiers != ModifierKeys.Control)
+                {
+                    if (CursorPattern != null)
+                    {
+                        Buzz.ActiveView = BuzzView.PatternView;
+                        Buzz.ActivatePatternEditor();
+                    }
+                    if (CursorPattern == null)
+                    {
+                        using (new ActionGroup(viewSettings.EditContext.ActionStack))
+                        {
+                            string pname = SelectedSequence.Machine.GetNewPatternName();
+                            Do(new CreatePatternAction(SelectedSequence.Machine, pname, Global.GeneralSettings.PatternLength));
+                            Do(new SetEventAction(SelectedSequence, CursorTime, new SequenceEvent(SequenceEventType.PlayPattern, SelectedSequence.Machine.Patterns.First(p => p.Name == pname))));
+                        }
+                    }
+                    else if (!Settings.AutoSelectPattern)
+                    {
+                        if (SelectPatternCommand.CanExecute(null)) SelectPatternCommand.Execute(null);
+                    }
+
+                    e.Handled = true;
+                }
+            };
+
+            trackViewGrid.MouseRightButtonDown += (sender, e) =>
+            {
+
+                var p = e.GetPosition(trackViewGrid);
+                trackViewGrid.Focus();
+                int row = GetRowAt(p.Y);
+                int time = GetTimeAt(p.X);
+                MoveCursor(time, row);
+
+                //UpdateMenu();
+            };
+
+            trackViewGrid.PreviewMouseMove += (sender, e) =>
+            {
+                if (PatResizeHelper.Resizing)
+                {
+                    if (Mouse.LeftButton == MouseButtonState.Pressed)
+                    {
+                        PatResizeHelper.Update(resizeRect, e.GetPosition(trackViewGrid));
+                        Mouse.OverrideCursor = Cursors.SizeWE;
+
+                        // Scroll down if mouse goes below visible area. Not working.
+                        Point p = e.GetPosition(trackSV);
+                        if (p.Y > trackSV.ActualHeight - SystemParameters.HorizontalScrollBarHeight && PatResizeHelper.DelayCompleted)
+                        {
+
+                            trackSV.ScrollToVerticalOffset(trackSV.VerticalOffset + viewSettings.TickWidth * Settings.ResizeSnap);
+                            UpdateWidth();
+                            PatResizeHelper.StartDelay();
+                        }
+                        else if (p.Y < 0 && PatResizeHelper.DelayCompleted)
+                        {
+
+                            trackSV.ScrollToVerticalOffset(trackSV.VerticalOffset - viewSettings.TickWidth * Settings.ResizeSnap);
+                            UpdateWidth();
+                            PatResizeHelper.StartDelay();
+                        }
+
+                        double w = Canvas.GetLeft(resizeRect) + resizeRect.ActualWidth;
+                        int time = GetTimeAt(w);
+                        if (time > Song.SongEnd)
+                            Song.SongEnd = time;
+                    }
+                    else
+                    {
+                        Mouse.OverrideCursor = null;
+                        PatResizeHelper.Stop();
+                    }
+                }
+            };
+
+            trackViewGrid.PreviewMouseLeftButtonUp += (sender, e) =>
+            {
+                if (PatResizeHelper.Resizing)
+                {
+                    Mouse.OverrideCursor = null;
+                    trackViewGrid.ReleaseMouseCapture();
+                    PatResizeHelper.Stop();
+
+                    if (PatResizeHelper.PatternResizeMode == PatternResizeMode.Right)
+                    {
+                        Do(new SetLengthAction(PatResizeHelper.SequenceEvent.Pattern, (int)(resizeRect.Width / ViewSettings.TickWidth)));
+                    }
+                    else if (PatResizeHelper.PatternResizeMode == PatternResizeMode.Left)
+                    {
+                        int time = PatResizeHelper.OriginalSnapTime;
+                        int newTime = (int)(Canvas.GetLeft(resizeRect) / ViewSettings.TickWidth);
+                        newTime = newTime < 0 ? 0 : newTime;
+
+                        SequenceEditor.ViewSettings.EditContext.ActionStack.BeginActionGroup();
+                        Do(new ClearAction(PatResizeHelper.TrackControl.Sequence, time, PatResizeHelper.SequenceEvent.Span));
+                        Do(new SetEventAction(PatResizeHelper.TrackControl.Sequence, newTime, PatResizeHelper.SequenceEvent));
+                        Do(new SetLengthAction(PatResizeHelper.SequenceEvent.Pattern, (int)(resizeRect.Width / ViewSettings.TickWidth)));
+                        SequenceEditor.ViewSettings.EditContext.ActionStack.EndActionGroup();
+                    }
+                }
+            };
+
+            this.SizeChanged += (sender, e) =>
 			{
 				double mh = Math.Max(0, mainGrid.RowDefinitions[0].ActualHeight + mainGrid.RowDefinitions[1].ActualHeight - SystemParameters.HorizontalScrollBarHeight - 6);
 				markerSV.Height = mh;
@@ -942,36 +1108,36 @@ namespace BuzzGUI.SequenceEditor
 				UpdateZoomSlider();
 			};
 
-			//timeLineElement.MouseLeftButtonDown += (sender, e) =>
-			//{
-			//	int t = (int)(e.GetPosition(timeLineElement).X / viewSettings.TickWidth);
-			//	song.PlayPosition = viewSettings.TimeSignatureList.Snap(t, int.MaxValue);
-			//};
+            patternListBox.RemoveHandler(MouseLeftButtonDownEvent, new MouseButtonEventHandler(patternListBox_MouseLeftButtonDown));
+            patternListBox.AddHandler(MouseLeftButtonDownEvent, new MouseButtonEventHandler(patternListBox_MouseLeftButtonDown), true);
 
-			timelineSV.PreviewMouseLeftButtonDown += (sender, e) =>
+            timelineSV.PreviewMouseLeftButtonDown += (sender, e) =>
 			{
 				int t = (int)(e.GetPosition(timeLineElement).X / viewSettings.TickWidth);
 				song.PlayPosition = viewSettings.TimeSignatureList.Snap(t, int.MaxValue);
 			};
-
-			// Init GUI Extensions
-			// MSequenceEditor = new WDE.ModernSequenceEditor.SequenceEditor(buzz, rd, true);
-			// CustomSequencerWindow = new CustomSequencerWindow(MSequenceEditor);
-            
-            // Info
-            // CustomInfoWindow = new CustomInfoWindow(true);
         }
 
-		public void Release()
+        SequenceEvent GetSequenceEventAt(int time, int row)
+        {
+            SequenceEvent se = null;
+            if (row >= song.Sequences.Count || row < 0) return null;
+            se = song.Sequences[row].Events.Where(e => time >= e.Key && time < e.Key + e.Value.Span).FirstOrDefault().Value;
+
+            if (se == null)
+                se = song.Sequences[row].Events.Where(e => time >= e.Key && time < e.Key + viewSettings.NonPlayPattenSpan).FirstOrDefault().Value;
+
+            return se;
+        }
+
+        public void Release()
 		{
 			Global.GeneralSettings.PropertyChanged -= GeneralSettings_PropertyChanged;
 			Settings.PropertyChanged -= Settings_PropertyChanged;
 
-			// Info
-			//CustomInfoWindow.Dispose();
-			// CustomSequencerWindow.Dispose();
+            patternListBox.RemoveHandler(MouseLeftButtonDownEvent, new MouseButtonEventHandler(patternListBox_MouseLeftButtonDown));
 
-			Buzz.OpenSong -= Buzz_OpenSong;
+            Buzz.OpenSong -= Buzz_OpenSong;
 			Buzz.SaveSong -= Buzz_SaveSong;
 		}
 
@@ -1213,7 +1379,32 @@ namespace BuzzGUI.SequenceEditor
 			PropertyChanged.Raise(this, "PatternAssociations");
         }
 
-		public TextFormattingMode TextFormattingMode { get { return Global.GeneralSettings.WPFIdealFontMetrics ? TextFormattingMode.Ideal : TextFormattingMode.Display;	} }
+        internal void PatternBottomDragStart(TrackControl tc, SequenceEvent se, ISequence sequence, PatternResizeMode mode)
+        {
+            int column = trackStack.Children.IndexOf(tc);
+            PatResizeHelper.StartResize(tc, se, SelectedSequence, column, mode, resizeRect);
+            Mouse.Capture(trackViewGrid);
+        }
+        private void patternListBox_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (CursorRow < 0) return;
 
+            if (e.ClickCount == 2 && Keyboard.Modifiers != ModifierKeys.Shift && Keyboard.Modifiers != ModifierKeys.Control)
+            {
+                ListBox lb = (ListBox)sender;
+
+                if (lb.SelectedItems.Count == 1)
+                {
+                    PatternListItem pli = (PatternListItem)lb.SelectedItem;
+                    Do(new SetEventAction(SelectedSequence, CursorTime, new SequenceEvent(SequenceEventType.PlayPattern, pli.Pattern)));
+                    MoveCursor(CursorTime + CursorPattern.Length, CursorRow);
+                    trackViewGrid.Focus();
+                }
+                e.Handled = true;
+            }
+        }
+
+        public TextFormattingMode TextFormattingMode { get { return Global.GeneralSettings.WPFIdealFontMetrics ? TextFormattingMode.Ideal : TextFormattingMode.Display;	} }
+        public PatternResizeHelper PatResizeHelper { get; private set; }
     }
 }

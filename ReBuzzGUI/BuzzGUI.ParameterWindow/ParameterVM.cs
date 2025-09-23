@@ -122,6 +122,7 @@ namespace BuzzGUI.ParameterWindow
             {
                 lastValue = newvalue;
                 PropertyChanged.Raise(this, "Value");
+                PropertyChanged.Raise(this, "Value01");
                 PropertyChanged.Raise(this, "ValueDescription");
             }
         }

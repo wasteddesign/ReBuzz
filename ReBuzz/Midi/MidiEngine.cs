@@ -4,6 +4,8 @@ using ReBuzz.Core;
 using System;
 using System.Collections.Generic;
 using BuzzGUI.Interfaces;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ReBuzz.Midi
 {
@@ -59,11 +61,40 @@ namespace ReBuzz.Midi
             }
         }
 
+        Lock midiOutLock = new Lock();
         public void SendMidiOut(int device, int message)
         {
-            if (device >= 0 && device < midiOuts.Count)
+            if (midiOuts.ContainsKey(device))
             {
-                midiOuts[device].Send(message);
+                lock (midiOutLock)
+                {
+                    try
+                    {
+                        midiOuts[device].Send(message);
+                    }
+                    catch (Exception e)
+                    {
+                        buzz.DCWriteLine(e.Message);
+                    }
+                }
+            }
+        }
+
+        public void SendMidiOut(int device, byte[] message)
+        {
+            if (midiOuts.ContainsKey(device))
+            {
+                lock (midiOutLock)
+                {
+                    try
+                    {
+                        midiOuts[device].SendBuffer(message);
+                    }
+                    catch (Exception e)
+                    {
+                        buzz.DCWriteLine(e.Message);
+                    }
+                }
             }
         }
 
@@ -73,7 +104,14 @@ namespace ReBuzz.Midi
             {
                 foreach (MidiOut midiOut in midiOuts.Values)
                 {
-                    midiOut.Dispose();
+                    try
+                    {
+                        midiOut.Dispose();
+                    }
+                    catch (Exception e)
+                    {
+                        buzz.DCWriteLine(e.Message);
+                    }
                 }
 
                 midiOuts.Clear();

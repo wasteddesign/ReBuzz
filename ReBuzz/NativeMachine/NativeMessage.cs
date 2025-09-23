@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Windows;
 
 namespace ReBuzz.NativeMachine
 {
@@ -501,7 +502,7 @@ namespace ReBuzz.NativeMachine
                         }
                         break;
                     case HostMessages.HostSetEventHandler:
-                        {
+                        {   
                             long hostMachineId = GetMessageData<long>();
                             var machine = ChannelListener.buzz.GetMachineFromHostID(hostMachineId);
                             // TODO: Can machine register to other machine events?
@@ -841,7 +842,7 @@ namespace ReBuzz.NativeMachine
                             var buzz = Global.Buzz as ReBuzzCore;
                             MachineCore machine = buzz.SongCore.MachinesList.FirstOrDefault(m => m.CMachineHost == hostMachineId);
 
-                            int ret = 0;
+                            IntPtr ret = 0;
                             if (machine != null)
                             {
                                 foreach (var seq in buzz.SongCore.SequencesList.Where(s => s.Machine == machine))
@@ -849,11 +850,11 @@ namespace ReBuzz.NativeMachine
                                     var se = seq.Events.FirstOrDefault(e => (e.Key >= buzz.Song.PlayPosition) && (buzz.Song.PlayPosition < e.Value.Span));
                                     if (se.Value != null)
                                     {
-                                        ret = (int)seq.CSequence;
+                                        ret = seq.CSequence;
                                     }
                                 }
                             }
-                            SetMessageData(ret);
+                            SetMessageDataPtr(ret);
                             DoReplyMessage();
                         }
                         break;
@@ -947,6 +948,221 @@ namespace ReBuzz.NativeMachine
                             int data = GetMessageData<int>();
                             var buzz = Global.Buzz as ReBuzzCore;
                             buzz.MidiInOutEngine.SendMidiOut(device, data);
+                            DoReplyMessage();
+                        }
+                        break;
+                    case HostMessages.HostSetTempo:
+                        {
+                            int bpm = GetMessageData<int>();
+                            var buzz = Global.Buzz as ReBuzzCore;
+                            buzz.BPM = bpm;
+                            DoReplyMessage();
+                        }
+                        break;
+                    case HostMessages.HostSetTPB:
+                        {
+                            int tpb = GetMessageData<int>();
+                            var buzz = Global.Buzz as ReBuzzCore;
+                            buzz.TPB = tpb;
+                            DoReplyMessage();
+                        }
+                        break;
+                    case HostMessages.HostSetSongPosition:
+                        {
+                            int pos = GetMessageData<int>();
+                            var buzz = Global.Buzz as ReBuzzCore;
+                            buzz.SongCore.PlayPosition = pos;
+                            DoReplyMessage();
+                        }
+                        break;
+                    case HostMessages.HostPlay:
+                        {
+                            var buzz = Global.Buzz as ReBuzzCore;
+                            buzz.Playing = true;
+                            DoReplyMessage();
+                        }
+                        break;
+                    case HostMessages.HostGetConnection:
+                        {
+                            long hostMachineId = GetMessageData<long>();
+                            bool output = GetMessageBool();
+                            int index = GetMessageData<int>();
+                            Reset();
+
+                            var buzz = Global.Buzz as ReBuzzCore;
+                            MachineCore machine = buzz.SongCore.MachinesList.FirstOrDefault(m => m.CMachineHost == hostMachineId);
+
+                            IntPtr ret = 0;
+                            if (machine != null)
+                            {
+                                if (output)
+                                {
+                                    if (index < machine.Outputs.Count)
+                                    {
+                                        ret = (machine.Outputs[index] as MachineConnectionCore).CMachineConnection;
+                                    }
+                                }
+                                else
+                                {
+                                    if (index < machine.Inputs.Count)
+                                    {
+                                        ret = (machine.Inputs[index] as MachineConnectionCore).CMachineConnection;
+                                    }
+                                }
+                            }
+                            SetMessageDataPtr(ret);
+                            DoReplyMessage();
+                        }
+                        break;
+                    case HostMessages.HostGetConnectionSource:
+                        {
+                            long hostMachineId = GetMessageData<long>();
+
+                            IntPtr connectionHandle = GetMessageIntPtr();
+                            int channel = GetMessageData<int>();
+                            Reset();
+
+                            var buzz = Global.Buzz as ReBuzzCore;
+                            MachineConnectionCore mcc = null;
+
+                            // Find the connection
+                            foreach (var m in buzz.SongCore.Machines)
+                            {
+                                foreach (var input in m.Inputs)
+                                {
+                                    MachineConnectionCore mc = input as MachineConnectionCore;
+                                    if (mc.CMachineConnection == connectionHandle)
+                                    {
+                                        mcc = mc;
+                                        break;
+                                    }    
+                                }
+
+                                foreach (var output in m.Outputs)
+                                {
+                                    MachineConnectionCore mc = output as MachineConnectionCore;
+                                    if (mc.CMachineConnection == connectionHandle)
+                                    {
+                                        mcc = mc;
+                                        break;
+                                    }
+                                }
+
+                                if (mcc != null)
+                                    break;
+                            }
+
+                            // Return name
+                            string ret = mcc == null ? "" : mcc.Source.Name;
+
+                            SetMessageData(ret);
+                            DoReplyMessage();
+                        }
+                        break;
+                    case HostMessages.HostGetConnectionDestination:
+                        {
+                            long hostMachineId = GetMessageData<long>();
+
+                            IntPtr connectionHandle = GetMessageIntPtr();
+                            int channel = GetMessageData<int>();
+                            Reset();
+
+                            var buzz = Global.Buzz as ReBuzzCore;
+                            MachineConnectionCore mcc = null;
+
+                            // Find the connection
+                            foreach (var m in buzz.SongCore.Machines)
+                            {
+                                foreach (var input in m.Inputs)
+                                {
+                                    MachineConnectionCore mc = input as MachineConnectionCore;
+                                    if (mc.CMachineConnection == connectionHandle)
+                                    {
+                                        mcc = mc;
+                                        break;
+                                    }
+                                }
+
+                                foreach (var output in m.Outputs)
+                                {
+                                    MachineConnectionCore mc = output as MachineConnectionCore;
+                                    if (mc.CMachineConnection == connectionHandle)
+                                    {
+                                        mcc = mc;
+                                        break;
+                                    }
+                                }
+
+                                if (mcc != null)
+                                    break;
+                            }
+
+                            // Return name
+                            string ret = mcc == null ? "" : mcc.Destination.Name;
+
+                            SetMessageData(ret);
+                            DoReplyMessage();
+                        }
+                        break;
+                    case HostMessages.HostGetConnectionCount:
+                        {
+                            long hostMachineId = GetMessageData<long>();
+                            bool output = GetMessageBool();
+                            Reset();
+
+                            var buzz = Global.Buzz as ReBuzzCore;
+                            MachineCore machine = buzz.SongCore.MachinesList.FirstOrDefault(m => m.CMachineHost == hostMachineId);
+
+                            int ret = 0;
+                            if (machine != null)
+                            {
+                                if (output)
+                                {
+                                    ret = machine.Outputs.Count;
+                                }
+                                else
+                                {
+                                    ret = machine.Inputs.Count;
+                                }
+                            }
+                            SetMessageData(ret);
+                            DoReplyMessage();
+                        }
+                        break;
+                    case HostMessages.HostGetMachineBaseOctave:
+                        {
+                            long hostMachineId = GetMessageData<long>();
+                            Reset();
+
+                            var buzz = Global.Buzz as ReBuzzCore;
+                            MachineCore machine = buzz.SongCore.MachinesList.FirstOrDefault(m => m.CMachineHost == hostMachineId);
+
+                            int ret = machine != null ? machine.BaseOctave: 4;
+
+                            SetMessageData(ret);
+                            DoReplyMessage();
+                        }
+                        break;
+                    case HostMessages.HostSetMachineBaseOctave:
+                        {
+                            long hostMachineId = GetMessageData<long>();
+                            int octave = GetMessageData<int>();
+                            Reset();
+
+                            var buzz = Global.Buzz as ReBuzzCore;
+                            MachineCore machine = buzz.SongCore.MachinesList.FirstOrDefault(m => m.CMachineHost == hostMachineId);
+
+                            if (machine != null)
+                                machine.BaseOctave = octave;
+
+                            DoReplyMessage();
+                        }
+                        break;
+                    case HostMessages.HostGetTotalLatency:
+                        {
+                            var buzz = Global.Buzz as ReBuzzCore;
+                            Reset();
+                            SetMessageData(buzz.totalLatency);
                             DoReplyMessage();
                         }
                         break;
@@ -1094,6 +1310,8 @@ namespace ReBuzz.NativeMachine
         {
             fixed (byte* ptr = receaveMessageTable)
             {
+                if (ptr == (byte*)0)
+                    throw new Exception("Invalid pointer");
 #pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
                 T res = *(T*)&ptr[offset];
                 offset += sizeof(T);
@@ -1107,6 +1325,13 @@ namespace ReBuzz.NativeMachine
         public IntPtr GetMessageIntPtr(MachineCore machine)
         {
             return machine.MachineDLL.Is64Bit ? new IntPtr(GetMessageData<long>()) : new IntPtr(GetMessageData<uint>());
+        }
+
+        // Reads 64 or 32 bit pointer based on native message process
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public IntPtr GetMessageIntPtr()
+        {
+            return NativeHost.Host64 ? new IntPtr(GetMessageData<long>()) : new IntPtr(GetMessageData<uint>());
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1255,9 +1480,23 @@ namespace ReBuzz.NativeMachine
         internal abstract void Notify();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void WriteMasterInfo()
+        internal void WriteMasterInfo(MachineCore machine)
         {
-            SetMessageData(WorkManager.MasterInfoData);
+            int oversample = machine.oversampleFactorOnTick - 1;
+            if (oversample > 0)
+            {
+                WorkManager.MasterInfoStruct.SamplesPerTick <<= oversample;
+                WorkManager.MasterInfoStruct.SamplesPerSec <<= oversample;
+                WorkManager.MasterInfoData = Utils.SerializeValueTypeChangePointer(WorkManager.MasterInfoStruct, ref WorkManager.MasterInfoData);
+                SetMessageData(WorkManager.MasterInfoData);
+                WorkManager.MasterInfoStruct.SamplesPerTick >>= oversample;
+                WorkManager.MasterInfoStruct.SamplesPerSec >>= oversample;
+                WorkManager.MasterInfoData = Utils.SerializeValueTypeChangePointer(WorkManager.MasterInfoStruct, ref WorkManager.MasterInfoData);
+            }
+            else
+            {
+                SetMessageData(WorkManager.MasterInfoData);
+            }
             return;
         }
 

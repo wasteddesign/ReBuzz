@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.IO.Enumeration;
 using System.Linq;
 using System.Xml;
 using System.Xml.Serialization;
@@ -11,6 +12,11 @@ namespace ReBuzz.FileOps
     {
         [XmlElement(ElementName = "Machine")]
         public Machine[] Machine { get; set; }
+
+        public Gear()
+        {
+            Machine = new Machine[0];
+        }
 
         public static Gear LoadGearFile(string path)
         {
@@ -90,14 +96,31 @@ namespace ReBuzz.FileOps
             Machine = thisMachineList.ToArray();
         }
 
-        internal bool IsBlacklisted(string libName)
+        internal bool IsBlacklisted(XMLMachineDLL xmac)
         {
-            var m = Machine.FirstOrDefault(m => m.Name == libName && m.Blacklist=="True");
+            var m = Machine.FirstOrDefault((m) =>
+            {
+                if (FileSystemName.MatchesSimpleExpression(m.Name, xmac.Name))
+                {
+                    if (m.Blacklist == "True")
+                        return true;
+                    else if (xmac.MachineInfo.Version < m.MinimumMIVersion)
+                        return true;
+                }
+                return false;
+            });
             return m != null ? true : false;
         }
+
+        internal int OversampleFactor(string name)
+        {
+            var machine = Machine.FirstOrDefault(m => m.Name == name);
+            if (machine != null)
+                return machine.OversampleFactor;
+            else
+                return 1;
+        }
     }
-
-
 
     public class Machine
     {

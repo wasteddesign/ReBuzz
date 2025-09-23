@@ -1,21 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Runtime;
-using System.Runtime.InteropServices;
-using System.Threading;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Interop;
-using System.Windows.Media;
-using System.Windows.Threading;
-using System.Xml.Linq;
-using Buzz.MachineInterface;
+﻿using Buzz.MachineInterface;
 using BuzzGUI.Common;
 using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
@@ -29,6 +12,24 @@ using ReBuzz.MachineManagement;
 using ReBuzz.Midi;
 using ReBuzz.Properties;
 using Serilog;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Runtime;
+using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Interop;
+using System.Windows.Media;
+using System.Windows.Threading;
+using System.Xml.Linq;
 using Timer = System.Timers.Timer;
 
 namespace ReBuzz.Core
@@ -364,7 +365,7 @@ namespace ReBuzz.Core
                             MachineManager.GotMidiFocus(midiFocusMachine as MachineCore);
                         }
 
-                        PropertyChanged.Raise(this, "MIDIFocusMachine");
+                        dispatcher.Invoke(() => PropertyChanged.Raise(this, "MIDIFocusMachine"));
                     }
                 }
             }
@@ -650,7 +651,7 @@ namespace ReBuzz.Core
             this.userMessages = userMessages;
 
             // Init process and thread priorities
-            ProcessAndThreadProfile.Profile2();
+            ProcessAndThreadProfile.SetProfile(engineSettings.PriorityProfile);
 
             DefaultPatternEditor = "Modern Pattern Editor";
 
@@ -790,6 +791,11 @@ namespace ReBuzz.Core
                 }
             }
             */
+
+            if (e.PropertyName == "MachineDelayCompensation")
+            {
+                UpdateMachineDelayCompensation();
+            }
         }
 
         private void DeleteBackup()
@@ -1022,6 +1028,7 @@ namespace ReBuzz.Core
                 if (fileName.HasValue)
                 {
                     OpenSongFile(fileName.Value());
+                    BuzzCommandRaised?.Invoke(cmd);
                 }
             }
             else if (cmd == BuzzCommand.SaveFile)
@@ -1161,17 +1168,6 @@ namespace ReBuzz.Core
 
                 IReBuzzFile bmxFile = GetReBuzzFile(filename);
 
-                if (false)
-                {
-                    // Test
-                    bmxFile.FileEvent += (type, eventText, o) =>
-                    {
-                        FileEvent?.Invoke(type, eventText, o);
-                    };
-                    OpenFile.Invoke(filename);
-                    bmxFile.Load(filename);
-                }
-
                 try
                 {
                     bmxFile.FileEvent += (type, eventText, o) =>
@@ -1215,6 +1211,7 @@ namespace ReBuzz.Core
                 {
                     masterLoading = false;
                 });
+
                 //Playing = playing;
             }
         }
@@ -1250,6 +1247,7 @@ namespace ReBuzz.Core
 
         public void SaveSongFile(string filename)
         {
+
             DeleteBackup();
 
             // Check filename
@@ -1278,6 +1276,7 @@ namespace ReBuzz.Core
 
             file.SetSubSections(ss);
 
+            AudioEngine.Stop();
             lock (AudioLock)
             {
                 try
@@ -1290,6 +1289,7 @@ namespace ReBuzz.Core
                 }
             }
 
+            AudioEngine.Play();
             Modified = false;
         }
 
@@ -1308,29 +1308,91 @@ namespace ReBuzz.Core
         {
             if (midiFocusMachine != null && !midiFocusMachine.DLL.IsMissing)
             {
+                var focusMachine = midiFocusMachine as MachineCore;
                 var editor = (midiFocusMachine as MachineCore).EditorMachine;
                 bool polacConversion = (midiFocusMachine.DLL.Name == "Polac VSTi 1.1") ||
                     (midiFocusMachine.DLL.Name == "Polac VST 1.1");
 
-                if (editor == null)
+                int b = MIDI.DecodeStatus(data);
+                int channel = 0;
+
+                if ((b & 0xF0) == 0xF0)
                 {
-                    // Send to machine
-                    MachineManager.SendMidiInput(midiFocusMachine, data, polacConversion);
+                    // both bytes are used for command code in this case
                 }
                 else
                 {
-                    // Send to editor. Editor will send midi message to machine.
-                    MachineManager.SendMidiInput(editor, data, polacConversion);
+                    channel = (b & 0x0F);
+                }
+
+                // Don't double send MIDI to machine
+                MachineCore machineHandled = null;
+
+                // Route channel 1 MIDI input to the active machine.
+                if (Global.MIDISettings.MasterKeyboardMode)
+                {
+                    if (channel == 0)
+                    {
+                        SendMidiInput(focusMachine, editor, data, polacConversion);
+                        machineHandled = focusMachine;
+                    }
+
+                    foreach (var m in Song.Machines)
+                    {
+                        var mc = m as MachineCore;
+                        if (mc.DLL.Info.Type != MachineType.Master && (mc.MIDIInputChannel == 0 || mc.MIDIInputChannel == channel + 1) && mc != machineHandled)
+                        {
+                            SendMidiInput(mc, mc.EditorMachine, data, polacConversion);
+                        }
+                    }
+                }
+                else
+                {
+                    // Don't send all MIDI to all machines like old Buzz used to do.
+                    if (Global.MIDISettings.MIDIFiltering)
+                    {
+                        foreach (var m in Song.Machines)
+                        {
+                            var mc = m as MachineCore;
+                            if (mc.DLL.Info.Type != MachineType.Master && (mc.MIDIInputChannel == 0 || mc.MIDIInputChannel == channel + 1) && mc != machineHandled)
+                            {
+                                SendMidiInput(mc, mc.EditorMachine, data, polacConversion);
+                            }
+                        }
+                    }
+                    else if (!Global.MIDISettings.MIDIFiltering)
+                    {
+                        foreach (var m in Song.Machines)
+                        {
+                            var mc = m as MachineCore;
+                            if (mc.DLL.Info.Type != MachineType.Master && mc != machineHandled)
+                                SendMidiInput(mc, mc.EditorMachine, data, polacConversion);
+                        }
+                    }
                 }
             }
 
             // Some UI components require MIDIInput.Invoke to be called from UI thread (Midi Keyboard)
-            dispatcher.BeginInvoke(new Action(() =>
+            dispatcher.Invoke(new Action(() =>
             {
                 MIDIActivity = true;
                 MIDIInput?.Invoke(data);
                 }
             ));
+        }
+
+        void SendMidiInput(MachineCore machine, MachineCore editor, int data, bool polacConversion)
+        {
+            if (editor == null)
+            {
+                // Send to machine
+                MachineManager.SendMidiInput(machine, data, polacConversion);
+            }
+            else
+            {
+                // Send to editor. Editor will send midi message to machine.
+                MachineManager.SendMidiInput(editor, data, polacConversion);
+            }
         }
 
         public IEnumerable<Tuple<int, string>> GetMidiOuts()
@@ -1673,6 +1735,9 @@ namespace ReBuzz.Core
                     // Make visible in UI
                     SongCore.InvokeMachineAdded(machine);
                 }
+
+                if (machine.Ready)
+                    machine.Latency = MachineManager.GetMachineLatency(machine);
             }
         }
 
@@ -1784,6 +1849,7 @@ namespace ReBuzz.Core
         {
             SkipAudio = true;
             Playing = false;
+            InfoText = "";
 
             // Create status window
             OpenFile.Invoke("Closing song...");
@@ -1791,6 +1857,11 @@ namespace ReBuzz.Core
             DeleteBackup();
             lock (AudioLock)
             {
+                AudioEngine.ClearAudioBuffer();
+
+                // Remove groups
+                SongCore.RemoveAllGroups();
+
                 var master = SongCore.MachinesList.First();
 
                 FileEvent?.Invoke(FileEventType.StatusUpdate, "Remove Connections...", null);
@@ -1849,6 +1920,7 @@ namespace ReBuzz.Core
                 // Clear pattern and sequece
                 master.PatternsList.Clear();
                 SetPatternEditorPattern(null);
+
                 FileEvent?.Invoke(FileEventType.Close, "Done.", null);
             }
 
@@ -1883,14 +1955,21 @@ namespace ReBuzz.Core
         private readonly EngineSettings engineSettings;
         private readonly string buzzPath;
         private readonly IMachineDLLScanner machineDllScanner;
-        private readonly IUiDispatcher dispatcher;
+        internal readonly IUiDispatcher dispatcher;
         private readonly IRegistryEx registryEx;
         private readonly IFileNameChoice fileNameToLoadChoice;
         private readonly IFileNameChoice fileNameToSaveChoice;
         private readonly IUserMessages userMessages;
         private readonly IKeyboard keyboard;
 
-        public string InfoText { get => infoText; internal set { infoText = value; PropertyChanged.Raise(this, "InfoText"); } }
+        public string InfoText { get => infoText; set
+            {
+                if (infoText != value)
+                {
+                    infoText = value; PropertyChanged.Raise(this, "InfoText");
+                }
+            }
+        }
 
         public AudioEngine AudioEngine { get; internal set; }
         public string DefaultPatternEditor { get; internal set; }
@@ -1987,13 +2066,75 @@ namespace ReBuzz.Core
 
         internal void NotifyFileEvent(FileEventType type, string eventText, object o)
         {
-            FileEvent.Invoke(type, eventText, o);
+            FileEvent?.Invoke(type, eventText, o);
         }
 
         internal void DCWriteErrorLine(string s)
         {
             s = s.Replace("/x01", "");
             Log.Error(s);
+        }
+
+        internal MachineGroupCore CreateMachineGroup(string name, float x, float y)
+        {
+            var group = new MachineGroupCore(songCore);
+            group.Position = new Tuple<float, float>(x, y);
+            group.Name = name;
+            songCore.MachineGroupsList.Add(group);
+            songCore.InvokeMachineGroupAdded(group);
+            return group;
+        }
+
+        internal void RemoveMachineGroup(MachineGroupCore group)
+        {
+            group.machines.Clear();
+
+            songCore.MachineGroupsList.Remove(group);
+            songCore.InvokeMachineGroupRemoved(group);
+
+            songCore.RemoveGroupFromDictionary(group);
+        }
+
+        internal int totalLatency = 0;
+        internal void UpdateMachineDelayCompensation()
+        {
+            totalLatency = HandleLatencyCalcRecursive(songCore.Machines[0] as MachineCore);
+        }
+
+        internal int HandleLatencyCalcRecursive(MachineCore machine)
+        {
+            int maxLatency = 0;
+            Dictionary<MachineCore, int> inputMachineLatency = new Dictionary<MachineCore, int>();
+
+            // Get cumulative latency from all inputs
+            foreach (var input in machine.Inputs)
+            {
+                var sourceMachine = input.Source as MachineCore;
+                int cumulativeInputLatency = HandleLatencyCalcRecursive(sourceMachine);
+                maxLatency = Math.Max(cumulativeInputLatency, maxLatency);
+                inputMachineLatency.Add(sourceMachine, cumulativeInputLatency);
+            }
+
+            // All inputs handled (if any). Add latency to inputs that are have lower latency than max.
+            foreach (var input in machine.Inputs)
+            {
+                var inputMachine = input.Source as MachineCore;
+                var inputConnectionCore = input as MachineConnectionCore;
+                int addLatency = 0;
+                if (Global.EngineSettings.MachineDelayCompensation)
+                {
+                    addLatency = maxLatency - inputMachineLatency[inputMachine];
+                    if (addLatency < 0) addLatency = 0;
+                }
+                inputConnectionCore.UpdateLatencyBuffers(addLatency);
+            }
+
+            int machineLatency = machine.OverrideLatency >= 0 ? machine.OverrideLatency : machine.Latency;
+
+            if (machine.IsBypassed)
+                machineLatency = 0;
+
+            return Global.EngineSettings.MachineDelayCompensation ? maxLatency + machineLatency : 0;
         }
     }
 

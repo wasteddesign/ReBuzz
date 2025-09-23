@@ -44,7 +44,8 @@ namespace BuzzGUI.SequenceEditor
 					sequence.SpanInserted -= sequence_SpanInserted;
 					sequence.SpanDeleted -= sequence_SpanDeleted;
 					sequence.SpanCleared -= sequence_SpanCleared;
-				}
+                    Editor.PropertyChanged -= Editor_PropertyChanged;
+                }
 
 				sequence = value;
 				EventsChanged();
@@ -56,11 +57,24 @@ namespace BuzzGUI.SequenceEditor
 					sequence.SpanInserted += sequence_SpanInserted;
 					sequence.SpanDeleted += sequence_SpanDeleted;
 					sequence.SpanCleared += sequence_SpanCleared;
-				}
+                    Editor.PropertyChanged += Editor_PropertyChanged;
+                }
 			}
 		}
 
-		void sequence_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void Editor_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "ControlPressed")
+            {
+                for (int i = 0; i < eventCanvas.Children.Count; i++)
+                {
+                    var pe = eventCanvas.Children[i] as PatternElement;
+                    pe.SetDragHitTestVisibility(Keyboard.Modifiers == ModifierKeys.Control);
+                }
+            }
+        }
+
+        void sequence_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
 		{
 			switch (e.PropertyName)
 			{
@@ -113,6 +127,7 @@ namespace BuzzGUI.SequenceEditor
 						{
 							if (rfirst < 0) rfirst = i;
 							rcount++;
+                            e.Release();
 						}
 						else
 						{
@@ -184,55 +199,91 @@ namespace BuzzGUI.SequenceEditor
 		}
 
 
+        public void EventsChanged()
+        {
+            TaskScheduler uiScheduler = TaskScheduler.FromCurrentSynchronizationContext();
 
-		public void EventsChanged()
-		{
-			if (!IsVisible)
-			{
-				updatePending = true;
-				return;
-			}
+            if (!IsVisible)
+            {
+                updatePending = true;
+                return;
+            }
 
-			eventCanvas.Children.Clear();
-			if (sequence != null)
-			{
-				foreach (var e in sequence.Events)
-				{
-					var pv = new PatternElement(this, e.Key, e.Value, viewSettings);
-					Canvas.SetLeft(pv, e.Key * viewSettings.TickWidth);
-					eventCanvas.Children.Add(pv);
-				}
-			}
-		}
+            //Task.Factory.StartNew(() =>
+            //{
+            foreach (PatternElement e in eventCanvas.Children)
+            {
+                e.PropertyChanged -= PE_PropertyChanged;
+                e.Release();
+            }
 
-		void sequence_EventChanged(int time)
-		{
-			SequenceEvent e;
-			sequence.Events.TryGetValue(time, out e);
+            eventCanvas.Children.Clear();
 
-			for (int i = 0; i < eventCanvas.Children.Count; i++)
-			{
-				if ((eventCanvas.Children[i] as PatternElement).time == time)
-				{
-					eventCanvas.Children.RemoveAt(i);
-					break;
-				}
-			}
+            if (sequence != null)
+            {
+                foreach (var e in sequence.Events)
+                {
+                    var pv = new PatternElement(this, e.Key, e.Value, viewSettings);
+                    Canvas.SetLeft(pv, e.Key * viewSettings.TickWidth);
+                    eventCanvas.Children.Add(pv);
+                    pv.PropertyChanged += PE_PropertyChanged;
+                }
+            }
+            //}, CancellationToken.None, TaskCreationOptions.None, uiScheduler);
+        }
 
-			if (e != null)
-			{
-				int i = 0;
-				for (i = 0; i < eventCanvas.Children.Count; i++)
-				{
-					if ((eventCanvas.Children[i] as PatternElement).time > time)
-						break;
-				}
+        private void PE_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "DragBottom")
+            {
+                this.Editor.PatternBottomDragStart(this, ((PatternElement)sender).se, this.sequence, PatternResizeMode.Right);
+            }
+            else if (e.PropertyName == "DragTop")
+            {
+                this.Editor.PatternBottomDragStart(this, ((PatternElement)sender).se, this.sequence, PatternResizeMode.Left);
+            }
+        }
 
-				var pv = new PatternElement(this, time, e, viewSettings);
-				Canvas.SetLeft(pv, time * viewSettings.TickWidth);
-				eventCanvas.Children.Insert(i, pv);
-			}
-		}
+        void sequence_EventChanged(int time)
+        {
+            TaskScheduler uiScheduler = TaskScheduler.FromCurrentSynchronizationContext();
 
-	}
+            //Task.Factory.StartNew(() =>
+            //{
+            SequenceEvent e;
+            sequence.Events.TryGetValue(time, out e);
+
+            for (int i = 0; i < eventCanvas.Children.Count; i++)
+            {
+                var pe = eventCanvas.Children[i] as PatternElement;
+
+                if (pe.time == time)
+                {
+                    pe.PropertyChanged -= PE_PropertyChanged;
+                    eventCanvas.Children.RemoveAt(i);
+                    pe.Release();
+
+                    break;
+                }
+            }
+
+            if (e != null)
+            {
+                int i = 0;
+                for (i = 0; i < eventCanvas.Children.Count; i++)
+                {
+                    if ((eventCanvas.Children[i] as PatternElement).time > time)
+                        break;
+                }
+
+                var pv = new PatternElement(this, time, e, viewSettings);
+                Canvas.SetLeft(pv, time * viewSettings.TickWidth);
+                eventCanvas.Children.Insert(i, pv);
+                pv.PropertyChanged += PE_PropertyChanged;
+
+            }
+            //}, CancellationToken.None, TaskCreationOptions.None, uiScheduler);
+        }
+
+    }
 }

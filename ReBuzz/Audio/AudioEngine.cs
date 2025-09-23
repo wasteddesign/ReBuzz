@@ -255,11 +255,11 @@ namespace ReBuzz.Audio
             }
         }
 
-        readonly Lock audioEngineLcok = new();
+        readonly Lock audioEngineLock = new();
 
         public void FinalStop()
         {
-            lock (audioEngineLcok)
+            lock (audioEngineLock)
             {
                 ReBuzzCore.SkipAudio = true;
 

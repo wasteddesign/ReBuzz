@@ -448,8 +448,8 @@ CSequence *CMICallbacks::GetPlayingSequence(CMachine *pmac)
 	DoCallback(m, reply);
 
 	IPC::MessageReader r(reply);
-	DWORD seq = r.ReadDWORD();
-	return (CSequence*)seq;
+	CSequence* seq = (CSequence*)r.ReadPtr();
+	return seq;
 }
 
 void *CMICallbacks::GetPlayingRow(CSequence *pseq, int group, int track)
@@ -470,7 +470,6 @@ void CMICallbacks::SetMachineInterfaceEx(CMachineInterfaceEx *pex)
 	m.Write(pmcb->pMachine->pHostMac);
 	IPC::Message reply;
 	DoCallback(m, reply);
-
 }
 
 int CMICallbacks::GetStateFlags()
@@ -691,6 +690,11 @@ int CMICallbacks::GetSongPosition()
 void CMICallbacks::SetSongPosition(int pos)
 {
 	MICB1(pos);
+
+	IPC::Message m(IPC::HostSetSongPosition);
+	m.Write(pos);
+	IPC::Message reply;
+	DoCallback(m, reply);
 }
 
 
@@ -704,6 +708,10 @@ int CMICallbacks::GetTempo()
 void CMICallbacks::SetTempo(int bpm)
 {
 	MICB1(bpm);
+	IPC::Message m(IPC::HostSetTempo);
+	m.Write(bpm);
+	IPC::Message reply;
+	DoCallback(m, reply);
 }
 
 int CMICallbacks::GetTPB()
@@ -716,7 +724,10 @@ int CMICallbacks::GetTPB()
 void CMICallbacks::SetTPB(int tpb)
 {
 	MICB1(tpb);
-
+	IPC::Message m(IPC::HostSetTPB);
+	m.Write(tpb);
+	IPC::Message reply;
+	DoCallback(m, reply);
 }
 
 int CMICallbacks::GetLoopStart()
@@ -740,6 +751,9 @@ int CMICallbacks::GetSongEnd()
 void CMICallbacks::Play()
 {
 	MICB0;
+	IPC::Message m(IPC::HostPlay);
+	IPC::Message reply;
+	DoCallback(m, reply);
 }
 
 void CMICallbacks::Stop()
@@ -1438,34 +1452,136 @@ bool CMICallbacks::IsValidAsciiChar(CMachine *pmac, int param, char ch)
 int CMICallbacks::GetConnectionCount(CMachine *pmac, bool output)
 {
 	MICB2(pmac, output);
-	return 0;
+
+	if (pmac == NULL)
+		return NULL;
+
+	IPC::Message m(IPC::HostGetConnectionCount);
+	m.Write(pmac->pHostMac);
+	m.Write(output);
+	IPC::Message reply;
+	DoCallback(m, reply);
+
+	IPC::MessageReader r(reply);
+	return r.ReadDWORD();;
 }
 
 CMachineConnection *CMICallbacks::GetConnection(CMachine *pmac, bool output, int index)
 {
 	MICB3(pmac, output, index);
-	return NULL;
+
+	if (pmac == NULL)
+		return NULL;
+
+	IPC::Message m(IPC::HostGetConnection);
+	m.Write(pmac->pHostMac);
+	m.Write(output);
+	m.Write(index);
+	IPC::Message reply;
+	DoCallback(m, reply);
+
+	IPC::MessageReader r(reply);
+	CMachineConnection* conn = (CMachineConnection*)r.ReadPtr();
+	return conn;
 }
 
 CMachine *CMICallbacks::GetConnectionSource(CMachineConnection *pmc, int &channel)
 {
 	MICB2(pmc, channel);
-	return NULL;
+
+	if (pmc == NULL)
+		return NULL;
+
+	IPC::Message m(IPC::HostGetConnectionSource);
+	m.WritePtr(pmc);
+	m.Write(channel);
+	IPC::Message reply;
+	DoCallback(m, reply);
+
+	IPC::MessageReader r(reply);
+	string name = r.ReadString();
+	if (name.size() == 0)
+		return NULL;
+	else
+		return GetMachine(name.c_str());
 }
 
 CMachine *CMICallbacks::GetConnectionDestination(CMachineConnection *pmc, int &channel)
 {
 	MICB2(pmc, channel);
-	return NULL;
+
+	if (pmc == NULL)
+		return NULL;
+
+	IPC::Message m(IPC::HostGetConnectionDestination);
+	m.WritePtr(pmc);
+	m.WritePtr(channel);
+	IPC::Message reply;
+	DoCallback(m, reply);
+
+	IPC::MessageReader r(reply);
+	string name = r.ReadString();
+	if (name.size() == 0)
+		return NULL;
+	else
+		return GetMachine(name.c_str());
 }
 
 int CMICallbacks::GetTotalLatency()
 {
-	return 0;
+	IPC::Message m(IPC::HostGetTotalLatency);
+	IPC::Message reply;
+	DoCallback(m, reply);
+
+	IPC::MessageReader r(reply);
+	return r.ReadDWORD();
 }
 
 void *CMICallbacks::GetMachineModuleHandle(CMachine *pmac)
 {
 	MICB1(pmac);
 	return NULL;
+}
+
+int CMICallbacksNext::GetMachineBaseOctave(CMachine* pmac)
+{
+	MICB1(pmac);
+	if (pmac == NULL)
+		return GetBaseOctave();
+
+	IPC::Message m(IPC::HostGetMachineBaseOctave);
+	m.WritePtr(pmac);
+	IPC::Message reply;
+	DoCallback(m, reply);
+
+	IPC::MessageReader r(reply);
+	return r.ReadDWORD();
+}
+
+void CMICallbacksNext::SetMachineBaseOctave(CMachine* pmac, int octave)
+{
+	MICB2(pmac, octave);
+	if (pmac == NULL)
+		return;
+
+	IPC::Message m(IPC::HostSetMachineBaseOctave);
+	m.WritePtr(pmac);
+	m.WritePtr(octave);
+	IPC::Message reply;
+	DoCallback(m, reply);
+}
+
+int CMICallbacksNext::GetExtendedHostVersion()
+{
+	return MI_NEXT_VERSION;
+}
+
+void CMICallbacksNext::SetMachineInterfaceNext(CMachineInterfaceNext* pex, CMachineInfoNext* info)
+{
+	MICB1(pex);
+
+	CMachineCallbacks* pmcb = (CMachineCallbacks*)this;
+	pmcb->pMachine->pInterfaceNext = pex;
+
+	// ToDo: send info to host
 }

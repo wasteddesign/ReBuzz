@@ -39,7 +39,15 @@ namespace ReBuzz.Core
         bool isCrashed = false;
 
         // ToDo: IsCrashed should be moved to Machine.
-        public bool IsCrashed { get => isCrashed; set { isCrashed = value; PropertyChanged.Raise(this, "IsCrashed"); } }
+        public bool IsCrashed
+        {
+            get => isCrashed;
+            set
+            {
+                isCrashed = value;
+                PropertyChanged.Raise(this, "IsCrashed");
+            }
+        }
 
         public bool IsOutOfProcess { get; set; }
 
@@ -162,10 +170,11 @@ namespace ReBuzz.Core
             dll.IsManaged = IsManaged;
             dll.IsMissing = IsMissing;
             dll.IsOutOfProcess = IsOutOfProcess;
-            dll.MachineInfo = MachineInfo;
+            dll.MachineInfo = MachineInfo.Clone();
 
             dll.Name = Name;
             dll.Path = Path;
+            dll.SHA1Hash = SHA1Hash;
 
             return dll;
         }

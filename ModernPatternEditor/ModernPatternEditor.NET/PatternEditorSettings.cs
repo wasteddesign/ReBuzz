@@ -89,8 +89,7 @@ namespace WDE.ModernPatternEditor
         [BuzzSetting(true, Description = "Send control changes immediately. Might not work well with older machines.")]
         public bool ForceControlChange { get; set; }
 
-        [BuzzSetting(true, Description = "Use default tracker base octave.")]
-        public bool DefaultBaseOctave { get; set; }
-
+        //[BuzzSetting(true, Description = "Use default tracker base octave.")]
+        //public bool DefaultBaseOctave { get; set; }
     }
 }

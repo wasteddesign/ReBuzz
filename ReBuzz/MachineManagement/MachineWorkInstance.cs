@@ -1,6 +1,7 @@
 ﻿using Buzz.MachineInterface;
-using BuzzGUI.Common;
+using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
+using ReBuzz.Audio;
 using ReBuzz.Common;
 using ReBuzz.Core;
 using ReBuzz.ManagedMachine;
@@ -8,7 +9,6 @@ using ReBuzz.NativeMachine;
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using BuzzGUI.Common.Settings;
 
 namespace ReBuzz.MachineManagement
 {
@@ -42,7 +42,7 @@ namespace ReBuzz.MachineManagement
         internal bool WorkMachine(int nSamples)
         {
             bool isActive = false;
-            DateTime dtStart = DateTime.Now;
+            DateTime dtStart = DateTime.UtcNow;
             Machine.EngineThreadId = Thread.CurrentThread.ManagedThreadId;
 
             foreach (var tracks in Machine.setMachineTrackCountList)
@@ -59,11 +59,11 @@ namespace ReBuzz.MachineManagement
                     (Machine.IsMuted && !engineSettings.ProcessMutedMachines))
                 {
                     Sample[] samples = Machine.GetStereoSamples(nSamples);
-                    Machine.UpdateOutputs(samples, false);
+                    Machine.UpdateOutputs(samples, nSamples, false);
 
                     foreach (var output in Machine.Outputs)
                     {
-                        (output as MachineConnectionCore).DoTap(samples, true, buzz.GetSongTime());
+                        (output as MachineConnectionCore).DoTap(samples, nSamples, true, buzz.GetSongTime());
                     }
                 }
                 else if (Machine.Ready && manageMachineHost != null)
@@ -76,7 +76,7 @@ namespace ReBuzz.MachineManagement
                     isActive = WorkMachineNative(nSamples);
                 }
             }
-            DateTime dtEnd = DateTime.Now;
+            DateTime dtEnd = DateTime.UtcNow;
             long timeDelta = dtEnd.Ticks - dtStart.Ticks;
             Machine.PerformanceDataCurrent.PerformanceCount += timeDelta;
             Machine.PerformanceDataCurrent.CycleCount += timeDelta;
@@ -88,6 +88,8 @@ namespace ReBuzz.MachineManagement
         }
 
         readonly List<Sample[]> multiSamplesOut = new List<Sample[]>();
+        readonly Sample[][] multiSamplesOutBuffers = new Sample[256][];
+        readonly Sample[] silentBuffer = new Sample[256];
         private readonly EngineSettings engineSettings;
 
         private bool WorkMachineNative(int nSamples)
@@ -99,6 +101,8 @@ namespace ReBuzz.MachineManagement
             var audiom = nmh.AudioMessage;
 
             var flags = Machine.DLL.Info.Flags;
+
+            WorkTypes type;
 
             if (Machine.DLL.Info.Type == MachineType.Effect)
             {
@@ -117,10 +121,11 @@ namespace ReBuzz.MachineManagement
                 return false;
             }
 
+            Sample[] samples = null;
+
             // If machine wants to do input mixing, first call Input for all inputs
-            if (flags.HasFlag(MachineInfoFlags.DOES_INPUT_MIXING))
+            if ((flags & MachineInfoFlags.DOES_INPUT_MIXING) == MachineInfoFlags.DOES_INPUT_MIXING)
             {
-                Sample[] samples;
 
                 foreach (var input in Machine.Inputs)
                 {
@@ -130,7 +135,7 @@ namespace ReBuzz.MachineManagement
                 }
             }
 
-            if (flags.HasFlag(MachineInfoFlags.MULTI_IO))
+            if ((flags & MachineInfoFlags.MULTI_IO) == MachineInfoFlags.MULTI_IO)
             {
                 if (Machine.OutputChannelCount >= MAX_MULTI_IO_CHANNELS || Machine.InputChannelCount >= MAX_MULTI_IO_CHANNELS)
                     return false;
@@ -144,85 +149,69 @@ namespace ReBuzz.MachineManagement
 
                 foreach (var outConnection in Machine.Outputs)
                 {
-                    multiSamplesOut[outConnection.SourceChannel] = multiSamplesOut[outConnection.SourceChannel] == null ? new Sample[nSamples] : multiSamplesOut[outConnection.SourceChannel];
+                    if (multiSamplesOutBuffers[outConnection.SourceChannel] == null)
+                        multiSamplesOutBuffers[outConnection.SourceChannel] = new Sample[256];
+                    multiSamplesOut[outConnection.SourceChannel] = multiSamplesOutBuffers[outConnection.SourceChannel];
+                    for (int i = 0; i < nSamples; i++)
+                    {
+                        multiSamplesOut[outConnection.SourceChannel][i].L = 0;
+                        multiSamplesOut[outConnection.SourceChannel][i].R = 0;
+                    }
                 }
 
-                isActive = audiom.AudioMultiWork(Machine, nSamples, multiSamplesIn, multiSamplesOut, true, true);
-                Machine.UpdateOutputs(multiSamplesOut);
-
+                //isActive = audiom.AudioMultiWork(Machine, nSamples, multiSamplesIn, multiSamplesOut, true, true);
+                isActive = ProcessMultiWork(Machine, nSamples, multiSamplesIn, multiSamplesOut);
+                
                 // For muted machines, call Work() but send empty buffer
                 if (Machine.IsMuted || Machine.IsSeqMute || (buzz.SongCore.SoloMode && !Machine.IsSoloed && Machine.DLL.Info.Type == MachineType.Generator))
                 {
-                    Sample[] samples = new Sample[nSamples];
-                    Machine.UpdateOutputs(samples);
+                    samples = silentBuffer;
+                    Machine.UpdateOutputs(samples, nSamples);
+                }
+                else
+                {
+                    Machine.UpdateOutputs(multiSamplesOut, nSamples);
                 }
 
                 foreach (var output in Machine.Outputs)
                 {
                     var outputCore = output as MachineConnectionCore;
-                    outputCore.DoTap(outputCore.Buffer, true, buzz.GetSongTime());
-                }
-
-            }
-            else if ((flags.HasFlag(MachineInfoFlags.MONO_TO_STEREO) || (flags.HasFlag(MachineInfoFlags.DOES_INPUT_MIXING) && !flags.HasFlag(MachineInfoFlags.STEREO_EFFECT)))
-                    && Machine.DLL.Info.Version > MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_12)
-            {
-                // Most? old machines have mono_to_stereo if they implement DOES_INPUT_MIXING
-                Sample[] samples = Machine.GetStereoSamples(nSamples);
-
-                BuzzWorkMode wm = isReadWriteFlag ? BuzzWorkMode.WM_READWRITE : BuzzWorkMode.WM_WRITE;
-                isActive = audiom.AudioWorkMonoToStereo(Machine, samples, nSamples, wm, true);
-
-                // For muted machines, call Work() but send empty buffer
-                if (Machine.IsMuted || Machine.IsSeqMute || (buzz.SongCore.SoloMode && !Machine.IsSoloed && Machine.DLL.Info.Type == MachineType.Generator))
-                {
-                    samples = new Sample[nSamples];
-
-                }
-                Machine.UpdateOutputs(samples);
-                foreach (var output in Machine.Outputs)
-                {
-                    (output as MachineConnectionCore).DoTap(samples, true, buzz.GetSongTime());
-                }
-            }
-            else if (flags.HasFlag(MachineInfoFlags.STEREO_EFFECT) /* || Machine.DLL.Info.Version >= 42 */)
-            {
-                Sample[] samples = Machine.GetStereoSamples(nSamples);
-
-                BuzzWorkMode wm = isReadWriteFlag ? BuzzWorkMode.WM_READWRITE : BuzzWorkMode.WM_WRITE;
-
-                isActive = audiom.AudioWork(Machine, 2, samples, nSamples, wm);
-
-                // For muted machines, call Work() but send empty buffer
-                if (Machine.IsMuted || Machine.IsSeqMute || (buzz.SongCore.SoloMode && !Machine.IsSoloed && Machine.DLL.Info.Type == MachineType.Generator))
-                {
-                    samples = new Sample[nSamples];
-                }
-
-                Machine.UpdateOutputs(samples);
-                foreach (var output in Machine.Outputs)
-                {
-                    (output as MachineConnectionCore).DoTap(samples, true, buzz.GetSongTime());
+                    outputCore.DoTap(outputCore.Buffer, nSamples, true, buzz.GetSongTime());
                 }
             }
             else
             {
-                Sample[] samples = Machine.GetStereoSamples(nSamples);
+                if ((flags & MachineInfoFlags.MONO_TO_STEREO) == MachineInfoFlags.MONO_TO_STEREO || ((flags & MachineInfoFlags.DOES_INPUT_MIXING) == MachineInfoFlags.DOES_INPUT_MIXING && !((flags & MachineInfoFlags.STEREO_EFFECT) == MachineInfoFlags.STEREO_EFFECT)
+                        && Machine.DLL.Info.Version > MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_12))
+                {
+                    type = WorkTypes.MonoToStereo;
+                    // Most? old machines have mono_to_stereo if they implement DOES_INPUT_MIXING
+                }
+                else if ((flags & MachineInfoFlags.STEREO_EFFECT) == MachineInfoFlags.STEREO_EFFECT /* || Machine.DLL.Info.Version >= 42 */)
+                {
+                    type = WorkTypes.Stereo;
+                }
+                else
+                {
+                    type = WorkTypes.Mono;
+                }
+
+                samples = Machine.GetStereoSamples(nSamples);
 
                 BuzzWorkMode wm = isReadWriteFlag ? BuzzWorkMode.WM_READWRITE : BuzzWorkMode.WM_WRITE;
                 // Mono
-                isActive = audiom.AudioWork(Machine, 1, samples, nSamples, wm);
+
+                isActive = ProcessWork(Machine, samples, nSamples, wm, type);
 
                 // For muted machines, call Work() but send empty buffer
                 if (Machine.IsMuted || Machine.IsSeqMute || (buzz.SongCore.SoloMode && !Machine.IsSoloed && Machine.DLL.Info.Type == MachineType.Generator))
                 {
-                    samples = new Sample[nSamples];
+                    samples = silentBuffer;
                 }
-
-                Machine.UpdateOutputs(samples);
+                Machine.UpdateOutputs(samples, nSamples);
                 foreach (var output in Machine.Outputs)
                 {
-                    (output as MachineConnectionCore).DoTap(samples, true, buzz.GetSongTime());
+                    (output as MachineConnectionCore).DoTap(samples, nSamples, true, buzz.GetSongTime());
                 }
             }
 
@@ -236,7 +225,7 @@ namespace ReBuzz.MachineManagement
             var machineHost = manageMachineHost;
             var flags = Machine.DLL.Info.Flags;
             var type = Machine.DLL.Info.Type;
-            if (flags.HasFlag(MachineInfoFlags.MULTI_IO))
+            if ((flags & MachineInfoFlags.MULTI_IO) == MachineInfoFlags.MULTI_IO)
             {
                 if (Machine.OutputChannelCount >= MAX_MULTI_IO_CHANNELS || Machine.InputChannelCount >= MAX_MULTI_IO_CHANNELS)
                     return false;
@@ -247,23 +236,31 @@ namespace ReBuzz.MachineManagement
                 {
                     multiSamplesOut.Add(null);
                 }
+
                 foreach (var outConnection in Machine.Outputs)
                 {
-                    multiSamplesOut[outConnection.SourceChannel] = (outConnection as MachineConnectionCore).Buffer;
+                    if (multiSamplesOutBuffers[outConnection.SourceChannel] == null)
+                        multiSamplesOutBuffers[outConnection.SourceChannel] = new Sample[256];
+                    multiSamplesOut[outConnection.SourceChannel] = multiSamplesOutBuffers[outConnection.SourceChannel];
+                    for (int i = 0; i < nSamples; i++)
+                    {
+                        multiSamplesOut[outConnection.SourceChannel][i].L = 0;
+                        multiSamplesOut[outConnection.SourceChannel][i].R = 0;
+                    }
                 }
 
-                machineHost.MultiWork(multiSamplesOut, multiSamplesIn, nSamples, WorkModes.WM_WRITE);
-                Machine.UpdateOutputs(multiSamplesOut);
+                isActive = machineHost.MultiWork(multiSamplesOut, multiSamplesIn, nSamples, WorkModes.WM_WRITE);
+                Machine.UpdateOutputs(multiSamplesOut, nSamples);
 
                 // For muted machines, call Work() but send empty buffer
                 if (Machine.IsMuted || Machine.IsSeqMute || (buzz.SongCore.SoloMode && !Machine.IsSoloed && Machine.DLL.Info.Type == MachineType.Generator))
                 {
                     Sample[] samples = new Sample[nSamples];
-                    Machine.UpdateOutputs(samples);
+                    Machine.UpdateOutputs(samples, nSamples);
 
                     foreach (var output in Machine.Outputs)
                     {
-                        (output as MachineConnectionCore).DoTap(samples, true, buzz.GetSongTime());
+                        (output as MachineConnectionCore).DoTap(samples, nSamples, true, buzz.GetSongTime());
                     }
                 }
                 else
@@ -273,11 +270,11 @@ namespace ReBuzz.MachineManagement
                         var outputConn = output as MachineConnectionCore;
                         if (multiSamplesOut[outputConn.SourceChannel] != null)
                         {
-                            outputConn.DoTap(multiSamplesOut[outputConn.SourceChannel], true, buzz.GetSongTime());
+                            outputConn.DoTap(multiSamplesOut[outputConn.SourceChannel], nSamples, true, buzz.GetSongTime());
                         }
                         else
                         {
-                            outputConn.DoTap(new Sample[nSamples], true, buzz.GetSongTime());
+                            outputConn.DoTap(new Sample[nSamples], nSamples, true, buzz.GetSongTime());
                         }
                     }
                 }
@@ -288,36 +285,276 @@ namespace ReBuzz.MachineManagement
 
                 if (type == MachineType.Generator)
                 {
-                    machineHost.Work(samples, nSamples, WorkModes.WM_WRITE);
+                    isActive = machineHost.Work(samples, nSamples, WorkModes.WM_WRITE);
                 }
                 else if (type == MachineType.Effect)
                 {
-                    machineHost.Work(samples, nSamples, WorkModes.WM_READWRITE);
+                    isActive = machineHost.Work(samples, nSamples, WorkModes.WM_READWRITE);
                 }
 
                 // For muted machines, call Work() but send empty buffer
                 if (Machine.IsMuted || Machine.IsSeqMute || (buzz.SongCore.SoloMode && !Machine.IsSoloed && Machine.DLL.Info.Type == MachineType.Generator))
                 {
                     samples = new Sample[nSamples];
-                    Machine.UpdateOutputs(samples);
+                    Machine.UpdateOutputs(samples, nSamples);
 
                     foreach (var output in Machine.Outputs)
                     {
-                        (output as MachineConnectionCore).DoTap(samples, true, buzz.GetSongTime());
+                        (output as MachineConnectionCore).DoTap(samples, nSamples, true, buzz.GetSongTime());
                     }
                 }
                 else
                 {
-                    Machine.UpdateOutputs(samples);
+                    Machine.UpdateOutputs(samples, nSamples);
 
                     foreach (var output in Machine.Outputs)
                     {
-                        (output as MachineConnectionCore).DoTap(samples, true, buzz.GetSongTime());
+                        (output as MachineConnectionCore).DoTap(samples, nSamples, true, buzz.GetSongTime());
                     }
                 }
             }
 
             return isActive;
+        }
+
+        Sample[][] oversampleMultiInBuffers = new Sample[256][];
+        List<Sample[]> oversampleMultiIn = new List<Sample[]>();
+
+        Sample[][] oversampleMultiInPartsBuffers = new Sample[256][];
+        List<Sample[]> oversampleMultiInParts = new List<Sample[]>();
+
+        Sample[][] oversampleMultiOutPartsBuffers = new Sample[256][];
+        List<Sample[]> oversampleMultiOutParts = new List<Sample[]>();
+        private bool ProcessMultiWork(MachineCore machine, int nSamples, List<Sample[]> multiSamplesIn, List<Sample[]> multiSamplesOut)
+        {
+            bool isActive = false;
+
+            var nmh = nativeMachineHost;
+            var audiom = nmh.AudioMessage;
+
+            int oversample = Machine.oversampleFactorOnTick - 1;
+
+            if (oversample > 0)
+            {
+                oversampleMultiIn.Clear();
+                oversampleMultiInParts.Clear();
+                oversampleMultiOutParts.Clear();
+
+                // Oversample every input
+                for (int i = 0; i < multiSamplesIn.Count; i++)
+                {
+                    Sample[] buff = null;
+
+                    if (multiSamplesIn[i] != null)
+                    {
+                        if (oversampleMultiInBuffers[i] == null)
+                            oversampleMultiInBuffers[i] = new Sample[256 * 2];
+                        buff = oversampleMultiInBuffers[i];
+                        Oversample(multiSamplesIn[i], nSamples, oversample, false, oversampleMultiInBuffers[i]);
+                    }
+
+                    oversampleMultiIn.Add(buff);
+                }
+
+                var nSamplesO = nSamples << oversample;
+
+                // Create output buffers
+                for (int i = 0; i < multiSamplesOut.Count; i++)
+                {
+                    Sample[] buff = null;
+
+                    if (multiSamplesOut[i] != null)
+                    {
+                        if (oversampleMultiOutPartsBuffers[i] == null)
+                            oversampleMultiOutPartsBuffers[i] = new Sample[256 * 2];
+                        buff = oversampleMultiOutPartsBuffers[i];
+                    }
+
+                    oversampleMultiOutParts.Add(buff);
+                }
+
+                // Iterate buffers and call Work 
+                int offset = 0;
+                for (int i = 0; i < (1 << oversample); i++)
+                {
+                    var samplesPart = GetParts(oversampleMultiIn, nSamples, offset);
+                    isActive |= audiom.AudioMultiWork(Machine, nSamples, samplesPart, multiSamplesOut, true, true);
+                    AppendSamples(oversampleMultiOutParts, nSamples, offset, multiSamplesOut);
+                    offset += nSamples;
+                }
+
+                // Oversample every output back
+                for (int i = 0; i < multiSamplesOut.Count; i++)
+                {
+                    if (multiSamplesOut[i] != null)
+                    {
+                        Oversample(oversampleMultiOutParts[i], nSamplesO, oversample, true, multiSamplesOut[i]);
+                    }
+                }
+            }
+            else
+            {
+                isActive = audiom.AudioMultiWork(Machine, nSamples, multiSamplesIn, multiSamplesOut, true, true);
+            }
+
+            return isActive;
+        }
+
+        private bool ProcessWork(MachineCore machine, Sample[] samples, int nSamples, BuzzWorkMode wm, WorkTypes type)
+        {
+            bool isActive = false;
+
+            var nmh = nativeMachineHost;
+            var audiom = nmh.AudioMessage;
+
+            int oversample = Machine.oversampleFactorOnTick - 1;
+
+            if (oversample > 0)
+            {
+                Oversample(samples, nSamples, oversample, false, oversampleTmp);
+                var nSamplesO = nSamples << oversample;
+
+                int offset = 0;
+                for (int i = 0; i < (1 << oversample); i++)
+                {
+                    var samplesPart = GetPart(oversampleTmp, nSamples, offset);
+                    switch (type)
+                    {
+                        case WorkTypes.MonoToStereo:
+                            {
+                                isActive |= audiom.AudioWorkMonoToStereo(Machine, samplesPart, nSamples, wm, true);
+                            }
+                            break;
+                        case WorkTypes.Mono:
+                            {
+                                isActive |=  audiom.AudioWork(Machine, 1, samplesPart, nSamples, wm);
+                            }
+                            break;
+                        case WorkTypes.Stereo:
+                            {
+                                isActive |= audiom.AudioWork(Machine, 2, samplesPart, nSamples, wm);
+                            }
+                            break;
+                    }
+                    
+                    AppendSamples(samplesOB, nSamples, offset, samplesPart);
+                    offset += nSamples;
+                }
+
+                Oversample(samplesOB, nSamplesO, oversample, true, samples);
+            }
+            else
+            {
+                switch (type)
+                {
+                    case WorkTypes.MonoToStereo:
+                        {
+                            isActive |= audiom.AudioWorkMonoToStereo(Machine, samples, nSamples, wm, true);
+                        }
+                        break;
+                    case WorkTypes.Mono:
+                        {
+                            isActive |= audiom.AudioWork(Machine, 1, samples, nSamples, wm);
+                        }
+                        break;
+                    case WorkTypes.Stereo:
+                        {
+                            isActive |= audiom.AudioWork(Machine, 2, samples, nSamples, wm);
+                        }
+                        break;
+                }
+            }
+
+            return isActive;
+        }
+
+        enum WorkTypes
+        {
+            MultiIO,
+            MonoToStereo,
+            Stereo,
+            Mono
+        }
+
+        float[] oversampleFromSamples = new float[256 * 2 * 2];
+        float[] oversampleToSamples = new float[256 * 2 * 2];
+        Sample[] oversampleTmp = new Sample[256 * 2];
+        Sample[] samplesOB = new Sample[256 * 2];
+        Sample[] oversampleArray = new Sample[256];
+        private void Oversample(Sample[] samples, int nSamples, int factor, bool back, Sample[] samplesOut)
+        {
+            int fromCount = nSamples << 1;
+            
+            int toCount = back ? fromCount >> factor : fromCount << factor;
+            int j = 0;
+            for (int i = 0; i < nSamples; i++)
+            {
+                oversampleFromSamples[j++] = samples[i].L;
+                oversampleFromSamples[j++] = samples[i].R;
+            }
+
+            WorkManager.SpeedDown(oversampleToSamples, 0, toCount, oversampleFromSamples, fromCount, false);
+
+            j = 0;
+            for (int i = 0; i < toCount >> 1; i++)
+            {
+                samplesOut[i].L = oversampleToSamples[j++];
+                samplesOut[i].R = oversampleToSamples[j++];
+            }
+        }
+        
+        private Sample[] GetPart(Sample[] array, int count, int offset)
+        {
+            Array.Copy(array, offset, oversampleArray, 0, count);
+            return oversampleArray;
+        }
+
+        private List<Sample[]> GetParts(List<Sample[]> sampleArray, int count, int offset)
+        {
+            oversampleMultiInParts.Clear();
+            for (int i = 0; i < sampleArray.Count; i++)
+            {
+                var from = sampleArray[i];
+                if (from != null)
+                {
+                    if (oversampleMultiInPartsBuffers[i] == null)
+                        oversampleMultiInPartsBuffers[i] = new Sample[256];
+
+                    var to = oversampleMultiInPartsBuffers[i];
+                    Array.Copy(from, offset, to, 0, count);
+                    oversampleMultiInParts.Add(to);
+                }
+                else
+                {
+                    oversampleMultiInParts.Add(null);
+                }
+            }
+            return oversampleMultiInParts;
+        }
+
+        private void AppendSamples(Sample[] to, int nSamples, int offset, Sample[] from)
+        {
+            for (int i = 0; i < nSamples; i++)
+            {
+                to[i+ offset] = from[i];
+            }
+        }
+
+        private void AppendSamples(List<Sample[]> toList, int nSamples, int offset, List<Sample[]> fromList)
+        {
+            for (int j = 0; j < fromList.Count; j++)
+            {
+                if (fromList[j] != null)
+                {
+                    var to = toList[j];
+                    var from = fromList[j];
+
+                    for (int i = 0; i < nSamples; i++)
+                    {
+                        to[i + offset] = from[i];
+                    }
+                }
+            }
         }
 
         // Old machines expect this when pos in tick == 0
@@ -327,6 +564,7 @@ namespace ReBuzz.MachineManagement
                 (forceTick || ReBuzzCore.masterInfo.PosInTick == 0 ||
                     (engineSettings.SubTickTiming && ReBuzzCore.subTickInfo.PosInSubTick == 0 && Machine.DLL.Info.Version >= MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_42)))
             {
+                Machine.oversampleFactorOnTick = Machine.OversampleFactor;
                 if (Machine.Ready && manageMachineHost != null)
                 {
                     // Do we need to "tick" for managed machines if SetValue is called immediately?

@@ -5,57 +5,18 @@
 #include <windef.h>
 #include <cstdlib>
 #include <cmath>
+#include <filesystem>
+#include <fstream>
 #include <iterator>
+#include <string>
+#include "../FakeNativeMachineLib/lib.hpp"
 
-constexpr CMachineParameter sampleValueLeftIntegral = 
-{ 
-  pt_word,                    // type
-  "SampleValueLeftIntegral",  // name
-  "SampleValueLeftIntegral",	// description
-  -10000,                     // MinValue	
-  100,                        // MaxValue
-  100+1,                      // NoValue
-  0,                          // Flags
-  0                           // Default value
-};
+FAKE_MACHINE_SLIDER(sampleValueLeftIntegral, SampleValueLeftIntegral);
+FAKE_MACHINE_SLIDER(sampleValueLeftDivisor, SampleValueLeftDivisor);
+FAKE_MACHINE_SLIDER(sampleValueRightIntegral, SampleValueRightIntegral);
+FAKE_MACHINE_SLIDER(sampleValueRightDivisor, SampleValueRightDivisor);
 
-constexpr CMachineParameter sampleValueLeftDivisor = 
-{ 
-  pt_word,									// type
-  "SampleValueLeftDivisor", // name
-  "SampleValueLeftDivisor",	// description
-  -10000,										// MinValue	
-  100,											// MaxValue
-  100+1,										// NoValue
-  0,												// Flags
-  0                         // Default value
-};
-
-constexpr CMachineParameter sampleValueRightIntegral = 
-{ 
-  pt_word,                    // type
-  "SampleValueRightIntegral", // name
-  "SampleValueRightIntegral",	// description
-  -10000,                     // MinValue	
-  100,                        // MaxValue
-  100+1,                      // NoValue
-  0,                          // Flags
-  0                           // Default value
-};
-
-constexpr CMachineParameter sampleValueRightDivisor = 
-{ 
-  pt_word,                    // type
-  "SampleValueRightDivisor",  // name
-  "SampleValueRightDivisor",  // description
-  -10000,                     // MinValue	
-  100,                        // MaxValue
-  100+1,                      // NoValue
-  0,                          // Flags
-  0                           // Default value
-};
-
-static CMachineParameter const *pParameters[] = { 
+static CMachineParameter const* pParameters[] = { 
   // global
   &sampleValueLeftIntegral,
   &sampleValueLeftDivisor,
@@ -74,65 +35,61 @@ public:
   word sampleValueRightDivisor;
 };
 
-class tvals
-{
-};
-
 #pragma pack()
 
 CMachineInfo const                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   MacInfo = 
 {
-  MT_GENERATOR,							// type
-  MI_VERSION,               // version
-  MIF_DOES_INPUT_MIXING,		// flags
-  0,										    // min tracks
-  0,										    // max tracks
-  std::size(pParameters),		// numGlobalParameters
-  0,										    // numTrackParameters
-  pParameters,
-  0,
-  nullptr,
-  "FakeNativeGenerator",
-  "FakeNativeGen",					// short name
-  "WDE", 						        // author
-  nullptr                   //"Command1\nCommand2\nCommand3"
+  .Type = MT_GENERATOR,                          // type
+  .Version = MI_VERSION,                         // version
+  .Flags = MIF_DOES_INPUT_MIXING,                // flags
+  .minTracks = 0,                                // min tracks
+  .maxTracks = 0,                                // max tracks
+  .numGlobalParameters = std::size(pParameters), // numGlobalParameters
+  .numTrackParameters = 0,                       // numTrackParameters
+  .Parameters = pParameters,
+  .numAttributes = 0,
+  .Attributes = nullptr,
+  .Name = "FakeNativeGenerator",
+  .ShortName = "FakeNativeGen",                  // short name
+  .Author = "WDE",                               // author
+  .Commands = nullptr,                           //"Command1\nCommand2\nCommand3"
+  .pLI = nullptr
 };
 
-class mi : public CMachineInterface
+class mi : public CMachineInterface, CMachineInterfaceEx
 {
 public:
   mi();
+  bool WorkMonoToStereo(float* pin, float* pout, int numsamples, int const mode) override;
   ~mi() override;
-
-  void Init(CMachineDataInput * const pi) override;
+  void Init(CMachineDataInput* const pi) override;
   void Tick() override;
-  bool WorkMonoToStereo(float *pin, float *pout, int numsamples, int const mode) override;
+  void Stop() override;
+  void Save(CMachineDataOutput* const po) override;
+  void AttributesChanged() override;
+  void Command(const int i) override;
+  void SetNumTracks(const int n) override;
+  void MuteTrack(const int i) override;
+  bool IsTrackMuted(const int i) const override;
+  void MidiNote(const int channel, const int value, const int velocity) override;
+  void Event(const dword data) override;
+  const char* DescribeValue(const int param, const int value) override;
+  const CEnvelopeInfo** GetEnvelopeInfos() override;
+  bool PlayWave(const int wave, const int note, const float volume) override;
+  void StopWave() override;
+  int GetWaveEnvPlayPos(const int env) override;
 
 private:
   gvals gval;
+  std::string machineName;
 };
 
 DLL_EXPORTS
 
-mi::mi()
+bool mi::WorkMonoToStereo(float* pin, float* pout, const int numsamples, int const mode)
 {
-  GlobalVals = &gval;
-}
-
-mi::~mi() = default;
-
-void mi::Init(CMachineDataInput * const pi)
-{
-}
-
-void mi::Tick()
-{
-
-}
-
-bool mi::WorkMonoToStereo(float *pin, float *pout, const int numsamples, int const mode)
-{
-  for (auto i = 0 ; i < numsamples*2 ; i+=2)
+  AbortIfRequested(machineName, __func__);
+  for (auto i = 0 ; i < numsamples * 2 ; i+=2)
   {
     pout[i] = 
       static_cast<float>(gval.sampleValueLeftIntegral)/static_cast<float>(gval.sampleValueLeftDivisor);
@@ -141,4 +98,112 @@ bool mi::WorkMonoToStereo(float *pin, float *pout, const int numsamples, int con
   }
 
   return true;
+}
+
+mi::mi() : machineName(ReadMachineName())
+{
+  AbortIfRequested(machineName, "constructor");
+  GlobalVals = &gval;
+}
+
+void mi::AttributesChanged()
+{
+  AbortIfRequested(machineName, __func__);
+  CMachineInterface::AttributesChanged();
+}
+
+void mi::Command(const int i)
+{
+  AbortIfRequested(machineName, __func__);
+  CMachineInterface::Command(i);
+}
+
+void mi::SetNumTracks(const int n)
+{
+  AbortIfRequested(machineName, __func__);
+  CMachineInterface::SetNumTracks(n);
+}
+
+void mi::MuteTrack(const int i)
+{
+  AbortIfRequested(machineName, __func__);
+  CMachineInterface::MuteTrack(i);
+}
+
+bool mi::IsTrackMuted(const int i) const
+{
+  AbortIfRequested(machineName, __func__);
+  return CMachineInterface::IsTrackMuted(i);
+}
+
+void mi::Event(const dword data)
+{
+  AbortIfRequested(machineName, __func__);
+  CMachineInterface::Event(data);
+}
+
+const char* mi::DescribeValue(const int param, const int value)
+{
+  AbortIfRequested(machineName, __func__);
+  return CMachineInterface::DescribeValue(param, value);
+}
+
+const CEnvelopeInfo** mi::GetEnvelopeInfos()
+{
+  AbortIfRequested(machineName, __func__);
+  return CMachineInterface::GetEnvelopeInfos();
+}
+
+bool mi::PlayWave(const int wave, const int note, const float volume)
+{
+  AbortIfRequested(machineName, __func__);
+  return CMachineInterface::PlayWave(wave, note, volume);
+}
+
+void mi::StopWave()
+{
+  AbortIfRequested(machineName, __func__);
+  CMachineInterface::StopWave();
+}
+
+int mi::GetWaveEnvPlayPos(const int env)
+{
+  AbortIfRequested(machineName, __func__);
+  return CMachineInterface::GetWaveEnvPlayPos(env);
+}
+
+mi::~mi()
+{
+  
+}
+
+void mi::Init(CMachineDataInput* const input)
+{
+  pCB->SetMachineInterfaceEx(this);
+  AbortIfRequested(machineName, __func__);
+  CMachineInterface::Init(input);
+}
+
+void mi::Tick()
+{
+  AbortIfRequested(machineName, __func__);
+  CMachineInterface::Tick();
+}
+
+void mi::Stop()
+{
+  AbortIfRequested(machineName, __func__);
+  CMachineInterface::Stop();
+}
+
+void mi::Save(CMachineDataOutput* const output)
+{
+  AbortIfRequested(machineName, __func__);
+  CMachineInterface::Save(output);
+}
+
+void mi::MidiNote(int const channel, int const value, int const velocity)
+{
+  AbortIfRequested(machineName, __func__);
+  CMachineInterface::MidiNote(channel, value, velocity);
 }

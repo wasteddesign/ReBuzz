@@ -13,6 +13,7 @@ namespace BuzzGUI.MachineView
     public partial class CreateTemplateWindow : Window
     {
         public IEnumerable<IMachine> Machines { get; private set; }
+        public IEnumerable<IMachineGroup> Groups { get; }
         public IEnumerable<string> ExistingTemplates { get; private set; }
         public string TemplateName { get; private set; }
 
@@ -25,9 +26,10 @@ namespace BuzzGUI.MachineView
             WavetableMode = TemplateWavetableMode.NoWavetable;
         }
 
-        public CreateTemplateWindow(IEnumerable<IMachine> machines, IEnumerable<string> existing)
+        public CreateTemplateWindow(IEnumerable<IMachine> machines, IEnumerable<IMachineGroup> groups, IEnumerable<string> existing)
         {
             Machines = machines;
+            Groups = groups;
             ExistingTemplates = existing;
 
             InitializeComponent();

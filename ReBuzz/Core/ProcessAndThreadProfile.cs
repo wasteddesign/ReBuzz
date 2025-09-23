@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using BuzzGUI.Common.Settings;
+using System.Diagnostics;
 using System.Threading;
 
 namespace ReBuzz.Core
@@ -24,8 +25,8 @@ namespace ReBuzz.Core
         internal static void Profile1()
         {
             ProcessPriorityClassMainProcess = ProcessPriorityClass.Normal;
-            ProcessPriorityClassNativeHostProcess = ProcessPriorityClass.Normal;
-            DedicatedThreadPoolThread = ThreadPriority.Normal;
+            ProcessPriorityClassNativeHostProcess = ProcessPriorityClass.High;
+            DedicatedThreadPoolThread = ThreadPriority.Highest;
             AudioProviderThread = ThreadPriority.Highest;
             WorkThreadEngineThread = ThreadPriority.Highest;
         }
@@ -38,6 +39,32 @@ namespace ReBuzz.Core
             DedicatedThreadPoolThread = ThreadPriority.AboveNormal;
             AudioProviderThread = ThreadPriority.Highest;
             WorkThreadEngineThread = ThreadPriority.AboveNormal;
+        }
+
+        // All normal
+        internal static void Profile3()
+        {
+            ProcessPriorityClassMainProcess = ProcessPriorityClass.Normal;
+            ProcessPriorityClassNativeHostProcess = ProcessPriorityClass.Normal;
+            DedicatedThreadPoolThread = ThreadPriority.Normal;
+            AudioProviderThread = ThreadPriority.Normal;
+            WorkThreadEngineThread = ThreadPriority.Normal;
+        }
+
+        internal static void SetProfile(PriorityProfileType priorityProfileType)
+        {
+            switch (priorityProfileType)
+            {
+                case PriorityProfileType.NormalAppPriority:
+                    Profile1();
+                    break;
+                case PriorityProfileType.AllFocusOnAudio:
+                    Profile2();
+                    break;
+                case PriorityProfileType.AllDefaults:
+                    Profile3();
+                    break;
+            }
         }
     }
 }

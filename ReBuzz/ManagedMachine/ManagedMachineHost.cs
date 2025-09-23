@@ -1,4 +1,5 @@
 ﻿using Buzz.MachineInterface;
+using BuzzGUI.Common;
 using BuzzGUI.Common.InterfaceExtensions;
 using BuzzGUI.Common.Templates;
 using BuzzGUI.Interfaces;
@@ -738,11 +739,19 @@ namespace ReBuzz.ManagedMachine
                 {
                     var track = paramTrack.Value;
                     int index = par.Group.Type == ParameterGroupType.Global ? par.IndexInGroup : par.IndexInGroup + machine.ParameterGroups[1].Parameters.Count;
-                    SetParameterValue(index, track, par.GetValue(track));
+                    var val = par.GetValue(track);
+
+                    // Properties need to stay within min/max
+                    if (val >= par.MinValue && val <= par.MaxValue)
+                    {
+                        SetParameterValue(index, track, val);
+                    }
+                    else if (par.Type == ParameterType.Note && val == BuzzNote.Off)
+                    {
+                        SetParameterValue(index, track, val);
+                    }
                 }
             }
-
-            //machine.parametersChanged.Clear();
         }
 
         internal void SetParameterDefaults(MachineCore mc)

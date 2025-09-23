@@ -288,7 +288,7 @@ namespace ReBuzz.Core
                     return;
 
                 // Check ranges
-                if (value != NoValue)
+                if (value != NoValue || (value == NoValue && (Flags & ParameterFlags.State) != ParameterFlags.State) && Type != ParameterType.Note)
                 {
                     if (Type == ParameterType.Note && value != BuzzNote.Off)
                         value = Math.Max(MinValue, Math.Min(MaxValue, value));

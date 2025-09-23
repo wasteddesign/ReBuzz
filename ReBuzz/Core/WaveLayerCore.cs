@@ -237,6 +237,10 @@ namespace ReBuzz.Core
             {
                 offsetAddBytes = 8;
                 bytesPerSample = GetBitsPerSample() / 8;
+
+                // Set WaveFormat so native machines see the wave type
+                basePointer[0] = (byte)Format;
+
                 switch (Format)
                 {
                     case WaveFormat.Int24:

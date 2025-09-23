@@ -1,6 +1,7 @@
 ﻿namespace BuzzGUI.Common.Settings
 {
     public enum SequenceEditorType { ModernVertical, ModernHorizontal };
+    public enum SongLoadWaitTime { Seconds_10 = 10, Seconds_30 = 30, Minutes_1 = 60, Minutes_5 = 5*60 };
     public class GeneralSettings : Settings
     {
         [BuzzSetting(true, Description = "Rename previous version to <songname>.backup when saving a song.")]
@@ -20,5 +21,20 @@
 
         [BuzzSetting(SequenceEditorType.ModernVertical, Description = "Sequence View Type.")]
         public SequenceEditorType SequenceView { get; set; }
+
+        [BuzzSetting(SongLoadWaitTime.Seconds_30, Description = "Maximum time to wait a song to load. If the song is not loaded within this time user can choose further actions.")]
+        public SongLoadWaitTime SongLoadWait { get; set; }
+
+        //[BuzzSetting(true, Description = "Use multiple threads to initialize machines when loading a song.")]
+        //public bool MultithreadSongLoading { get; set; }
+
+        [BuzzSetting(4, Minimum = 2, Maximum = 6, Description = "Default machine base octave.")]
+        public int DefaultMachineBaseOctave { get; set; }
+
+        [BuzzSetting(16, Minimum = 1, Maximum = 512, Description = "Default Pattern Length.")]
+        public int PatternLength { get; internal set; }
+
+        [BuzzSetting(false, Description = "Make PianoKeyboard topmost.")]
+        public bool PianoKeyboardTopmost { get; internal set; }
     }
 }

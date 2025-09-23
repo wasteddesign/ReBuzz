@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>AudioBlock.NET</AssemblyName>
+    <RootNamespace>WDE.AudioBlock</RootNamespace>
+	<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+	<OutputPath>$(SolutionDir)bin\$(Configuration)\$(Platform)\$(TargetFramework)\Gear\Generators</OutputPath>
+	<IntermediateOutputPath>$(SolutionDir)build\$(Configuration)\$(Platform)\AudioBlock\obj</IntermediateOutputPath>
+	<OutputPathReBuzz>$(SolutionDir)bin\$(Configuration)\$(Platform)\$(TargetFramework)</OutputPathReBuzz>
+	<Platforms>AnyCPU;x64</Platforms>	
+  </PropertyGroup>
+  <ItemGroup>
+	  <ProjectReference Include="..\..\ReBuzzGUI\BuzzGUI.Common\BuzzGUI.Common.csproj" />
+	  <ProjectReference Include="..\..\ReBuzzGUI\BuzzGUI.FileBrowser\BuzzGUI.FileBrowser.csproj" />
+	  <ProjectReference Include="..\..\ReBuzzGUI\BuzzGUI.Interfaces\BuzzGUI.Interfaces.csproj" />
+	  <ProjectReference Include="..\..\ReBuzzGUI\ModernSequenceEditor.Interfaces\ModernSequenceEditor.Interfaces.csproj" />
+    <Reference Include="Spectrogram">
+	  <HintPath>bin\Spectrogram.dll</HintPath>
+    </Reference>	
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\busy.cur" />
+    <Resource Include="Resources\pointer.cur" />
+    <Resource Include="Resources\Topaznew.ttf" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Windows.Compatibility" Version="9.0.6" />
+  </ItemGroup>
+  
+  <Target Name="ForcePerformRestore" AfterTargets="BeforeBuild">
+	  <Exec Command="IF NOT EXIST  &quot;$(IntermediateOutputPath)project.assets.json&quot;  echo restore to $(IntermediateOutputPath)project.assets.json &amp;&amp;  dotnet restore &quot;$(ProjectName).csproj&quot;  --no-dependencies &amp;&amp; move &quot;build\$(ProjectName)\obj\*&quot; &quot;$(IntermediateOutputPath)&quot; &amp;&amp; rmdir /Q /S build	 " />
+  </Target>
+
+  <Target Name="RemoveEmptyObj" AfterTargets="AfterBuild">
+	  <Exec Command="IF EXIST obj rmdir obj" />
+	  <Exec Command="copy &quot;libs\*&quot; &quot;$(OutputPathReBuzz)&quot;" />
+  </Target>  
+</Project>

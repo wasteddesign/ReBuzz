@@ -160,6 +160,7 @@
             <ScrollViewer Name="sv" HorizontalScrollBarVisibility="Visible"  VerticalScrollBarVisibility="Visible" Focusable="False">
                 <Grid Name="grid" Style="{StaticResource BackgroundGridStyle}" Focusable="True" AllowDrop="True">
                     <Canvas Name="containerCanvas">
+                            <Rectangle RadiusX="9" RadiusY="9" Fill="Transparent" Stroke="White" StrokeDashArray="8,4" Opacity="0.5" Height="100" Width="200"/>
                         <Canvas Name="connectionCanvas"/>
                         <l:MachineCanvas x:Name="machineCanvas" CanvasSize="2"/>
                     </Canvas>
@@ -179,12 +180,15 @@
                     <MenuItem Header="_Copy" InputGestureText="Ctrl+C" Command="{Binding CopyCommand}"/>
                     <MenuItem Header="_Paste" InputGestureText="Ctrl+V" Command="{Binding PasteCommand}"/>
                     <Separator/>
+                    <MenuItem Header="_New Group..." InputGestureText="Ctrl+G" Command="{Binding GroupNewCommand}"/>
+                    <Separator/>
                     <MenuItem Header="Snap Machines" Command="{Binding ArrangeCommand}"/>
                     <Separator/>
                     <MenuItem Header="Select _All" InputGestureText="Ctrl+A" Command="{Binding SelectAllCommand}"/>
                     <MenuItem Header="_Deselect" InputGestureText="Ctrl+D" Command="{Binding DeselectCommand}"/>
                     <Separator/>
                     <MenuItem Header="_Settings..." InputGestureText="Ctrl+E" Command="{Binding SettingsCommand}"/>
+
                 </ContextMenu>
             </Grid.ContextMenu>
         </Grid>

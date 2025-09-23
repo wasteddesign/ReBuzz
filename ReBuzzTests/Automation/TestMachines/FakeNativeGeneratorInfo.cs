@@ -6,7 +6,7 @@ namespace ReBuzzTests.Automation.TestMachines
 {
     public class FakeNativeGeneratorInfo : ITestMachineInfo
     {
-        public static FakeNativeGeneratorInfo Instance { get; } = new FakeNativeGeneratorInfo();
+        public static ITestMachineInfo Instance { get; } = new FakeNativeGeneratorInfo();
 
         MachineDLL ITestMachineInfo.GetMachineDll(ReBuzzCore buzz, AbsoluteFilePath location)
         {

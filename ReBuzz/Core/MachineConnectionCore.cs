@@ -4,12 +4,15 @@ using BuzzGUI.Interfaces;
 using ReBuzz.Common;
 using System;
 using System.ComponentModel;
-using System.Windows;
+using System.Threading;
 
 namespace ReBuzz.Core
 {
     internal class MachineConnectionCore : IMachineConnection
     {
+        private static IntPtr connectionHandleCounter = 100;
+
+        public IntPtr CMachineConnection { get; private set; }
         public IMachine Source { get; set; }
         public IMachine Destination { get; set; }
 
@@ -97,13 +100,13 @@ namespace ReBuzz.Core
 
         public bool HasPan { get; set; }
 
-        public void DoTap(Sample[] sampleBuffer, bool stereo, SongTime songTime)
+        public void DoTap(Sample[] sampleBuffer, int nSamples, bool stereo, SongTime songTime)
         {
             if (Tap != null)
             {
-                float[] samples = new float[sampleBuffer.Length * 2];
+                float[] samples = new float[nSamples * 2];
                 int j = 0;
-                for (int i = 0; i < sampleBuffer.Length; i++)
+                for (int i = 0; i < nSamples; i++)
                 {
                     samples[j] = sampleBuffer[i].L;
                     j++;
@@ -113,43 +116,32 @@ namespace ReBuzz.Core
 
                 dispatcher.BeginInvoke(() =>
                 {
-                    if (Tap != null)
-                    {
-                        Tap.Invoke(samples, stereo, songTime);
-                    }
+                    Tap?.Invoke(samples, stereo, songTime);
                 });
             }
         }
 
-        public void DoTap(int numSamples, SongTime songTime)
-        {
-            if (Tap != null)
-            {
-                float[] samples = new float[numSamples * 2];
-                int j = 0;
-                for (int i = 0; i < numSamples; i++)
-                {
-                    samples[j] = buffer[i].L;
-                    j++;
-                    samples[j] = buffer[i].R;
-                    j++;
-                }
-                Tap.Invoke(samples, HasPan, songTime);
-            }
-        }
-
-        internal void UpdateBuffer(Sample[] samples)
+        internal void UpdateBuffer(Sample[] samples, int nSamples)
         {
             float ampStart = Utils.FlushDenormalToZero(interpolatorAmp.Value / 0x4000);
             float ampCurrent = (int)interpolatorAmp.Tick();
-            float ampStep = Utils.FlushDenormalToZero(((ampStart - ampCurrent / 0x4000) / 0x4000) / samples.Length);
+            float ampStep = Utils.FlushDenormalToZero(((ampStart - ampCurrent / 0x4000) / 0x4000) / nSamples);
 
-            for (int i = 0; i < samples.Length; i++)
+            for (int i = 0; i < nSamples; i++)
             {
-                Buffer[i].L = samples[i].L * ampStart * panL;
-                Buffer[i].R = samples[i].R * ampStart * panR;
+                latencyBuffer[latencyBufferWritePos].L = samples[i].L * ampStart * panL;
+                latencyBuffer[latencyBufferWritePos].R = samples[i].R * ampStart * panR;
+                latencyBufferWritePos = (latencyBufferWritePos + 1) % latencyBuffer.Length;
                 ampStart += ampStep;
             }
+
+            for (int i = 0; i < nSamples; i++)
+            {
+                buffer[i].L = latencyBuffer[latencyBufferReadPos].L;
+                buffer[i].R = latencyBuffer[latencyBufferReadPos].R;
+                latencyBufferReadPos = (latencyBufferReadPos + 1) % latencyBuffer.Length;
+            }
+
             Utils.FlushDenormalToZero(Buffer);
         }
 
@@ -165,6 +157,8 @@ namespace ReBuzz.Core
         public MachineConnectionCore(IUiDispatcher dispatcher)
         {
             interpolatorAmp.Value = amp;
+
+            CMachineConnection = connectionHandleCounter++;
             this.dispatcher = dispatcher;
         }
 
@@ -185,9 +179,31 @@ namespace ReBuzz.Core
             PropertyChanged = null;
         }
 
+        internal void UpdateLatencyBuffers(int latencyDelta)
+        {
+            lock (ReBuzzCore.AudioLock)
+            {
+                if (latencyDelta >= 0 && addedLatency != latencyDelta)
+                {
+                    addedLatency = latencyDelta;
+                    latencyBuffer = new Sample[256 + latencyDelta];
+                }
+                latencyBufferReadPos = 0;
+                latencyBufferWritePos = latencyDelta;
+            }
+        }
+
         Sample[] buffer = new Sample[256];
+        Sample[] latencyBuffer = new Sample[256];
+        int addedLatency = 0;
+        int latencyBufferReadPos = 0;
+        int latencyBufferWritePos = 0;
         private readonly IUiDispatcher dispatcher;
-        public Sample[] Buffer { get => buffer; set => buffer = value; }
+        public Sample[] Buffer { get
+            {
+                return buffer;
+            } 
+        }
 
         public event Action<float[], bool, SongTime> Tap;
         public event PropertyChangedEventHandler PropertyChanged;

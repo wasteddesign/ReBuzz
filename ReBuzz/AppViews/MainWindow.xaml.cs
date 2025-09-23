@@ -104,7 +104,8 @@ namespace ReBuzz
             var generalSettings = Global.GeneralSettings;
             var engineSettings = Global.EngineSettings;
             var registryRoot = Global.RegistryRoot;
-            debugWindow = new DebugWindow(buzzPath);
+            debugWindow = DebugWindow.CreateAsync(buzzPath);
+
             DataContext = this;
 
             InitializeComponent();
@@ -123,6 +124,11 @@ namespace ReBuzz
 
             var reBuzzCoreInitialization = new ReBuzzCoreInitialization(Buzz, buzzPath, windowsGuiDispatcher, registryEx, new WindowsKeyboard());
             reBuzzCoreInitialization.StartReBuzzEngineStep1(Buzz_PropertyChanged);
+
+            if (Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                debugWindow.Show();
+            }
 
             BuzzGUIStartup.PreInit();
 
@@ -181,16 +187,7 @@ namespace ReBuzz
               },
               onSetPatternEditorControl: (control) =>
               {
-                  if (EditorView.editorBorder.Child != null)
-                      EditorView.editorBorder.Child.Visibility = Visibility.Collapsed;
-
-                  EditorView.editorBorder.Child = control;
-
-                  if (control != null)
-                  {
-                      control.Visibility = Visibility.Visible;
-                      EditorView.editorBorder.InvalidateMeasure();
-                  }
+                  EditorView.SetEditorControl(control);
               },
               onFullScreenChanged: (fullScreen) =>
               {
@@ -229,12 +226,6 @@ namespace ReBuzz
             {
                 splashScreenWindow.UpdateText("Init views");
 
-                // Machine View
-                var rd = Utils.GetUserControlXAML<ResourceDictionary>(Buzz.Theme.MachineView.Source, buzzPath);
-                MachineView = new MachineView(buzzCore, rd);
-                MachineView.MachineGraph = song;
-                MachineView.Foreground = new SolidColorBrush(Global.Buzz.ThemeColors["MV Text"]);
-                borderMachineView.Child = MachineView;
 
                 /*
                 MachineView.Loaded += (s, e2) =>
@@ -245,15 +236,24 @@ namespace ReBuzz
                 };
                 */
 
-                Buzz.ActiveView = BuzzView.MachineView;
+                
 
                 Utils.InitUtils(this);
 
                 Buzz.StartTimer();
 
-                rd = Utils.GetUserControlXAML<ResourceDictionary>(Buzz.Theme.MainWindow.Source, buzzPath);
+                var rd = Utils.GetUserControlXAML<ResourceDictionary>(Buzz.Theme.MainWindow.Source, buzzPath);
                 this.Style = rd["ThemeWindowStyle"] as Style;
                 this.Resources.MergedDictionaries.Add(rd);
+
+                // Machine View
+                rd = Utils.GetUserControlXAML<ResourceDictionary>(Buzz.Theme.MachineView.Source, buzzPath);
+                MachineView = new MachineView(buzzCore, rd);
+                MachineView.MachineGraph = song;
+                MachineView.Foreground = new SolidColorBrush(Global.Buzz.ThemeColors["MV Text"]);
+                borderMachineView.Child = MachineView;
+
+                Buzz.ActiveView = BuzzView.MachineView;
 
                 // Wavetable
                 WavetableVM = new WavetableVM();
@@ -262,7 +262,7 @@ namespace ReBuzz
                 WavetableVM.Wavetable = song.Wavetable;
 
                 // Info view
-                InfoView = new InfoView();
+                InfoView = new InfoView(Buzz);
                 rd = Utils.GetUserControlXAML<ResourceDictionary>(Buzz.Theme.InfoView.Source, buzzPath);
                 InfoView.Resources.MergedDictionaries.Add(rd);
                 borderInfo.Child = InfoView;
@@ -398,7 +398,9 @@ namespace ReBuzz
                     {
                         keyboardWindow = new KeyboardWindow(Buzz);
 
-                        keyboardWindow.Topmost = true;
+                        if (Global.GeneralSettings.PianoKeyboardTopmost)
+                            keyboardWindow.Topmost = true;
+
                         var interop = new WindowInteropHelper(keyboardWindow);
                         interop.Owner = Buzz.MachineViewHWND;
                     }
@@ -608,7 +610,11 @@ namespace ReBuzz
                     SequenceEditor.ViewSettings.TimeSignatureList.Set(0, 16);
                     song.Associations.Clear();
                     seqenceEditor.Song = song;
-                    song.ActionStack = new ManagedActionStack();
+                    EditorView.Clear();
+                }
+                else if (cmd == BuzzCommand.OpenFile)
+                {
+                    EditorView.Clear();
                 }
                 else if (cmd == BuzzCommand.Exit)
                 {
@@ -626,6 +632,8 @@ namespace ReBuzz
                     }
                     Buzz.Playing = false;
                     Buzz.Release();
+
+                    debugWindow.CloseWindow();
 
                     Environment.Exit(0);
                 }
@@ -1014,7 +1022,7 @@ namespace ReBuzz
         {
             if (EditorView != null)
             {
-                EditorView.editorBorder.Child = null;
+                EditorView.SetEditorControl(null);
             }
 
             Buzz.ThemeColors = Utils.GetThemeColors(buzzPath);
@@ -1064,7 +1072,7 @@ namespace ReBuzz
             WavetableVM.Wavetable = song.Wavetable;
 
             // Info view
-            InfoView = new InfoView();
+            InfoView = new InfoView(Buzz);
             rd = Utils.GetUserControlXAML<ResourceDictionary>(Buzz.Theme.InfoView.Source, buzzPath);
             InfoView.Resources.MergedDictionaries.Add(rd);
             borderInfo.Child = InfoView;
@@ -1113,18 +1121,8 @@ namespace ReBuzz
             {
                 Buzz.ActiveView = BuzzView.PatternView;
             }
-            var editor = EditorView.editorBorder.Child;
-            if (editor != null)
-            {
-                var m = Buzz.PatternEditorPattern?.Machine as MachineCore;
 
-                EditorView.EditorMachine = m?.EditorMachine.DLL;
-                editor.Focus();
-            }
-            else
-            {
-                EditorView.Focus();
-            }
+            EditorView.PatternEditorActivated();
         }
 
         private void Buzz_SequenceEditorActivated()
@@ -1191,15 +1189,11 @@ namespace ReBuzz
 
                     if (Buzz.NewSequenceEditorActivate)
                     {
-                        EditorView.gridEditorView.RowDefinitions[0].Focus();
+                        EditorView.FocusSequenceEditor();
                     }
                     else
                     {
-                        var editor = EditorView.editorBorder.Child;
-                        if (editor != null)
-                        {
-                            editor.Focus();
-                        }
+                        EditorView.FocusEditor();
                     }
 
                     break;

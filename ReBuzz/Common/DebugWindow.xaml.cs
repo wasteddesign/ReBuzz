@@ -7,10 +7,12 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection.Emit;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Threading;
 using static ReBuzz.Common.Utils;
 
@@ -141,8 +143,11 @@ namespace ReBuzz.Common
 
             Loaded += (sender, e) =>
             {
-                var rd = Utils.GetUserControlXAML<Window>("ParameterWindowShell.xaml", buzzPath);
-                Resources.MergedDictionaries.Add(rd.Resources);
+                if (Global.Buzz != null)
+                {
+                    var rd = Utils.GetUserControlXAML<Window>("ParameterWindowShell.xaml", buzzPath);
+                    Resources.MergedDictionaries.Add(rd.Resources);
+                }
 
                 PreviewMouseWheel += (sender, e) =>
                 {
@@ -163,6 +168,54 @@ namespace ReBuzz.Common
                 Hide();
                 e.Cancel = true;
             };
+        }
+
+        public new void Show()
+        {
+            Dispatcher.Invoke(() =>
+            {
+                base.Show();
+            });
+        }
+
+        public void BringToTop()
+        {
+            Dispatcher.Invoke(() =>
+            {
+                Activate();
+            });
+        }
+
+        public static DebugWindow CreateAsync(string buzzPath)
+        {
+            DebugWindow window = null;
+
+            // Launch window in its own thread with a specific size and position
+            var windowThread = new Thread(() =>
+            {
+                window = new DebugWindow(buzzPath);
+
+                window.Closed += window.OnWindowClosed;
+                Dispatcher.Run();
+            });
+            windowThread.SetApartmentState(ApartmentState.STA);
+            windowThread.Start();
+
+            // Wait until the new thread has created the window
+            while (window == null) { Thread.Sleep(0); /* Allow the other UI rendering thread to process... */ }
+
+            // The window has been created, so return a reference to it
+            return window;
+        }
+
+        private void OnWindowClosed(object sender, EventArgs args)
+        {
+            Dispatcher.InvokeShutdown();
+        }
+
+        internal void CloseWindow()
+        {
+            Dispatcher.InvokeShutdown();
         }
     }
 }

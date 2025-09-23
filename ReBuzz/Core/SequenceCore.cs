@@ -9,7 +9,7 @@ namespace ReBuzz.Core
 {
     internal class SequenceCore : ISequence
     {
-        private static int sequenceHandleCounter = 100;
+        private static IntPtr sequenceHandleCounter = 100;
 
         internal MachineCore MachineCore { get; private set; }
         public IMachine Machine { get => MachineCore; }
@@ -32,7 +32,7 @@ namespace ReBuzz.Core
                         return pe.Pattern;
                 }
 
-                if (TriggerEventInfo != null && TriggerEventInfo.se.Pattern.PlayPosition != int.MinValue)
+                if (TriggerEventInfo != null && TriggerEventInfo.se.Pattern != null && TriggerEventInfo.se.Pattern.PlayPosition != int.MinValue)
                 {
                     return TriggerEventInfo.se.Pattern;
                 }
@@ -78,7 +78,7 @@ namespace ReBuzz.Core
         public SequenceCore(MachineCore mc)
         {
             MachineCore = mc;
-            CSequence = new IntPtr(sequenceHandleCounter++);
+            CSequence = sequenceHandleCounter++;
             EventsList = new OrderedDictionary<int, SequenceEvent>();
         }
 
@@ -90,96 +90,108 @@ namespace ReBuzz.Core
 
         public void Clear(int time, int span)
         {
-            OrderedDictionary<int, SequenceEvent> od = new OrderedDictionary<int, SequenceEvent>();
-            foreach (var eventTime in Events.Keys.ToArray())
+            lock (ReBuzzCore.AudioLock)
             {
-                if (eventTime < time || eventTime >= time + span)
+                OrderedDictionary<int, SequenceEvent> od = new OrderedDictionary<int, SequenceEvent>();
+                foreach (var eventTime in Events.Keys.ToArray())
                 {
-                    od.Add(eventTime, Events[eventTime]);
+                    if (eventTime < time || eventTime >= time + span)
+                    {
+                        od.Add(eventTime, Events[eventTime]);
+                    }
                 }
+
+                EventsList = od;
+                UpdateSpans();
+                PropertyChanged.Raise(this, "Events");
+                SpanCleared.Invoke(time, span);
+
+                (Global.Buzz as ReBuzzCore).SetModifiedFlag();
             }
-
-            EventsList = od;
-            UpdateSpans();
-            PropertyChanged.Raise(this, "Events");
-            SpanCleared.Invoke(time, span);
-
-            (Global.Buzz as ReBuzzCore).SetModifiedFlag();
         }
 
         public void Delete(int time, int span)
         {
-            OrderedDictionary<int, SequenceEvent> od = new OrderedDictionary<int, SequenceEvent>();
-            foreach (var eventTime in Events.Keys.ToArray())
+            lock (ReBuzzCore.AudioLock)
             {
-                var e = Events[eventTime];
-                if (eventTime >= time && eventTime < time + span)
+                OrderedDictionary<int, SequenceEvent> od = new OrderedDictionary<int, SequenceEvent>();
+                foreach (var eventTime in Events.Keys.ToArray())
                 {
-                    // Don't add events to updated sequence if between time and span (delete)
+                    var e = Events[eventTime];
+                    if (eventTime >= time && eventTime < time + span)
+                    {
+                        // Don't add events to updated sequence if between time and span (delete)
+                    }
+                    else if (eventTime >= time + span)
+                    {
+                        od.Add(eventTime - span, e);
+                    }
+                    else
+                    {
+                        od.Add(eventTime, e);
+                    }
                 }
-                else if (eventTime >= time + span)
-                {
-                    od.Add(eventTime - span, e);
-                }
-                else
-                {
-                    od.Add(eventTime, e);
-                }
-            }
 
-            EventsList = od;
-            UpdateSpans();
-            SpanDeleted?.Invoke(time, span);
-            PropertyChanged.Raise(this, "Events");
-            (Global.Buzz as ReBuzzCore).SetModifiedFlag();
+                EventsList = od;
+                UpdateSpans();
+                SpanDeleted?.Invoke(time, span);
+                PropertyChanged.Raise(this, "Events");
+                (Global.Buzz as ReBuzzCore).SetModifiedFlag();
+            }
         }
 
         public void Insert(int time, int span)
         {
-            OrderedDictionary<int, SequenceEvent> od = new OrderedDictionary<int, SequenceEvent>();
-            foreach (var eventTime in Events.Keys.ToArray())
+            lock (ReBuzzCore.AudioLock)
             {
-                var e = Events[eventTime];
-                if (eventTime >= time)
+                OrderedDictionary<int, SequenceEvent> od = new OrderedDictionary<int, SequenceEvent>();
+                foreach (var eventTime in Events.Keys.ToArray())
                 {
-                    od.Add(eventTime + span, e);
+                    var e = Events[eventTime];
+                    if (eventTime >= time)
+                    {
+                        od.Add(eventTime + span, e);
+                    }
+                    else
+                    {
+                        od.Add(eventTime, e);
+                    }
                 }
-                else
-                {
-                    od.Add(eventTime, e);
-                }
-            }
 
-            EventsList = od;
-            UpdateSpans();
-            SpanInserted?.Invoke(time, span);
-            PropertyChanged.Raise(this, "Events");
-            (Global.Buzz as ReBuzzCore).SetModifiedFlag();
+                EventsList = od;
+                UpdateSpans();
+                SpanInserted?.Invoke(time, span);
+                PropertyChanged.Raise(this, "Events");
+                (Global.Buzz as ReBuzzCore).SetModifiedFlag();
+            }
         }
 
         public void SetEvent(int time, SequenceEvent e)
         {
-            if (e == null)
+            lock (ReBuzzCore.AudioLock)
             {
-                if (Events.ContainsKey(time))
+                if (e == null)
                 {
-                    EventsList.Remove(time);
+                    if (Events.ContainsKey(time))
+                    {
+                        EventsList.Remove(time);
+                        UpdateSpans();
+                        PropertyChanged.Raise(this, "Events");
+                        EventChanged?.Invoke(time);
+                    }
+                }
+                else
+                {
+                    if (e.Type == SequenceEventType.PlayPattern && e.Pattern != null)
+                        e.Span = e.Pattern.Length;
+
+                    this.EventsList[time] = e;
                     UpdateSpans();
                     PropertyChanged.Raise(this, "Events");
                     EventChanged?.Invoke(time);
                 }
-            }
-            else
-            {
-                if (e.Type == SequenceEventType.PlayPattern && e.Pattern != null)
-                    e.Span = e.Pattern.Length;
-
-                this.EventsList[time] = e;
-                UpdateSpans();
-                PropertyChanged.Raise(this, "Events");
-                EventChanged?.Invoke(time);
-            }
             (Global.Buzz as ReBuzzCore).SetModifiedFlag();
+            }
         }
 
         void UpdateSpans()
@@ -203,13 +215,16 @@ namespace ReBuzz.Core
         internal TriggerEventData TriggerEventInfo { get; set; }
         public void TriggerEvent(int time, SequenceEvent e, bool loop)
         {
-            if (time != 0 && e != null)
+            lock (ReBuzzCore.AudioLock)
             {
-                TriggerEventInfo = new TriggerEventData(time, e, loop, false);
-            }
-            else
-            {
-                TriggerEventInfo = null;
+                if (time != 0 && e != null)
+                {
+                    TriggerEventInfo = new TriggerEventData(time, e, loop, false);
+                }
+                else
+                {
+                    TriggerEventInfo = null;
+                }
             }
         }
 

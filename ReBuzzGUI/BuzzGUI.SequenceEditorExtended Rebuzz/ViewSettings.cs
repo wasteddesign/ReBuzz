@@ -32,12 +32,13 @@ namespace BuzzGUI.SequenceEditor
 		public IEditContext EditContext { get; set; }
 
 		public Dictionary<IPattern, PatternEx> PatternAssociations = new Dictionary<IPattern, PatternEx>();
-		//public PatternAssociationsList PatternAssociationsList = new PatternAssociationsList();
+        //public PatternAssociationsList PatternAssociationsList = new PatternAssociationsList();
 
-		// double tickHeight = 2;
-		//public double TickHeight { get { return tickHeight; } set { tickHeight = value; } }
-		// public double Height { get { return TickHeight * SongEnd; } }
+        // double tickHeight = 2;
+        //public double TickHeight { get { return tickHeight; } set { tickHeight = value; } }
+        // public double Height { get { return TickHeight * SongEnd; } }
 
-		//public double TrackWidth { get { return 120; } }
-	}
+        //public double TrackWidth { get { return 120; } }
+        public int NonPlayPattenSpan { get { return 10; } }
+    }
 }

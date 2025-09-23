@@ -1,4 +1,5 @@
 ﻿using BespokeFusion;
+using BuzzGUI.Common;
 using BuzzGUI.Common.DSP;
 using BuzzGUI.Common.InterfaceExtensions;
 using BuzzGUI.Interfaces;
@@ -13,8 +14,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Interop;
 using System.Xml;
+using System.Xml.Linq;
 using System.Xml.Serialization;
 using static ReBuzz.FileOps.BMXFile;
 
@@ -263,7 +264,13 @@ namespace ReBuzz.FileOps
                         }
                     }
 
-                    if (!machineNew.DLL.IsMissing)
+                    if (machineNew.DLL.IsCrashed)
+                    {
+                        machineNew.ParameterGroupsList = new List<ParameterGroup>() { machineNew.ParameterGroupsList[0] };
+                        AddGroup(machineData.ParameterGroups[1], machineNew, 1);
+                        AddGroup(machineData.ParameterGroups[2], machineNew, 2);
+                    }
+                    else if (!machineNew.DLL.IsMissing)
                     {
                         // Copy parametervalues
                         CopyParameters(machineData.ParameterGroups[0], machineNew, 0, 0);
@@ -298,9 +305,10 @@ namespace ReBuzz.FileOps
                 }
             }
 
+            bool useMultithreading = false;// Global.GeneralSettings.MultithreadSongLoading;
             // Native control machines need to have all machines "visible" before calling init
-            InitMachines(dictInitData.Where(kv => !kv.Key.DLL.Info.Flags.HasFlag(MachineInfoFlags.CONTROL_MACHINE)), true);
-            InitMachines(dictInitData.Where(kv => kv.Key.DLL.Info.Flags.HasFlag(MachineInfoFlags.CONTROL_MACHINE)), true);
+            InitMachines(dictInitData.Where(kv => !kv.Key.DLL.Info.Flags.HasFlag(MachineInfoFlags.CONTROL_MACHINE)), useMultithreading);
+            InitMachines(dictInitData.Where(kv => kv.Key.DLL.Info.Flags.HasFlag(MachineInfoFlags.CONTROL_MACHINE)), useMultithreading);
 
             // Pattern Editor Connections
             foreach (var machineData in songData.Machines)
@@ -501,10 +509,12 @@ namespace ReBuzz.FileOps
                 if (machine != null)
                 {
                     machine.IsMuted = machineData.IsMuted;
+                    machine.IsBypassed = machineData.IsBypassed;
                     machine.MIDIInputChannel = machineData.MIDIInputChannel;
                     machine.OverrideLatency = machineData.OverrideLatency;
                     machine.OversampleFactor = machineData.OversampleFactor;
                     machine.IsWireless = machineData.IsWireless;
+                    machine.BaseOctave = machineData.BaseOctave;
                 }
             }
 
@@ -526,6 +536,47 @@ namespace ReBuzz.FileOps
                         var gw = machineData.GUIWindow;
                         machine.OpenWindowedGUI(new Rect(gw.Left, gw.Top, gw.Right - gw.Left, gw.Bottom - gw.Top));
                     }
+                }
+            }
+
+            var songCore = buzz.SongCore;
+            // Machine Groups
+            FileOpsEvent(FileEventType.StatusUpdate, "Load Machine Groups...");
+            foreach (var machineGroup in songData.MachineGroup)
+            {
+                string name = GetImportedName(XmlConvert.DecodeName(machineGroup.Name));
+                name =  songCore.GetNewGroupName(name);
+                float x = machineGroup.X + xOffset;
+                float y = machineGroup.Y + yOffset;
+                bool isGrouped = machineGroup.IsGrouped;
+
+                var group = buzz.CreateMachineGroup(name, x, y);
+                name = machineGroup.MainInputMachineName;
+                name = name != null && importDictionaryNonHidden.ContainsKey(name) ? importDictionaryNonHidden[name] : name;
+                group.MainInputMachine = songCore.Machines.FirstOrDefault(m => m.Name == name);
+                name = machineGroup.MainOutputMachineName;
+                name = name != null && importDictionaryNonHidden.ContainsKey(name) ? importDictionaryNonHidden[name] : name;
+                group.MainOutputMachine = songCore.Machines.FirstOrDefault(m => m.Name == name);
+                group.IsGrouped = isGrouped;
+
+                foreach (var mgm in machineGroup.Machines)
+                {
+                    name = mgm.Name;
+                    name = importDictionaryNonHidden.ContainsKey(name) ? importDictionaryNonHidden[name] : name;
+                    x = mgm.X + xOffset;
+                    y = mgm.Y + yOffset;
+                    var machine = songCore.Machines.FirstOrDefault(m => m.Name == name);
+                    if (machine != null)
+                    {
+                        songCore.AddMachineToGroup(machine, group);
+                        songCore.InvokeImportGroupedMachinePositions(machine, x, y);
+                        songCore.GroupedMachinePositions.Add(machine, new Tuple<float, float>(x, y));
+                    }
+                }
+
+                if (import)
+                {
+                    importAction.AddGroupMachine(group);
                 }
             }
 
@@ -554,7 +605,7 @@ namespace ReBuzz.FileOps
 
         internal void InitMachines(IEnumerable<KeyValuePair<MachineCore, MachineInitData>> dictInitData, bool multiThread)
         {
-            bool askSkip = false;// Keyboard.Modifiers.HasFlag(ModifierKeys.Control) && Keyboard.Modifiers.HasFlag(ModifierKeys.Alt);
+            bool askSkip = Keyboard.Modifiers.HasFlag(ModifierKeys.Control) && Keyboard.Modifiers.HasFlag(ModifierKeys.Alt);
             List<Task> initTasks = new List<Task>();
 
             // Native control machines need to have all machines "visible" before calling init
@@ -585,7 +636,7 @@ namespace ReBuzz.FileOps
             }
 
             // Wait max xx seconds
-            while (!Task.WaitAll(initTasks.ToArray(), LoadWaitTime))
+            while (!Task.WaitAll(initTasks.ToArray(), (int)Global.GeneralSettings.SongLoadWait * 1000))
             {
                 List<MachineCore> badMachinesList = new List<MachineCore>();
                 string machinesMessage = "";
@@ -761,10 +812,12 @@ namespace ReBuzz.FileOps
                 bmxm.Y = m.Position.Item2;
 
                 bmxm.IsMuted = m.IsMuted;
+                bmxm.IsBypassed = m.IsBypassed;
                 bmxm.MIDIInputChannel = m.MIDIInputChannel;
                 bmxm.OverrideLatency = m.OverrideLatency;
                 bmxm.OversampleFactor = m.OversampleFactor;
                 bmxm.IsWireless = m.IsWireless;
+                bmxm.BaseOctave = m.BaseOctave;
 
                 if (m.EditorMachine != null)
                 {
@@ -1028,6 +1081,42 @@ namespace ReBuzz.FileOps
 
             file.MachineConnections = bMXMLMachineConnections.ToArray();
 
+            
+            List<BMXMLMachineGroup> bMXMLMachineGroups = new List<BMXMLMachineGroup>();
+            // Machine Groups
+            foreach (var machineGroup in buzz.SongCore.MachineGroups)
+            {
+                BMXMLMachineGroup group = new BMXMLMachineGroup();
+                group.Name = machineGroup.Name;
+                group.X = machineGroup.Position.Item1;
+                group.Y = machineGroup.Position.Item2;
+                group.IsGrouped = machineGroup.IsGrouped;
+                group.MainInputMachineName = machineGroup.MainInputMachine != null ? machineGroup.MainInputMachine.Name : null;
+                group.MainOutputMachineName = machineGroup.MainOutputMachine != null ? machineGroup.MainOutputMachine.Name : null;
+
+                List<BMXMLMachineGroupMachine> mgms = new List<BMXMLMachineGroupMachine>();
+
+                foreach (var mgmbuzz in buzz.SongCore.MachineToGroupDict.Where(kv => kv.Value == machineGroup))
+                {
+                    BMXMLMachineGroupMachine mgm = new BMXMLMachineGroupMachine();
+                    var machine = mgmbuzz.Key;
+                    mgm.Name = machine.Name;
+
+                    Tuple<float, float> pos = machine.Position;
+                    if (buzz.SongCore.GroupedMachinePositions.ContainsKey(machine))
+                    {
+                        pos = buzz.SongCore.GroupedMachinePositions[machine];
+                    }
+
+                    mgm.X = pos.Item1;
+                    mgm.Y = pos.Item2;
+                    mgms.Add(mgm);
+                }
+                group.Machines = mgms.ToArray();
+                bMXMLMachineGroups.Add(group);
+            }
+
+            file.MachineGroup = bMXMLMachineGroups.ToArray();
 
             // SubSections
             List<BMXMLSubSection> bMXMLSubSections = new List<BMXMLSubSection>();
@@ -1093,6 +1182,8 @@ namespace ReBuzz.FileOps
 
         public BMXMLMachine[] Machines { get; set; }
 
+        public BMXMLMachineGroup[] MachineGroup { get; set; }
+
         public BMXMLSequence[] Sequences { get; set; }
         public BMXMLWave[] Waves { get; set; }
 
@@ -1126,10 +1217,33 @@ namespace ReBuzz.FileOps
         public int OverrideLatency { get; set; }
         public int OversampleFactor { get; set; }
         public bool IsWireless { get; set; }
+        public int BaseOctave { get; set; }
         public bool ParameterWindowVisible { get; set; }
         public bool GUIWindowVisible { get; set; }
         public BMXMLMachineWindow GUIWindow { get; set; }
         public BMXMLMachineWindow ParameterWindow { get; set; }
+        public bool IsBypassed { get; set; }
+    }
+
+    [XmlType(TypeName = "MachineGroup")]
+    public class BMXMLMachineGroup
+    {
+        public string Name { get; set; }
+        public float X { get; set; }
+        public float Y { get; set; }
+        public bool IsGrouped { get; set; }
+        public string MainInputMachineName { get; set; }
+        public string MainOutputMachineName { get; set; }
+
+        public BMXMLMachineGroupMachine[] Machines { get; set; }
+    }
+
+    [XmlType(TypeName = "MachineGroupMachine")]
+    public class BMXMLMachineGroupMachine
+    {
+        public string Name { get; set; }
+        public float X { get; set; }
+        public float Y { get; set; }
     }
 
     [XmlType(TypeName = "ParameterGroup")]

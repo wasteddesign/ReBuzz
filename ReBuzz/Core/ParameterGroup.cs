@@ -31,27 +31,6 @@ namespace ReBuzz.Core
             get => trackCount;
             set
             {
-                /*
-                // Set defaults
-                for (int i = trackCount; i < value; i++)
-                {
-                    foreach (var parameter in Parameters)
-                    {
-                        if (parameter.Type != ParameterType.Note)
-                            parameter.SetValue(i, parameter.DefValue);
-                    }
-                }
-
-                for (int i = value; i < trackCount; i++)
-                {
-                    foreach (var parameter in Parameters)
-                    {
-                        if (parameter.Type != ParameterType.Note)
-                            parameter.SetValue(i, parameter.DefValue);
-                    }
-                }
-                */
-
                 if (trackCount != value)
                 {
                     trackCount = value;
