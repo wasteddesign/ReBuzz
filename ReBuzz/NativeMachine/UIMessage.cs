@@ -29,7 +29,7 @@ namespace ReBuzz.NativeMachine
 
         public override void ReceaveMessage()
         {
-            DoReveiveIncomingMessage();
+            DoReceiveIncomingMessage();
         }
 
         internal override void Notify()

@@ -121,6 +121,27 @@ namespace ReBuzzTests
         }
 
         [Test]
+        public void OutputsASampleTwice()
+        {
+            var gen1Sample = new Sample(5, 10);
+            using var driver = new Driver();
+            var gen1Controller = FakeNativeGeneratorController.NewInstance("s1");
+            driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorController.Info);
+            driver.Gear.AddPrecompiledEffect(FakeNativeEffectController.Info);
+
+            driver.Start();
+
+            driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(gen1Controller);
+            driver.MachineGraph.ExecuteMachineCommand(gen1Controller.SetStereoSampleValueTo(gen1Sample));
+
+            var samples1 = driver.ReadStereoSamples(1);
+            samples1.AssertAreEqualTo([ExpectedSampleValue.From(gen1Sample)]);
+
+            var samples2 = driver.ReadStereoSamples(1);
+            samples2.AssertAreEqualTo([ExpectedSampleValue.From(gen1Sample)]);
+        }
+
+        [Test]
         public void OutputsASampleFromNativeGeneratorThroughMultipleNativeEffectsConnectedInAChain()
         {
             var genSample = new Sample(5, 10);

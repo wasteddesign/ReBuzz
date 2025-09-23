@@ -393,7 +393,6 @@ namespace ReBuzzTests.Automation
             var workManager = new WorkManager(reBuzzCore, new WorkThreadEngine(1), 0, engineSettings);
             var readSamplesCount = count * 2;
             var buffer = new float[readSamplesCount];
-            ReBuzzCore.subTickInfo.PosInSubTick = 0;
             var result = workManager.ThreadRead(buffer, 0, readSamplesCount);
             return new TestReadBuffer(result, buffer);
         }
