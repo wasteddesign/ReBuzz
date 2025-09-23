@@ -1,6 +1,10 @@
 # ReBuzz
 ReBuzz is a modular digital audio workstation (DAW) built upon the foundation of [Jeskola Buzz](https://jeskola.net/buzz/) software. Written in C#, ReBuzz combines modern features with the beloved workflow of its predecessor. While it’s still in development, users should exercise some caution regarding stability and other potential uncertainties. The primary focus is on providing a stable experience and robust VST support.
 
+| Machine View | Editor View | Sequencer View |
+| ------------ | ------------ | ------------ |
+| ![Machine View](images/ReBuzzMachineView.png) | ![Editor View](images/ReBuzzEditorView.png) | ![Sequencer View](images/ReBuzzSequencerView.png) |
+
 ## Features
 * 32 and 64 bit VST2/3 support
 * 32 and 64 bit buzz machine support
