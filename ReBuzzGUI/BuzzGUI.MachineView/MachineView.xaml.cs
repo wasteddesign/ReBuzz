@@ -1396,7 +1396,7 @@ namespace BuzzGUI.MachineView
                 var machine = machineGraph.Machines.Last();
 
                 if (machine.AllNonInputParameters().Any())
-                    machine.CreatePattern("00", 16);
+                    machine.CreatePattern("00", Global.GeneralSettings.PatternLength);
 
                 if (machine.DLL.Info.Type == MachineType.Generator)
                 {

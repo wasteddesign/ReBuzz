@@ -30,5 +30,11 @@
 
         [BuzzSetting(4, Minimum = 2, Maximum = 6, Description = "Default machine base octave.")]
         public int DefaultMachineBaseOctave { get; set; }
+
+        [BuzzSetting(16, Minimum = 1, Maximum = 512, Description = "Default Pattern Length.")]
+        public int PatternLength { get; internal set; }
+
+        [BuzzSetting(false, Description = "Make PianoKeyboard topmost.")]
+        public bool PianoKeyboardTopmost { get; internal set; }
     }
 }

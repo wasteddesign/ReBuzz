@@ -398,7 +398,9 @@ namespace ReBuzz
                     {
                         keyboardWindow = new KeyboardWindow(Buzz);
 
-                        keyboardWindow.Topmost = true;
+                        if (Global.GeneralSettings.PianoKeyboardTopmost)
+                            keyboardWindow.Topmost = true;
+
                         var interop = new WindowInteropHelper(keyboardWindow);
                         interop.Owner = Buzz.MachineViewHWND;
                     }

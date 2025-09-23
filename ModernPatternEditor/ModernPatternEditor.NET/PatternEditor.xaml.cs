@@ -438,7 +438,7 @@ namespace WDE.ModernPatternEditor
                 ExecuteDelegate = x =>
                 {
                     DoAction(new CreatePatternAction(SelectedMachine.Machine, SelectedMachine.Machine.GetNewPatternName(),
-                        SelectedMachine.SelectedPattern != null ? SelectedMachine.SelectedPattern.Pattern.Length : 16));
+                        SelectedMachine.SelectedPattern != null ? SelectedMachine.SelectedPattern.Pattern.Length : Global.GeneralSettings.PatternLength));
                     patternControl.Focus();
                 }
             };
