@@ -81,7 +81,7 @@ namespace ReBuzz.NativeMachine
                     if (handle.ToInt64() == 0)
                     {
                         // Failed
-                        buzz.DCWriteErrorLine(GetMessageString());
+                        buzz.DCWriteLine(GetMessageString(), DCLogLevel.Error);
                         return false;
                     }
                     else
@@ -95,7 +95,7 @@ namespace ReBuzz.NativeMachine
                         // Try to figure out the type some other way if machine returns weird number?
                         if ((int)info.Type > 2)
                         {   
-                            buzz.DCWriteErrorLine("Load library failed: " + libname + " type is not valid: " + (int)info.Type);
+                            buzz.DCWriteLine("Load library failed: " + libname + " type is not valid: " + (int)info.Type, DCLogLevel.Error);
                             return false;
                         }
 

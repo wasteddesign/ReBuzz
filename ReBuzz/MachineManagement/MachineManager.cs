@@ -96,7 +96,7 @@ namespace ReBuzz.MachineManagement
                 // If missing
                 if (!buzz.MachineDLLs.ContainsKey(libName))
                 {
-                    buzz.DCWriteErrorLine("Missing machine: " + libName);
+                    buzz.DCWriteLine("Missing machine: " + libName, DCLogLevel.Error);
                     var machineDLL = machine.MachineDLL;
                     machineDLL.IsMissing = true;
                     machineDLL.Name = libName;

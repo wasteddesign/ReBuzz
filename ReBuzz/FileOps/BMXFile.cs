@@ -155,7 +155,7 @@ namespace ReBuzz.FileOps
                         }
                         catch (Exception e)
                         {
-                            buzz.DCWriteErrorLine("Exception calling ImportFinished for " + machine.DLL.Name + "\n" + e.Message);
+                            buzz.DCWriteLine("Exception calling ImportFinished for " + machine.DLL.Name + "\n" + e.Message, DCLogLevel.Error );
                         }
                     }
                 }
@@ -590,7 +590,7 @@ namespace ReBuzz.FileOps
                         badMachine.MachineDLL.IsCrashed = true;
                         badMachine.Ready = false;
                         string error = "Init call failed for machine: " + badMachine.Name;
-                        buzz.DCWriteErrorLine(error);
+                        buzz.DCWriteLine(error, DCLogLevel.Error);
 
                         buzz.MachineManager.DeleteMachine(badMachine);
                     }
@@ -1063,7 +1063,7 @@ namespace ReBuzz.FileOps
                                 }
                                 catch
                                 {
-                                    buzz.DCWriteErrorLine("Parameter mismatch for machine: " + machine.DLL.Name + " | Parameter Group: " + group + " | Parameter: " + indexInGroup);
+                                    buzz.DCWriteLine("Parameter mismatch for machine: " + machine.DLL.Name + " | Parameter Group: " + group + " | Parameter: " + indexInGroup, DCLogLevel.Error );
                                 }
                             }
 

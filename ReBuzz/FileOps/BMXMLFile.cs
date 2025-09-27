@@ -659,7 +659,7 @@ namespace ReBuzz.FileOps
                         badMachine.MachineDLL.IsCrashed = true;
                         badMachine.Ready = false;
                         string error = "Init call failed for machine: " + badMachine.Name;
-                        buzz.DCWriteErrorLine(error);
+                        buzz.DCWriteLine(error, DCLogLevel.Error);
 
                         buzz.MachineManager.DeleteMachine(badMachine);
                     }

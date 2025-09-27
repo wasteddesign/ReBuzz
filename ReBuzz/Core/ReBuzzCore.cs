@@ -989,10 +989,36 @@ namespace ReBuzz.Core
 
         public void DCWriteLine(string s)
         {
+            DCWriteLine(s, DCLogLevel.Information);
+        }
+
+        public void DCWriteLine(string s, DCLogLevel level)
+        {
             if (s != null)
             {
                 s = s.Replace("\x01", "");
-                Log.Information(s);
+                switch (level)
+                {
+                    case DCLogLevel.Verbose:
+                        Log.Verbose(s);
+                        break;
+                    case DCLogLevel.Debug:
+                        Log.Debug(s);
+                        break;
+                    case DCLogLevel.Information:
+                    default:
+                        Log.Information(s);
+                        break;
+                    case DCLogLevel.Warning:
+                        Log.Warning(s);
+                        break;
+                    case DCLogLevel.Error:
+                        Log.Error(s);
+                        break;
+                    case DCLogLevel.Fatal:
+                        Log.Fatal(s);
+                        break;
+                }
             }
         }
 
@@ -2067,12 +2093,6 @@ namespace ReBuzz.Core
         internal void NotifyFileEvent(FileEventType type, string eventText, object o)
         {
             FileEvent?.Invoke(type, eventText, o);
-        }
-
-        internal void DCWriteErrorLine(string s)
-        {
-            s = s.Replace("/x01", "");
-            Log.Error(s);
         }
 
         internal MachineGroupCore CreateMachineGroup(string name, float x, float y)

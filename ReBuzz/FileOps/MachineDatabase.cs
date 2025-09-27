@@ -68,7 +68,7 @@ namespace ReBuzz.FileOps
             }
             catch (Exception ex)
             {
-                buzz.DCWriteErrorLine(ex.InnerException.Message);
+                buzz.DCWriteLine(ex.InnerException.Message, DCLogLevel.Error);
                 MessageBox.Show(ex.Message);
             }
         }
@@ -231,7 +231,7 @@ namespace ReBuzz.FileOps
                     var machine = new MachineCore(buzz.SongCore, buzzPath, dispatcher, is64Bit);
                     if (!uiMessage.UILoadLibrarySync(buzz, machine, loaderLib, machineDll.Path))
                     {
-                        buzz.DCWriteErrorLine("Error loading machine: " + loaderLib);
+                        buzz.DCWriteLine("Error loading machine: " + loaderLib, DCLogLevel.Error);
                         return -1;
                     }
                     uiMessage.UINewMISync(machine, loaderLib);

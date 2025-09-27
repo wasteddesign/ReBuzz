@@ -90,7 +90,7 @@ namespace ReBuzz.NativeMachine
 
         public void MachineCrashed(MachineCore machine, Exception e)
         {
-            this.ChannelListener.buzz.DCWriteErrorLine(e.Message);
+            this.ChannelListener.buzz.DCWriteLine(e.Message, DCLogLevel.Error);
             machine.MachineDLL.IsCrashed = true;
             machine.Ready = false;
         }

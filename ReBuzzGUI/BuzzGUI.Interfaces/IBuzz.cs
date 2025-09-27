@@ -1,5 +1,6 @@
 ﻿using Buzz.MachineInterface;
 using System;
+using System.CodeDom;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Media;
@@ -8,6 +9,8 @@ using System.Xml.Linq;
 
 namespace BuzzGUI.Interfaces
 {
+    public enum DCLogLevel { Verbose, Debug, Information, Warning, Error, Fatal }
+
     public enum BuzzView { PatternView, MachineView, SequenceView, WaveTableView, SongInfoView };
     public enum BuzzCommand { NewFile, OpenFile, SaveFile, SaveFileAs, Cut, Copy, Paste, Undo, Redo, Stop, Exit, About, Preferences, DebugConsole };
 
@@ -68,6 +71,7 @@ namespace BuzzGUI.Interfaces
         bool CanExecuteCommand(BuzzCommand cmd);
 
         void DCWriteLine(string s);
+        void DCWriteLine(string s, DCLogLevel level);
 
         void ActivatePatternEditor();
         void ActivateSequenceEditor();
