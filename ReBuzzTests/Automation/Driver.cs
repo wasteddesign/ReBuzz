@@ -132,6 +132,7 @@ namespace ReBuzzTests.Automation
         private readonly AbsoluteFilePath crashGeneratorFilePath;
 
         private ReBuzzMachines reBuzzMachines;
+        private readonly EngineSettings engineSettings;
 
         public ReBuzzCommandsDriverExtension DawCommands => new(reBuzzCore, fileNameToSaveChoice, fileNameToLoadChoice);
 
@@ -148,6 +149,20 @@ namespace ReBuzzTests.Automation
         public Driver()
         {
             ResetGlobalState();
+            engineSettings = new EngineSettings
+            {
+                AccurateBPM = true,
+                EqualPowerPanning = true,
+                LowLatencyGC = true,
+                MachineDelayCompensation = false,
+                Multithreading = false,
+                PriorityProfile = PriorityProfileType.NormalAppPriority,
+                ProcessMutedMachines = false,
+                SubTickTiming = true
+            };
+            engineSettings.Multithreading = false;
+            engineSettings.SubTickTiming = true;
+
             fakeUserMessages = new FakeUserMessages();
             fakeMachineDllScanner = new FakeMachineDLLScanner(GearDir);
             crashEffectFilePath = GearEffectsDir.AddFileName("crash_fake_machine");
@@ -168,7 +183,6 @@ namespace ReBuzzTests.Automation
         {
             SetupDirectoryStructure();
 
-            EngineSettings engineSettings = Global.EngineSettings;
             var buzzPath = reBuzzRootDir.ToString();
             GeneralSettings generalSettings = Global.GeneralSettings;
             var registryRoot = Global.RegistryRoot; //Should not matter as the registry is in memory
@@ -376,16 +390,7 @@ namespace ReBuzzTests.Automation
 
         public TestReadBuffer ReadStereoSamples(int count)
         {
-            var workManager = new WorkManager(reBuzzCore, new WorkThreadEngine(1), 0, new EngineSettings
-            {
-                AccurateBPM = true,
-                EqualPowerPanning = true,
-                LowLatencyGC = true,
-                MachineDelayCompensation = false,
-                Multithreading = false,
-                ProcessMutedMachines = false,
-                SubTickTiming = true,
-            });
+            var workManager = new WorkManager(reBuzzCore, new WorkThreadEngine(1), 0, engineSettings);
             var readSamplesCount = count * 2;
             var buffer = new float[readSamplesCount];
             var result = workManager.ThreadRead(buffer, 0, readSamplesCount);

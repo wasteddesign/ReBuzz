@@ -22,5 +22,10 @@ namespace ReBuzzTests.Automation.TestMachinesControllers
         {
             return new NativeSetSampleMultipliersCommand(this, multiplier, multiplier);
         }
+
+        public ITestMachineInstanceCommand SetDebugShow(bool isEnabled)
+        {
+            return new SetDebugShowCommand(this, isEnabled);
+        }
     }
 }

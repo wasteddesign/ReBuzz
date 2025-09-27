@@ -26,7 +26,7 @@ namespace ReBuzz.NativeMachine
         {
             try
             {
-                DoReveiveIncomingMessage();
+                DoReceiveIncomingMessage();
             }
             catch (Exception e)
             {

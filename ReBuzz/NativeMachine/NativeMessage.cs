@@ -96,7 +96,7 @@ namespace ReBuzz.NativeMachine
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void DoReveiveIncomingMessage()
+        public void DoReceiveIncomingMessage()
         {
             if (IsCallback())
             {

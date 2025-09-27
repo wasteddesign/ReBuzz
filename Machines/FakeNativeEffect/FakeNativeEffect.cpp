@@ -13,13 +13,15 @@
 #include <string>
 #include "../FakeNativeMachineLib/lib.hpp"
 
-FAKE_MACHINE_SLIDER(sampleValueLeftMultiplier, SampleValueLeftMultiplier);
-FAKE_MACHINE_SLIDER(sampleValueRightMultiplier, SampleValueRightMultiplier);
+FAKE_MACHINE_INT_SLIDER(sampleValueLeftMultiplier, SampleValueLeftMultiplier);
+FAKE_MACHINE_INT_SLIDER(sampleValueRightMultiplier, SampleValueRightMultiplier);
+FAKE_MACHINE_SWITCH_SLIDER(debugShowEnabled, DebugShowEnabled);
 
 static CMachineParameter const* pParameters[] = { 
   // global
   &sampleValueLeftMultiplier,
   &sampleValueRightMultiplier,
+  &debugShowEnabled
 };
 
 #pragma pack(1)
@@ -29,6 +31,7 @@ class gvals
 public:
   word sampleValueLeftMultiplier;
   word sampleValueRightMultiplier;
+  byte debugShowEnabled;
 };
 
 #pragma pack()
@@ -84,12 +87,17 @@ DLL_EXPORTS
 
 bool mi:: Work(float* psamples, int numsamples, const int mode)
 {
+  DebugShow(machineName, __func__, gval.debugShowEnabled);
   AbortIfRequested(machineName, __func__);
   for (auto i = 0 ; i < numsamples*2 ; i+=2)
   {
     psamples[i] = psamples[i] * gval.sampleValueLeftMultiplier;
     psamples[i + 1] = psamples[i + 1] * gval.sampleValueRightMultiplier;
   }
+
+  DebugShow(machineName,
+            "Transformed " + std::to_string(numsamples) + " samples. First: " + std::to_string(psamples[0]) + ", last: " +
+            std::to_string(psamples[(numsamples * 2) - 1]), gval.debugShowEnabled);
 
   return true;
 }
