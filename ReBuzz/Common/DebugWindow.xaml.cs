@@ -43,8 +43,12 @@ namespace ReBuzz.Common
 
             Array.Sort(commands);
 
+            Serilog.Events.LogEventLevel logEventLevel = Serilog.Events.LogEventLevel.Information;
+#if DEBUG
+            logEventLevel = Serilog.Events.LogEventLevel.Debug;
+#endif
             Log.Logger = new LoggerConfiguration()
-                .WriteTo.RichTextBox(tbDebug)
+                .WriteTo.RichTextBox(tbDebug).MinimumLevel.Is(logEventLevel)
                 .CreateLogger();
 
             Paragraph p = tbDebug.Document.Blocks.FirstBlock as Paragraph;

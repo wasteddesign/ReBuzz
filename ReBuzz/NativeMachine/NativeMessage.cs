@@ -399,7 +399,7 @@ namespace ReBuzz.NativeMachine
                     case HostMessages.HostDCWriteLine:
                         {
                             string text = GetMessageString();
-                            //Global.Buzz.DCWriteLine(text);
+                            Global.Buzz.DCWriteLine(text, DCLogLevel.Debug);
                             Reset();
                             DoReplyMessage();
                         }
