@@ -44,9 +44,12 @@ std::string ReadMachineName()
 }
 
 
-static void DebugShow(const std::string& message)
+static void DebugShow(const std::string& machineName, const std::string& message, byte enabled = 1)
 {
-  MessageBoxA(nullptr, message.c_str(), "Debug msg", 0);
+  if (1 == enabled)
+  {
+    MessageBoxA(nullptr, message.c_str(), machineName.c_str(), 0);
+  }
 }
 
 static void AbortIfRequested(const std::string& machineName, const std::string& when)
@@ -63,7 +66,7 @@ static void AbortIfRequested(const std::string& machineName, const std::string& 
   }
 }
 
-#define FAKE_MACHINE_SLIDER(const_name, param_name) \
+#define FAKE_MACHINE_INT_SLIDER(const_name, param_name) \
 constexpr CMachineParameter const_name = \
 { \
   .Type = pt_word, \
@@ -75,3 +78,16 @@ constexpr CMachineParameter const_name = \
   .Flags = 0, \
   .DefValue = 0 \
 }
+
+#define FAKE_MACHINE_SWITCH_SLIDER(const_name, param_name) \
+constexpr CMachineParameter const_name = \
+{ \
+  .Type = pt_switch, \
+  .Name = #param_name, \
+  .Description = #param_name, \
+  .MinValue = SWITCH_OFF, \
+  .MaxValue = SWITCH_ON, \
+  .NoValue = SWITCH_NO, \
+  .Flags = MPF_STATE, \
+  .DefValue = SWITCH_OFF \
+};
