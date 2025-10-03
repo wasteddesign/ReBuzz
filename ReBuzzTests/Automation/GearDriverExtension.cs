@@ -69,11 +69,6 @@ namespace ReBuzzTests.Automation
             MachineSpecificCrashFileName(crashEffectFilePath, crashingEffect).WriteAllText(methodToCrashOn);
         }
 
-        public void SaveGeneratorConfigurationFileFor(DynamicMachineController generator, TestMachineConfig config) //bug move the def here
-        {
-
-        }
-
         /// <summary>
         /// Enables the crashing behavior for the specified generator, simulating a scenario where the generator causes a crash.
         /// </summary>

@@ -109,10 +109,8 @@ namespace ReBuzzTests.Automation
         }
 
         /// <summary>
-        /// bug
+        /// Saves a configuration file for the fake machine to consume on start
         /// </summary>
-        /// <param name="controller"></param>
-        /// <param name="config"></param>
         public void SaveMachineInitialConfiguration(DynamicMachineController controller, TestMachineConfig config)
         {
             var machineDll = fakeMachineDllScanner.GetMachineDLL(controller.Name);
