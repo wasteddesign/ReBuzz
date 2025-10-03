@@ -3,7 +3,6 @@ using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
 using ReBuzz.Core;
 using ReBuzzTests.Automation.TestMachinesControllers;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 
@@ -125,19 +124,6 @@ namespace ReBuzzTests.Automation
         private static void SaveMachineName(DynamicMachineController controller, IMachineDLL machineDll)
         {
             File.WriteAllText(machineDll.Path + ".txt", controller.InstanceName);
-        }
-    }
-
-    public record struct TestMachineConfig()
-    {
-        public ImmutableDictionary<string, string> Config = ImmutableDictionary<string, string>.Empty;
-
-        public int Latency
-        {
-            init
-            {
-                Config = Config.Add("Latency", value.ToString());
-            }
         }
     }
 }
