@@ -25,7 +25,8 @@ namespace ReBuzz.AppViews
         string buzzPath,
         IUiDispatcher dispatcher,
         IRegistryEx registryEx,
-        IKeyboard keyboard)
+        IKeyboard keyboard,
+        EngineSettings engineSettings)
     {
         internal void StartReBuzzEngineStep1(PropertyChangedEventHandler onPropertyChanged)
         {
@@ -36,7 +37,7 @@ namespace ReBuzz.AppViews
         // Native machines need a window handle.
         internal void StartReBuzzEngineStep2(IntPtr machineViewHwnd)
         {
-            var song = new SongCore(dispatcher);
+            var song = new SongCore(dispatcher, engineSettings);
             song.BuzzCore = buzz;
             buzz.SongCore = song;
 

@@ -143,7 +143,15 @@ namespace ReBuzzTests.Automation
                 crashGeneratorFilePath,
                 crashEffectFilePath);
         public RecentFilesDriverExtension RecentFiles => new(fakeRegistry);
-        public MachineGraphDriverExtension MachineGraph => new(reBuzzCore, reBuzzMachines, fakeMachineDllScanner, dispatcher, DefaultPan, DefaultAmp);
+
+        public MachineGraphDriverExtension MachineGraph => new(
+            reBuzzCore,
+            reBuzzMachines,
+            fakeMachineDllScanner,
+            dispatcher,
+            DefaultPan,
+            DefaultAmp,
+            engineSettings);
         public ReBuzzLogDriverExtension ReBuzzLog => new(inMemorySink);
 
         public Driver()
@@ -154,7 +162,7 @@ namespace ReBuzzTests.Automation
                 AccurateBPM = true,
                 EqualPowerPanning = true,
                 LowLatencyGC = true,
-                MachineDelayCompensation = false,
+                MachineDelayCompensation = true,
                 Multithreading = false,
                 PriorityProfile = PriorityProfileType.NormalAppPriority,
                 ProcessMutedMachines = false,
@@ -201,7 +209,7 @@ namespace ReBuzzTests.Automation
                 new FakeKeyboard());
             fakeMachineDllScanner.AddFakeModernPatternEditor(reBuzzCore);
             addMachineActions.ForEach(addMachine => addMachine(fakeMachineDllScanner, reBuzzCore));
-            initialization = new ReBuzzCoreInitialization(reBuzzCore, buzzPath, dispatcher, fakeRegistry, new FakeKeyboard());
+            initialization = new ReBuzzCoreInitialization(reBuzzCore, buzzPath, dispatcher, fakeRegistry, new FakeKeyboard(), engineSettings);
             initialization.StartReBuzzEngineStep1((sender, args) =>
             {
                 TestContext.Out.WriteLine($"PropertyChanged: {args.PropertyName}");

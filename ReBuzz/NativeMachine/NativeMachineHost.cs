@@ -1,4 +1,5 @@
 ﻿using BuzzGUI.Common;
+using BuzzGUI.Common.Settings;
 using ReBuzz.Common;
 using ReBuzz.Core;
 using System;
@@ -23,6 +24,7 @@ namespace ReBuzz.NativeMachine
         private ChannelListener channelListenerHost;
         private readonly string buzzPath;
         private readonly IUiDispatcher dispatcher;
+        private readonly EngineSettings engineSettings;
 
         public bool Host64 { get; private set; }
         public HostMessage HostMessage { get; private set; }
@@ -34,11 +36,16 @@ namespace ReBuzz.NativeMachine
 
         public bool IsConnected { get; set; }
 
-        public NativeMachineHost(string sharedId, string buzzPath, IUiDispatcher dispatcher)
+        public NativeMachineHost(
+            string sharedId,
+            string buzzPath,
+            IUiDispatcher dispatcher,
+            EngineSettings engineSettings)
         {
             this.sharedId = sharedId + DateTime.Now.Ticks;
             this.buzzPath = buzzPath;
             this.dispatcher = dispatcher;
+            this.engineSettings = engineSettings;
         }
 
         public void InitHost(ReBuzzCore buzz, bool host64)
@@ -53,10 +60,10 @@ namespace ReBuzz.NativeMachine
             mappedFile = MemoryMappedFile.CreateNew(sharedId, mapSize);
             accessor = mappedFile.CreateViewAccessor();
 
-            HostMessage = new HostMessage(ChannelType.HostChannel, accessor, this);
-            UIMessage = new UIMessage(ChannelType.UIChannel, accessor, this, dispatcher);
-            AudioMessage = new AudioMessage(ChannelType.AudioChannel, accessor, this);
-            MidiMessage = new MidiMessage(ChannelType.MidiChannel, accessor, this);
+            HostMessage = new HostMessage(ChannelType.HostChannel, accessor, this, engineSettings);
+            UIMessage = new UIMessage(ChannelType.UIChannel, accessor, this, dispatcher, engineSettings);
+            AudioMessage = new AudioMessage(ChannelType.AudioChannel, accessor, this, engineSettings);
+            MidiMessage = new MidiMessage(ChannelType.MidiChannel, accessor, this, engineSettings);
 
             // Host messages. Only this one listens to incoming messages from native machine.
             channelListenerHost = new ChannelListener(ChannelType.HostChannel,

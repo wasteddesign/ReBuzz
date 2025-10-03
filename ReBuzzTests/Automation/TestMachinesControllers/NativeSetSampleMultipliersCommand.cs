@@ -5,7 +5,7 @@ using System.Linq;
 namespace ReBuzzTests.Automation.TestMachinesControllers
 {
     public class NativeSetSampleMultipliersCommand(
-        FakeNativeEffectController controller,
+        DynamicMachineController controller,
         int leftMultiplier,
         int rightMultiplier) : ITestMachineInstanceCommand
     {

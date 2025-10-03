@@ -115,14 +115,14 @@ namespace ReBuzz
                 engineSettings,
                 buzzPath,
                 registryRoot,
-                new MachineDLLScanner(windowsGuiDispatcher),
+                new MachineDLLScanner(windowsGuiDispatcher, engineSettings),
                 windowsGuiDispatcher,
                 registryEx,
                 new FileNameToLoadChoiceThroughOpenFileDialog(),
                 new FileNameToSaveChoiceThroughSaveFileDialog(),
                 new UserMessagesViaMessageBox(), new WindowsKeyboard());
 
-            var reBuzzCoreInitialization = new ReBuzzCoreInitialization(Buzz, buzzPath, windowsGuiDispatcher, registryEx, new WindowsKeyboard());
+            var reBuzzCoreInitialization = new ReBuzzCoreInitialization(Buzz, buzzPath, windowsGuiDispatcher, registryEx, new WindowsKeyboard(), Global.EngineSettings);
             reBuzzCoreInitialization.StartReBuzzEngineStep1(Buzz_PropertyChanged);
 
             if (Keyboard.Modifiers == ModifierKeys.Control)
@@ -171,7 +171,7 @@ namespace ReBuzz
             reBuzzCoreInitialization.StartReBuzzEngineStep3(engineSettings, this);
 
             splashScreenWindow.UpdateText("Scan Plugin DLLs");
-            MachineDB = new MachineDatabase(buzzCore, buzzPath, windowsGuiDispatcher);
+            MachineDB = new MachineDatabase(buzzCore, buzzPath, windowsGuiDispatcher, Global.EngineSettings);
 
             reBuzzCoreInitialization.StartReBuzzEngineStep4(MachineDB,
               machineDbDatabaseEvent: (str) =>

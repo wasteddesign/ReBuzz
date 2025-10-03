@@ -1,6 +1,7 @@
 ﻿using BespokeFusion;
 using BuzzGUI.Common;
 using BuzzGUI.Common.InterfaceExtensions;
+using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
 using BuzzGUI.MachineView;
 using ReBuzz.Core;
@@ -63,6 +64,7 @@ namespace ReBuzz.FileOps
         private readonly string buzzPath;
         private readonly IUiDispatcher dispatcher;
         private readonly IKeyboard keyboard;
+        private readonly EngineSettings engineSettings;
 
         enum SectionType
         {
@@ -90,7 +92,7 @@ namespace ReBuzz.FileOps
             MGRP = 0x5052474D  // Machine groups
         }
 
-        public BMXFile(ReBuzzCore buzz, string buzzPath, IUiDispatcher dispatcher, IKeyboard keyboard)
+        public BMXFile(ReBuzzCore buzz, string buzzPath, IUiDispatcher dispatcher, IKeyboard keyboard, EngineSettings engineSettings)
         {
             this.buzz = buzz;
             machines = new List<MachineCore>();
@@ -100,6 +102,7 @@ namespace ReBuzz.FileOps
             this.buzzPath = buzzPath;
             this.dispatcher = dispatcher;
             this.keyboard = keyboard;
+            this.engineSettings = engineSettings;
         }
 
         public void Load(string path, float x = 0, float y = 0, ImportSongAction importAction = null)
@@ -756,7 +759,7 @@ namespace ReBuzz.FileOps
                         masterInputCount++;
                     }
 
-                    MachineConnectionCore connection = new MachineConnectionCore(dispatcher);
+                    MachineConnectionCore connection = new MachineConnectionCore(dispatcher, engineSettings);
                     connection.Amp = amp;
                     connection.Pan = pan;
                     connection.Source = machineFrom;
@@ -777,7 +780,7 @@ namespace ReBuzz.FileOps
                         {
                             machineTo.InputChannelCount = 1;
                         }
-                        new ConnectMachinesAction(buzz, connection, dispatcher).Do();
+                        new ConnectMachinesAction(buzz, connection, dispatcher, engineSettings).Do();
                     }
                 }
             }
@@ -1006,7 +1009,7 @@ namespace ReBuzz.FileOps
 
                     if (import && masterEditor != null)
                     {
-                        new DisconnectMachinesAction(buzz, masterEditor.AllOutputs[0], dispatcher).Do();
+                        new DisconnectMachinesAction(buzz, masterEditor.AllOutputs[0], dispatcher, engineSettings).Do();
                         buzz.RemoveMachine(masterEditor);
                     }
                 }
@@ -2446,7 +2449,7 @@ namespace ReBuzz.FileOps
             MachineCore machine = machines.FirstOrDefault(m => m.Name == name);
             if (machine == null)
             {
-                machine = new MachineCore(buzz.SongCore, buzzPath, dispatcher);
+                machine = new MachineCore(buzz.SongCore, buzzPath, dispatcher, engineSettings);
                 machine.Name = name;
                 machines.Add(machine);
             }

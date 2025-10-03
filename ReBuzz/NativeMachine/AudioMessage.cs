@@ -1,4 +1,6 @@
 ﻿using Buzz.MachineInterface;
+using BuzzGUI.Common;
+using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
 using ReBuzz.Core;
 using ReBuzz.MachineManagement;
@@ -16,7 +18,15 @@ namespace ReBuzz.NativeMachine
     {
         private readonly Lock AudioMessageLock = new();
 
-        public AudioMessage(ChannelType channel, MemoryMappedViewAccessor accessor, NativeMachineHost nativeMachineHost) : base(channel, accessor, nativeMachineHost)
+        public AudioMessage(
+            ChannelType channel,
+            MemoryMappedViewAccessor accessor,
+            NativeMachineHost nativeMachineHost, 
+            EngineSettings engineSettings) : base(
+            channel,
+            accessor,
+            nativeMachineHost,
+            engineSettings)
         {
         }
 

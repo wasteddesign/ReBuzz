@@ -1251,7 +1251,7 @@ namespace ReBuzz.Core
                 IReBuzzFile rebuzzFile = GetReBuzzFile(openFileDialog.FileName);
                 var filename = openFileDialog.FileName;
 
-                var impotAction = new ImportSongAction(this, rebuzzFile, filename, x, y, this.dispatcher);
+                var impotAction = new ImportSongAction(this, rebuzzFile, filename, x, y, this.dispatcher, engineSettings);
                 songCore.ActionStack.Do(impotAction);
             }
         }
@@ -1262,11 +1262,11 @@ namespace ReBuzz.Core
             string extension = Path.GetExtension(path);
             if (extension == ".bmx" || extension == ".bmw")
             {
-                file = new BMXFile(this, buzzPath, dispatcher, keyboard);
+                file = new BMXFile(this, buzzPath, dispatcher, keyboard, engineSettings);
             }
             else
             {
-                file = new BMXMLFile(this, buzzPath, dispatcher);
+                file = new BMXMLFile(this, buzzPath, dispatcher, engineSettings);
             }
             return file;
         }
@@ -1668,7 +1668,7 @@ namespace ReBuzz.Core
 
             // Connect editor to master
             var master = SongCore.Machines.FirstOrDefault(m => m.DLL.Info.Type == MachineType.Master);
-            new ConnectMachinesAction(this, peMachine, master, 0, 0, 0x4000, 0x4000, dispatcher).Do();
+            new ConnectMachinesAction(this, peMachine, master, 0, 0, 0x4000, 0x4000, dispatcher, engineSettings).Do();
 
             // Link machine to editor. Maybe specific call?
             MachineManager.SetPatternEditorPattern(peMachine, machineToUseEditor.Patterns.FirstOrDefault());
@@ -1897,7 +1897,7 @@ namespace ReBuzz.Core
                     // Remove connections
                     foreach (var input in machine.AllInputs.ToArray())
                     {
-                        new DisconnectMachinesAction(this, input, dispatcher).Do();
+                        new DisconnectMachinesAction(this, input, dispatcher, engineSettings).Do();
                     }
                 }
 
@@ -2066,7 +2066,7 @@ namespace ReBuzz.Core
                         // Remove connections
                         foreach (var output in currentEditorMachine.AllOutputs.ToArray())
                         {
-                            new DisconnectMachinesAction(this, output, dispatcher).Do();
+                            new DisconnectMachinesAction(this, output, dispatcher, engineSettings).Do();
                         }
 
                         //Remove and delete old pattern editor, and replace it with the new one
@@ -2141,7 +2141,7 @@ namespace ReBuzz.Core
                 var inputMachine = input.Source as MachineCore;
                 var inputConnectionCore = input as MachineConnectionCore;
                 int addLatency = 0;
-                if (Global.EngineSettings.MachineDelayCompensation)
+                if (engineSettings.MachineDelayCompensation)
                 {
                     addLatency = maxLatency - inputMachineLatency[inputMachine];
                     if (addLatency < 0) addLatency = 0;
@@ -2154,7 +2154,7 @@ namespace ReBuzz.Core
             if (machine.IsBypassed)
                 machineLatency = 0;
 
-            return Global.EngineSettings.MachineDelayCompensation ? maxLatency + machineLatency : 0;
+            return engineSettings.MachineDelayCompensation ? maxLatency + machineLatency : 0;
         }
     }
 

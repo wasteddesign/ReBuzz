@@ -1,5 +1,6 @@
 ﻿using Buzz.MachineInterface;
 using BuzzGUI.Common;
+using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
 using ReBuzz.Common;
 using System;
@@ -82,7 +83,7 @@ namespace ReBuzz.Core
                         panL = Utils.FlushDenormalToZero((float)(2.0 / Math.Sqrt(2.0) * Math.Cos(pPan)));
                         panR = Utils.FlushDenormalToZero((float)(2.0 / Math.Sqrt(2.0) * Math.Sin(pPan)));
 
-                        if (Global.EngineSettings.EqualPowerPanning)
+                        if (engineSettings.EqualPowerPanning)
                         {
                             if (Pan <= 0x4000)
                             {
@@ -154,16 +155,18 @@ namespace ReBuzz.Core
             }
         }
 
-        public MachineConnectionCore(IUiDispatcher dispatcher)
+        public MachineConnectionCore(IUiDispatcher dispatcher, EngineSettings engineSettings)
         {
             interpolatorAmp.Value = amp;
 
+            this.engineSettings = engineSettings;
             CMachineConnection = connectionHandleCounter++;
             this.dispatcher = dispatcher;
         }
 
-        public MachineConnectionCore(MachineCore source, int sourceChannel, MachineCore destination, int destinationChannel, int amp, int pan, IUiDispatcher dispatcher)
+        public MachineConnectionCore(MachineCore source, int sourceChannel, MachineCore destination, int destinationChannel, int amp, int pan, IUiDispatcher dispatcher, EngineSettings engineSettings)
         {
+            this.engineSettings = engineSettings;
             this.dispatcher = dispatcher;
             Source = source;
             this.sourceChannel = sourceChannel;
@@ -199,6 +202,8 @@ namespace ReBuzz.Core
         int latencyBufferReadPos = 0;
         int latencyBufferWritePos = 0;
         private readonly IUiDispatcher dispatcher;
+        private readonly EngineSettings engineSettings;
+
         public Sample[] Buffer { get
             {
                 return buffer;

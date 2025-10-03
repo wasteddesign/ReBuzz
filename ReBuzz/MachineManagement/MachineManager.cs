@@ -88,7 +88,7 @@ namespace ReBuzz.MachineManagement
             // Removed this lock. Uncomment if ReBuzz goes weird
             //lock (ReBuzzCore.AudioLock)
             {
-                MachineCore machine = new MachineCore(song, buzzPath, dispatcher);
+                MachineCore machine = new MachineCore(song, buzzPath, dispatcher, engineSettings);
                 machine.InstrumentName = instrument;
                 machine.Position = new Tuple<float, float>(x, y);
                 machine.Hidden = hidden;
@@ -209,7 +209,7 @@ namespace ReBuzz.MachineManagement
                 {
                     if (nativeMachineHostSingleProcess64 == null)
                     {
-                        nativeMachineHostSingleProcess64 = new NativeMachineHost("ReBuzzConnectID", buzzPath, dispatcher);
+                        nativeMachineHostSingleProcess64 = new NativeMachineHost("ReBuzzConnectID", buzzPath, dispatcher, engineSettings);
                         nativeMachineHostSingleProcess64.InitHost(Buzz, machine.MachineDLL.Is64Bit);
                     }
                     nativeMachineHost = nativeMachineHostSingleProcess64;
@@ -218,7 +218,7 @@ namespace ReBuzz.MachineManagement
                 {
                     if (nativeMachineHostSingleProcess32 == null)
                     {
-                        nativeMachineHostSingleProcess32 = new NativeMachineHost("ReBuzzConnectID", buzzPath, dispatcher);
+                        nativeMachineHostSingleProcess32 = new NativeMachineHost("ReBuzzConnectID", buzzPath, dispatcher, engineSettings);
                         nativeMachineHostSingleProcess32.InitHost(Buzz, machine.MachineDLL.Is64Bit);
                     }
                     nativeMachineHost = nativeMachineHostSingleProcess32;
@@ -226,7 +226,7 @@ namespace ReBuzz.MachineManagement
             }
             else
             {
-                nativeMachineHost = new NativeMachineHost("ReBuzzConnectID", buzzPath, dispatcher);
+                nativeMachineHost = new NativeMachineHost("ReBuzzConnectID", buzzPath, dispatcher, engineSettings);
                 nativeMachineHost.InitHost(Buzz, machine.MachineDLL.Is64Bit);
             }
 
@@ -380,7 +380,7 @@ namespace ReBuzz.MachineManagement
                 {
                     if (nativeMachineHostSingleProcess64 == null)
                     {
-                        nativeMachineHostSingleProcess64 = new NativeMachineHost("ReBuzzConnectID", buzzPath, dispatcher);
+                        nativeMachineHostSingleProcess64 = new NativeMachineHost("ReBuzzConnectID", buzzPath, dispatcher, engineSettings);
                         nativeMachineHostSingleProcess64.InitHost(Buzz, machine.MachineDLL.Is64Bit);
                     }
                     nativeMachineHost = nativeMachineHostSingleProcess64;
@@ -389,7 +389,7 @@ namespace ReBuzz.MachineManagement
                 {
                     if (nativeMachineHostSingleProcess32 == null)
                     {
-                        nativeMachineHostSingleProcess32 = new NativeMachineHost("ReBuzzConnectID", buzzPath, dispatcher);
+                        nativeMachineHostSingleProcess32 = new NativeMachineHost("ReBuzzConnectID", buzzPath, dispatcher, engineSettings);
                         nativeMachineHostSingleProcess32.InitHost(Buzz, machine.MachineDLL.Is64Bit);
                     }
                     nativeMachineHost = nativeMachineHostSingleProcess32;
@@ -397,7 +397,7 @@ namespace ReBuzz.MachineManagement
             }
             else
             {
-                nativeMachineHost = new NativeMachineHost("ReBuzzConnectID", buzzPath, dispatcher);
+                nativeMachineHost = new NativeMachineHost("ReBuzzConnectID", buzzPath, dispatcher, engineSettings);
                 nativeMachineHost.InitHost(Buzz, machine.MachineDLL.Is64Bit);
             }
 
@@ -499,7 +499,7 @@ namespace ReBuzz.MachineManagement
 
         public MachineCore GetMaster(IBuzz buzz)
         {
-            MachineCore machine = new MachineCore(song, buzzPath, dispatcher);
+            MachineCore machine = new MachineCore(song, buzzPath, dispatcher, engineSettings);
             machine.Name = "Master";
             machine.InputChannelCount = 1;
             machine.OutputChannelCount = 0;

@@ -1,4 +1,6 @@
-﻿using BuzzGUI.Common.Actions;
+﻿using BuzzGUI.Common;
+using BuzzGUI.Common.Actions;
+using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
 using Microsoft.Win32;
 using ReBuzz.Common;
@@ -22,8 +24,16 @@ namespace ReBuzz.Core.Actions.GraphActions
         private List<MachineGroupCore> machineGroups = new List<MachineGroupCore>();
         private List<int> waveIndexes = new List<int>();
         private readonly IUiDispatcher dispatcher;
+        private readonly EngineSettings engineSettings;
 
-        internal ImportSongAction(ReBuzzCore buzz, IReBuzzFile bmxFile, string file, float x, float y, IUiDispatcher dispatcher)
+        internal ImportSongAction(
+            ReBuzzCore buzz,
+            IReBuzzFile bmxFile,
+            string file,
+            float x,
+            float y,
+            IUiDispatcher dispatcher,
+            EngineSettings engineSettings)
         {
             this.buzz = buzz;
             this.x = x;
@@ -31,6 +41,7 @@ namespace ReBuzz.Core.Actions.GraphActions
             this.filename = file;
             this.bmxFile = bmxFile;
             this.dispatcher = dispatcher;
+            this.engineSettings = engineSettings;
         }
 
         protected override void DoAction()
@@ -76,7 +87,7 @@ namespace ReBuzz.Core.Actions.GraphActions
                 foreach (var output in machine.AllOutputs.ToArray())
                 {
                     if (output.Destination.DLL.Info.Type == MachineType.Master)
-                        new DisconnectMachinesAction(buzz, output, dispatcher).Do();
+                        new DisconnectMachinesAction(buzz, output, dispatcher, engineSettings).Do();
                 }
 
                 buzz.RemoveMachine(machine);

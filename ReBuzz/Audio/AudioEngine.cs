@@ -87,7 +87,7 @@ namespace ReBuzz.Audio
                 int bufferSize = registryEx.Read("BufferSize", 2048, "ASIO");
                 int sampleRate = registryEx.Read("SampleRate", 44100, "ASIO");
                 //AudioProvider = new AudioProvider(buzzCore, machineManager, sampleRate, 2, bufferSize, true);
-                AudioWaveProvider = new AudioWaveProvider(buzzCore, sampleRate, asioOut.DriverOutputChannelCount, bufferSize, true, registryEx);
+                AudioWaveProvider = new AudioWaveProvider(buzzCore, sampleRate, asioOut.DriverOutputChannelCount, bufferSize, true, registryEx, engineSettings);
 
                 //asioOut.Init(AudioProvider);
                 asioOut.InitRecordAndPlayback(AudioWaveProvider, 2, sampleRate);
