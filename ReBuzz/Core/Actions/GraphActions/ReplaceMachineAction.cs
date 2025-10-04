@@ -1,4 +1,6 @@
-﻿using BuzzGUI.Common.Actions;
+﻿using BuzzGUI.Common;
+using BuzzGUI.Common.Actions;
+using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -18,11 +20,13 @@ namespace ReBuzz.Core.Actions.GraphActions
         private readonly bool swapInstrument;
         private readonly string newInstrument;
         private readonly IUiDispatcher dispatcher;
+        private readonly EngineSettings engineSettings;
 
-        public ReplaceMachineAction(ReBuzzCore buzz, IMachine m, int id, float x, float y, IUiDispatcher dispatcher)
+        public ReplaceMachineAction(ReBuzzCore buzz, IMachine m, int id, float x, float y, IUiDispatcher dispatcher, EngineSettings engineSettings)
         {
             this.buzz = buzz;
             this.dispatcher = dispatcher;
+            this.engineSettings = engineSettings;
 
             var MachineDB = buzz.MachineDB;
             var MachineDLLs = buzz.MachineDLLs;
@@ -39,7 +43,7 @@ namespace ReBuzz.Core.Actions.GraphActions
                 else
                 {
                     string peName = m.PatternEditorDLL != null ? m.PatternEditorDLL.Name : null;
-                    deleteMachinesAction = new DeleteMachinesAction(buzz, new List<IMachine>() { m }, this.dispatcher);
+                    deleteMachinesAction = new DeleteMachinesAction(buzz, new List<IMachine>() { m }, this.dispatcher, this.engineSettings);
                     createMachinesAction = new CreateMachineAction(buzz, MachineDll.Name, instInfo.InstrumentName, null, null, peName, null, m.TrackCount, m.Position.Item1, m.Position.Item2);
                 }
             }
@@ -61,9 +65,18 @@ namespace ReBuzz.Core.Actions.GraphActions
             SaveConnections(machineCore, machineInfo);
         }
 
-        public ReplaceMachineAction(ReBuzzCore buzz, IMachine m, string machine, string instrument, float x, float y, IUiDispatcher dispatcher)
+        public ReplaceMachineAction(
+            ReBuzzCore buzz,
+            IMachine m,
+            string machine,
+            string instrument,
+            float x,
+            float y,
+            IUiDispatcher dispatcher,
+            EngineSettings engineSettings)
         {
             this.dispatcher = dispatcher;
+            this.engineSettings = engineSettings;
             this.buzz = buzz;
             var newMachine = buzz.MachineDLLs[machine];
             if (newMachine.Name == m.DLL.Name && instrument != null && instrument != "")
@@ -75,7 +88,7 @@ namespace ReBuzz.Core.Actions.GraphActions
             {
                 string peName = m.PatternEditorDLL != null ? m.PatternEditorDLL.Name : null;
                 // Delete machine action saves patterns and editor data
-                deleteMachinesAction = new DeleteMachinesAction(buzz, new List<IMachine>() { m }, this.dispatcher);
+                deleteMachinesAction = new DeleteMachinesAction(buzz, new List<IMachine>() { m }, this.dispatcher, this.engineSettings);
                 createMachinesAction = new CreateMachineAction(buzz, machine, instrument, null, null, peName, null, m.TrackCount, m.Position.Item1, m.Position.Item2);
             }
 
@@ -152,7 +165,7 @@ namespace ReBuzz.Core.Actions.GraphActions
 
                         lock (ReBuzzCore.AudioLock)
                         {
-                            new DeleteMachinesAction(buzz, new List<IMachine>() { machine }, this.dispatcher).Do();
+                            new DeleteMachinesAction(buzz, new List<IMachine>() { machine }, this.dispatcher, engineSettings).Do();
                             new CreateMachineAction(buzz, dllName, newInstrument, oldMachineName, null, editorDLLName, editorData, tracks, x, y).Do();
                         }
 
@@ -189,14 +202,14 @@ namespace ReBuzz.Core.Actions.GraphActions
                         foreach (var cma in machineInfo.connections.Where(c => c.Destination == machineInfo.Name))
                         {
                             var src = buzz.Song.Machines.FirstOrDefault(m => m.Name == cma.Source);
-                            new ConnectMachinesAction(buzz, src, machine, 0, 0, cma.Amp, cma.Pan, dispatcher).Do();
+                            new ConnectMachinesAction(buzz, src, machine, 0, 0, cma.Amp, cma.Pan, dispatcher, engineSettings).Do();
                         }
 
                         // reconnect outputs
                         foreach (var cma in machineInfo.connections.Where(c => c.Source == machineInfo.Name))
                         {
                             var dst = buzz.Song.Machines.FirstOrDefault(m => m.Name == cma.Destination);
-                            new ConnectMachinesAction(buzz, machine, dst, 0, 0, cma.Amp, cma.Pan, dispatcher).Do();
+                            new ConnectMachinesAction(buzz, machine, dst, 0, 0, cma.Amp, cma.Pan, dispatcher, engineSettings).Do();
                         }
 
                         buzz.RenameMachine(newMachine as MachineCore, nameAfterCreation);
@@ -262,14 +275,14 @@ namespace ReBuzz.Core.Actions.GraphActions
                 foreach (var cma in machineInfo.connections.Where(c => c.Destination == machineInfo.Name))
                 {
                     var src = buzz.Song.Machines.FirstOrDefault(m => m.Name == cma.Source);
-                    new ConnectMachinesAction(buzz, src, machine, 0, 0, cma.Amp, cma.Pan, dispatcher).Do();
+                    new ConnectMachinesAction(buzz, src, machine, 0, 0, cma.Amp, cma.Pan, dispatcher, engineSettings).Do();
                 }
 
                 // reconnect outputs
                 foreach (var cma in machineInfo.connections.Where(c => c.Source == machineInfo.Name))
                 {
                     var dst = buzz.Song.Machines.FirstOrDefault(m => m.Name == cma.Destination);
-                    new ConnectMachinesAction(buzz, machine, dst, 0, 0, cma.Amp, cma.Pan, dispatcher).Do();
+                    new ConnectMachinesAction(buzz, machine, dst, 0, 0, cma.Amp, cma.Pan, dispatcher, engineSettings).Do();
                 }
             }
         }
@@ -297,14 +310,14 @@ namespace ReBuzz.Core.Actions.GraphActions
                 foreach (var cma in machineInfo.connections.Where(c => c.Destination == machineInfo.Name))
                 {
                     var src = buzz.Song.Machines.FirstOrDefault(m => m.Name == cma.Source);
-                    new DisconnectMachinesAction(buzz, src, machine, cma.SourceChannel, cma.DestinationChannel, cma.Amp, cma.Pan, dispatcher).Do();
+                    new DisconnectMachinesAction(buzz, src, machine, cma.SourceChannel, cma.DestinationChannel, cma.Amp, cma.Pan, dispatcher, engineSettings).Do();
                 }
 
                 // Disconnect outputs
                 foreach (var cma in machineInfo.connections.Where(c => c.Source == machineInfo.Name))
                 {
                     var dst = buzz.Song.Machines.FirstOrDefault(m => m.Name == cma.Destination);
-                    new DisconnectMachinesAction(buzz, machine, dst, cma.SourceChannel, cma.DestinationChannel, cma.Amp, cma.Pan, dispatcher).Do();
+                    new DisconnectMachinesAction(buzz, machine, dst, cma.SourceChannel, cma.DestinationChannel, cma.Amp, cma.Pan, dispatcher, engineSettings).Do();
                 }
                 createMachinesAction.Undo();
                 deleteMachinesAction.Undo();

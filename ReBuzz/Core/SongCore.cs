@@ -1,4 +1,5 @@
 ﻿using BuzzGUI.Common;
+using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
 using BuzzGUI.MachineView;
 using ReBuzz.Common;
@@ -176,9 +177,10 @@ namespace ReBuzz.Core
         public event Action<int, ISequence> SequenceRemoved;
         public event Action<int, ISequence> SequenceChanged;
 
-        public SongCore(IUiDispatcher dispatcher)
+        public SongCore(IUiDispatcher dispatcher, EngineSettings engineSettings)
         {
             this.dispatcher = dispatcher;
+            this.engineSettings = engineSettings;
         }
 
         public void AddSequence(IMachine m, int index)
@@ -252,6 +254,7 @@ namespace ReBuzz.Core
         private IDictionary<string, string> importDictionary;
 
         private readonly IUiDispatcher dispatcher;
+        private readonly EngineSettings engineSettings;
         //internal Dictionary<MachineCore, MachineInitData> DictInitData = new Dictionary<MachineCore, MachineInitData>();
         //private bool initImportDone;
 
@@ -311,12 +314,22 @@ namespace ReBuzz.Core
                 // Call native machine init before connecting
                 //InitImport();
             }
-            Do(new ConnectMachinesAction(reBuzzCore, src, dst, srcchn, dstchn, amp, pan, dispatcher));
+            Do(new ConnectMachinesAction(reBuzzCore, src, dst, srcchn, dstchn, amp, pan, dispatcher, engineSettings));
         }
 
         internal void ConnectMachines(MachineConnectionCore mcc)
         {
-            Do(new ConnectMachinesAction(reBuzzCore, mcc.Source, mcc.Destination, mcc.SourceChannel, mcc.DestinationChannel, mcc.Amp, mcc.Pan, dispatcher));
+            Do(
+                new ConnectMachinesAction(
+                    reBuzzCore,
+                    mcc.Source,
+                    mcc.Destination,
+                    mcc.SourceChannel,
+                    mcc.DestinationChannel,
+                    mcc.Amp,
+                    mcc.Pan,
+                    dispatcher,
+                    engineSettings));
         }
 
         public void CreateMachine(int id, float x, float y)
@@ -337,13 +350,13 @@ namespace ReBuzz.Core
             var dm = m.Where(machine => machine.DLL.Info.Type != MachineType.Master);
             if (dm.Count() > 0)
             {
-                Do(new DeleteMachinesAction(reBuzzCore, dm, dispatcher));
+                Do(new DeleteMachinesAction(reBuzzCore, dm, dispatcher, engineSettings));
             }
         }
 
         public void DisconnectMachines(IMachineConnection mc)
         {
-            Do(new DisconnectMachinesAction(reBuzzCore, mc, dispatcher));
+            Do(new DisconnectMachinesAction(reBuzzCore, mc, dispatcher, engineSettings));
         }
 
         public void Do(IAction a)
@@ -415,12 +428,12 @@ namespace ReBuzz.Core
 
         public void InsertMachine(IMachineConnection m, int id, float x, float y)
         {
-            Do(new InsertMachineAction(BuzzCore, m, id, x, y, dispatcher));
+            Do(new InsertMachineAction(BuzzCore, m, id, x, y, dispatcher, engineSettings));
         }
 
         public void InsertMachine(IMachineConnection m, string machineName, string instrument, float x, float y)
         {
-            Do(new InsertMachineAction(BuzzCore, m, machineName, instrument, x, y, dispatcher));
+            Do(new InsertMachineAction(BuzzCore, m, machineName, instrument, x, y, dispatcher, engineSettings));
         }
 
         public void MoveMachines(IEnumerable<Tuple<IMachine, Tuple<float, float>>> mm)
@@ -441,12 +454,12 @@ namespace ReBuzz.Core
 
         public void ReplaceMachine(IMachine m, int id, float x, float y)
         {
-            Do(new ReplaceMachineAction(reBuzzCore, m, id, x, y, dispatcher));
+            Do(new ReplaceMachineAction(reBuzzCore, m, id, x, y, dispatcher, engineSettings));
         }
 
         public void ReplaceMachine(IMachine m, string machine, string instrument, float x, float y)
         {
-            Do(new ReplaceMachineAction(reBuzzCore, m, machine, instrument, x, y, dispatcher));
+            Do(new ReplaceMachineAction(reBuzzCore, m, machine, instrument, x, y, dispatcher, engineSettings));
         }
 
         public void SetConnectionChannel(IMachineConnection mc, bool destination, int channel)

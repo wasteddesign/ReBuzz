@@ -1,4 +1,5 @@
 ﻿using BuzzGUI.Common;
+using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
 using ReBuzz.Core;
 using System;
@@ -35,6 +36,7 @@ namespace ReBuzz.FileOps
         NativeMachine.NativeMachineHost nativeMachineHost64;
         private string buzzPath;
         private readonly IUiDispatcher dispatcher;
+        private readonly EngineSettings engineSettings;
 
         private MenuItemCore IndexMenu { get; set; }
 
@@ -42,9 +44,10 @@ namespace ReBuzz.FileOps
 
         public Dictionary<int, InstrumentInfo> DictLibRef { get; set; }
 
-        public MachineDatabase(ReBuzzCore buzz, string buzzPath, IUiDispatcher dispatcher)
+        public MachineDatabase(ReBuzzCore buzz, string buzzPath, IUiDispatcher dispatcher, EngineSettings engineSettings)
         {
             this.buzz = buzz;
+            this.engineSettings = engineSettings;
             DictLibRef = new Dictionary<int, InstrumentInfo>();
             IndexMenu = new MenuItemCore();
             this.buzzPath = buzzPath;
@@ -56,10 +59,10 @@ namespace ReBuzz.FileOps
             string filepath = Path.Combine(buzzPath, @"gear\index.txt");
             try
             {
-                nativeMachineHost = new NativeMachine.NativeMachineHost("Index", buzzPath, dispatcher);
+                nativeMachineHost = new NativeMachine.NativeMachineHost("Index", buzzPath, dispatcher, engineSettings);
                 nativeMachineHost.InitHost(buzz, false); // 32 bit
 
-                nativeMachineHost64 = new NativeMachine.NativeMachineHost("Index64", buzzPath, dispatcher);
+                nativeMachineHost64 = new NativeMachine.NativeMachineHost("Index64", buzzPath, dispatcher, engineSettings);
                 nativeMachineHost64.InitHost(buzz, true); // 64 bit
 
                 IndexMenu = ParseMenu(filepath);
@@ -219,16 +222,15 @@ namespace ReBuzz.FileOps
 
         private int AddLoaderMenus(string loaderLib, string loaderDisplayName, MenuItemCore menuPos, int paramID)
         {
-            if (buzz.MachineDLLs.ContainsKey(loaderLib))
+            if (buzz.MachineDLLs.TryGetValue(loaderLib, out IMachineDLL machineDll))
             {
-                var machineDll = buzz.MachineDLLs[loaderLib];
                 DatabaseEvent.Invoke(machineDll.Name);
                 var mInfo = machineDll.Info;
                 if (mInfo.Flags.HasFlag(MachineInfoFlags.USES_INSTRUMENTS))
                 {
                     bool is64Bit = (machineDll as MachineDLL).Is64Bit;
                     var uiMessage = is64Bit ? nativeMachineHost64.UIMessage : nativeMachineHost.UIMessage;
-                    var machine = new MachineCore(buzz.SongCore, buzzPath, dispatcher, is64Bit);
+                    var machine = new MachineCore(buzz.SongCore, buzzPath, dispatcher, engineSettings, is64Bit);
                     if (!uiMessage.UILoadLibrarySync(buzz, machine, loaderLib, machineDll.Path))
                     {
                         buzz.DCWriteLine("Error loading machine: " + loaderLib, DCLogLevel.Error);

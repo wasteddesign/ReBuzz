@@ -2,6 +2,7 @@
 using BuzzGUI.Common;
 using BuzzGUI.Common.DSP;
 using BuzzGUI.Common.InterfaceExtensions;
+using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
 using ReBuzz.Core;
 using ReBuzz.Core.Actions.GraphActions;
@@ -35,13 +36,15 @@ namespace ReBuzz.FileOps
         List<MachineCore> machines;
         private readonly string buzzPath;
         private readonly IUiDispatcher dispatcher;
+        private readonly EngineSettings engineSettings;
 
-        public BMXMLFile(ReBuzzCore buzz, string buzzPath, IUiDispatcher dispatcher)
+        public BMXMLFile(ReBuzzCore buzz, string buzzPath, IUiDispatcher dispatcher, EngineSettings engineSettings)
         {
             this.buzzPath = buzzPath;
             this.buzz = buzz;
             machines = new List<MachineCore>();
             this.dispatcher = dispatcher;
+            this.engineSettings = engineSettings;
         }
 
         void FileOpsEvent(FileEventType type, string text, object o = null)
@@ -169,7 +172,7 @@ namespace ReBuzz.FileOps
                 int tracks = machineData.ParameterGroups[2].TrackCount;
 
                 MachineDLL machineDLL = new MachineDLL();
-                MachineCore machineProto = new MachineCore(buzz.SongCore, buzzPath, dispatcher);
+                MachineCore machineProto = new MachineCore(buzz.SongCore, buzzPath, dispatcher, engineSettings);
                 string name = XmlConvert.DecodeName(machineData.Name);
                 if (Encoding.ASCII.GetBytes(name)[0] == 1)
                 {
@@ -344,7 +347,7 @@ namespace ReBuzz.FileOps
                 if (machineFrom == null || machineTo == null)
                     continue;
 
-                MachineConnectionCore connection = new MachineConnectionCore(dispatcher);
+                MachineConnectionCore connection = new MachineConnectionCore(dispatcher, engineSettings);
                 connection.Amp = cData.Amp;
                 connection.Pan = cData.Pan;
                 connection.SourceChannel = cData.SourceChannel;
@@ -365,7 +368,7 @@ namespace ReBuzz.FileOps
                     {
                         machineTo.InputChannelCount = 1;
                     }
-                    new ConnectMachinesAction(buzz, connection, dispatcher).Do();
+                    new ConnectMachinesAction(buzz, connection, dispatcher, engineSettings).Do();
                 }
             }
 

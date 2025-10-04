@@ -1,4 +1,5 @@
 ﻿using BuzzGUI.Common;
+using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
 using ReBuzz.Core;
 using ReBuzz.MachineManagement;
@@ -20,7 +21,16 @@ namespace ReBuzz.NativeMachine
         private readonly Lock UIMessageLock = new();
         private readonly IUiDispatcher dispatcher;
 
-        public UIMessage(ChannelType channel, MemoryMappedViewAccessor accessor, NativeMachineHost nativeMachineHost, IUiDispatcher dispatcher) : base(channel, accessor, nativeMachineHost)
+        public UIMessage(
+            ChannelType channel,
+            MemoryMappedViewAccessor accessor,
+            NativeMachineHost nativeMachineHost,
+            IUiDispatcher dispatcher, 
+            EngineSettings engineSettings) : base(
+            channel,
+            accessor,
+            nativeMachineHost,
+            engineSettings)
         {
             this.dispatcher = dispatcher;
         }

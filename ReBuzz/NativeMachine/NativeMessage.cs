@@ -1,5 +1,6 @@
 ﻿using Buzz.MachineInterface;
 using BuzzGUI.Common;
+using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
 using ReBuzz.Audio;
 using ReBuzz.Common;
@@ -70,8 +71,13 @@ namespace ReBuzz.NativeMachine
 
         public abstract event EventHandler<EventArgs> MessageEvent;
 
-        public unsafe NativeMessage(ChannelType channel, MemoryMappedViewAccessor accessor, NativeMachineHost nativeMachineHost)
+        public unsafe NativeMessage(
+            ChannelType channel,
+            MemoryMappedViewAccessor accessor,
+            NativeMachineHost nativeMachineHost,
+            EngineSettings engineSettings)
         {
+            this.engineSettings = engineSettings;
             Channel = channel;
             Accessor = accessor;
             NativeHost = nativeMachineHost;
@@ -713,11 +719,11 @@ namespace ReBuzz.NativeMachine
                             }
                             else if (option == "Accurate BPM")
                             {
-                                result = Global.EngineSettings.AccurateBPM;
+                                result = engineSettings.AccurateBPM;
                             }
                             else if (option == "SubTick Timing")
                             {
-                                result = Global.EngineSettings.SubTickTiming;
+                                result = engineSettings.SubTickTiming;
                             }
                             Reset();
                             SetMessageData(result);
@@ -1211,6 +1217,7 @@ namespace ReBuzz.NativeMachine
         readonly byte[] intArray = new byte[4];
         readonly byte[] longArray = new byte[8];
         readonly byte[] longlongArray = new byte[16];
+        private readonly EngineSettings engineSettings;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         byte[] GetArray(int size)

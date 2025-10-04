@@ -1,7 +1,10 @@
+using BuzzGUI.Common;
+using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
 using ReBuzz.Core;
 using ReBuzzTests.Automation.TestMachinesControllers;
 using System.IO;
+using System.Linq;
 
 namespace ReBuzzTests.Automation
 {
@@ -13,12 +16,16 @@ namespace ReBuzzTests.Automation
         private readonly FakeDispatcher dispatcher;
         private readonly int defaultPan;
         private readonly int defaultAmp;
+        private readonly EngineSettings engineSettings;
 
         internal MachineGraphDriverExtension(
             ReBuzzCore reBuzzCore,
             ReBuzzMachines reBuzzMachines,
             FakeMachineDLLScanner fakeMachineDllScanner,
-            FakeDispatcher dispatcher, int defaultPan, int defaultAmp)
+            FakeDispatcher dispatcher,
+            int defaultPan,
+            int defaultAmp,
+            EngineSettings engineSettings)
         {
             this.reBuzzCore = reBuzzCore;
             this.reBuzzMachines = reBuzzMachines;
@@ -26,12 +33,13 @@ namespace ReBuzzTests.Automation
             this.dispatcher = dispatcher;
             this.defaultPan = defaultPan;
             this.defaultAmp = defaultAmp;
+            this.engineSettings = engineSettings;
         }
 
         public void InsertMachineInstanceFor(DynamicMachineController controller)
         {
             var machineDll = fakeMachineDllScanner.GetMachineDLL(controller.Name);
-            File.WriteAllText(machineDll.Path + ".txt", controller.InstanceName);
+            SaveMachineName(controller, machineDll);
             CreateInstrument(machineDll, controller.InstanceName);
             reBuzzMachines.StoreSongCoreMachine(controller.InstanceName);
         }
@@ -85,7 +93,8 @@ namespace ReBuzzTests.Automation
                 0,
                 defaultAmp,
                 defaultPan,
-                dispatcher));
+                dispatcher,
+                engineSettings));
         }
 
         private void DisconnectFromMaster(MachineCore instance)
@@ -96,6 +105,25 @@ namespace ReBuzzTests.Automation
         public void ExecuteMachineCommand(ITestMachineInstanceCommand command)
         {
             command.Execute(reBuzzCore, reBuzzMachines);
+        }
+
+        /// <summary>
+        /// Saves a configuration file for the fake machine to consume on start
+        /// </summary>
+        public void SaveMachineInitialConfiguration(DynamicMachineController controller, TestMachineConfig config)
+        {
+            var machineDll = fakeMachineDllScanner.GetMachineDLL(controller.Name);
+            File.WriteAllLines(
+                machineDll.Path + "_" + controller.InstanceName + ".config",
+                config.Config.Select(kv => kv.Key + "=" + kv.Value));
+        }
+
+        /// <summary>
+        /// This is a workaround so that a test machine instance can know its name since before the Init() is called
+        /// </summary>
+        private static void SaveMachineName(DynamicMachineController controller, IMachineDLL machineDll)
+        {
+            File.WriteAllText(machineDll.Path + ".txt", controller.InstanceName);
         }
     }
 }

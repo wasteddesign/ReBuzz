@@ -1,5 +1,6 @@
 ﻿using Buzz.MachineInterface;
 using BuzzGUI.Common;
+using BuzzGUI.Common.Settings;
 using BuzzGUI.Common.Templates;
 using BuzzGUI.Interfaces;
 using BuzzGUI.MachineView;
@@ -319,7 +320,7 @@ namespace ReBuzz.Core
             set
             {
                 latency = value;
-                if (Global.EngineSettings.MachineDelayCompensation)
+                if (engineSettings.MachineDelayCompensation)
                 {
                     var bc = graph.Buzz as ReBuzzCore;
                     bc.UpdateMachineDelayCompensation();
@@ -333,7 +334,7 @@ namespace ReBuzz.Core
             set
             {
                 overrideLatency = Math.Min(value, 10000);
-                if (Global.EngineSettings.MachineDelayCompensation)
+                if (engineSettings.MachineDelayCompensation)
                 {
                     var bc = graph.Buzz as ReBuzzCore;
                     bc.UpdateMachineDelayCompensation();
@@ -484,8 +485,9 @@ namespace ReBuzz.Core
         public bool Hidden { get; internal set; }
         public MachineCore EditorMachine { get; internal set; }
 
-        public MachineCore(SongCore machineGraph, string buzzPath, IUiDispatcher dispatcher, bool is64Bit = false)
+        public MachineCore(SongCore machineGraph, string buzzPath, IUiDispatcher dispatcher, EngineSettings settings, bool is64Bit = false)
         {
+            engineSettings = settings;
             this.buzzPath = buzzPath;
             graph = machineGraph;
 
@@ -1347,6 +1349,7 @@ namespace ReBuzz.Core
         internal int oversampleFactorOnTick = 1;    // Changes value on Tick
         private readonly string buzzPath;
         private readonly IUiDispatcher dispatcher;
+        private readonly EngineSettings engineSettings;
 
         internal void SetMachineTrackCount(int trackCount)
         {

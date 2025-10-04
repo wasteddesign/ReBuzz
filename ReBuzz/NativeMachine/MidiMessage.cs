@@ -1,4 +1,6 @@
-﻿using ReBuzz.Core;
+﻿using BuzzGUI.Common;
+using BuzzGUI.Common.Settings;
+using ReBuzz.Core;
 using System;
 using System.IO.MemoryMappedFiles;
 using System.Threading;
@@ -9,7 +11,15 @@ namespace ReBuzz.NativeMachine
     {
         internal readonly Lock MidiLock = new();
 
-        public MidiMessage(ChannelType channel, MemoryMappedViewAccessor accessor, NativeMachineHost nativeMachineHost) : base(channel, accessor, nativeMachineHost)
+        public MidiMessage(
+            ChannelType channel,
+            MemoryMappedViewAccessor accessor,
+            NativeMachineHost nativeMachineHost,
+            EngineSettings engineSettings) : base(
+            channel,
+            accessor,
+            nativeMachineHost,
+            engineSettings)
         {
         }
 
