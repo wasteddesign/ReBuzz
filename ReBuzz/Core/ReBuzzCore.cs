@@ -2156,6 +2156,16 @@ namespace ReBuzz.Core
 
             return engineSettings.MachineDelayCompensation ? maxLatency + machineLatency : 0;
         }
+
+        public string GetInfoText()
+        {
+            return InfoText;
+        }
+
+        public void SetInfoText(string text)
+        {
+            InfoText = text;
+        }
     }
 
     public class MasterInfoExtended : MasterInfo

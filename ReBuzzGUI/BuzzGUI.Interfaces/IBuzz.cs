@@ -121,5 +121,8 @@ namespace BuzzGUI.Interfaces
         XElement GetModuleProfileInts(string modname);
         XElement GetModuleProfileBinary(string modname);
         XElement GetModuleProfileStrings(string modname);
+
+        string GetInfoText();
+        void SetInfoText(string text);
     }
 }
