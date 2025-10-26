@@ -160,7 +160,7 @@
             <ScrollViewer Name="sv" HorizontalScrollBarVisibility="Visible"  VerticalScrollBarVisibility="Visible" Focusable="False">
                 <Grid Name="grid" Style="{StaticResource BackgroundGridStyle}" Focusable="True" AllowDrop="True">
                     <Canvas Name="containerCanvas">
-                            <Rectangle RadiusX="9" RadiusY="9" Fill="Transparent" Stroke="White" StrokeDashArray="8,4" Opacity="0.5" Height="100" Width="200"/>
+                            
                         <Canvas Name="connectionCanvas"/>
                         <l:MachineCanvas x:Name="machineCanvas" CanvasSize="2"/>
                     </Canvas>

@@ -1,5 +1,6 @@
 ﻿using BuzzGUI.Common;
 using ReBuzz.Core;
+using System;
 using System.Threading;
 
 namespace ReBuzz.NativeMachine
@@ -62,15 +63,22 @@ namespace ReBuzz.NativeMachine
 
         public void StopAndJoin()
         {
-            Stop();
-
-            if (threadPing != null && threadPing.IsAlive)
+            try
             {
-                threadPing.Join();
-            }
+                Stop();
 
-            WaitHandlePing.Dispose();
-            WaitHandlePong.Dispose();
+                if (threadPing != null && threadPing.IsAlive)
+                {
+                    threadPing.Join();
+                }
+
+                WaitHandlePing.Dispose();
+                WaitHandlePong.Dispose();
+            }
+            catch (Exception e)
+            {
+                buzz.DCWriteLine(e.ToString());
+            }
         }
 
         internal void WaitHandlePongWaitOne()

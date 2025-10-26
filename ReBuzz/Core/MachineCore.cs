@@ -604,6 +604,8 @@ namespace ReBuzz.Core
                         (sequence as SequenceCore).InvokeEvents();
                     }
                 }
+
+                (graph.Buzz as ReBuzzCore).SetModifiedFlag();
             }
         }
 

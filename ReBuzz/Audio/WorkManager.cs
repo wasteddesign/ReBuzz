@@ -366,44 +366,7 @@ namespace ReBuzz.Audio
         }
 
         readonly List<Task> tickTasks = new List<Task>();
-
-        internal void CallTickMultiThread()
-        {
-            foreach (var machine in buzzCore.SongCore.MachinesList)
-            {
-                // Tick should be inexpensive operation so no tasks?
-                // Some old machines don't support subtick
-                if (machine.IsControlMachine && ReBuzzCore.masterInfo.PosInTick == 0 ||
-                    (engineSettings.SubTickTiming && ReBuzzCore.subTickInfo.PosInSubTick == 0 && machine.DLL.Info.Version > MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_42))
-                {
-                    var t = AudioEngine.TaskFactoryAudio.StartNew(() =>
-                    {
-                        var workInstance = buzzCore.MachineManager.GetMachineWorkInstance(machine);
-                        workInstance.Tick(false, false);
-                    });
-                    tickTasks.Add(t);
-                }
-            }
-            Task.WaitAll(tickTasks.ToArray());
-            tickTasks.Clear();
-
-            foreach (var machine in buzzCore.SongCore.MachinesList)
-            {
-                if (!machine.IsControlMachine && ReBuzzCore.masterInfo.PosInTick == 0 ||
-                    (engineSettings.SubTickTiming && ReBuzzCore.subTickInfo.PosInSubTick == 0 && machine.DLL.Info.Version > MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_42))
-                {
-                    var t = AudioEngine.TaskFactoryAudio.StartNew(() =>
-                    {
-                        var workInstance = buzzCore.MachineManager.GetMachineWorkInstance(machine);
-                        workInstance.Tick(false, false);
-                    });
-                    tickTasks.Add(t);
-                }
-            }
-            Task.WaitAll(tickTasks.ToArray());
-            tickTasks.Clear();
-        }
-
+       
         internal void CallTick()
         {
             // First control, then other?
