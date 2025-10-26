@@ -43,6 +43,11 @@ namespace ReBuzz.Common
 
             bgImage.Source = new BitmapImage(uriImg);
 
+            this.MouseDoubleClick += ((s, e) =>
+            {
+                this.Hide();
+            });
+
 
             this.Closing += (sender, e) =>
             {
