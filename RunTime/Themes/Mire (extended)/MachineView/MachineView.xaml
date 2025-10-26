@@ -29,7 +29,7 @@
   <Style x:Key="BackgroundGridStyle" TargetType="{x:Type Grid}" BasedOn="{StaticResource BackgroundGridStyleBase}">
     <Setter Property="Background">
       <Setter.Value>
-        <ImageBrush ImageSource="gfx/bg2.png" TileMode="Tile" />
+        <ImageBrush ImageSource="gfx/bg2.png" TileMode="Tile"/>
       </Setter.Value>
     </Setter>
 	
