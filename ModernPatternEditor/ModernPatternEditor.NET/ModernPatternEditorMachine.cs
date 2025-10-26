@@ -96,7 +96,11 @@ namespace WDE.ModernPatternEditor
             var mac = Global.Buzz.Song.Machines.FirstOrDefault(m => m.Name == machine);
             if (mac != null)
             {
-                mac.RenamePattern(mac.Patterns.FirstOrDefault(p => p.Name == oldName), newName);
+                var pattern = mac.Patterns.FirstOrDefault(p => p.Name == oldName);
+                if (pattern != null)
+                {
+                    mac.RenamePattern(pattern, newName);
+                }
             }
         }
 
