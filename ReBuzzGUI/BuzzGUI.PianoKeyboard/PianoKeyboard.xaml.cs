@@ -187,6 +187,7 @@ namespace BuzzGUI.PianoKeyboard
             public event PianoKeyDelegate OnPianoKeyDown;
             public event PianoKeyDelegate OnPianoKeyUp;
             public event Action<int> OnAftertouch;
+            public event Action<int> OnPitchWheel;
 
             int GetKeyAtPoint(Point p)
             {
@@ -257,6 +258,28 @@ namespace BuzzGUI.PianoKeyboard
                         if (key != -1) OnPianoKeyDown(key);
                     }
 
+                    if (Keyboard.Modifiers == ModifierKeys.Control)
+                    {
+                        bool invoke = false;
+                        var x = newPos.X - mouseInitialPosition.X;
+                        if (x < -30)
+                        {
+                            x += 30;
+                            x *= 10;
+                            invoke = true;
+                        }
+                        if (x > 30)
+                        {
+                            x -= 30;
+                            x *= 10;
+                            invoke = true;
+                        }
+                        if (invoke)
+                        {
+                            OnPitchWheel?.Invoke((int)x);
+                        }
+                    }
+
                     e.Handled = true;
                 }
             }
@@ -268,7 +291,8 @@ namespace BuzzGUI.PianoKeyboard
                     if (lastKey != -1) OnPianoKeyUp(lastKey);
                     dragging = false;
                     ReleaseMouseCapture();
-                    OnAftertouch.Invoke(0);
+                    OnAftertouch?.Invoke(0);
+                    OnPitchWheel?.Invoke(0);
                 }
             }
 
@@ -354,6 +378,7 @@ namespace BuzzGUI.PianoKeyboard
         public event PianoKeyDelegate OnPianoKeyDown;
         public event PianoKeyDelegate OnPianoKeyUp;
         public event Action<int> OnAftertouch;
+        public event Action<int> OnPitchWheel;
 
         public PianoKeyboard(KeyboardWindow ped)
         {
@@ -368,6 +393,10 @@ namespace BuzzGUI.PianoKeyboard
             kbv.OnAftertouch += (val) =>
             {
                 OnAftertouch?.Invoke(val);
+            };
+            kbv.OnPitchWheel += (val) =>
+            {
+                OnPitchWheel?.Invoke(val);
             };
 
             grid.Children.Add(kbv);

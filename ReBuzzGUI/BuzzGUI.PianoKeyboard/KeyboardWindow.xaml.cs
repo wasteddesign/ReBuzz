@@ -67,6 +67,11 @@ namespace BuzzGUI.PianoKeyboard
                 buzz.SendMIDIInput(MIDI.Encode(MIDI.NoteOn, key, velocity));
             };
 
+            pianoKeyboard.OnPitchWheel += (val) =>
+            {
+                pitchWheel.Value = val;
+            };
+
             pianoKeyboard.OnPianoKeyUp += (key) =>
             {
                 buzz.SendMIDIInput(MIDI.Encode(MIDI.NoteOff, key, velocity));
