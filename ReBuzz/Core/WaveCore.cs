@@ -77,9 +77,9 @@ namespace ReBuzz.Core
             return null;
         }
 
-        public void Play(IMachine m, int start = 0, int end = -1, LoopType looptype = LoopType.None)
+        public void Play(IMachine m, int start = 0, int end = -1, LoopType looptype = LoopType.None, int layer = -1)
         {
-            buzz.SongCore.WavetableCore.PlayWave(this, start, end, looptype);
+            buzz.SongCore.WavetableCore.PlayWave(this, start, end, looptype, layer);
         }
 
         public void Stop(IMachine m)

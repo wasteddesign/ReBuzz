@@ -1,4 +1,5 @@
 ﻿using BuzzGUI.Common;
+using BuzzGUI.Interfaces;
 using System;
 using System.Windows;
 using System.Windows.Controls;
@@ -36,6 +37,18 @@ namespace BuzzGUI.WaveformControl
 
                 }
 
+            };
+
+            this.KeyDown += (sender, e) =>
+            {
+                if (e.Key == Key.Enter)
+                {
+                    var w = Global.Buzz.Song.Wavetable.Waves.FirstOrDefault(w => w.Layers.Contains(waveformElement.Waveform));
+                    if (w != null)
+                    {
+                        w.Play(null, waveformElement.Selection.StartSample, waveformElement.Selection.EndSample);
+                    }
+                }
             };
 
             DataContextChanged += new DependencyPropertyChangedEventHandler(OnDataContextChanged);

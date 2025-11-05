@@ -23,7 +23,7 @@ namespace BuzzGUI.Interfaces
         /// </summary>
         IEnvelope GetEnvelope(int index, IMachine m);
 
-        void Play(IMachine m, int start = 0, int end = -1, LoopType looptype = LoopType.None);
+        void Play(IMachine m, int start = 0, int end = -1, LoopType looptype = LoopType.None, int layer = -1);
         void Stop(IMachine m);
     }
 }

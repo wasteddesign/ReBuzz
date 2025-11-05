@@ -39,6 +39,7 @@ namespace ReBuzz.Core
             public int end;
             public LoopType looptype;
             internal SoundFile sf;
+            internal int layer;
         }
 
         public WavetableCore(ReBuzzCore bc)
@@ -239,22 +240,29 @@ namespace ReBuzz.Core
             return PlayWaveData != null;
         }
 
-        internal void PlayWave(WaveCore wave, int start, int end, LoopType looptype)
+        internal void PlayWave(WaveCore wave, int start, int end, LoopType looptype, int layer)
         {
             lock (ReBuzzCore.AudioLock)
             {
                 StopPlayingWave();
                 try
                 {
+                    if (layer < 0 || layer >= wave.Layers.Count)
+                        layer = 0;
+
+                    if (wave.Layers.Count == 0)
+                        return;
+
                     PlayWaveData = new PlayWaveInfo()
                     {
                         wave = wave,
-                        postion = 0,
+                        postion = start,
                         start = start,
                         end = end,
-                        looptype = looptype
+                        looptype = looptype,
+                        layer = layer
                     };
-                    realTimeResampler.Reset(Global.Buzz.SelectedAudioDriverSampleRate, wave.Layers[0].SampleRate <= 0 ? 44100 : wave.Layers[0].SampleRate);
+                    realTimeResampler.Reset(Global.Buzz.SelectedAudioDriverSampleRate, wave.Layers[layer].SampleRate <= 0 ? 44100 : wave.Layers[layer].SampleRate);
                 }
                 catch (Exception e)
                 {
@@ -327,7 +335,7 @@ namespace ReBuzz.Core
                     }
                     else if (PlayWaveData.wave.Layers.Count > 0)
                     {
-                        var layer = PlayWaveData.wave.Layers.First();
+                        var layer = PlayWaveData.wave.Layers[PlayWaveData.layer];
                         while (realTimeResampler.AvailableSamples() < sampleCount)
                         {
                             layer.GetDataAsFloat(wavetableAudiobuffer, 0, 2, 0, PlayWaveData.postion, sampleCount);
@@ -337,7 +345,8 @@ namespace ReBuzz.Core
                             PlayWaveData.postion += sampleCount;
                         }
                         realTimeResampler.GetSamples(buffer, offset, sampleCount);
-
+                        if (PlayWaveData.end != -1 && PlayWaveData.postion >= PlayWaveData.end)
+                            StopPlayingWave();
                         return true;
                     }
                 }
