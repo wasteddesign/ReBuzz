@@ -194,7 +194,7 @@ namespace ReBuzz.Audio
                 mMDevice = enumerator.EnumerateAudioEndPoints(DataFlow.Capture, DeviceState.Active).FirstOrDefault(d => d.ID == wasapiDeviceIDIn);
                 if (mMDevice != null)
                 {
-                    int latency = Math.Max(1, 1000 * bufferSize / wasapiDeviceSamplerate / 2);
+                    int latency = Math.Max(1, 1000 * bufferSize / wasapiDeviceSamplerate);
                     wasapiCapture = new WasapiCapture(mMDevice, wasapiMode == 0, latency);
                     wasapiCapture.DataAvailable += WasapiCapture_DataAvailable;
                     wasapiCapture.StartRecording();
