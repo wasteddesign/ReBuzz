@@ -1,4 +1,12 @@
-﻿using Buzz.MachineInterface;
+﻿// ReBuzzCore.cs
+// Core host implementation for ReBuzz.
+//
+// This file contains the main application core `ReBuzzCore` which implements
+// the `IBuzz` host interface. It coordinates the song, machines, audio engine,
+// MIDI engine and communication with UI and file formats. The comments added
+// here are informational only and do not change any runtime behavior.
+
+using Buzz.MachineInterface;
 using BuzzGUI.Common;
 using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
@@ -37,6 +45,9 @@ namespace ReBuzz.Core
     [StructLayout(LayoutKind.Sequential)]
     public struct BuzzGlobalState
     {
+        // Holds global playback-related values that are also shared with native
+        // code. The struct layout is sequential because it is used for
+        // interop with the native engine.
         public int AudioFrame;
         public int ADWritePos;
         public int ADPlayPos;
@@ -49,8 +60,22 @@ namespace ReBuzz.Core
         public byte SongClosing;
     }
 
+    /// <summary>
+    /// Main application core that implements the IBuzz host interface.
+    ///
+    /// Responsibilities:
+    /// - Maintain song and machine lists
+    /// - Coordinate audio and MIDI engines
+    /// - Handle file load/save and import/export operations
+    /// - Provide services to machines (create, remove, connect, edit)
+    /// - Expose UI and state events to the WPF front-end
+    ///
+    /// The class is large because it brings together many subsystems; comments
+    /// are added to explain high-level responsibilities and key public methods.
+    /// </summary>
     public class ReBuzzCore : IBuzz, INotifyPropertyChanged
     {
+        // Build and runtime info
         public static int buildNumber = int.Parse(Resources.BuildNumber);
         public static MasterInfoExtended masterInfo;
         public static SubTickInfoExtended subTickInfo;
@@ -58,13 +83,17 @@ namespace ReBuzz.Core
         internal static BuzzGlobalState GlobalState;
         public static string AppDataPath = "ReBuzz";
 
+        // Feature flags
         public readonly bool AUTO_CONVERT_WAVES = false;
 
+        // Host/MI version
         public int HostVersion { get => 66; } // MI_VERSION
 
+        // State flags used in GlobalState.StateFlags
         public static readonly int SF_PLAYING = 1;
         public static readonly int SF_RECORDING = 2;
 
+        // Song core and interface
         SongCore songCore;
         public ISong Song { get => songCore; }
 
@@ -78,9 +107,11 @@ namespace ReBuzz.Core
             }
         }
 
+        // UI related state
         BuzzView activeView = BuzzView.MachineView;
         public ReBuzzTheme Theme { get; set; }
 
+        // Save profiles callback registration helper
         private void RegisterProfileSaveCallback(XElement element)
         {
             element.Changed += (sender, evtargs) =>
@@ -89,6 +120,8 @@ namespace ReBuzz.Core
             };
         }
 
+        // Module profile helpers: these return XElement nodes used to store
+        // per-machine persistent settings (ints, binary blobs, strings).
         public XElement GetModuleProfile(string modname)
         {
             if (!profiles.ContainsKey(modname))
@@ -128,14 +161,16 @@ namespace ReBuzz.Core
         {
             var wpfColour = ThemeColors[name];
 
-            //Convert to System.Drawing.Color
+            // Convert to System.Drawing.Color
             return System.Drawing.Color.FromArgb(wpfColour.A, wpfColour.R, wpfColour.G, wpfColour.B);
         }
 
         public BuzzView ActiveView { get { return activeView; } set { activeView = value; PropertyChanged.Raise(this, "ActiveView"); } }
 
+        // VU meter level tuple (left,right)
         public Tuple<double, double> VUMeterLevel { get; set; }
 
+        // MIDI and controller assignment management
         internal MidiControllerAssignments MidiControllerAssignments { get; set; }
 
         internal DispatcherTimer dtEngineThread;
@@ -260,6 +295,11 @@ namespace ReBuzz.Core
 
         bool preparePlaying;
 
+        /// <summary>
+        /// Gets or sets whether the host is currently playing.
+        /// Setting to true prepares playback synchronized on the next tick.
+        /// Setting to false stops playback, stops all machines and clears solo state.
+        /// </summary>
         public bool Playing
         {
             get => playing;
@@ -626,6 +666,12 @@ namespace ReBuzz.Core
 
         readonly Timer timerAutomaticBackups;
 
+        /// <summary>
+        /// Constructor - initializes the ReBuzz engine core and subsystems.
+        /// This wiring includes engine settings, MIDI devices, themes, profiles,
+        /// and registering the assembly resolve handler used to load
+        /// unmanaged/managed machine DLLs at runtime.
+        /// </summary>
         internal ReBuzzCore(
             GeneralSettings generalSettings,
             EngineSettings engineSettings,
@@ -710,7 +756,7 @@ namespace ReBuzz.Core
             themes = Utils.GetThemes(buzzPath);
             profiles = Utils.GetProfiles(buzzPath);
 
-            //Register change callback on all profiles
+            // Register change callback on all profiles so edits get persisted
             foreach(var p in profiles)
             {
                 RegisterProfileSaveCallback(p.Value);
@@ -767,6 +813,10 @@ namespace ReBuzz.Core
             this.keyboard = keyboard;
         }
 
+        /// <summary>
+        /// Start periodic events managed by the core (automatic backups etc.).
+        /// Called after initialization once UI and main window are ready.
+        /// </summary>
         public void StartEvents()
         {
             if (generalSettings.AutomaticBackups)
@@ -840,6 +890,11 @@ namespace ReBuzz.Core
             }
         }
 
+        /// <summary>
+        /// Assembly resolve handler used to locate and load assemblies (e.g.
+        /// machine DLLs) from the buzzPath. This allows managed plugin DLLs
+        /// shipped with the application to be found at runtime.
+        /// </summary>
         private Assembly MyResolveEventHandler(object sender, ResolveEventArgs args)
         {
             var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies();
@@ -870,6 +925,7 @@ namespace ReBuzz.Core
 
         public void ScanDlls()
         {
+            // Use the configured scanner to populate available machine DLLs.
             MachineDLLsList = machineDllScanner.GetMachineDLLs(this, buzzPath);
         }
 
@@ -1175,6 +1231,10 @@ namespace ReBuzz.Core
         internal event Action<FileEventType, string, object> FileEvent;
         internal event Action<string> OpenFile;
 
+        /// <summary>
+        /// Open and load a song file into the current session. Handles backup,
+        /// audio stop/play, song creation and sends events for UI and machines.
+        /// </summary>
         public void OpenSongFile(string filename)
         {
             if (CheckSaveSong())
@@ -1271,6 +1331,10 @@ namespace ReBuzz.Core
             return file;
         }
 
+        /// <summary>
+        /// Save the current song to disk. If filename is null prompts the user
+        /// for a file path via the configured save handler.
+        /// </summary>
         public void SaveSongFile(string filename)
         {
 
@@ -1330,6 +1394,10 @@ namespace ReBuzz.Core
             return 0;
         }
 
+        /// <summary>
+        /// Entry point for MIDI input from devices. Routes incoming MIDI messages
+        /// to the focused machine/editor and other machines depending on settings.
+        /// </summary>
         public void SendMIDIInput(int data)
         {
             if (midiFocusMachine != null && !midiFocusMachine.DLL.IsMissing)
@@ -1821,8 +1889,8 @@ namespace ReBuzz.Core
 
             RemoveAndDeleteMachine(machine);
 
-            //If this is a pattern editor machine, then make sure the current pattern editor
-            //isn't the machine being removed.
+            // If this is a pattern editor machine, then make sure the current pattern editor
+            // isn't the machine being removed.
             if (machine.DLL.Info.Flags.HasFlag(MachineInfoFlags.PATTERN_EDITOR))
             {
                 SetPatternEditorMachine(SongCore.Machines.Last());
@@ -1836,8 +1904,8 @@ namespace ReBuzz.Core
 
             RemoveAndDeleteMachine(patEdMach);
 
-            //If this is a pattern editor machine, then make sure the current pattern editor
-            //isn't the machine being removed.
+            // If this is a pattern editor machine, then make sure the current pattern editor
+            // isn't the machine being removed.
             if (patEdMach.DLL.Info.Flags.HasFlag(MachineInfoFlags.PATTERN_EDITOR))
             {
                 if (newEditorMachine == null)
