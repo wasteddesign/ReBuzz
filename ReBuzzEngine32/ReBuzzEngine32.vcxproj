@@ -27,22 +27,22 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Makefile</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Makefile</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Makefile</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Makefile</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -68,7 +68,7 @@
     <NMakePreprocessorDefinitions>_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
     <NMakeReBuildCommandLine>msbuild "$(SolutionDir)\ReBuzzEngine\rebe\ReBuzzEngine.vcxproj" /property:Configuration=$(Configuration) /property:Platform=Win32</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>IF EXIST "$(SolutionDir)bin\$(Configuration)\$(Platform)\net9.0-windows\bin32" del "$(SolutionDir)bin\$(Configuration)\$(Platform)\net9.0-windows\bin32\$(MSBuildProjectName).*"</NMakeCleanCommandLine>
-    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\net9.0-windows</OutDir>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\net10.0-windows</OutDir>
     <IntDir>$(SolutionDir)build\$(Configuration)\$(PlatformName)\$(ProjectName)\obj</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -77,7 +77,7 @@
     <NMakeOutput>
     </NMakeOutput>
     <NMakePreprocessorDefinitions>WIN32;_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
-    <OutDir>$(SolutionDir)bin\$(Configuration)\x64\net9.0-windows\</OutDir>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\x64\net10.0-windows\</OutDir>
     <IntDir>$(SolutionDir)build\$(Configuration)\$(PlatformName)\$(ProjectName)\obj</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -86,7 +86,7 @@
     <NMakeOutput>
     </NMakeOutput>
     <NMakePreprocessorDefinitions>WIN32;NDEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
-    <OutDir>$(SolutionDir)bin\$(Configuration)\x64\net9.0-windows\</OutDir>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\x64\net10.0-windows\</OutDir>
     <IntDir>$(SolutionDir)build\$(Configuration)\$(PlatformName)\$(ProjectName)\obj</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -95,7 +95,7 @@
     <NMakePreprocessorDefinitions>NDEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
     <NMakeReBuildCommandLine>msbuild "$(SolutionDir)\ReBuzzEngine\rebe\ReBuzzEngine.vcxproj" /property:Configuration=$(Configuration) /property:Platform=Win32</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>IF EXIST "$(SolutionDir)bin\$(Configuration)\$(Platform)\net9.0-windows\bin32" del "$(SolutionDir)bin\$(Configuration)\$(Platform)\net9.0-windows\bin32\$(MSBuildProjectName).*"</NMakeCleanCommandLine>
-    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\net9.0-windows</OutDir>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\net10.0-windows</OutDir>
     <IntDir>$(SolutionDir)build\$(Configuration)\$(PlatformName)\$(ProjectName)\obj</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>

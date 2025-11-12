@@ -27,22 +27,22 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Makefile</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Makefile</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Makefile</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Makefile</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -66,7 +66,7 @@
     <NMakeOutput>
     </NMakeOutput>
     <NMakePreprocessorDefinitions>_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
-    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\net9.0-windows</OutDir>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\net10.0-windows</OutDir>
     <NMakeBuildCommandLine>IF NOT EXIST "$(OutDir)\bin32" mkdir "$(OutDir)\bin32"
 xcopy /d /y "$(ProjectDir)bin32\*.*" "$(OutDir)\bin32\"
 
@@ -115,7 +115,7 @@ rmdir /s /q "$(OutDir)\Themes"</NMakeCleanCommandLine>
     <NMakeOutput>
     </NMakeOutput>
     <NMakePreprocessorDefinitions>WIN32;_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
-    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\net9.0-windows</OutDir>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\net10.0-windows</OutDir>
     <NMakeBuildCommandLine>IF NOT EXIST "$(OutDir)\bin32" mkdir "$(OutDir)\bin32"
 xcopy /d /y "$(ProjectDir)bin32\*.*" "$(OutDir)\bin32\"
 
@@ -123,6 +123,10 @@ IF NOT EXIST "$(OutDir)\bin64" mkdir "$(OutDir)\bin64"
 xcopy /d /y "$(ProjectDir)bin64\*.*" "$(OutDir)\bin64\"
 
 xcopy /d /y "$(ProjectDir)..\3rdParty\libsndfile-1.dll" "$(OutDir)\" 
+
+xcopy /d /y "$(ProjectDir)..\3rdParty\box2d.dll" "$(OutDir)\" 
+
+xcopy /d /y "$(ProjectDir)..\3rdParty\Box2dNet.dll" "$(OutDir)\" 
 
 IF NOT EXIST "$(OutDir)\Help" mkdir "$(OutDir)\Help"
 xcopy /d /y /e "$(ProjectDir)Help" "$(OutDir)\Help" 
@@ -160,7 +164,7 @@ rmdir /s /q "$(OutDir)\Themes"</NMakeCleanCommandLine>
     <NMakeOutput>
     </NMakeOutput>
     <NMakePreprocessorDefinitions>WIN32;NDEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
-    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\net9.0-windows</OutDir>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\net10.0-windows</OutDir>
     <NMakeBuildCommandLine>IF NOT EXIST "$(OutDir)\bin32" mkdir "$(OutDir)\bin32"
 xcopy /d /y "$(ProjectDir)bin32\*.*" "$(OutDir)\bin32\"
 
@@ -168,6 +172,10 @@ IF NOT EXIST "$(OutDir)\bin64" mkdir "$(OutDir)\bin64"
 xcopy /d /y "$(ProjectDir)bin64\*.*" "$(OutDir)\bin64\"
 
 xcopy /d /y "$(ProjectDir)..\3rdParty\libsndfile-1.dll" "$(OutDir)\" 
+
+xcopy /d /y "$(ProjectDir)..\3rdParty\box2d.dll" "$(OutDir)\" 
+
+xcopy /d /y "$(ProjectDir)..\3rdParty\Box2dNet.dll" "$(OutDir)\" 
 
 IF NOT EXIST "$(OutDir)\Help" mkdir "$(OutDir)\Help"
 xcopy /d /y /e "$(ProjectDir)Help" "$(OutDir)\Help" 
@@ -205,7 +213,7 @@ rmdir /s /q "$(OutDir)\Themes"</NMakeCleanCommandLine>
     <NMakeOutput>
     </NMakeOutput>
     <NMakePreprocessorDefinitions>NDEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
-    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\net9.0-windows</OutDir>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\net10.0-windows</OutDir>
     <NMakeBuildCommandLine>IF NOT EXIST "$(OutDir)\bin32" mkdir "$(OutDir)\bin32"
 xcopy /d /y "$(ProjectDir)bin32\*.*" "$(OutDir)\bin32\"
 
@@ -213,6 +221,10 @@ IF NOT EXIST "$(OutDir)\bin64" mkdir "$(OutDir)\bin64"
 xcopy /d /y "$(ProjectDir)bin64\*.*" "$(OutDir)\bin64\"
 
 xcopy /d /y "$(ProjectDir)..\3rdParty\libsndfile-1.dll" "$(OutDir)\" 
+
+xcopy /d /y "$(ProjectDir)..\3rdParty\box2d.dll" "$(OutDir)\" 
+
+xcopy /d /y "$(ProjectDir)..\3rdParty\Box2dNet.dll" "$(OutDir)\" 
 
 IF NOT EXIST "$(OutDir)\Help" mkdir "$(OutDir)\Help"
 xcopy /d /y /e "$(ProjectDir)Help" "$(OutDir)\Help" 
