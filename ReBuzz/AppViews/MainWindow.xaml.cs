@@ -24,6 +24,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using ReBuzz.AppViews;
+using System.Security.Cryptography.X509Certificates;
 
 namespace ReBuzz
 {
@@ -236,8 +237,6 @@ namespace ReBuzz
                 };
                 */
 
-                
-
                 Utils.InitUtils(this);
 
                 Buzz.StartTimer();
@@ -313,6 +312,11 @@ namespace ReBuzz
                 {
                     BuzzGUI.BuzzUpdate.UpdateService.CheckForUpdates(Buzz);
                 }
+            };
+
+            mainGrid.Loaded += (s, e2) =>
+            {
+                Utils.UpdateDpi(mainGrid);
             };
 
             this.Closing += (sender, e) =>
@@ -934,6 +938,12 @@ namespace ReBuzz
             }
         }
 
+        protected override void OnDpiChanged(DpiScale oldDpi, DpiScale newDpi)
+        {
+            base.OnDpiChanged(oldDpi, newDpi);
+            Utils.UpdateDpi(mainGrid);
+        }
+
         private void ModernSequenceEditorHorizontal_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             ResizeModernSequenceEditor();
@@ -973,7 +983,13 @@ namespace ReBuzz
             {
                 CreateSequenceView(Buzz.Song);
             }
+            else if (e.PropertyName == "DpiScaling")
+            {
+                Utils.UpdateDpi(mainGrid);
+            }
         }
+
+
 
         private void Buzz_FileEvent(FileEventType type, string text, object o)
         {

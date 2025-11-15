@@ -347,7 +347,7 @@
 				<Style TargetType="{x:Type bgc:RadioButtonEx}" BasedOn="{StaticResource ToolBarButtonBaseStyle}"/>
 		    </WrapPanel.Resources>
 
-			<WrapPanel Margin="10,10,10,0" Width="193">
+			<WrapPanel Margin="10,10,8,0" Width="195">
 				
 				<ToggleButton  Width="40" Height="40" Margin="0" ClickMode="Press" IsChecked="{Binding Path=ShowPatternView, Mode=TwoWay}" Style="{StaticResource PatternButtonStyle}" ToolTip="Pattern View - F2"/>
 				<ToggleButton  Width="38" Height="40" Margin="0" ClickMode="Press" IsChecked="{Binding Path=ShowMachineView, Mode=TwoWay}" Style="{StaticResource MachineButtonStyle}" ToolTip="Machine View - F3"/>
