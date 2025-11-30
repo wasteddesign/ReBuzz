@@ -19,8 +19,8 @@ ReBuzz is a modular digital audio workstation (DAW) built upon the foundation of
 [ReBuzz Installer](https://github.com/wasteddesign/ReBuzz/releases/latest)
 
 Requires:
-1. [.NET ´10.0 Desktop Runtime - Windows x64](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-10.0.0-windows-x64-installer)
-2. [Latest Microsoft Visual C++ Redistributable](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170)
+1. [.NET 10.0 Desktop Runtime - Windows x64](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-10.0.0-windows-x64-installer)
+2. [Latest Microsoft Visual C++ Redistributable (X86 and X64)](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170)
 
 ## How to build?
 1. Clone this repo. **IMPORTANT: Clone with --recurse-submodules** <br>
