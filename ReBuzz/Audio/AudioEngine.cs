@@ -40,7 +40,17 @@ namespace ReBuzz.Audio
             public IWavePlayer WavePlayer;
         }
 
+        public class AudioInDevice
+        {
+            public string Name;
+            public AudioOutType Type;
+
+            public WaveFormat WaveFormat { get; internal set; }
+        }
+
         public AudioOutDevice SelectedOutDevice { get; private set; }
+
+        public AudioInDevice SelectedInDevice { get; private set; }
 
         private AudioProvider AudioProvider { get; set; }
         private AudioWaveProvider AudioWaveProvider { get; set; }
@@ -95,6 +105,8 @@ namespace ReBuzz.Audio
                 asioOut.DriverResetRequest += AsioOut_DriverResetRequest;
                 asioOut.PlaybackStopped += AsioOut_PlaybackStopped;
                 asioOut.AudioAvailable += AsioOut_AudioAvailable;
+
+                SelectedInDevice = new AudioInDevice() { Name = deviceName, Type = AudioOutType.ASIO, WaveFormat = AudioWaveProvider.WaveFormat };
             });
         }
 
@@ -198,6 +210,8 @@ namespace ReBuzz.Audio
                     wasapiCapture = new WasapiCapture(mMDevice, wasapiMode == 0, latency);
                     wasapiCapture.DataAvailable += WasapiCapture_DataAvailable;
                     wasapiCapture.StartRecording();
+
+                    SelectedInDevice = new AudioInDevice() { Name = deviceName, Type = AudioOutType.Wasapi, WaveFormat = wasapiCapture.WaveFormat };
                 }
             }
             catch (Exception ex)
@@ -207,6 +221,7 @@ namespace ReBuzz.Audio
             }
 
             SelectedOutDevice = new AudioOutDevice() { Name = deviceName, Type = AudioOutType.Wasapi, WavePlayer = wasapiOut };
+            
         }
 
         bool InitWasapiOut(WasapiOut wasapiOut)
@@ -309,6 +324,7 @@ namespace ReBuzz.Audio
                 wasapiCapture.StopRecording();
                 wasapiCapture.Dispose();
                 wasapiCapture = null;
+                SelectedInDevice = null;
             }
 
             if (SelectedOutDevice != null)
@@ -324,6 +340,7 @@ namespace ReBuzz.Audio
             }
 
             SelectedOutDevice = null;
+            
         }
 
         public List<AudioOutDevice> AudioDevices()
