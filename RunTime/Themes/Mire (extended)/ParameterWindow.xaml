@@ -170,23 +170,25 @@
       <ItemsControl ItemsSource="{Binding Parameters}" Focusable="False">
         <ItemsControl.ItemTemplate>
           <DataTemplate>
-            <Grid Height="16">
+            <Grid Height="16" Visibility="{Binding Visibility}">
 
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
+				<ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="90"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="90"/>
               </Grid.ColumnDefinitions>
 
-              <ToggleButton Grid.Column="0" Style="{StaticResource LockButtonStyle}" Margin="0,0,4,0" ClickMode="Press" IsChecked="{Binding IsLocked}" Visibility="{Binding LockButtonVisibility}"/>
+		      <ToggleButton Grid.Column="0" Width="14" Margin="1,1,4,1" ClickMode="Press" IsChecked="{Binding IsParameterVisibile}" Visibility="{Binding LockButtonVisibility}"/>
+              <ToggleButton Grid.Column="1" Style="{StaticResource LockButtonStyle}" Margin="0,0,4,0" ClickMode="Press" IsChecked="{Binding IsLocked}" Visibility="{Binding LockButtonVisibility}"/>
               
-              <TextBlock Grid.Column="1" Text="{Binding Name}" ToolTip="{Binding Description}"/>
-              <Border Grid.Column="2" Height="14" Background="#333" CornerRadius="3" SnapsToDevicePixels="True">
+              <TextBlock Grid.Column="2" Text="{Binding Name}" ToolTip="{Binding Description}"/>
+              <Border Grid.Column="3" Height="14" Background="#333" CornerRadius="3" SnapsToDevicePixels="True">
                 <bgc:ParameterSlider MinimumThumbWidth="16" Focusable="True" Value="{Binding Value}" Minimum="{Binding MinValue}" Maximum="{Binding MaxValue}" Indicator="{Binding Indicator}"/>
               </Border>
-              <TextBlock Grid.Column="3" Margin="4,0,0,0" Text="{Binding ValueDescription}"/>
-
+              <TextBlock Grid.Column="4" Margin="4,0,0,0" Text="{Binding ValueDescription}"/>
+			  
               <Grid.ContextMenu>
                 <ContextMenu>
                   <MenuItem Header="_Bind to MIDI Controller" ItemsSource="{Binding MIDIControllers}" ItemContainerStyle="{StaticResource ContextMenuItemStyle}"/>

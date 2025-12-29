@@ -9,6 +9,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Transactions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -517,7 +518,17 @@ namespace BuzzGUI.ParameterWindow
             set
             {
                 editGridVisibility = value;
+                
                 PropertyChanged.Raise(this, "EditGridVisibility");
+
+                if (editGridVisibility == Visibility.Visible)
+                {
+                    UpdateParameterVisibility(Visibility.Visible);
+                }
+                else
+                {
+                    UpdateParameterVisibility(Visibility.Collapsed);
+                }
             }
         }
 
@@ -576,6 +587,26 @@ namespace BuzzGUI.ParameterWindow
 
 
         #endregion
+
+        void UpdateParameterVisibility(Visibility visible)
+        {
+            if (visible == Visibility.Visible)
+            {
+                foreach (var p in Parameters)
+                {
+                    p.Visibility = visible;
+                }
+            }
+            else if (visible == Visibility.Collapsed)
+            {
+                foreach (var p in Parameters)
+                {
+                    p.Visibility = p.IsParameterVisibile ? Visibility.Visible : Visibility.Collapsed;
+                    ParameterWindowProperties.SetParameterHidden(p.Parameter, p.IsParameterVisibile);
+                }
+            }
+
+        }
 
         public bool HasAttributes { get { return machine.Attributes.Count > 0; } }
 
