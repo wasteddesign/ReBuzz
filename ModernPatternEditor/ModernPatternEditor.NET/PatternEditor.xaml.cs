@@ -745,35 +745,6 @@ namespace WDE.ModernPatternEditor
 
         public TextFormattingMode TextFormattingMode { get { return Global.GeneralSettings.WPFIdealFontMetrics ? TextFormattingMode.Ideal : TextFormattingMode.Display; } }
 
-        public IMachineDLL editorMachine;
-        public IMachineDLL EditorMachine
-        {
-            get { return editorMachine; }
-            set
-            {
-                var currentEditor = editorMachine;
-                editorMachine = value;
-                string ename = cb.GetEditorMachine();
-                if (editorMachine.Name != ename)
-                {   
-                    if (MessageBox.Show(@"Changing back to legacy editor loses pattern data. Continue anyway?",
-                        "Change editor?", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
-                    {
-                        cb.SetPatternEditorMachine(editorMachine);
-                    }
-                    else
-                    {
-                        // Reset selection
-                        Dispatcher.InvokeAsync(() =>
-                        {
-                            editorMachine = currentEditor;
-                            PropertyChanged.Raise(this, "EditorMachine");
-                        });
-                    }
-                }
-            }
-        }
-
         IMachine targetMachine;
         public IMachine TargetMachine
         {

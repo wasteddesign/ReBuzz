@@ -126,14 +126,25 @@ namespace WDE.ModernPatternEditor.ColumnRenderer
             /* if ((index & 3) == 0)
 				br = veryDarkBackgroundBrush;
 			else */
-            if ((index & 1) == 0)
+            if (PatternEditor.Settings.BeatHighlight == BeatHighlightMode.Block)
+            {
+                if ((index & 1) == 0)
+                    br = darkBackgroundBrush;
+                else
+                    br = backgroundBrush;
+
+                //br = new SolidColorBrush(Color.FromRgb((byte)rnd.Next(), (byte)rnd.Next(), (byte)rnd.Next()));
+
+                dc.DrawRectangle(br, null, new Rect(0, 0, w.Sum(), h));
+            }
+            else if (PatternEditor.Settings.BeatHighlight == BeatHighlightMode.FirstRow && beats.Count() > 0)
+            {
+                int rowHeight = h / beats[0].Rows.Count;
                 br = darkBackgroundBrush;
-            else
+                dc.DrawRectangle(br, null, new Rect(0, 0, w.Sum(), rowHeight));
                 br = backgroundBrush;
-
-            //br = new SolidColorBrush(Color.FromRgb((byte)rnd.Next(), (byte)rnd.Next(), (byte)rnd.Next()));
-
-            dc.DrawRectangle(br, null, new Rect(0, 0, w.Sum(), h));
+                dc.DrawRectangle(br, null, new Rect(0, rowHeight, w.Sum(), h - rowHeight));
+            }
 
             int x = 0;
 
@@ -148,7 +159,6 @@ namespace WDE.ModernPatternEditor.ColumnRenderer
                 x += w[i];
             }
         }
-
 
         void DrawColumn(DrawingContext dc, int column, IBeat beat, int x, int yoffs, int w, int h, bool shadow)
         {

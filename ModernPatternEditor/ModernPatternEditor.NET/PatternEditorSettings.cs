@@ -5,6 +5,7 @@ namespace WDE.ModernPatternEditor
 {
     public enum CursorScrollMode { Standard, Center, CenterWithMargins };
     public enum ColorNoteMode { None, Note, NoteAndOctave };
+    public enum BeatHighlightMode { Block, FirstRow };
 
     public class PatternEditorSettings : Settings
     {
@@ -88,6 +89,9 @@ namespace WDE.ModernPatternEditor
 
         [BuzzSetting(true, Description = "Send control changes immediately. Might not work well with older machines.")]
         public bool ForceControlChange { get; set; }
+
+        [BuzzSetting(BeatHighlightMode.Block, Description = "Beat highlight mode.")]
+        public BeatHighlightMode BeatHighlight { get; set; }
 
         //[BuzzSetting(true, Description = "Use default tracker base octave.")]
         //public bool DefaultBaseOctave { get; set; }

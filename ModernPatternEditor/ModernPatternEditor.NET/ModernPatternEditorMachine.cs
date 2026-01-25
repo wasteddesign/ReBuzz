@@ -81,16 +81,6 @@ namespace WDE.ModernPatternEditor
             ModernPatternEditor.SetTargetMachine(machine);
         }
 
-        public string GetEditorMachine()
-        {
-            return "Modern Pattern Editor";
-        }
-
-        public void SetPatternEditorMachine(IMachineDLL editorMachine)
-        {
-            
-        }
-
         public void SetPatternName(string machine, string oldName, string newName)
         {
             var mac = Global.Buzz.Song.Machines.FirstOrDefault(m => m.Name == machine);
