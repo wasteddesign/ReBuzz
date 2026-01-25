@@ -1102,7 +1102,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 }
 
 
-char szTitle[] = " - ReBuzz -";
+char szTitle[] = " - Buzz -";
 
 #ifdef _WIN64
 char szWindowClass[] = "ReBuzzEngine32Class";
