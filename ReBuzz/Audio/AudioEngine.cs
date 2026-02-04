@@ -149,7 +149,7 @@ namespace ReBuzz.Audio
                 if (audioInResampler != null)
                 {
                     audioInResampler.FillBuffer(audioInBuffer, floatBufferSamples >> 1);    // Number of stereo samples
-                    int avialablecCount = audioInResampler.AvailableSamples();              // Available stereo samples
+                    int avialablecCount = Math.Min(audioInResampler.AvailableSamples(), audioInBuffer.Length >> 1);              // Available stereo samples
                     if (avialablecCount > 0)
                     {
                         audioInResampler.GetSamples(audioInBuffer, 0, avialablecCount);
