@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading;
 
 namespace ReBuzz.Core
 {
@@ -49,10 +50,27 @@ namespace ReBuzz.Core
                 metadata = new Dictionary<string, string>();
         }
 
-        // Returns the events from PAtternColumn object. Not from pattern editor machine.
+        List<PatternEvent> patternEventsList = new List<PatternEvent>(0);
+        PatternEvent[] emptyPatternEventList = Array.Empty<PatternEvent>();
+        Lock patternEventsLock = new Lock();
+        // Returns the events from PatternColumn object. Not from pattern editor machine.
         public IEnumerable<PatternEvent> GetEvents(int tbegin, int tend)
         {
-            return patternEvents.Where(pe => pe.Time >= tbegin && pe.Time < tend).ToArray();
+            if (patternEvents.Count == 0)
+                return emptyPatternEventList;
+
+            patternEventsList.Clear();
+            lock (patternEventsLock)
+            {
+                for (int i = 0; i < patternEvents.Count; i++)
+                {
+                    var pe = patternEvents[i];
+
+                    if (pe.Time >= tbegin && pe.Time < tend)
+                        patternEventsList.Add(pe);
+                }
+            }
+            return patternEventsList.ToArray();
         }
 
         public void SetBeatSubdivision(int beatindex, int subdiv)
@@ -65,10 +83,13 @@ namespace ReBuzz.Core
         {
             foreach (var pe in patternEvents)
             {
-                if (set)
-                    this.patternEvents.Add(pe);
-                else
-                    this.patternEvents.Remove(pe);
+                lock (patternEventsLock)
+                {
+                    if (set)
+                        this.patternEvents.Add(pe);
+                    else
+                        this.patternEvents.Remove(pe);
+                }
             }
             EventsChanged?.Invoke(patternEvents, set);
         }

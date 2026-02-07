@@ -1,5 +1,6 @@
 ﻿using Buzz.MachineInterface;
 using BuzzGUI.Common;
+using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
 using ReBuzz.Common;
 using ReBuzz.Core;
@@ -7,10 +8,10 @@ using ReBuzz.MachineManagement;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using BuzzGUI.Common.Settings;
 
 namespace ReBuzz.Audio
 {
@@ -69,9 +70,9 @@ namespace ReBuzz.Audio
 
         internal int workBufferOffset;
         // Avoid new object creation to minimize GC.
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         public int ThreadRead(float[] buffer, int offset, int count)
         {
-
             lock (ReBuzzCore.AudioLock)
             {
                 long time = DateTime.UtcNow.Ticks;
@@ -452,6 +453,7 @@ namespace ReBuzz.Audio
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         void PlayPatternColumnEvents(IPattern pattern, int sampleCount)
         {
             if (pattern != null)
@@ -501,6 +503,7 @@ namespace ReBuzz.Audio
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         public int ReadWork(float[] buffer, int offset, int workSamplesCount)
         {
             foreach (var m in buzzCore.SongCore.MachinesList)
@@ -542,7 +545,7 @@ namespace ReBuzz.Audio
             return workSamplesCount;
         }
 
-
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         private void HandleWorkAlgorithmGroups(MachineCore master, int workSamplesCount)
         {
             while (true)
@@ -600,6 +603,7 @@ namespace ReBuzz.Audio
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         internal void HandleWorkAlgorithmRecursive(MachineCore master, int numRead)
         {
             workList.Clear();
@@ -617,6 +621,7 @@ namespace ReBuzz.Audio
         readonly List<Task> workTasks = new List<Task>(100);
         private readonly EngineSettings engineSettings;
 
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         void HandleWorkList(int numRead)
         {
             workTasks.Clear();
@@ -637,6 +642,7 @@ namespace ReBuzz.Audio
             workList.Clear();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         internal void HandleWorkRecursive(MachineCore machine, int numRead)
         {
             lock (machine.workLock)
@@ -691,6 +697,7 @@ namespace ReBuzz.Audio
             machine.IsActive = machine.GetActivity();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         private void HandleWorkAlgorithm2(MachineCore master, int workSamplesCount)
         {
             workEngine.PrepareEngine(workSamplesCount);
@@ -736,6 +743,7 @@ namespace ReBuzz.Audio
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         private void HandleWorkAlgorithmSingleThread(MachineCore master, int workSamplesCount)
         {
             while (true)
