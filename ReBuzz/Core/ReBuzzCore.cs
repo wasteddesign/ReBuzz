@@ -1240,8 +1240,7 @@ namespace ReBuzz.Core
             if (CheckSaveSong())
             {
                 masterLoading = true;
-                AudioEngine.Stop();
-
+                
                 DeleteBackup();
                 NewSong();
 
@@ -1291,7 +1290,6 @@ namespace ReBuzz.Core
 
                 SkipAudio = false;
                 Modified = false;
-                AudioEngine.Play();
 
                 dispatcher.BeginInvoke(() =>
                 {
@@ -1366,7 +1364,7 @@ namespace ReBuzz.Core
 
             file.SetSubSections(ss);
 
-            AudioEngine.Stop();
+            SkipAudio = true;
             lock (AudioLock)
             {
                 try
@@ -1378,8 +1376,7 @@ namespace ReBuzz.Core
                     Utils.MessageBox("Error saving file " + filename + "\n\n" + ex, "Error saving file.");
                 }
             }
-
-            AudioEngine.Play();
+            SkipAudio = false;
             Modified = false;
         }
 
