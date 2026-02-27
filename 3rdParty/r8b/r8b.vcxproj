@@ -71,12 +71,12 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(ProjectDir)..\..\bin\$(Configuration)\$(PlatformName)\net10.0-windows\</OutDir>
+    <OutDir>$(ProjectDir)..\..\bin\$(Configuration)\$(PlatformName)\net10.0-windows10.0.26100.0\</OutDir>
     <IntDir>$(ProjectDir)..\..\build\$(Configuration)\$(PlatformName)\$(ProjectName)\</IntDir>
     <TargetName>r8bsrc64</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(ProjectDir)..\..\bin\$(Configuration)\$(PlatformName)\net10.0-windows\</OutDir>
+    <OutDir>$(ProjectDir)..\..\bin\$(Configuration)\$(PlatformName)\net10.0-windows10.0.26100.0\</OutDir>
     <IntDir>$(ProjectDir)..\..\build\$(Configuration)\$(PlatformName)\$(ProjectName)\</IntDir>
     <TargetName>r8bsrc64</TargetName>
   </PropertyGroup>
