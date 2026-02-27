@@ -770,12 +770,18 @@ namespace ReBuzz.Core
             timerAutomaticBackups.AutoReset = true;
             timerAutomaticBackups.Elapsed += (sender, e) =>
             {
-                if (!Playing && SongCore.SongName != null && Modified)
+                // Since this is simple copy, we can allow it to run even during playback.
+                // The file copy should be fast and not cause issues.
+                if (/*!Playing &&*/ SongCore.SongName != null && Modified)
                 {
                     try
                     {
                         string backupName = Path.Combine(Path.GetDirectoryName(SongCore.SongName), Path.GetFileNameWithoutExtension(SongCore.SongName) + ".backup");
-                        File.Copy(SongCore.SongName, backupName, true);
+                        DCWriteLine($"Backup Created: {backupName}", DCLogLevel.Information);
+                        if (new FileInfo(SongCore.SongName).Length > 0)
+                        {
+                            File.Copy(SongCore.SongName, backupName, true);
+                        }   
                     }
                     catch (Exception) { }
                 }
@@ -850,7 +856,8 @@ namespace ReBuzz.Core
 
         private void DeleteBackup()
         {
-            if (SongCore.SongName != null)
+            if (SongCore.SongName != null && !generalSettings.KeepBackups)
+            
             {
                 timerAutomaticBackups.Stop();
                 int len = SongCore.SongName.Length;
@@ -861,7 +868,6 @@ namespace ReBuzz.Core
                 }
                 timerAutomaticBackups.Start();
             }
-
         }
 
         private void GeneralSettings_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -1240,7 +1246,8 @@ namespace ReBuzz.Core
             if (CheckSaveSong())
             {
                 masterLoading = true;
-                
+                AudioEngine.Stop();
+
                 DeleteBackup();
                 NewSong();
 
@@ -1290,6 +1297,7 @@ namespace ReBuzz.Core
 
                 SkipAudio = false;
                 Modified = false;
+                AudioEngine.Play();
 
                 dispatcher.BeginInvoke(() =>
                 {
@@ -1365,6 +1373,8 @@ namespace ReBuzz.Core
             file.SetSubSections(ss);
 
             SkipAudio = true;
+            AudioEngine.Stop();
+
             lock (AudioLock)
             {
                 try
@@ -1376,6 +1386,8 @@ namespace ReBuzz.Core
                     Utils.MessageBox("Error saving file " + filename + "\n\n" + ex, "Error saving file.");
                 }
             }
+
+            AudioEngine.Play();
             SkipAudio = false;
             Modified = false;
         }

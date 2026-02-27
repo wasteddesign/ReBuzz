@@ -11,6 +11,9 @@
         [BuzzSetting(true, Description = "Rename previous version to <songname>.backup when saving a song.")]
         public bool AutomaticBackups { get; set; }
 
+        [BuzzSetting(false, Description = "Keep song backups.")]
+        public bool KeepBackups { get; internal set; }
+
         [BuzzSetting(true, Description = "Check jeskola.net for updates at startup.")]
         public bool CheckForUpdates { get; set; }
 
@@ -43,5 +46,7 @@
 
         [BuzzSetting(DpiScalingType.System, Description = "DPI scaling.")]
         public DpiScalingType DpiScaling { get; internal set; }
+
+
     }
 }
