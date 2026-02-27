@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net10.0-windows</TargetFrameworks>
+    <TargetFrameworks>net10.0-windows10.0.26100.0</TargetFrameworks>
     <OutputType>WinExe</OutputType>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
@@ -24,7 +24,7 @@
     <UseWindowsThreadPool>true</UseWindowsThreadPool>
 	<CETCompat>false</CETCompat>
 	<IntermediateOutputPath>$(SolutionDir)build\$(Configuration)\$(Platform)\ReBuzz\obj</IntermediateOutputPath>
-	<OutputPath>$(SolutionDir)bin\$(Configuration)\$(Platform)</OutputPath>
+  <OutputPath>$(SolutionDir)bin\$(Configuration)\$(Platform)</OutputPath>
 	<EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
   </PropertyGroup>
   
@@ -139,6 +139,9 @@
   <ItemGroup>
     <Reference Include="Box2dNet">
       <HintPath>..\3rdParty\Box2dNet.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Windows.Devices.Midi2.NetProjection">
+      <HintPath>..\3rdParty\Microsoft.Windows.Devices.Midi2.NetProjection.dll</HintPath>
     </Reference>
     <Reference Include="NAudio">
       <HintPath>..\3rdParty\NAudio\NAudio.dll</HintPath>

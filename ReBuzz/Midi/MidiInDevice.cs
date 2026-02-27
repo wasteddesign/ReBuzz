@@ -58,6 +58,9 @@ namespace ReBuzz.Midi
                 try
                 {
                     midiIn.Stop();
+                    midiIn.MessageReceived -= MidiIn_MessageReceived;
+                    midiIn.ErrorReceived -= MidiIn_ErrorReceived;
+                    midiIn.SysexMessageReceived -= MidiIn_SysexMessageReceived;
                     midiIn.Dispose();
                 }
                 catch { }

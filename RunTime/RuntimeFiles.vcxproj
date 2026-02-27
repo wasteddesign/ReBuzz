@@ -66,12 +66,18 @@
     <NMakeOutput>
     </NMakeOutput>
     <NMakePreprocessorDefinitions>_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
-    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\net10.0-windows</OutDir>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\net10.0-windows10.0.26100.0</OutDir>
     <NMakeBuildCommandLine>IF NOT EXIST "$(OutDir)\bin32" mkdir "$(OutDir)\bin32"
 xcopy /d /y "$(ProjectDir)bin32\*.*" "$(OutDir)\bin32\"
 
 IF NOT EXIST "$(OutDir)\bin64" mkdir "$(OutDir)\bin64"
 xcopy /d /y "$(ProjectDir)bin64\*.*" "$(OutDir)\bin64\"
+
+IF NOT EXIST "$(OutDir)\bin64\bin32" mkdir "$(OutDir)\bin64\bin32"
+xcopy /d /y "$(ProjectDir)bin64\bin32\*.*" "$(OutDir)\bin64\bin32"
+
+IF NOT EXIST "$(OutDir)\bin64\Gear" mkdir "$(OutDir)\bin64\Gear"
+xcopy /d /y "$(ProjectDir)bin64\Gear\*.*" "$(OutDir)\bin64\Gear"
 
 xcopy /d /y "$(ProjectDir)..\3rdParty\libsndfile-1.dll" "$(OutDir)\" 
 
@@ -99,6 +105,9 @@ del "$(OutDir)\bin64\*.txt"
 del "$(OutDir)\bin64\scan.x64.*"
 del "$(OutDir)\bin64\vst.x64.*"
 
+del "$(OutDir)\bin64\bin32\*"
+del "$(OutDir)\bin64\Gear\*"
+
 del /f /s /q "$(OutDir)\Gear"
 rmdir /s  /q "$(OutDir)\Gear"
 
@@ -115,12 +124,18 @@ rmdir /s /q "$(OutDir)\Themes"</NMakeCleanCommandLine>
     <NMakeOutput>
     </NMakeOutput>
     <NMakePreprocessorDefinitions>WIN32;_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
-    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\net10.0-windows</OutDir>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\net10.0-windows10.0.26100.0</OutDir>
     <NMakeBuildCommandLine>IF NOT EXIST "$(OutDir)\bin32" mkdir "$(OutDir)\bin32"
 xcopy /d /y "$(ProjectDir)bin32\*.*" "$(OutDir)\bin32\"
 
 IF NOT EXIST "$(OutDir)\bin64" mkdir "$(OutDir)\bin64"
 xcopy /d /y "$(ProjectDir)bin64\*.*" "$(OutDir)\bin64\"
+
+IF NOT EXIST "$(OutDir)\bin64\bin32" mkdir "$(OutDir)\bin64\bin32"
+xcopy /d /y "$(ProjectDir)bin64\bin32\*.*" "$(OutDir)\bin64\bin32"
+
+IF NOT EXIST "$(OutDir)\bin64\Gear" mkdir "$(OutDir)\bin64\Gear"
+xcopy /d /y "$(ProjectDir)bin64\Gear\*.*" "$(OutDir)\bin64\Gear"
 
 xcopy /d /y "$(ProjectDir)..\3rdParty\libsndfile-1.dll" "$(OutDir)\" 
 
@@ -164,12 +179,18 @@ rmdir /s /q "$(OutDir)\Themes"</NMakeCleanCommandLine>
     <NMakeOutput>
     </NMakeOutput>
     <NMakePreprocessorDefinitions>WIN32;NDEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
-    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\net10.0-windows</OutDir>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\net10.0-windows10.0.26100.0</OutDir>
     <NMakeBuildCommandLine>IF NOT EXIST "$(OutDir)\bin32" mkdir "$(OutDir)\bin32"
 xcopy /d /y "$(ProjectDir)bin32\*.*" "$(OutDir)\bin32\"
 
 IF NOT EXIST "$(OutDir)\bin64" mkdir "$(OutDir)\bin64"
 xcopy /d /y "$(ProjectDir)bin64\*.*" "$(OutDir)\bin64\"
+
+IF NOT EXIST "$(OutDir)\bin64\bin32" mkdir "$(OutDir)\bin64\bin32"
+xcopy /d /y "$(ProjectDir)bin64\bin32\*.*" "$(OutDir)\bin64\bin32"
+
+IF NOT EXIST "$(OutDir)\bin64\Gear" mkdir "$(OutDir)\bin64\Gear"
+xcopy /d /y "$(ProjectDir)bin64\Gear\*.*" "$(OutDir)\bin64\Gear"
 
 xcopy /d /y "$(ProjectDir)..\3rdParty\libsndfile-1.dll" "$(OutDir)\" 
 
@@ -197,6 +218,12 @@ del "$(OutDir)\bin64\*.txt"
 del "$(OutDir)\bin64\scan.x64.*"
 del "$(OutDir)\bin64\vst.x64.*"
 
+IF NOT EXIST "$(OutDir)\bin64\bin32" mkdir "$(OutDir)\bin64\bin32"
+xcopy /d /y "$(ProjectDir)bin64\bin32\*.*" "$(OutDir)\bin64\bin32"
+
+IF NOT EXIST "$(OutDir)\bin64\Gear" mkdir "$(OutDir)\bin64\Gear"
+xcopy /d /y "$(ProjectDir)bin64\Gear\*.*" "$(OutDir)\bin64\Gear"
+
 del /f /s /q "$(OutDir)\Gear"
 rmdir /s  /q "$(OutDir)\Gear"
 
@@ -213,12 +240,18 @@ rmdir /s /q "$(OutDir)\Themes"</NMakeCleanCommandLine>
     <NMakeOutput>
     </NMakeOutput>
     <NMakePreprocessorDefinitions>NDEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
-    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\net10.0-windows</OutDir>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\net10.0-windows10.0.26100.0</OutDir>
     <NMakeBuildCommandLine>IF NOT EXIST "$(OutDir)\bin32" mkdir "$(OutDir)\bin32"
 xcopy /d /y "$(ProjectDir)bin32\*.*" "$(OutDir)\bin32\"
 
 IF NOT EXIST "$(OutDir)\bin64" mkdir "$(OutDir)\bin64"
 xcopy /d /y "$(ProjectDir)bin64\*.*" "$(OutDir)\bin64\"
+
+IF NOT EXIST "$(OutDir)\bin64\bin32" mkdir "$(OutDir)\bin64\bin32"
+xcopy /d /y "$(ProjectDir)bin64\bin32\*.*" "$(OutDir)\bin64\bin32"
+
+IF NOT EXIST "$(OutDir)\bin64\Gear" mkdir "$(OutDir)\bin64\Gear"
+xcopy /d /y "$(ProjectDir)bin64\Gear\*.*" "$(OutDir)\bin64\Gear"
 
 xcopy /d /y "$(ProjectDir)..\3rdParty\libsndfile-1.dll" "$(OutDir)\" 
 

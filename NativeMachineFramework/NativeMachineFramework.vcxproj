@@ -79,24 +79,24 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\$(TargetFramework)-$(TargetPlatformIdentifier)\</OutDir>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\$(TargetFramework)-$(TargetPlatformIdentifier)10.0.26100.0\</OutDir>
     <IntDir>$(SolutionDir)build\$(Configuration)\$(Platform)\$(ProjectName)\</IntDir>
     <ManagedAssembly>true</ManagedAssembly>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\$(TargetFramework)-$(TargetPlatformIdentifier)\</OutDir>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\$(TargetFramework)-$(TargetPlatformIdentifier)10.0.26100.0\</OutDir>
     <IntDir>$(SolutionDir)build\$(Configuration)\$(Platform)\$(ProjectName)\</IntDir>
     <ManagedAssembly>true</ManagedAssembly>
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\$(TargetFramework)-$(TargetPlatformIdentifier)\</OutDir>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\$(TargetFramework)-$(TargetPlatformIdentifier)10.0.26100.0\</OutDir>
     <IntDir>$(SolutionDir)build\$(Configuration)\$(Platform)\$(ProjectName)\</IntDir>
     <ManagedAssembly>true</ManagedAssembly>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\$(TargetFramework)-$(TargetPlatformIdentifier)\</OutDir>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\$(TargetFramework)-$(TargetPlatformIdentifier)10.0.26100.0\</OutDir>
     <IntDir>$(SolutionDir)build\$(Configuration)\$(Platform)\$(ProjectName)\</IntDir>
     <ManagedAssembly>true</ManagedAssembly>
     <IgnoreImportLibrary>false</IgnoreImportLibrary>

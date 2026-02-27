@@ -75,7 +75,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(ProjectDir)..\..\bin\$(Configuration)\x64\net10.0-windows\bin32\</OutDir>
+    <OutDir>$(ProjectDir)..\..\bin\$(Configuration)\x64\net10.0-windows10.0.26100.0\bin32\</OutDir>
     <TargetName>ReBuzzEngine32</TargetName>
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <EnableClangTidyCodeAnalysis>false</EnableClangTidyCodeAnalysis>
@@ -83,19 +83,19 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(ProjectDir)..\..\bin\$(Configuration)\$(PlatformName)\net10.0-windows\bin64\</OutDir>
+    <OutDir>$(ProjectDir)..\..\bin\$(Configuration)\$(PlatformName)\net10.0-windows10.0.26100.0\bin64\</OutDir>
     <TargetName>ReBuzzEngine64</TargetName>
     <IntDir>$(ProjectDir)..\..\build\$(Configuration)\$(PlatformName)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(ProjectDir)..\..\bin\$(Configuration)\x64\net10.0-windows\bin32\</OutDir>
+    <OutDir>$(ProjectDir)..\..\bin\$(Configuration)\x64\net10.0-windows10.0.26100.0\bin32\</OutDir>
     <TargetName>ReBuzzEngine32</TargetName>
     <IntDir>$(ProjectDir)..\..\build\$(Configuration)\$(PlatformName)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(ProjectDir)..\..\bin\$(Configuration)\$(PlatformName)\net10.0-windows\bin64\</OutDir>
+    <OutDir>$(ProjectDir)..\..\bin\$(Configuration)\$(PlatformName)\net10.0-windows10.0.26100.0\bin64\</OutDir>
     <TargetName>ReBuzzEngine64</TargetName>
     <IntDir>$(ProjectDir)..\..\build\$(Configuration)\$(PlatformName)\$(ProjectName)\</IntDir>
   </PropertyGroup>

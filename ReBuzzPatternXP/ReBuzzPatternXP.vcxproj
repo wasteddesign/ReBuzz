@@ -199,25 +199,25 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\$(TargetFramework)-windows\Gear\Generators\</OutDir>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\$(TargetFramework)-windows10.0.26100.0\Gear\Generators\</OutDir>
     <IntDir>$(SolutionDir)build\$(Configuration)\$(Platform)\$(ProjectName)\</IntDir>
     <ManagedAssembly>true</ManagedAssembly>
     <TargetName>$(ProjectName).NET</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\$(TargetFramework)-windows\Gear\Generators\</OutDir>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\$(TargetFramework)-windows10.0.26100.0\Gear\Generators\</OutDir>
     <IntDir>$(SolutionDir)build\$(Configuration)\$(Platform)\$(ProjectName)\</IntDir>
     <ManagedAssembly>true</ManagedAssembly>
     <TargetName>$(ProjectName).NET</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\$(TargetFramework)-windows\Gear\Generators\</OutDir>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\$(TargetFramework)-windows10.0.26100.0\Gear\Generators\</OutDir>
     <IntDir>$(SolutionDir)build\$(Configuration)\$(Platform)\$(ProjectName)\</IntDir>
     <ManagedAssembly>true</ManagedAssembly>
     <TargetName>$(ProjectName).NET</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\$(TargetFramework)-windows\Gear\Generators\</OutDir>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\$(TargetFramework)-windows10.0.26100.0\Gear\Generators\</OutDir>
     <IntDir>$(SolutionDir)build\$(Configuration)\$(Platform)\$(ProjectName)\</IntDir>
     <ManagedAssembly>true</ManagedAssembly>
     <TargetName>$(ProjectName).NET</TargetName>

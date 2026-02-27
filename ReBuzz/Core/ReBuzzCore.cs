@@ -749,6 +749,7 @@ namespace ReBuzz.Core
             MidiInOutEngine = new MidiEngine(this, registryEx);
             MidiInOutEngine.OpenMidiInDevices();
             MidiInOutEngine.OpenMidiOutDevices();
+            MidiInOutEngine.CreateMidi2Endpoint();
 
             MidiControllerAssignments = new MidiControllerAssignments(this, registryEx, registryRoot);
             MIDIControllers = MidiControllerAssignments.GetMidiControllerNames().ToReadOnlyCollection();
