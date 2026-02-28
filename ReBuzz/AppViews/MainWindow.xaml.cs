@@ -656,7 +656,7 @@ namespace ReBuzz
                         if (preferencesWindow.ShowDialog() == true)
                         {
                             Buzz.MidiInOutEngine.ReleaseAll();
-                            Buzz.MidiInOutEngine.CreateMidi2Endpoint();
+                            Buzz.MidiInOutEngine.Midi2.CreateMidi2Endpoint();
 
                             List<int> midiIns = new List<int>();
                             foreach (var item in preferencesWindow.lbMidiInputs.Items)
