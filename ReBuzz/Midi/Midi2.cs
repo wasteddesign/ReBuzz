@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-
 namespace ReBuzz.Midi
 {
 
@@ -32,16 +31,21 @@ namespace ReBuzz.Midi
         {
             _initializer = MidiDesktopAppSdkInitializer.Create();
 
+            if (_initializer == null) {
+                buzz.DCWriteLine("Failed to create MIDI 2.0 SDK Runtime initializer", DCLogLevel.Fatal);
+                return false;
+            }
+
             if (!_initializer.InitializeSdkRuntime())
             {
-                buzz.DCWriteLine("Failed to initialize SDK Runtime");
+                buzz.DCWriteLine("Failed to initialize MIDI 2.0 SDK Runtime");
                 return false;
             }
 
             // start the service
             if (!_initializer.EnsureServiceAvailable())
             {
-                buzz.DCWriteLine("Failed to get service running");
+                buzz.DCWriteLine("Failed to get MIDI 2.0 service running");
                 return false;
             }
 
