@@ -24,12 +24,9 @@ namespace ReBuzzTests
             driver.Gear.AddPrecompiledEffect(FakeNativeEffectInfo.Instance);
             driver.Start();
 
-            driver.MachineGraph.SaveMachineInitialConfiguration(nativeEffect1, new TestMachineConfig { Latency = 0 });
-            driver.MachineGraph.SaveMachineInitialConfiguration(nativeEffect2, new TestMachineConfig { Latency = 1 });
-            driver.MachineGraph.SaveMachineInitialConfiguration(nativeEffect3, new TestMachineConfig { Latency = 2 });
-            driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(nativeEffect1);
-            driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(nativeEffect2);
-            driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(nativeEffect3);
+            driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(nativeEffect1, new TestMachineConfig { Latency = 0 });
+            driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(nativeEffect2, new TestMachineConfig { Latency = 1 });
+            driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(nativeEffect3, new TestMachineConfig { Latency = 2 });
             driver.MachineGraph.InsertMachineInstanceFor(nativeGenerator1);
             driver.MachineGraph.InsertMachineInstanceFor(nativeGenerator2);
             driver.MachineGraph.InsertMachineInstanceFor(nativeGenerator3);
@@ -68,10 +65,8 @@ namespace ReBuzzTests
             driver.Gear.AddPrecompiledEffect(FakeNativeEffectInfo.Instance);
             driver.Start();
 
-            driver.MachineGraph.SaveMachineInitialConfiguration(nativeEffect1, new TestMachineConfig { Latency = 2000 });
-            driver.MachineGraph.SaveMachineInitialConfiguration(nativeEffect2, new TestMachineConfig { Latency = 2000 });
-            driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(nativeEffect1);
-            driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(nativeEffect2);
+            driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(nativeEffect1, new TestMachineConfig { Latency = 2000 });
+            driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(nativeEffect2, new TestMachineConfig { Latency = 2000 });
             driver.MachineGraph.InsertMachineInstanceFor(nativeGenerator);
             driver.MachineGraph.Connect(nativeGenerator, nativeEffect1);
             driver.MachineGraph.Connect(nativeGenerator, nativeEffect2);
@@ -99,13 +94,10 @@ namespace ReBuzzTests
             driver.Gear.AddPrecompiledEffect(FakeNativeEffectInfo.Instance);
             driver.Start();
 
-            driver.MachineGraph.SaveMachineInitialConfiguration(nativeEffect1, new TestMachineConfig { Latency = 0 });
-            driver.MachineGraph.SaveMachineInitialConfiguration(nativeEffect2, new TestMachineConfig { Latency = 1 });
-            driver.MachineGraph.SaveMachineInitialConfiguration(nativeEffect3, new TestMachineConfig { Latency = 2 });
-            driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(nativeEffect3);
+            driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(nativeEffect3, new TestMachineConfig { Latency = 2 });
             driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(nativeGenerator2);
-            driver.MachineGraph.InsertMachineInstanceFor(nativeEffect2);
-            driver.MachineGraph.InsertMachineInstanceFor(nativeEffect1);
+            driver.MachineGraph.InsertMachineInstanceFor(nativeEffect2, new TestMachineConfig { Latency = 1 });
+            driver.MachineGraph.InsertMachineInstanceFor(nativeEffect1, new TestMachineConfig { Latency = 0 });
             driver.MachineGraph.InsertMachineInstanceFor(nativeGenerator1);
             driver.MachineGraph.Connect(nativeGenerator1, nativeEffect1);
             driver.MachineGraph.Connect(nativeEffect1, nativeEffect2);

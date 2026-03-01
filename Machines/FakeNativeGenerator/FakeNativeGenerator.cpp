@@ -143,8 +143,10 @@ bool mi::WorkMonoToStereo(float* pin, float* pout, const int numsamples, int con
   return true;
 }
 
-mi::mi() : machineName(ReadMachineName())
+mi::mi()
 {
+  const auto config = ReadAndDeleteInstanceInitConfig();
+  machineName = GetMachineNameFromConfig(config);
   AbortIfRequested(machineName, "constructor");
   GlobalVals = &gval;
 }

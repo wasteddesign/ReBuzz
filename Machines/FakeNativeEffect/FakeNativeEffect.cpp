@@ -4,14 +4,9 @@
 #include "MachineInterface.h"
 #include <windef.h>
 #include <cstdlib>
-#include <cmath>
 #include <filesystem>
-#include <fstream>
 #include <iterator>
 #include <string>
-#include <sstream>
-#include <string>
-#include <unordered_map>
 
 #include "../FakeNativeMachineLib/lib.hpp"
 
@@ -87,39 +82,6 @@ private:
   int latency = 0;
 };
 
-// Reads a config file in "key=value" format into a std::unordered_map
-static std::unordered_map<std::string, std::string> ReadConfigFile(const std::filesystem::path& path)
-{
-  std::unordered_map<std::string, std::string> config;
-  std::ifstream file(path);
-  std::string line;
-  while (std::getline(file, line))
-  {
-    std::string_view sv = line;
-    const auto eq = sv.find('=');
-    if (eq != std::string_view::npos && eq != 0)
-    {
-      std::string_view key = sv.substr(0, eq);
-      std::string_view value = sv.substr(eq + 1);
-      config[std::string(key)] = std::string(value);
-    }
-  }
-  return config;
-}
-
-// Template function to parse a value from the config map
-template<typename T>
-static std::optional<T> GetConfigValue(const std::unordered_map<std::string, std::string>& config, const std::string& key)
-{
-  const auto it = config.find(key);
-  if (it == config.end()) return std::nullopt;
-  const std::string& str = it->second;
-  T value;
-  auto [ptr, ec] = std::from_chars(str.data(), str.data() + str.size(), value);
-  if (ec == std::errc()) return value;
-  return std::nullopt;
-}
-
 DLL_EXPORTS
 
 bool mi:: Work(float* psamples, int numsamples, const int mode)
@@ -139,19 +101,16 @@ bool mi:: Work(float* psamples, int numsamples, const int mode)
   return true;
 }
 
-mi::mi() : machineName(ReadMachineName())
+mi::mi()
 {
+  const auto config = ReadAndDeleteInstanceInitConfig();
+  machineName = GetMachineNameFromConfig(config);
   AbortIfRequested(machineName, "constructor");
   GlobalVals = &gval;
 
-  if (const auto configPath = GetDllFilePath().parent_path() / std::filesystem::path("FakeNativeEffect.dll_" + machineName + ".config"); std::filesystem::exists(configPath))
+  if (const auto latencyOpt = GetConfigValue<int>(config, "Latency"))
   {
-    const auto config = ReadConfigFile(configPath);
-
-    if (auto latencyOpt = GetConfigValue<int>(config, "Latency"))
-    {
-      this->latency = *latencyOpt;
-    }
+    this->latency = *latencyOpt;
   }
 }
 
