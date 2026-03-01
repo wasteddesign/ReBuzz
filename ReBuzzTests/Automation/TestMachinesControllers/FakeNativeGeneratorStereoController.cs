@@ -6,7 +6,7 @@ namespace ReBuzzTests.Automation.TestMachinesControllers
     public class FakeNativeGeneratorStereoController(string instanceName)
         : DynamicMachineController(MachineName, instanceName)
     {
-        private const string MachineName = "FakeNativeGeneratorStereo";
+        private const string MachineName = "FakeNativeStereoGenerator";
 
         public static FakeNativeGeneratorStereoController NewInstance(string instrumentName = MachineName) =>
             new(instrumentName);

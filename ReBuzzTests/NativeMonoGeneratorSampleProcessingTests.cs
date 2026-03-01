@@ -10,12 +10,12 @@ public class NativeMonoGeneratorSampleProcessingTests
     public void OutputsSamplesFromASingleNativeMonoMachine()
     {
         using var driver = new Driver();
-        var nativeGenerator = FakeNativeMonoGeneratorController.NewInstance();
+        var monoGenerator = FakeNativeMonoGeneratorController.NewInstance();
         driver.Gear.AddPrecompiledGenerator(FakeNativeMonoGeneratorController.Info);
         driver.Start();
 
-        driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(nativeGenerator);
-        driver.MachineGraph.ExecuteMachineCommand(nativeGenerator.SetMonoSampleValueTo(5));
+        driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(monoGenerator);
+        driver.MachineGraph.ExecuteMachineCommand(monoGenerator.SetMonoSampleValueTo(5));
 
         var samples = driver.ReadStereoSamples(1);
 
@@ -26,12 +26,12 @@ public class NativeMonoGeneratorSampleProcessingTests
     public void OutputsMultipleSamplesFromASingleNativeMonoMachine()
     {
         using var driver = new Driver();
-        var nativeGenerator = FakeNativeMonoGeneratorController.NewInstance();
+        var monoGenerator = FakeNativeMonoGeneratorController.NewInstance();
         driver.Gear.AddPrecompiledGenerator(FakeNativeMonoGeneratorController.Info);
         driver.Start();
 
-        driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(nativeGenerator);
-        driver.MachineGraph.ExecuteMachineCommand(nativeGenerator.SetMonoSampleValueTo(5));
+        driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(monoGenerator);
+        driver.MachineGraph.ExecuteMachineCommand(monoGenerator.SetMonoSampleValueTo(5));
 
         var samples = driver.ReadStereoSamples(2);
 
@@ -45,12 +45,12 @@ public class NativeMonoGeneratorSampleProcessingTests
     public void OutputsFloatingPointSamplesFromASingleNativeMonoMachine()
     {
         using var driver = new Driver();
-        var nativeGenerator = FakeNativeMonoGeneratorController.NewInstance();
+        var monoGenerator = FakeNativeMonoGeneratorController.NewInstance();
         driver.Gear.AddPrecompiledGenerator(FakeNativeMonoGeneratorController.Info);
         driver.Start();
 
-        driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(nativeGenerator);
-        driver.MachineGraph.ExecuteMachineCommand(nativeGenerator.SetMonoSampleValueTo(2, 10));
+        driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(monoGenerator);
+        driver.MachineGraph.ExecuteMachineCommand(monoGenerator.SetMonoSampleValueTo(2, 10));
 
         var samples = driver.ReadStereoSamples(1);
 
@@ -63,16 +63,16 @@ public class NativeMonoGeneratorSampleProcessingTests
         var gen1Value = 5f;
         var gen2Value = 2f;
         using var driver = new Driver();
-        var gen1Controller = FakeNativeMonoGeneratorController.NewInstance("s1");
-        var gen2Controller = FakeNativeMonoGeneratorController.NewInstance("s2");
+        var monoGenerator1Controller = FakeNativeMonoGeneratorController.NewInstance("s1");
+        var monoGenerator2Controller = FakeNativeMonoGeneratorController.NewInstance("s2");
         driver.Gear.AddPrecompiledGenerator(FakeNativeMonoGeneratorController.Info);
 
         driver.Start();
 
-        driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(gen1Controller);
-        driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(gen2Controller);
-        driver.MachineGraph.ExecuteMachineCommand(gen1Controller.SetMonoSampleValueTo(gen1Value));
-        driver.MachineGraph.ExecuteMachineCommand(gen2Controller.SetMonoSampleValueTo(gen2Value));
+        driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(monoGenerator1Controller);
+        driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(monoGenerator2Controller);
+        driver.MachineGraph.ExecuteMachineCommand(monoGenerator1Controller.SetMonoSampleValueTo(gen1Value));
+        driver.MachineGraph.ExecuteMachineCommand(monoGenerator2Controller.SetMonoSampleValueTo(gen2Value));
 
         var samples = driver.ReadStereoSamples(1);
 
@@ -88,16 +88,16 @@ public class NativeMonoGeneratorSampleProcessingTests
         var gen1Value = 5f;
         var gen2Value = 2f;
         using var driver = new Driver();
-        var gen1Controller = FakeNativeMonoGeneratorController.NewInstance("s1");
-        var gen2Controller = FakeNativeMonoGeneratorController.NewInstance("s2");
+        var monoGenerator1Controller = FakeNativeMonoGeneratorController.NewInstance("s1");
+        var monoGenerator2Controller = FakeNativeMonoGeneratorController.NewInstance("s2");
         driver.Gear.AddPrecompiledGenerator(FakeNativeMonoGeneratorController.Info);
 
         driver.Start();
 
-        driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(gen1Controller);
-        driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(gen2Controller);
-        driver.MachineGraph.ExecuteMachineCommand(gen1Controller.SetMonoSampleValueTo(gen1Value));
-        driver.MachineGraph.ExecuteMachineCommand(gen2Controller.SetMonoSampleValueTo(gen2Value));
+        driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(monoGenerator1Controller);
+        driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(monoGenerator2Controller);
+        driver.MachineGraph.ExecuteMachineCommand(monoGenerator1Controller.SetMonoSampleValueTo(gen1Value));
+        driver.MachineGraph.ExecuteMachineCommand(monoGenerator2Controller.SetMonoSampleValueTo(gen2Value));
 
         var expectedSum = gen1Value + gen2Value;
 

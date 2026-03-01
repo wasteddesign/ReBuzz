@@ -8,16 +8,16 @@ namespace ReBuzzTests.Automation.TestMachines
         : ITestMachineInfo
     {
         public static ITestMachineInfo StereoGeneratorInstance { get; } = new FakeNativeGeneratorInfo(
-            "FakeNativeGeneratorStereo",
-            "FakeNativeGenStereo",
+            "FakeNativeStereoGenerator",
+            "FakeNativeStereoGen",
             "FakeNativeGenerator.dll",
-            "FakeNativeGeneratorStereo.dll");
+            "FakeNativeStereoGenerator.dll");
 
         public static ITestMachineInfo MonoGeneratorInstance { get; } = new FakeNativeGeneratorInfo(
-            "FakeNativeGeneratorMono",
-            "FakeNativeGenMono",
+            "FakeNativeMonoGenerator",
+            "FakeNativeMonoGen",
             "FakeNativeGenerator.dll",
-            "FakeNativeGeneratorMono.dll");
+            "FakeNativeMonoGenerator.dll");
 
         MachineDLL ITestMachineInfo.GetMachineDll(ReBuzzCore buzz, AbsoluteFilePath location)
         {
