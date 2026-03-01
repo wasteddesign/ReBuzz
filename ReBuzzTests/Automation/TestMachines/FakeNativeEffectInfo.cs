@@ -48,5 +48,6 @@ namespace ReBuzzTests.Automation.TestMachines
         }
 
         public string DllName => "FakeNativeEffect.dll";
+        public string RealDllName => DllName;
     }
 }

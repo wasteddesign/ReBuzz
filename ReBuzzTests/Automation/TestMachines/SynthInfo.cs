@@ -55,6 +55,7 @@ namespace ReBuzzTests.Automation.TestMachines
         }
 
         public string DllName => Synth.GetMachineDecl().Name + ".dll";
+        public string RealDllName => DllName;
         public string SourceCode => Synth.GetSourceCode();
     }
 }

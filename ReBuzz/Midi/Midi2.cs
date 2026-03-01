@@ -30,9 +30,9 @@ namespace ReBuzz.Midi
         {
             _initializer = MidiDesktopAppSdkInitializer.Create();
 
-            if (_initializer == null)
+            if(_initializer == null)
             {
-                buzz.DCWriteLine("MIDI 2.0 SDK not available");
+                buzz.DCWriteLine("Failed to create SDK initializer");
                 return false;
             }
 

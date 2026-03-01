@@ -19,10 +19,10 @@ namespace ReBuzzTests
             var sampleFromGenerator2 = new Sample(7, 6);
             var sampleFromCrashedGenerator = new Sample(3, 2);
             using var driver = new Driver();
-            var crashingGenerator = FakeNativeGeneratorController.NewInstance("crashingGen");
-            var okGenerator1 = FakeNativeGeneratorController.NewInstance("okGen1");
-            var okGenerator2 = FakeNativeGeneratorController.NewInstance("okGen2");
-            driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorInfo.Instance);
+            var crashingGenerator = FakeNativeGeneratorStereoController.NewInstance("crashingGen");
+            var okGenerator1 = FakeNativeGeneratorStereoController.NewInstance("okGen1");
+            var okGenerator2 = FakeNativeGeneratorStereoController.NewInstance("okGen2");
+            driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorInfo.StereoGeneratorInstance);
             driver.Start();
 
             driver.Gear.EnableGeneratorCrashingFor(crashingGenerator, methodToCrash);
@@ -51,10 +51,10 @@ namespace ReBuzzTests
             var sampleFromGenerator2 = new Sample(7, 6);
             var sampleFromCrashedGenerator = new Sample(3, 2);
             using var driver = new Driver();
-            var crashingGenerator = FakeNativeGeneratorController.NewInstance("crashingGen");
-            var okGenerator1 = FakeNativeGeneratorController.NewInstance("okGen1");
-            var okGenerator2 = FakeNativeGeneratorController.NewInstance("okGen2");
-            driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorInfo.Instance);
+            var crashingGenerator = FakeNativeGeneratorStereoController.NewInstance("crashingGen");
+            var okGenerator1 = FakeNativeGeneratorStereoController.NewInstance("okGen1");
+            var okGenerator2 = FakeNativeGeneratorStereoController.NewInstance("okGen2");
+            driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorInfo.StereoGeneratorInstance);
             driver.Start();
 
             driver.Gear.EnableGeneratorCrashingFor(crashingGenerator, MethodsToCrashOn.WorkMonoToStereo);
@@ -85,8 +85,8 @@ namespace ReBuzzTests
         {
             using var driver = new Driver();
             var crashingEffect = FakeNativeEffectController.NewInstance("crashingEffect");
-            var okGenerator = FakeNativeGeneratorController.NewInstance("okGen");
-            driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorInfo.Instance);
+            var okGenerator = FakeNativeGeneratorStereoController.NewInstance("okGen");
+            driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorInfo.StereoGeneratorInstance);
             driver.Gear.AddPrecompiledEffect(FakeNativeEffectInfo.Instance);
             driver.Start();
 
@@ -111,9 +111,9 @@ namespace ReBuzzTests
         {
             using var driver = new Driver();
             var crashingEffect = FakeNativeEffectController.NewInstance("crashingEffect");
-            var okGenerator = FakeNativeGeneratorController.NewInstance("okGen");
+            var okGenerator = FakeNativeGeneratorStereoController.NewInstance("okGen");
             var sampleFromGenerator = new Sample(2, 3);
-            driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorInfo.Instance);
+            driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorInfo.StereoGeneratorInstance);
             driver.Gear.AddPrecompiledEffect(FakeNativeEffectInfo.Instance);
             driver.Start();
 

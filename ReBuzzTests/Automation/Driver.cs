@@ -308,7 +308,7 @@ namespace ReBuzzTests.Automation
         public void Dispose()
         {
             reBuzzCore?.ExecuteCommand(BuzzCommand.Exit);
-            initialization.ShutDownReBuzzEngine();
+            initialization?.ShutDownReBuzzEngine();
             AttemptToCleanupTestRootDirs();
         }
 

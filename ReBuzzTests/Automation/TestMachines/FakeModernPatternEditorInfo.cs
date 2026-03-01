@@ -57,6 +57,7 @@ namespace ReBuzzTests.Automation.TestMachines
         }
 
         public string DllName => "FakeModernPatternEditor.dll";
+        public string RealDllName => DllName;
         public string SourceCode => FakeModernPatternEditor.GetSourceCode();
     }
 }
