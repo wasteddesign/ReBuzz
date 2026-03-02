@@ -4,14 +4,14 @@ using ReBuzzTests.Automation.TestMachinesControllers;
 
 namespace ReBuzzTests;
 
-public class NativeGeneratorSampleProcessingTests
+public class NativeStereoGeneratorSampleProcessingTests
 {
     [Test]
     public void OutputsSamplesFromASingleNativeStereoMachine()
     {
         using var driver = new Driver();
-        var nativeGenerator = FakeNativeGeneratorController.NewInstance();
-        driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorController.Info);
+        var nativeGenerator = FakeNativeGeneratorStereoController.NewInstance();
+        driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorStereoController.Info);
         driver.Start();
 
         driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(nativeGenerator);
@@ -26,8 +26,8 @@ public class NativeGeneratorSampleProcessingTests
     public void OutputsMultipleSamplesFromASingleNativeStereoMachine()
     {
         using var driver = new Driver();
-        var nativeGenerator = FakeNativeGeneratorController.NewInstance();
-        driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorController.Info);
+        var nativeGenerator = FakeNativeGeneratorStereoController.NewInstance();
+        driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorStereoController.Info);
         driver.Start();
 
         driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(nativeGenerator);
@@ -45,8 +45,8 @@ public class NativeGeneratorSampleProcessingTests
     public void OutputsFloatingPointSamplesFromASingleNativeStereoMachine()
     {
         using var driver = new Driver();
-        var nativeGenerator = FakeNativeGeneratorController.NewInstance();
-        driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorController.Info);
+        var nativeGenerator = FakeNativeGeneratorStereoController.NewInstance();
+        driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorStereoController.Info);
         driver.Start();
 
         driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(nativeGenerator);
@@ -63,9 +63,9 @@ public class NativeGeneratorSampleProcessingTests
         var gen1Sample = new Sample(5, 10);
         var gen2Sample = new Sample(2, 5);
         using var driver = new Driver();
-        var gen1Controller = FakeNativeGeneratorController.NewInstance("s1");
-        var gen2Controller = FakeNativeGeneratorController.NewInstance("s2");
-        driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorController.Info);
+        var gen1Controller = FakeNativeGeneratorStereoController.NewInstance("s1");
+        var gen2Controller = FakeNativeGeneratorStereoController.NewInstance("s2");
+        driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorStereoController.Info);
 
         driver.Start();
 
@@ -87,9 +87,9 @@ public class NativeGeneratorSampleProcessingTests
         var gen1Sample = new Sample(5, 1);
         var gen2Sample = new Sample(2, 5);
         using var driver = new Driver();
-        var gen1Controller = FakeNativeGeneratorController.NewInstance("s1");
-        var gen2Controller = FakeNativeGeneratorController.NewInstance("s2");
-        driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorController.Info);
+        var gen1Controller = FakeNativeGeneratorStereoController.NewInstance("s1");
+        var gen2Controller = FakeNativeGeneratorStereoController.NewInstance("s2");
+        driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorStereoController.Info);
 
         driver.Start();
 

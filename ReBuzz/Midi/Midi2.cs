@@ -2,10 +2,8 @@
 using Microsoft.Windows.Devices.Midi2;
 using Microsoft.Windows.Devices.Midi2.Endpoints.Virtual;
 using Microsoft.Windows.Devices.Midi2.Initialization;
-using Microsoft.Windows.Devices.Midi2.Messages;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace ReBuzz.Midi
 {
@@ -31,7 +29,8 @@ namespace ReBuzz.Midi
         {
             _initializer = MidiDesktopAppSdkInitializer.Create();
 
-            if (_initializer == null) {
+            if (_initializer == null) 
+            {
                 buzz.DCWriteLine("Failed to create MIDI 2.0 SDK Runtime initializer", DCLogLevel.Fatal);
                 return false;
             }

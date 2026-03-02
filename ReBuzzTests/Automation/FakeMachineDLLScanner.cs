@@ -49,7 +49,7 @@ namespace ReBuzzTests.Automation
 
         public void AddPrecompiledMachine(ReBuzzCore reBuzz, ITestMachineInfo info, AbsoluteDirectoryPath targetDir)
         {
-            var assemblySourceLocation = AbsoluteDirectoryPath.OfExecutingAssembly().AddFileName(info.DllName);
+            var assemblySourceLocation = AbsoluteDirectoryPath.OfExecutingAssembly().AddFileName(info.RealDllName);
             var assemblyTargetLocation = targetDir.AddFileName(info.DllName);
             var machineDll = info.GetMachineDll(reBuzz, assemblyTargetLocation);
             assemblySourceLocation.Copy(assemblyTargetLocation);

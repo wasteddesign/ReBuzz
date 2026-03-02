@@ -1,3 +1,17 @@
+#pragma once
+#include <charconv>
+#include <optional>
+#include <string_view>
+#include <unordered_map>
+#include <cmath>
+#include <filesystem>
+#include <fstream>
+#include <iterator>
+#include <string>
+#include <sstream>
+#include <string>
+#include <unordered_map>
+
 std::string ReadShortFileContentAndRemoveFile(std::string filePath)
 {
   std::string content;
@@ -38,9 +52,54 @@ std::filesystem::path GetDllFilePath()
     throw std::runtime_error("Could not get DLL Path");
 }
 
-std::string ReadMachineName()
+// Reads a key=value config file into a map.
+static std::unordered_map<std::string, std::string> ReadConfigFile(const std::filesystem::path& path)
 {
-  return ReadShortFileContentAndRemoveFile(GetDllFilePath().string() + ".txt");
+  std::unordered_map<std::string, std::string> config;
+  std::ifstream file(path);
+  std::string line;
+  while (std::getline(file, line))
+  {
+    std::string_view sv = line;
+    const auto eq = sv.find('=');
+    if (eq != std::string_view::npos && eq != 0)
+    {
+      config[std::string(sv.substr(0, eq))] = std::string(sv.substr(eq + 1));
+    }
+  }
+  return config;
+}
+
+// Parses a typed value from a config map entry. Returns std::nullopt if the key
+// is missing or the value cannot be converted to T.
+template<typename T>
+static std::optional<T> GetConfigValue(
+  const std::unordered_map<std::string, std::string>& config, const std::string& key)
+{
+  const auto it = config.find(key);
+  if (it == config.end()) return std::nullopt;
+  T value;
+  auto [ptr, ec] = std::from_chars(it->second.data(), it->second.data() + it->second.size(), value);
+  if (ec == std::errc()) return value;
+  return std::nullopt;
+}
+
+// Reads all per-instance startup configuration from <dll>.init and deletes the
+// file so the next instance starts with a clean slate.
+static std::unordered_map<std::string, std::string> ReadAndDeleteInstanceInitConfig()
+{
+  auto path = GetDllFilePath().string() + ".init";
+  auto config = ReadConfigFile(path);
+  std::remove(path.c_str());
+  return config;
+}
+
+// Extracts the machine instance name from an init config map.
+static std::string GetMachineNameFromConfig(
+  const std::unordered_map<std::string, std::string>& config)
+{
+  const auto it = config.find("MachineName");
+  return it != config.end() ? it->second : std::string{};
 }
 
 

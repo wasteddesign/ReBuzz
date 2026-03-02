@@ -17,6 +17,19 @@ FAKE_MACHINE_INT_SLIDER(sampleValueRightIntegral, SampleValueRightIntegral);
 FAKE_MACHINE_INT_SLIDER(sampleValueRightDivisor, SampleValueRightDivisor);
 FAKE_MACHINE_SWITCH_SLIDER(debugShowEnabled, DebugShowEnabled);
 
+static bool IsMono()
+{
+  try
+  {
+    auto filename = GetDllFilePath().filename().string();
+    return filename.find("Mono") != std::string::npos;
+  }
+  catch (...)
+  {
+    return false;
+  }
+}
+
 static CMachineParameter const* pParameters[] = { 
   // global
   &sampleValueLeftIntegral,
@@ -40,29 +53,11 @@ public:
 
 #pragma pack()
 
-CMachineInfo const                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   MacInfo = 
-{
-  .Type = MT_GENERATOR,                          // type
-  .Version = MI_VERSION,                         // version
-  .Flags = MIF_DOES_INPUT_MIXING,                // flags
-  .minTracks = 0,                                // min tracks
-  .maxTracks = 0,                                // max tracks
-  .numGlobalParameters = std::size(pParameters), // numGlobalParameters
-  .numTrackParameters = 0,                       // numTrackParameters
-  .Parameters = pParameters,
-  .numAttributes = 0,
-  .Attributes = nullptr,
-  .Name = "FakeNativeGenerator",
-  .ShortName = "FakeNativeGen",                  // short name
-  .Author = "WDE",                               // author
-  .Commands = nullptr,                           //"Command1\nCommand2\nCommand3"
-  .pLI = nullptr
-};
-
 class mi : public CMachineInterface, CMachineInterfaceEx
 {
 public:
   mi();
+  bool Work(float* psamples, int numsamples, int const mode) override;
   bool WorkMonoToStereo(float* pin, float* pout, int numsamples, int const mode) override;
   ~mi() override;
   void Init(CMachineDataInput* const pi) override;
@@ -87,7 +82,49 @@ private:
   std::string machineName;
 };
 
-DLL_EXPORTS
+
+// Used instead of DLL_EXPORTS to dynamically build the machine info based on the configuration
+extern "C"
+{
+  __declspec(dllexport) CMachineInfo const* __cdecl GetInfo()
+  {
+    static auto machineInfo = CMachineInfo
+    {
+      .Type = MT_GENERATOR,                          // type
+      .Version = MI_VERSION,                         // version
+      .Flags = IsMono() ? 0 : MIF_DOES_INPUT_MIXING, // flags: 0 for mono, DOES_INPUT_MIXING for stereo
+      .minTracks = 0,                                // min tracks
+      .maxTracks = 0,                                // max tracks
+      .numGlobalParameters = static_cast<int>(std::size(pParameters)), // numGlobalParameters
+      .numTrackParameters = 0,                       // numTrackParameters
+      .Parameters = pParameters,
+      .numAttributes = 0,
+      .Attributes = nullptr,
+      .Name = "FakeNativeGenerator",
+      .ShortName = "FakeNativeGen",                  // short name
+      .Author = "WDE",                               // author
+      .Commands = nullptr,                           //"Command1\nCommand2\nCommand3"
+      .pLI = nullptr
+    };
+    return &machineInfo;
+  }
+  __declspec(dllexport) CMachineInterface* __cdecl CreateMachine()
+  {
+    return new mi;
+  }
+}
+
+bool mi::Work(float* psamples, const int numsamples, int const mode)
+{
+  DebugShow(machineName, __func__, gval.debugShowEnabled);
+  AbortIfRequested(machineName, __func__);
+  for (auto i = 0; i < numsamples; i++)
+  {
+    psamples[i] =
+      static_cast<float>(gval.sampleValueLeftIntegral) / static_cast<float>(gval.sampleValueLeftDivisor);
+  }
+  return true;
+}
 
 bool mi::WorkMonoToStereo(float* pin, float* pout, const int numsamples, int const mode)
 {
@@ -106,8 +143,10 @@ bool mi::WorkMonoToStereo(float* pin, float* pout, const int numsamples, int con
   return true;
 }
 
-mi::mi() : machineName(ReadMachineName())
+mi::mi()
 {
+  const auto config = ReadAndDeleteInstanceInitConfig();
+  machineName = GetMachineNameFromConfig(config);
   AbortIfRequested(machineName, "constructor");
   GlobalVals = &gval;
 }

@@ -13,9 +13,9 @@ namespace ReBuzzTests
             const int effectMultiplier = 2;
             var sampleFromGenerator = new Sample(2, 3);
             using var driver = new Driver();
-            var nativeGenerator = FakeNativeGeneratorController.NewInstance();
+            var nativeGenerator = FakeNativeGeneratorStereoController.NewInstance();
             var nativeEffect = FakeNativeEffectController.NewInstance();
-            driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorInfo.Instance);
+            driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorInfo.StereoGeneratorInstance);
             driver.Gear.AddPrecompiledEffect(FakeNativeEffectInfo.Instance);
             driver.Start();
 
@@ -36,9 +36,9 @@ namespace ReBuzzTests
             const int effectMultiplier = 2;
             var sampleFromGenerator = new Sample(2, 3);
             using var driver = new Driver();
-            var nativeGenerator = FakeNativeGeneratorController.NewInstance();
+            var nativeGenerator = FakeNativeGeneratorStereoController.NewInstance();
             var nativeEffect = FakeNativeEffectController.NewInstance();
-            driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorInfo.Instance);
+            driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorInfo.StereoGeneratorInstance);
             driver.Gear.AddPrecompiledEffect(FakeNativeEffectInfo.Instance);
             driver.Start();
 
@@ -63,10 +63,10 @@ namespace ReBuzzTests
             var gen2Sample = new Sample(2, 5);
             const int effectMultiplier = 2;
             using var driver = new Driver();
-            var gen1Controller = FakeNativeGeneratorController.NewInstance("s1");
-            var gen2Controller = FakeNativeGeneratorController.NewInstance("s2");
+            var gen1Controller = FakeNativeGeneratorStereoController.NewInstance("s1");
+            var gen2Controller = FakeNativeGeneratorStereoController.NewInstance("s2");
             var effectController = FakeNativeEffectController.NewInstance();
-            driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorController.Info);
+            driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorStereoController.Info);
             driver.Gear.AddPrecompiledEffect(FakeNativeEffectController.Info);
 
             driver.Start();
@@ -94,10 +94,10 @@ namespace ReBuzzTests
             var gen2Sample = new Sample(2, 5);
             const int effectMultiplier = 2;
             using var driver = new Driver();
-            var gen1Controller = FakeNativeGeneratorController.NewInstance("s1");
-            var gen2Controller = FakeNativeGeneratorController.NewInstance("s2");
+            var gen1Controller = FakeNativeGeneratorStereoController.NewInstance("s1");
+            var gen2Controller = FakeNativeGeneratorStereoController.NewInstance("s2");
             var effectController = FakeNativeEffectController.NewInstance();
-            driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorController.Info);
+            driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorStereoController.Info);
             driver.Gear.AddPrecompiledEffect(FakeNativeEffectController.Info);
 
             driver.Start();
@@ -125,8 +125,8 @@ namespace ReBuzzTests
         {
             var gen1Sample = new Sample(5, 10);
             using var driver = new Driver();
-            var gen1Controller = FakeNativeGeneratorController.NewInstance("s1");
-            driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorController.Info);
+            var gen1Controller = FakeNativeGeneratorStereoController.NewInstance("s1");
+            driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorStereoController.Info);
             driver.Gear.AddPrecompiledEffect(FakeNativeEffectController.Info);
 
             driver.Start();
@@ -148,10 +148,10 @@ namespace ReBuzzTests
             const int effect1Multiplier = 2;
             const int effect2Multiplier = 3;
             using var driver = new Driver();
-            var genController = FakeNativeGeneratorController.NewInstance("s1");
+            var genController = FakeNativeGeneratorStereoController.NewInstance("s1");
             var effect1Controller = FakeNativeEffectController.NewInstance("e1");
             var effect2Controller = FakeNativeEffectController.NewInstance("e2");
-            driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorController.Info);
+            driver.Gear.AddPrecompiledGenerator(FakeNativeGeneratorStereoController.Info);
             driver.Gear.AddPrecompiledEffect(FakeNativeEffectController.Info);
 
             driver.Start();

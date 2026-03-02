@@ -36,10 +36,13 @@ namespace ReBuzzTests.Automation
             this.engineSettings = engineSettings;
         }
 
-        public void InsertMachineInstanceFor(DynamicMachineController controller)
+        public void InsertMachineInstanceFor(DynamicMachineController controller) =>
+            InsertMachineInstanceFor(controller, TestMachineConfig.Empty);
+
+        public void InsertMachineInstanceFor(DynamicMachineController controller, TestMachineConfig config)
         {
             var machineDll = fakeMachineDllScanner.GetMachineDLL(controller.Name);
-            SaveMachineName(controller, machineDll);
+            WriteInstanceInitConfig(controller, machineDll, config);
             CreateInstrument(machineDll, controller.InstanceName);
             reBuzzMachines.StoreSongCoreMachine(controller.InstanceName);
         }
@@ -58,9 +61,12 @@ namespace ReBuzzTests.Automation
             DisconnectFromMaster(reBuzzMachines.GetSongCoreMachineInstance(controller.InstanceName));
         }
 
-        public void InsertMachineInstanceConnectedToMasterFor(DynamicMachineController controller)
+        public void InsertMachineInstanceConnectedToMasterFor(DynamicMachineController controller) =>
+            InsertMachineInstanceConnectedToMasterFor(controller, TestMachineConfig.Empty);
+
+        public void InsertMachineInstanceConnectedToMasterFor(DynamicMachineController controller, TestMachineConfig config)
         {
-            InsertMachineInstanceFor(controller);
+            InsertMachineInstanceFor(controller, config);
             ConnectToMaster(reBuzzMachines.GetMachineAddedFromTest(controller.InstanceName));
         }
 
@@ -108,22 +114,15 @@ namespace ReBuzzTests.Automation
         }
 
         /// <summary>
-        /// Saves a configuration file for the fake machine to consume on start
+        /// Writes all per-instance startup configuration to a single .init file consumed
+        /// by the native machine constructor. Contains MachineName plus any extra config.
         /// </summary>
-        public void SaveMachineInitialConfiguration(DynamicMachineController controller, TestMachineConfig config)
+        private static void WriteInstanceInitConfig(
+            DynamicMachineController controller, IMachineDLL machineDll, TestMachineConfig config)
         {
-            var machineDll = fakeMachineDllScanner.GetMachineDLL(controller.Name);
-            File.WriteAllLines(
-                machineDll.Path + "_" + controller.InstanceName + ".config",
-                config.Config.Select(kv => kv.Key + "=" + kv.Value));
-        }
-
-        /// <summary>
-        /// This is a workaround so that a test machine instance can know its name since before the Init() is called
-        /// </summary>
-        private static void SaveMachineName(DynamicMachineController controller, IMachineDLL machineDll)
-        {
-            File.WriteAllText(machineDll.Path + ".txt", controller.InstanceName);
+            var lines = new[] { $"MachineName={controller.InstanceName}" }
+                .Concat(config.Config.Select(kv => $"{kv.Key}={kv.Value}"));
+            File.WriteAllLines(machineDll.Path + ".init", lines);
         }
     }
 }
