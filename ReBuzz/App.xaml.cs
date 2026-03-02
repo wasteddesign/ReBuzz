@@ -34,7 +34,7 @@ namespace ReBuzz
         {
             var result = MessageBox.Show(
                 GetFullExceptionMessage(ex)
-                + "Do you want to the application to terminate? " +
+                + "Do you want the application to terminate? " +
                 "Not terminating the application might leave an unresponsive process running in the background.",
                 "Unhandled Exception — " + (ex.Source ?? "ReBuzz"),
                 MessageBoxButton.YesNo,

@@ -4,9 +4,7 @@
 #include "MachineInterface.h"
 #include <windef.h>
 #include <cstdlib>
-#include <cmath>
 #include <filesystem>
-#include <fstream>
 #include <iterator>
 #include <string>
 #include "../FakeNativeMachineLib/lib.hpp"
@@ -28,6 +26,21 @@ static bool IsMono()
   {
     return false;
   }
+}
+
+std::string GetName()
+{
+  return std::string("FakeNative") + (IsMono() ? "Mono" : "Stereo") + "Generator";
+}
+
+std::string GetShortName()
+{
+  return std::string("FakeNative") + (IsMono() ? "Mono" : "Stereo") + "Gen";
+}
+
+int GetFlags()
+{
+  return IsMono() ? 0 : MIF_DOES_INPUT_MIXING;
 }
 
 static CMachineParameter const* pParameters[] = { 
@@ -92,7 +105,7 @@ extern "C"
     {
       .Type = MT_GENERATOR,                          // type
       .Version = MI_VERSION,                         // version
-      .Flags = IsMono() ? 0 : MIF_DOES_INPUT_MIXING, // flags: 0 for mono, DOES_INPUT_MIXING for stereo
+      .Flags = GetFlags(), // flags: 0 for mono, DOES_INPUT_MIXING for stereo
       .minTracks = 0,                                // min tracks
       .maxTracks = 0,                                // max tracks
       .numGlobalParameters = static_cast<int>(std::size(pParameters)), // numGlobalParameters
@@ -100,8 +113,8 @@ extern "C"
       .Parameters = pParameters,
       .numAttributes = 0,
       .Attributes = nullptr,
-      .Name = "FakeNativeGenerator",
-      .ShortName = "FakeNativeGen",                  // short name
+      .Name = GetName().c_str(),
+      .ShortName = GetShortName().c_str(),            // short name
       .Author = "WDE",                               // author
       .Commands = nullptr,                           //"Command1\nCommand2\nCommand3"
       .pLI = nullptr
