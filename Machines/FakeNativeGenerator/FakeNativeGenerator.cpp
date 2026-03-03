@@ -30,12 +30,14 @@ static bool IsMono()
 
 std::string GetName()
 {
-  return std::string("FakeNative") + (IsMono() ? "Mono" : "Stereo") + "Generator";
+  static auto name = std::string("FakeNative") + (IsMono() ? "Mono" : "Stereo") + "Generator";
+  return name;
 }
 
 std::string GetShortName()
 {
-  return std::string("FakeNative") + (IsMono() ? "Mono" : "Stereo") + "Gen";
+  static auto shortName = std::string("FakeNative") + (IsMono() ? "Mono" : "Stereo") + "Gen";
+  return shortName;
 }
 
 int GetFlags()
