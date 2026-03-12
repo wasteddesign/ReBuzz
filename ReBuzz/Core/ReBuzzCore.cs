@@ -1244,6 +1244,9 @@ namespace ReBuzz.Core
         /// </summary>
         public void OpenSongFile(string filename)
         {
+            if (!File.Exists(filename))
+                return;
+
             if (CheckSaveSong())
             {
                 masterLoading = true;
@@ -1344,7 +1347,6 @@ namespace ReBuzz.Core
         /// </summary>
         public void SaveSongFile(string filename)
         {
-
             DeleteBackup();
 
             // Check filename

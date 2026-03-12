@@ -136,7 +136,7 @@ namespace ReBuzz.Audio
         }
 
         readonly float[] audioInBuffer = new float[512];
-        private unsafe void WasapiCapture_DataAvailable(object sender, WaveInEventArgs e)
+        private void WasapiCapture_DataAvailable(object sender, WaveInEventArgs e)
         {
             int bytesRemaining = e.BytesRecorded;
             int srcByteOffset = 0;
@@ -248,7 +248,6 @@ namespace ReBuzz.Audio
             }
 
             SelectedOutDevice = new AudioOutDevice() { Name = deviceName, Type = AudioOutType.Wasapi, WavePlayer = wasapiOut };
-            
         }
 
         bool InitWasapiOut(WasapiOut wasapiOut)

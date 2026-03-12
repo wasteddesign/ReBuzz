@@ -33,8 +33,8 @@ namespace ReBuzz.Midi
 
                 // Create midi message handler task
                 stopped = false;
-                midiMessagesTask = new Task(() => ProcessMidiMessages(), CancellationToken.None, TaskCreationOptions.LongRunning);
-                midiMessagesTask.Start();
+                //midiMessagesTask = new Task(() => ProcessMidiMessages(), CancellationToken.None, TaskCreationOptions.LongRunning);
+                //midiMessagesTask.Start();
 
                 // Start listening Midi messages
                 midiIn = new MidiIn(selectedDeviceIndex);

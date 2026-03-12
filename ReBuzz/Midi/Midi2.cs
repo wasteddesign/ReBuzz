@@ -2,8 +2,12 @@
 using Microsoft.Windows.Devices.Midi2;
 using Microsoft.Windows.Devices.Midi2.Endpoints.Virtual;
 using Microsoft.Windows.Devices.Midi2.Initialization;
+using Microsoft.Windows.Devices.Midi2.Messages;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
+using Windows.Foundation;
 
 namespace ReBuzz.Midi
 {
@@ -98,8 +102,6 @@ namespace ReBuzz.Midi
 
         private void Watcher_Added(MidiEndpointDeviceWatcher sender, MidiEndpointDeviceInformationAddedEventArgs args)
         {
-            var props = args.AddedDevice.Properties;
-
             Endpoints.Add(args.AddedDevice);
         }
 
