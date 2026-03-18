@@ -2027,6 +2027,7 @@ namespace ReBuzz.Core
                 master.PatternsList.Clear();
                 SetPatternEditorPattern(null);
 
+                Speed = 0;
                 FileEvent?.Invoke(FileEventType.Close, "Done.", null);
             }
 
