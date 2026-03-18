@@ -1508,6 +1508,25 @@ namespace ReBuzz.NativeMachine
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal void WriteSubTickInfo(MachineCore machine)
+        {
+            int oversample = machine.oversampleFactorOnTick - 1;
+            if (oversample > 0)
+            {
+                WorkManager.SubTickInfoStruct.SamplesPerSubTick <<= oversample;
+                WorkManager.SubTickInfoData = Utils.SerializeValueTypeChangePointer(WorkManager.SubTickInfoStruct, ref WorkManager.SubTickInfoData);
+                SetMessageData(WorkManager.SubTickInfoData);
+                WorkManager.SubTickInfoStruct.SamplesPerSubTick >>= oversample;
+                WorkManager.SubTickInfoData = Utils.SerializeValueTypeChangePointer(WorkManager.SubTickInfoStruct, ref WorkManager.SubTickInfoData);
+            }
+            else
+            {
+                SetMessageData(WorkManager.SubTickInfoData);
+            }
+            return;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void WriteGlobalState()
         {
             SetMessageData(Utils.SerializeValueType(ReBuzzCore.GlobalState));

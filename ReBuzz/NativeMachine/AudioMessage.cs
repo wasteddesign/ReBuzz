@@ -126,6 +126,7 @@ namespace ReBuzz.NativeMachine
                     Reset();
                     SetMessageData((int)AudioMessages.AudioTick);
                     WriteMasterInfo(machine);
+                    WriteSubTickInfo(machine);
                     SetMessageDataPtr(machine.CMachinePtr);
                     SetMessageData(globalVals.Count);
                     SetMessageData(globalVals.ToArray());

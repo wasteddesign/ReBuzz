@@ -31,8 +31,19 @@ namespace ReBuzz.Audio
             public float TicksPerSec;
         };
 
+        [StructLayout(LayoutKind.Sequential)]
+        public struct BuzzSubTickInfo
+        {
+            public int SubTicksPerTick;
+            public int CurrentSubTick;
+            public int SamplesPerSubTick;
+            public int PosInSubTick;
+        };
+
         internal static BuzzMasterInfo MasterInfoStruct;
         unsafe internal static byte[] MasterInfoData = new byte[sizeof(BuzzMasterInfo)];
+        internal static BuzzSubTickInfo SubTickInfoStruct;
+        unsafe internal static byte[] SubTickInfoData = new byte[sizeof(BuzzSubTickInfo)];
 
         bool multiThreadingEnabled = false;
 
@@ -66,6 +77,18 @@ namespace ReBuzz.Audio
 
             // Update array
             MasterInfoData = Utils.SerializeValueTypeChangePointer(MasterInfoStruct, ref MasterInfoData);
+        }
+
+        internal void CopySubTickInfo()
+        {
+            var subtickInfo = ReBuzzCore.subTickInfo;
+            SubTickInfoStruct.CurrentSubTick = subtickInfo.CurrentSubTick;
+            SubTickInfoStruct.PosInSubTick = subtickInfo.PosInSubTick;
+            SubTickInfoStruct.SubTicksPerTick = subtickInfo.SubTicksPerTick;
+            SubTickInfoStruct.SamplesPerSubTick = subtickInfo.SamplesPerSubTick;
+
+            // Update array
+            SubTickInfoData = Utils.SerializeValueTypeChangePointer(SubTickInfoStruct, ref SubTickInfoData);
         }
 
         internal int workBufferOffset;
@@ -103,6 +126,9 @@ namespace ReBuzz.Audio
 
                     // Update SubTick
                     UpdateSubTickLength();
+
+                    // Initiate master info for Audio Messages
+                    CopySubTickInfo();
 
                     // HandleParameterRecord();
 
@@ -376,7 +402,8 @@ namespace ReBuzz.Audio
                 // Tick should be inexpensive operation so no tasks?
                 // Some old machines don't support subtick
                 if (machine.IsControlMachine && (ReBuzzCore.masterInfo.PosInTick == 0 ||
-                    (engineSettings.SubTickTiming && ReBuzzCore.subTickInfo.PosInSubTick == 0 && machine.DLL.Info.Version > MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_42)))
+                    (engineSettings.SubTickTiming && ReBuzzCore.subTickInfo.PosInSubTick == 0 && machine.DLL.Info.Version > MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_42 &&
+                    !buzzCore.Gear.IsSubTickDisabled(machine))))
                 {
                     var workInstance = buzzCore.MachineManager.GetMachineWorkInstance(machine);
                     workInstance.Tick(false, false);
@@ -388,7 +415,8 @@ namespace ReBuzz.Audio
                 // Tick should be inexpensive operation so no tasks?
                 // Some old machines don't support subtick
                 if (!machine.IsControlMachine && (ReBuzzCore.masterInfo.PosInTick == 0 ||
-                    (engineSettings.SubTickTiming && ReBuzzCore.subTickInfo.PosInSubTick == 0 && machine.DLL.Info.Version > MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_42)))
+                    (engineSettings.SubTickTiming && ReBuzzCore.subTickInfo.PosInSubTick == 0 && machine.DLL.Info.Version > MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_42 &&
+                    !buzzCore.Gear.IsSubTickDisabled(machine))))
                 {
                     var workInstance = buzzCore.MachineManager.GetMachineWorkInstance(machine);
                     workInstance.Tick(false, false);

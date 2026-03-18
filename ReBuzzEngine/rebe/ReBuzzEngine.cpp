@@ -18,6 +18,7 @@ typedef std::map<string, MachineDLL *> MapStrToMacDLL;
 MapStrToMacDLL dlls;
 
 CMasterInfo g_MasterInfo = { 0 };
+CSubTickInfo g_SubTickInfo = { 0 };
 
 IPC::BuzzGlobalState gstate;
 
@@ -35,6 +36,11 @@ HWND g_HostMainWnd = NULL;
 void ReadMasterInfo(IPC::MessageReader &r)
 {
 	r.Read(&g_MasterInfo, 4 * 6);
+}
+
+void ReadSubTickInfo(IPC::MessageReader& r)
+{
+	r.Read(&g_SubTickInfo, 4 * 4);
 }
 
 extern void ReadWavetable(IPC::MessageReader &r);
@@ -729,6 +735,8 @@ void AudioReceive(IPC::Message const &msg, IPC::Message &reply)
 	case IPC::AudioTick:
 		{
 			ReadMasterInfo(r);
+
+			ReadSubTickInfo(r);
 			
 			CMachine *pmac = (CMachine *)r.ReadPtr();
 			//DCWrite("[Engine32] Tick");

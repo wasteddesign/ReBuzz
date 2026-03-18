@@ -1,4 +1,6 @@
-﻿using System;
+﻿using ReBuzz.Core;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Enumeration;
 using System.Linq;
@@ -12,6 +14,12 @@ namespace ReBuzz.FileOps
     {
         [XmlElement(ElementName = "Machine")]
         public Machine[] Machine { get; set; }
+
+        [XmlIgnore]
+        Dictionary<string, Machine> machineDict = new();
+
+        [XmlIgnore]
+        public Dictionary<string, Machine> MachineDict { get => machineDict; }
 
         public Gear()
         {
@@ -39,10 +47,22 @@ namespace ReBuzz.FileOps
                 r.Close();
                 f.Close();
                 var t = o as Gear;
+
+                t.BuildMachineDict();
                 return t;
             }
 
             return new Gear();
+        }
+
+        internal void BuildMachineDict()
+        {
+            machineDict.Clear();
+            foreach (var m in Machine)
+            {
+                machineDict[m.Name] = m;
+                m.DisableSubTickVal = m.DisableSubTick == "True";
+            }
         }
 
         public static string SerializeObject<T>(T toSerialize)
@@ -94,6 +114,7 @@ namespace ReBuzz.FileOps
             }
 
             Machine = thisMachineList.ToArray();
+            BuildMachineDict();
         }
 
         internal bool IsBlacklisted(XMLMachineDLL xmac)
@@ -120,6 +141,15 @@ namespace ReBuzz.FileOps
             else
                 return 1;
         }
+
+        internal bool IsSubTickDisabled(MachineCore machine)
+        {
+            bool ret = false;
+            if (machineDict.ContainsKey(machine.DLL.Name))
+                ret = machineDict[machine.DLL.Name].DisableSubTickVal == true;
+
+            return ret;
+        }
     }
 
     public class Machine
@@ -140,6 +170,10 @@ namespace ReBuzz.FileOps
         public int OversampleFactor { get; set; }
         [XmlAttribute]
         public int MIDIInputChannel { get; set; }
+        [XmlAttribute]
+        public string DisableSubTick { get; set; }
+        [XmlIgnore]
+        public bool DisableSubTickVal { get; set; }
 
         public Attribute[] Attribute { get; set; }
     }

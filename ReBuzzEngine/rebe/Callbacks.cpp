@@ -956,7 +956,12 @@ extern CSubTickInfo g_osSubTickInfo;
 CSubTickInfo const *CMICallbacks::GetSubTickInfo()
 {
 	MICB0;
-	return NULL;
+
+	if (g_SubTickInfo.SamplesPerSubTick == 0)
+		return NULL;
+	else
+		return &g_SubTickInfo;
+
 	/*
 	if (!g_SubTickInfoAvailable)
 		return NULL;
