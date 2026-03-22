@@ -214,7 +214,7 @@ namespace WDE.ModernPatternEditor.MPEStructures
             {
                 beats.Add(iterator.Beat);
                 int start = startBeat.ParameterColumn.GetDigitTime(iterator);
-                //int numbeats = BuzzTicksToBeats(MPEPattern.Pattern.Length);
+                
                 int beatTime = PatternControl.BUZZ_TICKS_PER_BEAT * PatternEvent.TimeBase;
                 int end = start + beatTime;
                 var events = GetEvents(start, end);
@@ -225,8 +225,8 @@ namespace WDE.ModernPatternEditor.MPEStructures
                 {
                     var e = events.ElementAt(i);
                     Digit nearestRow = startBeat.NearestRow(e.Time - start);
-                    int rowTime = beatTime / startBeat.PatternVM.GetBeat(startBeat).Rows.Count;
-                    e.Time = nearestRow.RowInBeat * rowTime + start;
+                    double rowTime = beatTime / (float)startBeat.PatternVM.GetBeat(startBeat).Rows.Count;
+                    e.Time = (int)(nearestRow.RowInBeat * rowTime + start);
                     cleanedEvents[e.Time] = e;
                 }
 
