@@ -3,6 +3,7 @@ using System;
 using System.ComponentModel;
 using System.Threading;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
@@ -48,6 +49,13 @@ namespace ReBuzz.Common
                 this.Hide();
             });
 
+            this.MouseLeftButtonDown += (s, e) =>
+            {
+                if (e.ButtonState == MouseButtonState.Pressed)
+                {
+                    DragMove();
+                }
+            };
 
             this.Closing += (sender, e) =>
             {
