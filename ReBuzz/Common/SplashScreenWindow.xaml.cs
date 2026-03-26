@@ -48,6 +48,7 @@ namespace ReBuzz.Common
                 this.Hide();
             });
 
+            this.MouseLeftButtonDown += (s, e) => DragMove();
 
             this.Closing += (sender, e) =>
             {
