@@ -566,7 +566,7 @@ namespace ReBuzz.Core
                 masterInfo.TicksPerSec = masterInfo.BeatsPerMin * masterInfo.TicksPerBeat / 60.0f;
                 masterInfo.PosInTick = 0;
 
-                int subTickCount = masterInfo.SamplesPerTick / SubTickSize;
+                int subTickCount = masterInfo.SamplesPerTick / SubTickSize / (int)Global.EngineSettings.SubTickResolution;
                 subTickInfo.AverageSamplesPerSubTick = masterInfo.SamplesPerTick / (double)subTickCount;
                 subTickInfo.SamplesPerSubTick = (int)(subTickInfo.AverageSamplesPerSubTick);
                 subTickInfo.SubTicksPerTick = subTickCount;
@@ -773,7 +773,7 @@ namespace ReBuzz.Core
             {
                 // Since this is simple copy, we can allow it to run even during playback.
                 // The file copy should be fast and not cause issues.
-                if (/*!Playing &&*/ SongCore.SongName != null && Modified)
+                if (SongCore.SongName != null && Modified)
                 {
                     try
                     {
@@ -784,7 +784,10 @@ namespace ReBuzz.Core
                             File.Copy(SongCore.SongName, backupName, true);
                         }   
                     }
-                    catch (Exception) { }
+                    catch (Exception)
+                    {
+                        DCWriteLine($"Backup error for song: {SongCore.SongName}", DCLogLevel.Error);
+                    }
                 }
             };
 
@@ -852,6 +855,13 @@ namespace ReBuzz.Core
             if (e.PropertyName == "MachineDelayCompensation")
             {
                 UpdateMachineDelayCompensation();
+            }
+            else if (e.PropertyName == "SubTickResolution")
+            {
+                lock (AudioLock)
+                {
+                    UpdateMasterInfo();
+                }
             }
         }
 

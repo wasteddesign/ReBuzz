@@ -1,6 +1,7 @@
 ﻿namespace BuzzGUI.Common.Settings
 {
     public enum PriorityProfileType { NormalAppPriority, AllFocusOnAudio, AllDefaults };
+    public enum SubTickResolution { Normal = 1, Lower, Low };
     public class EngineSettings : Settings
     {
         [BuzzSetting(true, Description = "Make BPM accurate by alternating between two SamplesPerTick values.")]
@@ -23,6 +24,9 @@
 
         [BuzzSetting(true, Description = "Enables new internal timing stuff. Required by many new machines.")]
         public bool SubTickTiming { get; set; }
+
+        [BuzzSetting(SubTickResolution.Normal, Description = "Sub‑tick resolution. Lower values decrease CPU load.")]
+        public SubTickResolution SubTickResolution { get; set; }
 
         [BuzzSetting(PriorityProfileType.NormalAppPriority, Description = "Priority setting for threads and processes (restart).")]
         public PriorityProfileType PriorityProfile { get; set; }
