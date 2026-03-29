@@ -113,6 +113,7 @@ namespace ReBuzz.Audio
                     buzzCore.BPM != masterInfo.BeatsPerMin)
                 {
                     buzzCore.UpdateMasterInfo();
+                    buzzCore.MachineManager.RefreshMachineParams();
                 }
 
                 Utils.FlipDenormalDC();

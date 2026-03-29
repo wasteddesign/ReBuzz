@@ -18,6 +18,7 @@
   Blacklist           "True" or "False"
   Multithreading      "True" or "False"
   DisableSubTick      "True" or "False"
+  ForceParamRefreshOnTempoChange "True" or "False"
   OversampleFactor    "1" or "2"
   MIDIInputChannel    "-1" = none, "0" = all, "1" = 1, "2" = 2, ..., "15" = 15
   MinimumMIVersion    Minimum required MachineInterface.h version (MI_VERSION)

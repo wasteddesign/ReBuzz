@@ -62,6 +62,7 @@ namespace ReBuzz.FileOps
             {
                 machineDict[m.Name] = m;
                 m.DisableSubTickVal = m.DisableSubTick == "True";
+                m.ForceParamRefreshOnTempoChangeVal = m.ForceParamRefreshOnTempoChange == "True";
             }
         }
 
@@ -150,6 +151,15 @@ namespace ReBuzz.FileOps
 
             return ret;
         }
+
+        internal bool ForceParamRefreshOnTempoChangeEnabled(MachineCore machine)
+        {
+            bool ret = false;
+            if (machineDict.ContainsKey(machine.DLL.Name))
+                ret = machineDict[machine.DLL.Name].ForceParamRefreshOnTempoChangeVal == true;
+
+            return ret;
+        }
     }
 
     public class Machine
@@ -174,7 +184,10 @@ namespace ReBuzz.FileOps
         public string DisableSubTick { get; set; }
         [XmlIgnore]
         public bool DisableSubTickVal { get; set; }
-
+        [XmlAttribute]
+        public string ForceParamRefreshOnTempoChange { get; set; }
+        [XmlIgnore]
+        public bool ForceParamRefreshOnTempoChangeVal { get; set; }
         public Attribute[] Attribute { get; set; }
     }
 

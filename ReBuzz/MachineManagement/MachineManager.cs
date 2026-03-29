@@ -1,5 +1,7 @@
 using BuzzGUI.Common;
+using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
+using BuzzGUI.ParameterWindow;
 using ReBuzz.Core;
 using ReBuzz.ManagedMachine;
 using ReBuzz.NativeMachine;
@@ -8,13 +10,12 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
-using BuzzGUI.Common.Settings;
-using BuzzGUI.ParameterWindow;
-using System.Threading;
 
 namespace ReBuzz.MachineManagement
 {
@@ -1300,6 +1301,28 @@ namespace ReBuzz.MachineManagement
             {
                 var machine = machineKV.Key;
                 machine.wavesEventsPending.Add(index);
+            }
+        }
+
+        // Force param refresh on machines defined in gear.xml
+        internal void RefreshMachineParams()
+        {
+            foreach (var machineKV in nativeMachines)
+            {   
+                var machine = machineKV.Key;
+                if (!buzz.Gear.ForceParamRefreshOnTempoChangeEnabled(machine))
+                    continue;
+
+                foreach (var g in machine.ParameterGroupsList)
+                {
+                    int track = 0;
+                    foreach (var p in g.ParametersList)
+                    {
+                        if (p.Flags.HasFlag(ParameterFlags.State) && p.Type != ParameterType.Note)
+                            p.SetPValue(track, p.GetValue(track));
+                    }
+                    track++;
+                }
             }
         }
     }

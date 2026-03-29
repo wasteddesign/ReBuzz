@@ -144,6 +144,11 @@ namespace ReBuzz.Core
             return pvalues[track];
         }
 
+        public void SetPValue(int track, int val)
+        {
+            pvalues[track] = val;
+        }
+
         public void ClearPVal()
         {
             pvalues.Clear();

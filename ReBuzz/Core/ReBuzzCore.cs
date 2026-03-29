@@ -1026,10 +1026,12 @@ namespace ReBuzz.Core
                     XMLMachineDLL mDll = new XMLMachineDLL();
                     mDll.Name = libName;
                     mDll.Path = libPath;
-                    mDll.MachineInfo = new XMLMachineInfo();
-                    mDll.MachineInfo.Name = libName;
-                    mDll.MachineInfo.ShortName = libName;
-                    mDll.MachineInfo.Type = type;
+                    mDll.MachineInfo = new XMLMachineInfo
+                    {
+                        Name = libName,
+                        ShortName = libName,
+                        Type = type
+                    };
 
                     XMLMachineDLL[] mdxmlArray = [mDll];
                     machineDllScanner.AddMachineDllsToDictionary(this, mdxmlArray, machineDLLsList);
