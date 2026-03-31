@@ -566,7 +566,7 @@ namespace ReBuzz.Core
                 masterInfo.TicksPerSec = masterInfo.BeatsPerMin * masterInfo.TicksPerBeat / 60.0f;
                 masterInfo.PosInTick = 0;
 
-                int subTickCount = masterInfo.SamplesPerTick / SubTickSize / (int)Global.EngineSettings.SubTickResolution;
+                int subTickCount = masterInfo.SamplesPerTick / SubTickSize / (int)engineSettings.SubTickResolution;
                 subTickInfo.AverageSamplesPerSubTick = masterInfo.SamplesPerTick / (double)subTickCount;
                 subTickInfo.SamplesPerSubTick = (int)(subTickInfo.AverageSamplesPerSubTick);
                 subTickInfo.SubTicksPerTick = subTickCount;

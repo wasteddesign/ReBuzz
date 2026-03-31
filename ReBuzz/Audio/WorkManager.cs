@@ -82,10 +82,20 @@ namespace ReBuzz.Audio
         internal void CopySubTickInfo()
         {
             var subtickInfo = ReBuzzCore.subTickInfo;
-            SubTickInfoStruct.CurrentSubTick = subtickInfo.CurrentSubTick;
-            SubTickInfoStruct.PosInSubTick = subtickInfo.PosInSubTick;
-            SubTickInfoStruct.SubTicksPerTick = subtickInfo.SubTicksPerTick;
-            SubTickInfoStruct.SamplesPerSubTick = subtickInfo.SamplesPerSubTick;
+            if (engineSettings.SubTickTiming)
+            {   
+                SubTickInfoStruct.CurrentSubTick = subtickInfo.CurrentSubTick;
+                SubTickInfoStruct.PosInSubTick = subtickInfo.PosInSubTick;
+                SubTickInfoStruct.SubTicksPerTick = subtickInfo.SubTicksPerTick;
+                SubTickInfoStruct.SamplesPerSubTick = subtickInfo.SamplesPerSubTick;
+            }
+            else
+            {
+                SubTickInfoStruct.CurrentSubTick = 0;
+                SubTickInfoStruct.PosInSubTick = 0;
+                SubTickInfoStruct.SubTicksPerTick = 0;
+                SubTickInfoStruct.SamplesPerSubTick = 0;
+            }
 
             // Update array
             SubTickInfoData = Utils.SerializeValueTypeChangePointer(SubTickInfoStruct, ref SubTickInfoData);
@@ -104,8 +114,7 @@ namespace ReBuzz.Audio
 
                 var subTickInfo = ReBuzzCore.subTickInfo;
                 var masterInfo = ReBuzzCore.masterInfo;
-                int subTickSize = subTickInfo.SamplesPerSubTick;
-                int subTickWorkSamplesSize = subTickSize / 2 + 1; // Samples per work call
+                
                 int reminingBuffer = count;
                 workBufferOffset = offset;
 
@@ -119,8 +128,8 @@ namespace ReBuzz.Audio
                 Utils.FlipDenormalDC();
 
                 while (reminingBuffer > 0)
-                {
-                    int samplesToProcess = Math.Min(reminingBuffer / 2, subTickWorkSamplesSize);
+                {   
+                    int samplesToProcess = Math.Min(reminingBuffer / 2, 256);
 
                     // Initiate master info for Audio Messages
                     CopyMasterInfo();
@@ -143,7 +152,8 @@ namespace ReBuzz.Audio
                     }
 
                     // Ensure we don't go over subtick
-                    if (subTickInfo.PosInSubTick + samplesToProcess > subTickInfo.SamplesPerSubTick)
+                    if (engineSettings.SubTickTiming && 
+                        subTickInfo.PosInSubTick + samplesToProcess > subTickInfo.SamplesPerSubTick)
                     {
                         // Make sure tick will be zero
                         samplesToProcess = subTickInfo.SamplesPerSubTick - subTickInfo.PosInSubTick;
