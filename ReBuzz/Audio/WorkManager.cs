@@ -131,6 +131,12 @@ namespace ReBuzz.Audio
                 {   
                     int samplesToProcess = Math.Min(reminingBuffer / 2, 256);
 
+                    // More accurate samples per tick?
+                    //if (engineSettings.AccurateBPM)
+                    //{
+                    //    UpdateMasterSamplesPerTick();
+                    //}
+
                     // Initiate master info for Audio Messages
                     CopyMasterInfo();
 
@@ -265,6 +271,26 @@ namespace ReBuzz.Audio
                 {
                     subTickInfo.SubTickReminderCounter -= subTickInfo.SubTicksPerTick;
                     subTickInfo.SamplesPerSubTick++;
+                }
+            }
+        }
+
+        private void UpdateMasterSamplesPerTick()
+        {
+            var masterInfo = ReBuzzCore.masterInfo;
+
+            if (masterInfo.PosInTick == 0)
+            {
+                var ticksPerMin = masterInfo.BeatsPerMin * masterInfo.TicksPerBeat;
+                var samplesPerTickRemainder = 60 * masterInfo.SamplesPerSec % ticksPerMin;
+
+                masterInfo.SamplesPerTick = (int)masterInfo.AverageSamplesPerTick;
+                masterInfo.SamplesPerTickReminderCounter += samplesPerTickRemainder;
+
+                if (masterInfo.SamplesPerTickReminderCounter >= ticksPerMin)
+                {
+                    masterInfo.SamplesPerTickReminderCounter -= ticksPerMin;
+                    masterInfo.SamplesPerTick++;
                 }
             }
         }

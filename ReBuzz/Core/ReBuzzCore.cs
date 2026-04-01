@@ -2264,6 +2264,7 @@ namespace ReBuzz.Core
     public class MasterInfoExtended : MasterInfo
     {
         public double AverageSamplesPerTick { get; internal set; }
+        public int SamplesPerTickReminderCounter { get; internal set; }
     }
 
     public class SubTickInfoExtended : SubTickInfo
