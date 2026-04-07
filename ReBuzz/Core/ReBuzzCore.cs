@@ -745,11 +745,25 @@ namespace ReBuzz.Core
             Theme = ReBuzzTheme.LoadCurrentTheme(this, buzzPath);
 
             DCWriteLine(BuildString);
+            
+            /*
+            DCWriteLine("\n\rMIDI in devices:", DCLogLevel.Debug);
+            for (int device = 0; device < MidiIn.NumberOfDevices; device++)
+            {
+                DCWriteLine("" + MidiIn.DeviceInfo(device).ProductName, DCLogLevel.Debug);
+            }
+
+            DCWriteLine("\n\rMIDI out devices:", DCLogLevel.Debug);
+            for (int device = 0; device < MidiOut.NumberOfDevices; device++)
+            {
+                DCWriteLine(MidiOut.DeviceInfo(device).ProductName, DCLogLevel.Debug);
+            }
+            */
 
             MidiInOutEngine = new MidiEngine(this, registryEx);
-            MidiInOutEngine.OpenMidiInDevices();
-            MidiInOutEngine.OpenMidiOutDevices();
             MidiInOutEngine.Midi2.CreateMidi2Endpoint();
+            MidiInOutEngine.OpenMidiInDevices2();
+            MidiInOutEngine.OpenMidiOutDevices2();
 
             MidiControllerAssignments = new MidiControllerAssignments(this, registryEx, registryRoot);
             MIDIControllers = MidiControllerAssignments.GetMidiControllerNames().ToReadOnlyCollection();
@@ -2069,7 +2083,7 @@ namespace ReBuzz.Core
 
         string infoText;
         private bool masterLoading;
-        private readonly string registryRoot;
+        internal readonly string registryRoot;
         private readonly GeneralSettings generalSettings;
         private readonly EngineSettings engineSettings;
         private readonly string buzzPath;

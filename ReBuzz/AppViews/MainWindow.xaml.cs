@@ -659,25 +659,22 @@ namespace ReBuzz
                             Buzz.MidiInOutEngine.Midi2.CreateMidi2Endpoint();
 
                             List<int> midiIns = new List<int>();
-                            foreach (var item in preferencesWindow.lbMidiInputs.Items)
-                            {
-                                var lbItem = item as PreferencesWindow.ControllerCheckboxVM;
-                                if (lbItem.Checked)
-                                    midiIns.Add(lbItem.Id);
+                            foreach (var item in preferencesWindow.MidiInControllerCheckboxes)
+                            {   
+                                if (item.Checked)
+                                    midiIns.Add(item.Id);
                             }
-                            MidiEngine.SetMidiInputDevices(registryEx, midiIns);
-                            Buzz.MidiInOutEngine.OpenMidiInDevices();
-
+                            Buzz.MidiInOutEngine.SetMidiInputDevices2(midiIns);
+                            Buzz.MidiInOutEngine.OpenMidiInDevices2();
 
                             List<int> midiOuts = new List<int>();
-                            foreach (var item in preferencesWindow.lbMidiOutputs.Items)
-                            {
-                                var lbItem = item as PreferencesWindow.ControllerCheckboxVM;
-                                if (lbItem.Checked)
-                                    midiOuts.Add(lbItem.Id);
+                            foreach (var item in preferencesWindow.MidiOutControllerCheckboxes)
+                            {   
+                                if (item.Checked)
+                                    midiOuts.Add(item.Id);
                             }
-                            MidiEngine.SetMidiOutputDevices(registryEx, midiOuts);
-                            Buzz.MidiInOutEngine.OpenMidiOutDevices();
+                            Buzz.MidiInOutEngine.SetMidiOutputDevices2(midiOuts);
+                            Buzz.MidiInOutEngine.OpenMidiOutDevices2();
 
                             Buzz.MidiControllerAssignments.ClearAll();
                             foreach (PreferencesWindow.ControllerVM item in preferencesWindow.lvControllers.Items)

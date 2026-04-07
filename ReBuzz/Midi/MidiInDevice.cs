@@ -16,6 +16,9 @@ namespace ReBuzz.Midi
         ConcurrentQueue<object> midiMessages;
         private Task midiMessagesTask;
         private bool stopped;
+
+        public string ProductName { get; private set; }
+
         readonly ManualResetEvent midiMessageReceivedEvent = new ManualResetEvent(false);
 
         public MidiInDevice(IBuzz buzz)
@@ -36,6 +39,7 @@ namespace ReBuzz.Midi
                 //midiMessagesTask = new Task(() => ProcessMidiMessages(), CancellationToken.None, TaskCreationOptions.LongRunning);
                 //midiMessagesTask.Start();
 
+                ProductName = MidiIn.DeviceInfo(selectedDeviceIndex).ProductName;
                 // Start listening Midi messages
                 midiIn = new MidiIn(selectedDeviceIndex);
                 midiIn.MessageReceived += MidiIn_MessageReceived;

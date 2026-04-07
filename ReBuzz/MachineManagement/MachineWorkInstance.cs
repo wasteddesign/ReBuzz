@@ -55,8 +55,7 @@ namespace ReBuzz.MachineManagement
             if (TickSent)
             {
                 // Don't call Work() if bypassed
-                if (Machine.IsBypassed || Machine.IsSeqThru || Machine.MachineDLL.IsMissing ||
-                    (Machine.IsMuted && !engineSettings.ProcessMutedMachines))
+                if (Machine.IsBypassed || Machine.IsSeqThru || Machine.MachineDLL.IsMissing)
                 {
                     Sample[] samples = Machine.GetStereoSamples(nSamples);
                     Machine.UpdateOutputs(samples, nSamples, false);
@@ -118,6 +117,7 @@ namespace ReBuzz.MachineManagement
 
             if (!engineSettings.ProcessMutedMachines && Machine.IsMuted)
             {
+                Machine.UpdateOutputs(silentBuffer, nSamples);
                 return false;
             }
 
@@ -225,6 +225,13 @@ namespace ReBuzz.MachineManagement
             var machineHost = manageMachineHost;
             var flags = Machine.DLL.Info.Flags;
             var type = Machine.DLL.Info.Type;
+
+            if (!engineSettings.ProcessMutedMachines && Machine.IsMuted)
+            {
+                Machine.UpdateOutputs(silentBuffer, nSamples);
+                return false;
+            }
+
             if ((flags & MachineInfoFlags.MULTI_IO) == MachineInfoFlags.MULTI_IO)
             {
                 if (Machine.OutputChannelCount >= MAX_MULTI_IO_CHANNELS || Machine.InputChannelCount >= MAX_MULTI_IO_CHANNELS)

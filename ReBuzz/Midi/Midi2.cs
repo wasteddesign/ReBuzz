@@ -35,20 +35,20 @@ namespace ReBuzz.Midi
 
             if (_initializer == null) 
             {
-                buzz.DCWriteLine("Failed to create MIDI 2.0 SDK Runtime initializer", DCLogLevel.Fatal);
+                buzz.DCWriteLine("Failed to create MIDI 2.0 SDK Runtime initializer", DCLogLevel.Error);
                 return false;
             }
 
             if (!_initializer.InitializeSdkRuntime())
             {
-                buzz.DCWriteLine("Failed to initialize MIDI 2.0 SDK Runtime");
+                buzz.DCWriteLine("Failed to initialize MIDI 2.0 SDK Runtime", DCLogLevel.Error);
                 return false;
             }
 
             // start the service
             if (!_initializer.EnsureServiceAvailable())
             {
-                buzz.DCWriteLine("Failed to get MIDI 2.0 service running");
+                buzz.DCWriteLine("Failed to get MIDI 2.0 service running", DCLogLevel.Error);
                 return false;
             }
 
@@ -188,13 +188,13 @@ namespace ReBuzz.Midi
         {
             var ump = args.GetMessagePacket();
 #if DEBUG
-            buzz.DCWriteLine("");
+            buzz.DCWriteLine("", DCLogLevel.Debug);
             buzz.DCWriteLine("Received UMP");
-            buzz.DCWriteLine("- Current Timestamp: " + MidiClock.Now);
-            buzz.DCWriteLine("- UMP Timestamp:     " + ump.Timestamp);
-            buzz.DCWriteLine("- UMP Msg Type:      " + ump.MessageType);
-            buzz.DCWriteLine("- UMP Packet Type:   " + ump.PacketType);
-            buzz.DCWriteLine("- Message:           " + MidiMessageHelper.GetMessageDisplayNameFromFirstWord(args.PeekFirstWord()));
+            buzz.DCWriteLine("- Current Timestamp: " + MidiClock.Now, DCLogLevel.Debug);
+            buzz.DCWriteLine("- UMP Timestamp:     " + ump.Timestamp, DCLogLevel.Debug);
+            buzz.DCWriteLine("- UMP Msg Type:      " + ump.MessageType, DCLogLevel.Debug);
+            buzz.DCWriteLine("- UMP Packet Type:   " + ump.PacketType, DCLogLevel.Debug);
+            buzz.DCWriteLine("- Message:           " + MidiMessageHelper.GetMessageDisplayNameFromFirstWord(args.PeekFirstWord()), DCLogLevel.Debug);
 #endif
             if (ump is MidiMessage32)
             {
@@ -203,7 +203,7 @@ namespace ReBuzz.Midi
                 if (ump32 != null)
                 {
 #if DEBUG
-                    buzz.DCWriteLine(string.Format("- Word 0:            0x{0:X}", ump32.Word0));
+                    buzz.DCWriteLine(string.Format("- Word 0:            0x{0:X}", ump32.Word0), DCLogLevel.Debug);
 #endif
                     buzz.SendMIDIInput((int)ump32.Word0);
                 }
@@ -212,7 +212,7 @@ namespace ReBuzz.Midi
 
         private void OnStreamConfigurationRequestReceived(MidiVirtualDevice sender, MidiStreamConfigRequestReceivedEventArgs args)
         {
-            buzz.DCWriteLine("Stream configuration request received");
+            buzz.DCWriteLine("Stream configuration request received", DCLogLevel.Debug);
         }
 
         MidiVirtualDeviceCreationConfig DefineDevice()
