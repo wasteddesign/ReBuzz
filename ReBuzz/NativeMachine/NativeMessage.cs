@@ -169,12 +169,12 @@ namespace ReBuzz.NativeMachine
             return done;
         }
 
-        public MessageContent DoSendMessage(MachineCore machine)
-        {
-            return DoSendMessage();
-        }
-
-        public MessageContent DoSendMessage()
+        //public MessageContent DoSendMessage(MachineCore machine)
+        //{
+        //    return DoSendMessage();
+        //}
+        int waitTime = 2000;
+        public MessageContent DoSendMessage(MachineCore machine = null)
         {
             MessageContent msg;
             while (true)
@@ -183,7 +183,14 @@ namespace ReBuzz.NativeMachine
                 if (CopyMessageToSendBuffer())
                 {
                     ChannelListener.WaitHandlePing.Set();
-                    ChannelListener.WaitHandlePongWaitOne();
+                    if (machine == null)
+                        ChannelListener.WaitHandlePongWaitOne();
+                    else
+                    {
+                        bool success = ChannelListener.WaitHandlePongWaitOne(machine, waitTime);
+                        if (!success)
+                            throw new Exception("Process hang. No response after " + waitTime + "ms.");
+                    }
 
                     msg = DoReceiveReply(); // Reply read
                     if (IsCallback())
@@ -197,7 +204,14 @@ namespace ReBuzz.NativeMachine
                 else
                 {
                     ChannelListener.WaitHandlePing.Set();
-                    ChannelListener.WaitHandlePongWaitOne(); // Wait reply
+                    if (machine == null)
+                        ChannelListener.WaitHandlePongWaitOne();
+                    else
+                    {
+                        bool success = ChannelListener.WaitHandlePongWaitOne(machine, waitTime);
+                        if (!success)
+                            throw new Exception("Process hang. No response after " + waitTime + "ms.");
+                    }
                 }
             }
 

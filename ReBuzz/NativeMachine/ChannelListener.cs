@@ -81,6 +81,7 @@ namespace ReBuzz.NativeMachine
             }
         }
 
+        // No time limit for waiting. Needed for UI dialogs etc.
         internal void WaitHandlePongWaitOne()
         {
             if (!stop)
@@ -97,7 +98,7 @@ namespace ReBuzz.NativeMachine
                 {
                     machine.MachineDLL.IsCrashed = true;
                     machine.Ready = false;
-                    Global.Buzz.DCWriteLine(machine.Name + " crashed.");
+                    Global.Buzz.DCWriteLine(machine.Name + " crashed.", BuzzGUI.Interfaces.DCLogLevel.Fatal);
                 }
                 return false;
             }
