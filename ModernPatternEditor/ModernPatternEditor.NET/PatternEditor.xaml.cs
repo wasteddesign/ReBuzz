@@ -45,8 +45,12 @@ namespace WDE.ModernPatternEditor
         }
 
         public bool MidiEdit { get; set; }
-        public int SelectedStepsDown { get; set; }
-        public int SelectedStepsRight { get; set; }
+
+        int selectedStepsDown = 1;
+        public int SelectedStepsDown { get => selectedStepsDown; set { selectedStepsDown = value; PropertyChanged.Raise(this, "SelectedStepsDown"); } }
+
+        int selectedStepsRight = 0;
+        public int SelectedStepsRight { get => selectedStepsRight; set { selectedStepsRight = value; PropertyChanged.Raise(this, "SelectedStepsRight"); } }
 
         public ISong Song
         {

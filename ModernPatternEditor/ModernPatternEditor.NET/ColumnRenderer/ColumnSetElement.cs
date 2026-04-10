@@ -338,8 +338,9 @@ namespace WDE.ModernPatternEditor.ColumnRenderer
             {
                 newBeat = (int)Math.Floor(p.Y / BeatHeight);
                 double h = Font.LineHeight * PatternControl.Scale;
-                h *= (double)RPB / (double)col.FetchBeat(newBeat).Rows.Count;
-                newRowInBeat = (int)Math.Floor(p.Y % BeatHeight / h);
+                var b = col.FetchBeat(newBeat);
+                h *= (double)RPB / (double)b.Rows.Count;
+                newRowInBeat = Math.Min(b.Rows.Count - 1, (int)Math.Floor(p.Y % BeatHeight / h));
             }
             else
             {
@@ -361,9 +362,9 @@ namespace WDE.ModernPatternEditor.ColumnRenderer
 
         /*
                 public Rect GetDigitRect(Digit d)
-                {
-                    var col = columnSet.Columns[d.Column];
-                    var beat = col.FetchBeat(d.Beat);
+                     var col = columnSet.Columns[d.Column];
+                    var beat = col.Fetc          {
+     hBeat(d.Beat);
                     var text = beat.ValueStrings[d.RowInBeat];
                     var widths = Font.GetAdvanceWidths(text, PatternEditor.Settings.TextFormattingMode);
                     var cw = ColumnWidths.ToArray();

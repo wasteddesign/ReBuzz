@@ -593,6 +593,12 @@ namespace WDE.ModernPatternEditor
                         WriteState();
                         e.Handled = true;
                     }
+                    else if (e.Key >= Key.NumPad0 && e.Key <= Key.NumPad9)
+                    {
+                        int n = e.Key - Key.NumPad0;
+                        Editor?.SelectedStepsDown = n;
+                        e.Handled = true;
+                    }
                 }
                 else if (Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
                 {
@@ -620,6 +626,15 @@ namespace WDE.ModernPatternEditor
                     else if (e.Key == Key.W)
                     {
                         RollSelection(true);
+                        e.Handled = true;
+                    }
+                }
+                else if (Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Alt))
+                {
+                    if (e.Key >= Key.NumPad0 && e.Key <= Key.NumPad9)
+                    {
+                        int n = e.Key - Key.NumPad0;
+                        Editor?.SelectedStepsRight = n;
                         e.Handled = true;
                     }
                 }
