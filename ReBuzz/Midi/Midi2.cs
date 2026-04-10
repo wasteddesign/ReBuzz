@@ -333,7 +333,8 @@ namespace ReBuzz.Midi
                 _watcher.Removed -= Watcher_Removed;
                 _watcher.Updated -= Watcher_Updated;
 
-                _watcher.Stop();
+                if (_watcher.Status == Windows.Devices.Enumeration.DeviceWatcherStatus.Started)
+                    _watcher.Stop();
             }
 
             _connection?.MessageReceived -= OnMidiMessageReceived;
