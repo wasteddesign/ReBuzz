@@ -442,5 +442,10 @@ namespace ReBuzzTests.Automation
         {
             reBuzzCore.MasterVolume = newVolume;
         }
+
+        public void SetSubTickResolutionTo(SubTickResolution resolution)
+        {
+            engineSettings.SubTickResolution = resolution;
+        }
     }
 }
