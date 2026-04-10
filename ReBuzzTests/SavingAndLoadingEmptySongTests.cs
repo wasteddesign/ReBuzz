@@ -21,7 +21,7 @@ namespace ReBuzzTests
         [Test]
         public void DoesNotChangeStateWhenUserPicksNonExistentFile()
         {
-            var nonExistentFileName = @"sdfsjhdkfjhsdf";
+            const string nonExistentFileName = @"sdfsjhdkfjhsdf";
             var potentialSavedFileLocation =
                 AbsoluteDirectoryPath.OfCurrentWorkingDirectory().AddFileName(nonExistentFileName);
             using var driver = new Driver();
@@ -29,10 +29,8 @@ namespace ReBuzzTests
 
             driver.DawCommands.LoadSong(DialogChoices.Select(nonExistentFileName));
 
-            driver.AssertInitialStateAfterNewFile();
-            driver.AssertErrorReportedToUser(
-                $"Error loading {nonExistentFileName}",
-                $"Could not find file '{potentialSavedFileLocation}'.");
+            driver.AssertInitialStateAfterAppStart();
+            driver.AssertNoErrorsReportedToUser();
             potentialSavedFileLocation.Exists().Should().BeFalse();
         }
 
