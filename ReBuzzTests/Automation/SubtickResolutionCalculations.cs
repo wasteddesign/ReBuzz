@@ -2,7 +2,7 @@ using BuzzGUI.Common.Settings;
 
 namespace ReBuzzTests.Automation
 {
-    public static class SubtickResolutionCalculations
+    public static class SubTickResolutionCalculations
     {
         public static int GetBoundarySampleIndex(SubTickResolution resolution)
         {

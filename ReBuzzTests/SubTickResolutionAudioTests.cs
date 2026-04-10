@@ -13,7 +13,7 @@ public class SubTickResolutionAudioTests
     public void ChangesAtSubTickBoundaryForEachSubTickResolution(SubTickResolution resolution)
     {
         // GIVEN
-        var boundarySampleIndex = SubtickResolutionCalculations.GetBoundarySampleIndex(resolution);
+        var boundarySampleIndex = SubTickResolutionCalculations.GetBoundarySampleIndex(resolution);
         var sampleValue = new Sample(2, 3);
         var expectedSampleValue = ExpectedSampleValue.From(sampleValue);
         var sampleAfterBoundaryValue = ExpectedSampleValue.From(new Sample(1, 1));
