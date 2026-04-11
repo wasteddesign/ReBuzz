@@ -166,7 +166,8 @@ namespace ReBuzzTests.Automation
                 Multithreading = false,
                 PriorityProfile = PriorityProfileType.NormalAppPriority,
                 ProcessMutedMachines = false,
-                SubTickTiming = true
+                SubTickTiming = true,
+                SubTickResolution = SubTickResolution.Normal
             };
             engineSettings.Multithreading = false;
             engineSettings.SubTickTiming = true;
@@ -381,6 +382,7 @@ namespace ReBuzzTests.Automation
         {
             using (new AssertionScope())
             {
+                fakeUserMessages.AnyErrorReported.Should().BeTrue();
                 fakeUserMessages.Caption.Should().Be(expectedCaption);
                 fakeUserMessages.Message.Should().Be(expectedMessage);
             }
@@ -390,6 +392,7 @@ namespace ReBuzzTests.Automation
         {
             using (new AssertionScope())
             {
+                fakeUserMessages.AnyErrorReported.Should().BeFalse();
                 fakeUserMessages.Caption.Should().BeEmpty();
                 fakeUserMessages.Message.Should().BeEmpty();
                 fakeUserMessages.StackStrace.Should().BeEmpty();
@@ -438,6 +441,11 @@ namespace ReBuzzTests.Automation
         public void SetMasterVolumeTo(double newVolume)
         {
             reBuzzCore.MasterVolume = newVolume;
+        }
+
+        public void SetSubTickResolutionTo(SubTickResolution resolution)
+        {
+            engineSettings.SubTickResolution = resolution;
         }
     }
 }

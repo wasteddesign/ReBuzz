@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Immutable;
 
 namespace Buzz.MachineInterface
 {
@@ -34,6 +35,5 @@ namespace Buzz.MachineInterface
         {
             return new Sample(Math.Min(Math.Max(L, minimum), maximum), Math.Min(Math.Max(R, minimum), maximum));
         }
-
     }
 }

@@ -25,7 +25,7 @@ namespace ReBuzzTests
         }
 
         [Test]
-        public void OutputsSilenceWheNoMachineInstances()
+        public void OutputsSilenceWhenNoMachineInstances()
         {
             using var driver = new Driver();
             driver.Start();
