@@ -126,8 +126,17 @@
 							<Paragraph>Play/stop pattern</Paragraph>
 						</TableCell>
 					</TableRow>
+                    
+                    <TableRow>
+                        <TableCell>
+                            <Paragraph>Shift+Space</Paragraph>
+                        </TableCell>
+                        <TableCell>
+                            <Paragraph>Play pattern from cursor position</Paragraph>
+                        </TableCell>
+                    </TableRow>
 
-					<TableRow>
+                    <TableRow>
 						<TableCell>
 							<Paragraph>Ctrl+Return</Paragraph>
 						</TableCell>

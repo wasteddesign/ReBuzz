@@ -222,5 +222,18 @@ namespace WDE.ModernPatternEditor
                 }
             }
         }
+
+        public int GetEditorPatternPosition()
+        {
+            int pos = 0;
+            var pattern = ModernPatternEditor.patternControl.Pattern;
+            var mpePattern = ModernPatternEditor.MPEPatternsDB.GetMPEPattern(pattern.Pattern);
+
+            if (pattern != null && mpePattern != null)
+            {
+                pos = (pattern.CursorPosition.Beat * mpePattern.RowsPerBeat + pattern.CursorPosition.RowInBeat) * PatternControl.BUZZ_TICKS_PER_BEAT / mpePattern.RowsPerBeat;
+            }
+            return pos;
+        }
     }
 }

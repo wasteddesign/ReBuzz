@@ -715,122 +715,147 @@ namespace ReBuzz
 
             this.PreviewKeyDown += (sender, e) =>
             {
-                if (e.Key == Key.F1)
+                if (Keyboard.Modifiers == ModifierKeys.None)
                 {
-                    // Help
-                    var ps = new ProcessStartInfo(System.IO.Path.Combine(buzzPath, "Help/index.html"))
+                    if (e.Key == Key.F1)
                     {
-                        UseShellExecute = true,
-                        Verb = "open"
-                    };
-                    Process.Start(ps);
-                    e.Handled = true;
-                }
-                else if (e.Key == Key.F2)
-                {
-                    Buzz.ActiveView = BuzzView.PatternView;
-                    e.Handled = true;
-                }
-                else if (e.Key == Key.F3)
-                {
-                    Buzz.ActiveView = BuzzView.MachineView;
-                    e.Handled = true;
-                }
-                else if (e.Key == Key.F4)
-                {
-                    Buzz.ActiveView = BuzzView.SequenceView;
-                    e.Handled = true;
-                }
-                else if (e.Key == Key.F5)
-                {
-                    // Play
-                    Buzz.Playing = true;
-                    e.Handled = true;
-                }
-                else if (e.Key == Key.F6)
-                {
-                    // Play from cursur pos
-                    seqenceEditor.PlayCursor();
-                    e.Handled = true;
-                }
-                else if (e.Key == Key.F7)
-                {
-                    // Record
-                    Buzz.Recording = true;
-                    e.Handled = true;
-                }
-                else if (e.Key == Key.F8)
-                {
-                    // Stop
-                    Buzz.Playing = false;
-                    e.Handled = true;
-                }
-                else if (e.Key == Key.F9)
-                {
-                    // Wavetable
-                    Buzz.ActiveView = BuzzView.WaveTableView;
-                    e.Handled = true;
-                }
-                else if (e.SystemKey == Key.F10)
-                {
-                    // Info
-                    Buzz.ActiveView = BuzzView.SongInfoView;
-                    e.Handled = true;
-                }
-                else if (e.Key == Key.F11)
-                {
-                    // Dialogs
-                    foreach (var m in song.Machines)
-                    {
-                        var mac = m as MachineCore;
-                        var pw = mac.ParameterWindow;
-                        if (pw != null)
+                        // Help
+                        var ps = new ProcessStartInfo(System.IO.Path.Combine(buzzPath, "Help/index.html"))
                         {
-                            if (pw.Visibility == Visibility.Visible)
+                            UseShellExecute = true,
+                            Verb = "open"
+                        };
+                        Process.Start(ps);
+                        e.Handled = true;
+                    }
+                    else if (e.Key == Key.F2)
+                    {
+                        Buzz.ActiveView = BuzzView.PatternView;
+                        e.Handled = true;
+                    }
+                    else if (e.Key == Key.F3)
+                    {
+                        Buzz.ActiveView = BuzzView.MachineView;
+                        e.Handled = true;
+                    }
+                    else if (e.Key == Key.F4)
+                    {
+                        Buzz.ActiveView = BuzzView.SequenceView;
+                        e.Handled = true;
+                    }
+                    else if (e.Key == Key.F5)
+                    {
+                        // Play
+                        Buzz.Playing = true;
+                        e.Handled = true;
+                    }
+                    else if (e.Key == Key.F6)
+                    {
+                        // Play from cursur pos
+                        seqenceEditor.PlayCursor();
+                        e.Handled = true;
+                    }
+                    else if (e.Key == Key.F7)
+                    {
+                        // Record
+                        Buzz.Recording = true;
+                        e.Handled = true;
+                    }
+                    else if (e.Key == Key.F8)
+                    {
+                        // Stop
+                        Buzz.Playing = false;
+                        e.Handled = true;
+                    }
+                    else if (e.Key == Key.F9)
+                    {
+                        // Wavetable
+                        Buzz.ActiveView = BuzzView.WaveTableView;
+                        e.Handled = true;
+                    }
+                    else if (e.SystemKey == Key.F10)
+                    {
+                        // Info
+                        Buzz.ActiveView = BuzzView.SongInfoView;
+                        e.Handled = true;
+                    }
+                    else if (e.Key == Key.F11)
+                    {
+                        // Dialogs
+                        foreach (var m in song.Machines)
+                        {
+                            var mac = m as MachineCore;
+                            var pw = mac.ParameterWindow;
+                            if (pw != null)
                             {
-                                pw.Visibility = Visibility.Collapsed;
+                                if (pw.Visibility == Visibility.Visible)
+                                {
+                                    pw.Visibility = Visibility.Collapsed;
+                                }
+                                else
+                                {
+                                    pw.Visibility = Visibility.Visible;
+                                }
                             }
-                            else
+
+                            var mgw = mac.MachineGUIWindow; ;
+                            if (mgw != null)
                             {
-                                pw.Visibility = Visibility.Visible;
+                                if (mgw.Visibility == Visibility.Visible)
+                                {
+                                    mgw.Visibility = Visibility.Collapsed;
+                                }
+                                else
+                                {
+                                    mgw.Visibility = Visibility.Visible;
+                                }
                             }
                         }
 
-                        var mgw = mac.MachineGUIWindow; ;
-                        if (mgw != null)
+                        Application.Current.Dispatcher.BeginInvoke(() =>
                         {
-                            if (mgw.Visibility == Visibility.Visible)
+                            Focus();
+                        });
+                        e.Handled = true;
+                    }
+                    else if (e.Key == Key.F12)
+                    {
+                        // Reset Audio
+                        buzzCore.AudioEngine.Reset();
+                        e.Handled = true;
+                    }
+                    else if (e.Key == Key.Space)
+                    {
+                        if (Buzz.ActiveView == BuzzView.PatternView)
+                        {
+                            if (Buzz.PatternEditorPattern != null)
                             {
-                                mgw.Visibility = Visibility.Collapsed;
+                                Buzz.PatternEditorPattern.IsPlayingSolo ^= true;
                             }
-                            else
-                            {
-                                mgw.Visibility = Visibility.Visible;
-                            }
+                            e.Handled = true;
                         }
                     }
-
-                    Application.Current.Dispatcher.BeginInvoke(() =>
-              {
-                    Focus();
-                });
-                    e.Handled = true;
                 }
-                else if (e.Key == Key.F12)
+                if (Keyboard.Modifiers == ModifierKeys.Shift)
                 {
-                    // Reset Audio
-                    buzzCore.AudioEngine.Reset();
-                    e.Handled = true;
-                }
-                else if (e.Key == Key.Space)
-                {
-                    if (Buzz.ActiveView == BuzzView.PatternView)
+                    if (e.Key == Key.Space)
                     {
-                        if (Buzz.PatternEditorPattern != null)
+                        if (Buzz.ActiveView == BuzzView.PatternView)
                         {
-                            Buzz.PatternEditorPattern.IsPlayingSolo ^= true;
+                            if (Buzz.PatternEditorPattern != null)
+                            {
+                                if (Buzz.PatternEditorPattern.IsPlayingSolo)
+                                {
+                                    Buzz.PatternEditorPattern.IsPlayingSolo = false;
+                                }
+                                else
+                                {
+                                    var pattern = Buzz.PatternEditorPattern as PatternCore;
+                                    pattern.PlayFormPatternEditorPosition();
+                                }
+                            }
+                            e.Handled = true;
                         }
-                        e.Handled = true;
                     }
                 }
 

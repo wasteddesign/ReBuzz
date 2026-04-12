@@ -140,6 +140,19 @@ namespace ReBuzz.Core
             }
         }
 
+        internal void PlayFormPatternEditorPosition()
+        {
+            var bc = Global.Buzz as ReBuzzCore;
+            int pos = bc.MachineManager.GetEditorPatternPosition(Machine as MachineCore);
+
+            lock (ReBuzzCore.AudioLock)
+            {
+                IsPlayingSolo = true;
+                PlayPosition = pos * PatternEvent.TimeBase;
+                nextPositionInSamples = pos * ReBuzzCore.masterInfo.SamplesPerTick;
+            }
+        }
+
         public int[] PatternEditorMachineMIDIEvents
         {
             get

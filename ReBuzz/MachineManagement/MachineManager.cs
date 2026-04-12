@@ -10,11 +10,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Media.Imaging;
 
 namespace ReBuzz.MachineManagement
@@ -1324,6 +1321,16 @@ namespace ReBuzz.MachineManagement
                     track++;
                 }
             }
+        }
+
+        internal int GetEditorPatternPosition(MachineCore machine)
+        {
+            if (machine.EditorMachine != null)
+            {
+                var host = managedMachines[machine.EditorMachine];
+                return host.GetEditorPatternPosition();
+            }
+            return 0;
         }
     }
 }
