@@ -598,19 +598,19 @@ namespace ReBuzz.MachineManagement
                 int noRecord = 1 << 16;
 
                 // Set pvalues to NoValue immediately to avoid sending param value twice
-                foreach (var p in Machine.ParameterGroups[0].Parameters)
+                foreach (var p in Machine.ParameterGroupsList[0].ParametersList)
                 {
-                    p.SetValue(noRecord, p.NoValue);
+                    p.SetPValue(noRecord, p.NoValue);
                 }
-                foreach (var p in Machine.ParameterGroups[1].Parameters)
+                foreach (var p in Machine.ParameterGroupsList[1].ParametersList)
                 {
-                    p.SetValue(noRecord, p.NoValue);
+                    p.SetPValue(noRecord, p.NoValue);
                 }
-                foreach (var p in Machine.ParameterGroups[2].Parameters)
+                foreach (var p in Machine.ParameterGroupsList[2].ParametersList)
                 {
                     for (int i = 0; i < Machine.TrackCount; i++)
                     {
-                        p.SetValue(i | noRecord, p.NoValue);
+                        p.SetPValue(i | noRecord, p.NoValue);
                     }
                 }
             }
