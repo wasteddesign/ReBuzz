@@ -1326,14 +1326,15 @@ namespace ReBuzz.Core
                 SongCore.PlayPosition = 0;
 
                 SkipAudio = false;
-                Modified = false;
                 AudioEngine.Play();
 
                 dispatcher.BeginInvoke(() =>
                 {
                     masterLoading = false;
+                    Modified = false;
                 });
 
+                
                 //Playing = playing;
             }
         }

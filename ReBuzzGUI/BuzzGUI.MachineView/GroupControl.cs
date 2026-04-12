@@ -179,7 +179,7 @@ namespace BuzzGUI.MachineView
 
             GroupMachinesCommand = new SimpleCommand
             {
-                CanExecuteDelegate = x => !MachineGroup.IsGrouped,
+                CanExecuteDelegate = x => MachineGroup != null && !MachineGroup.IsGrouped,
                 ExecuteDelegate = x =>
                 {
                     view.GroupMachines(this);
