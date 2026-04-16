@@ -63,16 +63,14 @@ namespace ReBuzz.Core.Actions.GraphActions
                     buzz.NotifyFileEvent(type, eventText, o);
                 };
 
-                //try
+                try
                 {
                     bmxFile.Load(filename, x, y, this);
                 }
-                /*
                 catch (Exception ex)
                 {
                     Utils.MessageBox("Error importing file " + filename + "\n\n" + ex.ToString(), "Error importing file.");
                 }
-                */
 
                 ReBuzzCore.SkipAudio = false;
                 buzz.Playing = playing;
