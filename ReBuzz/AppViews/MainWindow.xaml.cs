@@ -348,7 +348,9 @@ namespace ReBuzz
 
             this.Closed += (sender, e) =>
             {
-                Environment.Exit(0);
+                // For some reason, Environment.Exit(0) does not always end the app process.
+                Process.GetCurrentProcess().Kill();
+                //Environment.Exit(0);
             };
 
             Buzz.PropertyChanged += (sender, e) =>
@@ -639,7 +641,8 @@ namespace ReBuzz
 
                     debugWindow.CloseWindow();
 
-                    Environment.Exit(0);
+                    Process.GetCurrentProcess().Kill();
+                    //Environment.Exit(0);
                 }
                 else if (cmd == BuzzCommand.DebugConsole)
                 {
