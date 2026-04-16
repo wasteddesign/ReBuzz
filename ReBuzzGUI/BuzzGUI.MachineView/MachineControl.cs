@@ -541,7 +541,21 @@ namespace BuzzGUI.MachineView
         {
             if (machine == null) return;
             Tuple<float, float> p = Machine.Position;
-            MachineCanvas.SetPosition(this, new Point(p.Item1, p.Item2));
+
+            // Ensure machines stay within the view canvas
+            if (p.Item1 < -view.machineCanvas.CanvasSize || p.Item1 > view.machineCanvas.CanvasSize ||
+                p.Item2 < -view.machineCanvas.CanvasSize || p.Item2 > view.machineCanvas.CanvasSize)
+            {
+                List<Tuple<IMachine, Tuple<float, float>>> mm = new List<Tuple<IMachine, Tuple<float, float>>>();
+                float x = Math.Max(Math.Min(p.Item1, (float)view.machineCanvas.CanvasSize), -(float)view.machineCanvas.CanvasSize);
+                float y = Math.Max(Math.Min(p.Item2, (float)view.machineCanvas.CanvasSize), -(float)view.machineCanvas.CanvasSize);
+                mm.Add(new Tuple<IMachine, Tuple<float, float>>(machine, new Tuple<float, float>((float)x, (float)y)));
+                view.MachineGraph.MoveMachines(mm);
+
+                MachineCanvas.SetPosition(this, new Point(x, y));
+            }
+            else
+                MachineCanvas.SetPosition(this, new Point(p.Item1, p.Item2));
         }
 
         public void UpdateConnectionVisuals()
