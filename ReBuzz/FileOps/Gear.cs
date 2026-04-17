@@ -63,6 +63,7 @@ namespace ReBuzz.FileOps
                 machineDict[m.Name] = m;
                 m.DisableSubTickVal = m.DisableSubTick == "True";
                 m.ForceParamRefreshOnTempoChangeVal = m.ForceParamRefreshOnTempoChange == "True";
+                m.IsBlackisted = m.Blacklist == "True";
             }
         }
 
@@ -124,7 +125,7 @@ namespace ReBuzz.FileOps
             {
                 if (FileSystemName.MatchesSimpleExpression(m.Name, xmac.Name))
                 {
-                    if (m.Blacklist == "True")
+                    if (m.IsBlackisted)
                         return true;
                     else if (xmac.MachineInfo.Version < m.MinimumMIVersion)
                         return true;
@@ -160,6 +161,15 @@ namespace ReBuzz.FileOps
 
             return ret;
         }
+
+        internal bool IsBlacklisted(string libName)
+        {
+            bool ret = false;
+            if (machineDict.ContainsKey(libName))
+                ret = machineDict[libName].IsBlackisted == true;
+
+            return ret;
+        }
     }
 
     public class Machine
@@ -176,6 +186,8 @@ namespace ReBuzz.FileOps
         public int MinimumMIVersion { get; set; }
         [XmlAttribute]
         public string Blacklist { get; set; }
+        [XmlIgnore]
+        public bool IsBlackisted { get; set; }
         [XmlAttribute]
         public int OversampleFactor { get; set; }
         [XmlAttribute]

@@ -295,6 +295,9 @@ namespace ReBuzz.FileOps
             if (libName.EndsWith("GUI.dll"))
                 return null;
 
+            if (buzz.Gear.IsBlacklisted(libName))
+                return null;
+
             // Managed machines
             if (libName.EndsWith("NET.dll"))
             {
