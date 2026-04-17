@@ -19,7 +19,7 @@ using System.Xml.Linq;
 
 namespace ReBuzz.Common
 {
-    public class Utils
+    public static class Utils
     {
         public static ResourceDictionary GetBuzzThemeResources(string theme, string buzzPath)
         {
@@ -378,6 +378,14 @@ namespace ReBuzz.Common
                 double dpiY = matrix.M22;
                 fwElement.LayoutTransform = new ScaleTransform(scale / dpiX, scale / dpiY);
             }
+        }
+
+
+        private static readonly Action EmptyDelegate = delegate { };
+        // Forces refreshin view
+        public static void Refresh(this UIElement uiElement)
+        {
+            uiElement.Dispatcher.Invoke(DispatcherPriority.Render, EmptyDelegate);
         }
     }
 }

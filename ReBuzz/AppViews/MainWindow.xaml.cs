@@ -11,7 +11,6 @@ using ReBuzz.Common;
 using ReBuzz.Core;
 using ReBuzz.FileOps;
 using ReBuzz.MachineManagement;
-using ReBuzz.Midi;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -24,7 +23,6 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using ReBuzz.AppViews;
-using System.Security.Cryptography.X509Certificates;
 
 namespace ReBuzz
 {
@@ -1228,6 +1226,9 @@ namespace ReBuzz
                     borderEditor.Visibility = Visibility.Visible;
                     contentGrid.RowDefinitions[0].Height = new GridLength(1, GridUnitType.Star);
                     borderEditor.Focus();
+
+                    // Force draw to that editor can get keyboard focus
+                    Utils.Refresh(this);
 
                     if (Buzz.NewSequenceEditorActivate)
                     {
