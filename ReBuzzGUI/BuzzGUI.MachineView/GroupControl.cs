@@ -344,7 +344,6 @@ namespace BuzzGUI.MachineView
 
         public void Release()
         {
-            MachineGroup = null;
             this.GotFocus -= GroupControl_GotFocus;
             MachineView.Settings.PropertyChanged -= Settings_PropertyChanged;
             dtLED?.Stop();
