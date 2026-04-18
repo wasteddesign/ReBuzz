@@ -80,15 +80,16 @@ namespace BuzzGUI.MachineView
         private void MachineGroupGraph_MachineGroupRemoved(IMachineGroup g)
         {
             var mgc = GetMachineGroupControl(g);
-            mgc.Release();
             machineCanvas.Children.Remove(mgc);
-
+            
             var r = groupToRect[mgc];
             containerCanvas.Children.Remove(r);
             groupToRect.Remove(mgc);
 
             PropertyChanged.Raise(this, "Machines");
             PropertyChanged.Raise(this, "SelectedMachines");
+
+            mgc.Release();
         }
 
         private void MachineGroupGraph_MachineGroupAdded(IMachineGroup obj)

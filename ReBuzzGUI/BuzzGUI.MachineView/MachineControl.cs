@@ -261,12 +261,13 @@ namespace BuzzGUI.MachineView
                 {
                     Point p = view.CommandPoint;
                     var md = (MachineDialog)d;
+                    Point pos = Win32Mouse.GetScreenPosition();
+                    var dpi = VisualTreeHelper.GetDpi(this);
+                    pos.X /= dpi.DpiScaleX;
+                    pos.Y /= dpi.DpiScaleY;
+
                     if (md == MachineDialog.SignalAnalysis)
                     {
-                        Point pos = Win32Mouse.GetScreenPosition();
-                        pos.X /= WPFExtensions.PixelsPerDip;
-                        pos.Y /= WPFExtensions.PixelsPerDip;
-
                         switch (MachineView.StaticSettings.SignalAnalysisMode)
                         {
                             case SignalAnalysisModes.Classic:
@@ -301,8 +302,7 @@ namespace BuzzGUI.MachineView
                         }
                     }
                     else
-                    {
-                        Point pos = PointToScreen(p);
+                    {   
                         machine.ShowDialog((MachineDialog)d, (int)pos.X, (int)pos.Y);
                     }
                 }

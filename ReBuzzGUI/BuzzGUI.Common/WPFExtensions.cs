@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -9,7 +10,7 @@ namespace BuzzGUI.Common
     public static class WPFExtensions
     {
         static int dpi = -1;
-        static readonly object _dpiLock = new object();
+        static readonly Lock _dpiLock = new();
 
         public static int DPI
         {

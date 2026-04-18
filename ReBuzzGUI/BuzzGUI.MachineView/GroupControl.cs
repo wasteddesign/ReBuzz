@@ -202,6 +202,9 @@ namespace BuzzGUI.MachineView
                 ExecuteDelegate = x =>
                 {
                     var p = this.PointToScreen(Mouse.GetPosition(this));
+                    var dpi = VisualTreeHelper.GetDpi(this);
+                    p.X /= dpi.DpiScaleX;
+                    p.Y /= dpi.DpiScaleY;
                     MachineGroup.ShowDialog(MachineGroupDialog.Rename, (int)p.X + 8, (int)p.Y - 60);
                 }
             };

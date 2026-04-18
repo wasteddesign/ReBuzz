@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 
@@ -1517,8 +1518,9 @@ namespace WDE.ConnectionMixer
             if (sliderDragging && selectedConnection != null)
             {
                 Point pos = Win32Mouse.GetScreenPosition();
-                pos.X /= WPFExtensions.PixelsPerDip;
-                pos.Y /= WPFExtensions.PixelsPerDip;
+                var dpi = VisualTreeHelper.GetDpi(this);
+                pos.X /= dpi.DpiScaleX;
+                pos.Y /= dpi.DpiScaleY;
 
                 if (Keyboard.Modifiers == ModifierKeys.Control)
                 {
@@ -1575,8 +1577,9 @@ namespace WDE.ConnectionMixer
             {
                 var tt = volLevel.ToolTip as ToolTip;
                 Point pos = Win32Mouse.GetScreenPosition();
-                pos.X /= WPFExtensions.PixelsPerDip;
-                pos.Y /= WPFExtensions.PixelsPerDip;
+                var dpi = VisualTreeHelper.GetDpi(this);
+                pos.X /= dpi.DpiScaleX;
+                pos.Y /= dpi.DpiScaleY;
 
                 tt.Content = UpdateVolText();
 
@@ -1606,8 +1609,9 @@ namespace WDE.ConnectionMixer
             {
                 var tt = slider.ToolTip as ToolTip;
                 Point pos = Win32Mouse.GetScreenPosition();
-                pos.X /= WPFExtensions.PixelsPerDip;
-                pos.Y /= WPFExtensions.PixelsPerDip;
+                var dpi = VisualTreeHelper.GetDpi(this);
+                pos.X /= dpi.DpiScaleX;
+                pos.Y /= dpi.DpiScaleY;
 
                 tt.Content = par.DescribeValue(par.GetValue(track));
 
@@ -1626,8 +1630,9 @@ namespace WDE.ConnectionMixer
             {
                 var tt = sliderPan.ToolTip as ToolTip;
                 Point pos = Win32Mouse.GetScreenPosition();
-                pos.X /= WPFExtensions.PixelsPerDip;
-                pos.Y /= WPFExtensions.PixelsPerDip;
+                var dpi = VisualTreeHelper.GetDpi(this);
+                pos.X /= dpi.DpiScaleX;
+                pos.Y /= dpi.DpiScaleY;
 
                 tt.Content = UpdatePanText();
 

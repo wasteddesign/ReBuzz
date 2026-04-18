@@ -1506,8 +1506,9 @@ namespace WDE.ModernSequenceEditor
                     PatternListItem pli = (PatternListItem)item.Content;
 
                     Point location = Win32Mouse.GetScreenPosition();
-                    location.X /= WPFExtensions.PixelsPerDip;
-                    location.Y /= WPFExtensions.PixelsPerDip;
+                    var dpi = VisualTreeHelper.GetDpi(this);
+                    location.X /= dpi.DpiScaleX;
+                    location.Y /= dpi.DpiScaleY;
                     patternWnd.Left = location.X - 50;
                     patternWnd.Top = location.Y + 30;
 

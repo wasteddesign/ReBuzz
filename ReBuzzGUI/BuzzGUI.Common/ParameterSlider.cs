@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Media;
 using System.Windows.Shapes;
 
 namespace BuzzGUI.Common
@@ -118,12 +119,14 @@ namespace BuzzGUI.Common
             {
                 e.Handled = true;
                 Point p = control.PointToScreen(new Point(control.thumbX, control.ActualHeight + 20));
-
+                var dpi = VisualTreeHelper.GetDpi(control);
+                p.X /= dpi.DpiScaleX;
+                p.Y /= dpi.DpiScaleY;
                 ParameterValueEditor hw = new ParameterValueEditor(e.Key - Key.D0, control.Minimum, control.Maximum, false)
                 {
                     WindowStartupLocation = WindowStartupLocation.Manual,
-                    Left = p.X /= WPFExtensions.PixelsPerDip,
-                    Top = p.Y /= WPFExtensions.PixelsPerDip
+                    Left = p.X,
+                    Top = p.Y
                 };
 
                 new WindowInteropHelper(hw).Owner = ((HwndSource)PresentationSource.FromVisual(control)).Handle;
