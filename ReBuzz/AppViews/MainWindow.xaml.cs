@@ -759,7 +759,7 @@ namespace ReBuzz
                     else if (e.Key == Key.F7)
                     {
                         // Record
-                        Buzz.Recording = true;
+                        Buzz.Recording = !Buzz.Recording;
                         e.Handled = true;
                     }
                     else if (e.Key == Key.F8)

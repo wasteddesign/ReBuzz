@@ -119,6 +119,7 @@
   <ItemGroup>
     <ProjectReference Include="..\3rdParty\serilog\serilog.csproj" />
     <ProjectReference Include="..\3rdParty\serilog\Serilog.Sinks.RichTextBox.Wpf.csproj" />
+    <ProjectReference Include="..\ModernPatternEditor\ModernPatternEditor.NET\ModernPatternEditor.NET.csproj" />
     <ProjectReference Include="..\ReBuzzGUI\BuzzGUI.BuzzUpdate\BuzzGUI.BuzzUpdate.csproj" />
     <ProjectReference Include="..\ReBuzzGUI\BuzzGUI.Common\BuzzGUI.Common.csproj" />
     <ProjectReference Include="..\ReBuzzGUI\BuzzGUI.EnvelopeControl\BuzzGUI.EnvelopeControl.csproj" />

@@ -2,10 +2,10 @@
 {
     public enum SequenceEditorType { ModernVertical, ModernHorizontal };
     public enum SongLoadWaitTime { Seconds_10 = 10, Seconds_30 = 30, Minutes_1 = 60, Minutes_5 = 5*60 };
-
     public enum DpiScalingType { System = -1, Scale_100 = 100, Scale_125 = 125, Scale_150 = 150, Scale_175 = 175,
         Scale_200 = 200, Scale_225 = 225, Scale_250 = 250, Scale_275 = 275, Scale_300 = 300,
         Scale_325 = 325, Scale_350 = 350, Scale_375 = 375, Scale_400 = 400 };
+    public enum WorkingModeType { Normal, Play };
     public class GeneralSettings : Settings
     {
         [BuzzSetting(true, Description = "Rename previous version to <songname>.backup when saving a song.")]
@@ -47,6 +47,7 @@
         [BuzzSetting(DpiScalingType.System, Description = "DPI scaling.")]
         public DpiScalingType DpiScaling { get; internal set; }
 
-
+        [BuzzSetting(WorkingModeType.Normal, Description = "Working mode: Normal, Play only (recording disabled).")]
+        public WorkingModeType WorkingMode { get; internal set; }
     }
 }

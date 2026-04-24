@@ -338,7 +338,14 @@ namespace ReBuzz.Core
             get => recording;
             set
             {
-                recording = value;
+                if (Global.GeneralSettings.WorkingMode == WorkingModeType.Play)
+                {
+                    recording = false;
+                }
+                else
+                {
+                    recording = value;
+                }
 
                 if (recording)
                     GlobalState.StateFlags |= SF_RECORDING;
