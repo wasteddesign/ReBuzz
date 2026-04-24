@@ -284,7 +284,7 @@ namespace ReBuzz.Core
                 preparePlaying = false;
                 playing = true;
                 GlobalState.StateFlags |= SF_PLAYING;
-                dispatcher.BeginInvoke(() =>
+                dispatcher.Invoke(() =>
                 {
                     PropertyChanged.Raise(this, "Playing");
                 });
@@ -560,11 +560,12 @@ namespace ReBuzz.Core
             {
                 masterInfo.BeatsPerMin = bpm;
                 masterInfo.TicksPerBeat = tpb;
+                double currentASPT = masterInfo.AverageSamplesPerTick;
 
                 masterInfo.AverageSamplesPerTick = 60.0 * masterInfo.SamplesPerSec / (masterInfo.BeatsPerMin * (double)masterInfo.TicksPerBeat);
                 masterInfo.SamplesPerTick = (int)masterInfo.AverageSamplesPerTick;
                 masterInfo.TicksPerSec = masterInfo.BeatsPerMin * masterInfo.TicksPerBeat / 60.0f;
-                masterInfo.PosInTick = 0;
+                masterInfo.PosInTick = (int)(masterInfo.PosInTick * masterInfo.AverageSamplesPerTick / currentASPT);
 
                 int subTickCount = masterInfo.SamplesPerTick / SubTickSize / (int)engineSettings.SubTickResolution;
                 subTickInfo.AverageSamplesPerSubTick = masterInfo.SamplesPerTick / (double)subTickCount;
@@ -1806,8 +1807,8 @@ namespace ReBuzz.Core
 
             var masterGlobalParameters = machine.ParameterGroups[1].Parameters;
             masterGlobalParameters[0].SubscribeEvents(0, MasterVolumeChanged, null);
-            masterGlobalParameters[1].SubscribeEvents(0, BPMChanged, null);
-            masterGlobalParameters[2].SubscribeEvents(0, TPBChanged, null);
+            //masterGlobalParameters[1].SubscribeEvents(0, BPMChanged, null);
+            //masterGlobalParameters[2].SubscribeEvents(0, TPBChanged, null);
 
             Modified = false;
             return machine;

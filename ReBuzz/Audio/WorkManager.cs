@@ -64,7 +64,11 @@ namespace ReBuzz.Audio
             this.workEngine = workEngine;
             this.algorithm = algorithm;
             engineSettings = settings;
+
+            var master = buzzCore.SongCore.MachinesList.FirstOrDefault(m => m.DLL.Info.Type == MachineType.Master);
+            var masterGlobalParameters = master.ParameterGroupsList[1].ParametersList;
         }
+
         internal void CopyMasterInfo()
         {
             var masterInfo = ReBuzzCore.masterInfo;
@@ -118,13 +122,6 @@ namespace ReBuzz.Audio
                 int reminingBuffer = count;
                 workBufferOffset = offset;
 
-                if (buzzCore.TPB != masterInfo.TicksPerBeat ||
-                    buzzCore.BPM != masterInfo.BeatsPerMin)
-                {
-                    buzzCore.UpdateMasterInfo();
-                    buzzCore.MachineManager.RefreshMachineParams();
-                }
-
                 Utils.FlipDenormalDC();
 
                 while (reminingBuffer > 0)
@@ -136,6 +133,8 @@ namespace ReBuzz.Audio
                     //{
                     //    UpdateMasterSamplesPerTick();
                     //}
+
+                    UpdateMasterParams();
 
                     // Initiate master info for Audio Messages
                     CopyMasterInfo();
@@ -255,6 +254,24 @@ namespace ReBuzz.Audio
             }
         }
 
+        private void UpdateMasterParams()
+        {
+            var masterInfo = ReBuzzCore.masterInfo;
+            // Update master params on the next tick
+            var master = buzzCore.SongCore.MachinesList.FirstOrDefault(m => m.DLL.Info.Type == MachineType.Master);
+            var masterGlobalParameters = master.ParameterGroupsList[1].ParametersList;
+            var bpm = masterGlobalParameters[1].GetValue(0);
+            var tpb = masterGlobalParameters[2].GetValue(0);
+
+            if (tpb != masterInfo.TicksPerBeat ||
+                bpm != masterInfo.BeatsPerMin)
+            {
+                buzzCore.BPM = bpm;
+                buzzCore.TPB = tpb;
+                buzzCore.UpdateMasterInfo();
+                buzzCore.MachineManager.RefreshMachineParams();
+            }
+        }
         private void UpdateSubTickLength()
         {
             var masterInfo = ReBuzzCore.masterInfo;
@@ -907,6 +924,9 @@ namespace ReBuzz.Audio
 
                 int sCount = (int)(count / div);
                 sCount = sCount % 2 != 0 ? sCount - 1 : sCount;
+
+                if (sCount == 0)
+                    return 0;
 
                 float[] sBuffer = new float[sCount];
                 ThreadRead(sBuffer, 0, sCount);
