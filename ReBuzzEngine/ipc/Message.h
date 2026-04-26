@@ -111,7 +111,6 @@ enum HostMessages
 	HostMuteMachine,
 	HostSoloMachine,
 	HostIsMachineMuted,
-	HostGetConnectionCount,
 	HostGetConnection,
 	HostGetConnectionSource,
 	HostGetConnectionDestination,
