@@ -144,6 +144,11 @@ namespace ReBuzz.Core
             return pvalues[track];
         }
 
+        public void SetPValue(int track, int val)
+        {
+            pvalues[track] = val;
+        }
+
         public void ClearPVal()
         {
             pvalues.Clear();
@@ -288,7 +293,7 @@ namespace ReBuzz.Core
                     return;
 
                 // Check ranges
-                if (value != NoValue)
+                if (value != NoValue || (value == NoValue && (Flags & ParameterFlags.State) != ParameterFlags.State) && Type != ParameterType.Note)
                 {
                     if (Type == ParameterType.Note && value != BuzzNote.Off)
                         value = Math.Max(MinValue, Math.Min(MaxValue, value));

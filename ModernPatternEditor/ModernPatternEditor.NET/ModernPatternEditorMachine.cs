@@ -81,22 +81,16 @@ namespace WDE.ModernPatternEditor
             ModernPatternEditor.SetTargetMachine(machine);
         }
 
-        public string GetEditorMachine()
-        {
-            return "Modern Pattern Editor";
-        }
-
-        public void SetPatternEditorMachine(IMachineDLL editorMachine)
-        {
-            
-        }
-
         public void SetPatternName(string machine, string oldName, string newName)
         {
             var mac = Global.Buzz.Song.Machines.FirstOrDefault(m => m.Name == machine);
             if (mac != null)
             {
-                mac.RenamePattern(mac.Patterns.FirstOrDefault(p => p.Name == oldName), newName);
+                var pattern = mac.Patterns.FirstOrDefault(p => p.Name == oldName);
+                if (pattern != null)
+                {
+                    mac.RenamePattern(pattern, newName);
+                }
             }
         }
 
@@ -227,6 +221,19 @@ namespace WDE.ModernPatternEditor
                     column.SetEvents(newEvents.ToArray(), true, false);
                 }
             }
+        }
+
+        public int GetEditorPatternPosition()
+        {
+            int pos = 0;
+            var pattern = ModernPatternEditor.patternControl.Pattern;
+            var mpePattern = ModernPatternEditor.MPEPatternsDB.GetMPEPattern(pattern.Pattern);
+
+            if (pattern != null && mpePattern != null)
+            {
+                pos = (pattern.CursorPosition.Beat * mpePattern.RowsPerBeat + pattern.CursorPosition.RowInBeat) * PatternControl.BUZZ_TICKS_PER_BEAT / mpePattern.RowsPerBeat;
+            }
+            return pos;
         }
     }
 }

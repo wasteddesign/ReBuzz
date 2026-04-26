@@ -11,7 +11,6 @@ using ReBuzz.Common;
 using ReBuzz.Core;
 using ReBuzz.FileOps;
 using ReBuzz.MachineManagement;
-using ReBuzz.Midi;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -104,7 +103,8 @@ namespace ReBuzz
             var generalSettings = Global.GeneralSettings;
             var engineSettings = Global.EngineSettings;
             var registryRoot = Global.RegistryRoot;
-            debugWindow = new DebugWindow(buzzPath);
+            debugWindow = DebugWindow.CreateAsync(buzzPath);
+
             DataContext = this;
 
             InitializeComponent();
@@ -114,15 +114,20 @@ namespace ReBuzz
                 engineSettings,
                 buzzPath,
                 registryRoot,
-                new MachineDLLScanner(windowsGuiDispatcher),
+                new MachineDLLScanner(windowsGuiDispatcher, engineSettings),
                 windowsGuiDispatcher,
                 registryEx,
                 new FileNameToLoadChoiceThroughOpenFileDialog(),
                 new FileNameToSaveChoiceThroughSaveFileDialog(),
                 new UserMessagesViaMessageBox(), new WindowsKeyboard());
 
-            var reBuzzCoreInitialization = new ReBuzzCoreInitialization(Buzz, buzzPath, windowsGuiDispatcher, registryEx, new WindowsKeyboard());
+            var reBuzzCoreInitialization = new ReBuzzCoreInitialization(Buzz, buzzPath, windowsGuiDispatcher, registryEx, new WindowsKeyboard(), Global.EngineSettings);
             reBuzzCoreInitialization.StartReBuzzEngineStep1(Buzz_PropertyChanged);
+
+            if (Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                debugWindow.Show();
+            }
 
             BuzzGUIStartup.PreInit();
 
@@ -165,7 +170,7 @@ namespace ReBuzz
             reBuzzCoreInitialization.StartReBuzzEngineStep3(engineSettings, this);
 
             splashScreenWindow.UpdateText("Scan Plugin DLLs");
-            MachineDB = new MachineDatabase(buzzCore, buzzPath, windowsGuiDispatcher);
+            MachineDB = new MachineDatabase(buzzCore, buzzPath, windowsGuiDispatcher, Global.EngineSettings);
 
             reBuzzCoreInitialization.StartReBuzzEngineStep4(MachineDB,
               machineDbDatabaseEvent: (str) =>
@@ -181,16 +186,7 @@ namespace ReBuzz
               },
               onSetPatternEditorControl: (control) =>
               {
-                  if (EditorView.editorBorder.Child != null)
-                      EditorView.editorBorder.Child.Visibility = Visibility.Collapsed;
-
-                  EditorView.editorBorder.Child = control;
-
-                  if (control != null)
-                  {
-                      control.Visibility = Visibility.Visible;
-                      EditorView.editorBorder.InvalidateMeasure();
-                  }
+                  EditorView.SetEditorControl(control);
               },
               onFullScreenChanged: (fullScreen) =>
               {
@@ -229,12 +225,6 @@ namespace ReBuzz
             {
                 splashScreenWindow.UpdateText("Init views");
 
-                // Machine View
-                var rd = Utils.GetUserControlXAML<ResourceDictionary>(Buzz.Theme.MachineView.Source, buzzPath);
-                MachineView = new MachineView(buzzCore, rd);
-                MachineView.MachineGraph = song;
-                MachineView.Foreground = new SolidColorBrush(Global.Buzz.ThemeColors["MV Text"]);
-                borderMachineView.Child = MachineView;
 
                 /*
                 MachineView.Loaded += (s, e2) =>
@@ -245,15 +235,22 @@ namespace ReBuzz
                 };
                 */
 
-                Buzz.ActiveView = BuzzView.MachineView;
-
                 Utils.InitUtils(this);
 
                 Buzz.StartTimer();
 
-                rd = Utils.GetUserControlXAML<ResourceDictionary>(Buzz.Theme.MainWindow.Source, buzzPath);
+                var rd = Utils.GetUserControlXAML<ResourceDictionary>(Buzz.Theme.MainWindow.Source, buzzPath);
                 this.Style = rd["ThemeWindowStyle"] as Style;
                 this.Resources.MergedDictionaries.Add(rd);
+
+                // Machine View
+                rd = Utils.GetUserControlXAML<ResourceDictionary>(Buzz.Theme.MachineView.Source, buzzPath);
+                MachineView = new MachineView(buzzCore, rd);
+                MachineView.MachineGraph = song;
+                MachineView.Foreground = new SolidColorBrush(Global.Buzz.ThemeColors["MV Text"]);
+                borderMachineView.Child = MachineView;
+
+                Buzz.ActiveView = BuzzView.MachineView;
 
                 // Wavetable
                 WavetableVM = new WavetableVM();
@@ -315,6 +312,11 @@ namespace ReBuzz
                 }
             };
 
+            mainGrid.Loaded += (s, e2) =>
+            {
+                Utils.UpdateDpi(mainGrid);
+            };
+
             this.Closing += (sender, e) =>
             {
                 if (Buzz.Modified)
@@ -344,7 +346,9 @@ namespace ReBuzz
 
             this.Closed += (sender, e) =>
             {
-                Environment.Exit(0);
+                // For some reason, Environment.Exit(0) does not always end the app process.
+                Process.GetCurrentProcess().Kill();
+                //Environment.Exit(0);
             };
 
             Buzz.PropertyChanged += (sender, e) =>
@@ -398,7 +402,9 @@ namespace ReBuzz
                     {
                         keyboardWindow = new KeyboardWindow(Buzz);
 
-                        keyboardWindow.Topmost = true;
+                        if (Global.GeneralSettings.PianoKeyboardTopmost)
+                            keyboardWindow.Topmost = true;
+
                         var interop = new WindowInteropHelper(keyboardWindow);
                         interop.Owner = Buzz.MachineViewHWND;
                     }
@@ -608,7 +614,11 @@ namespace ReBuzz
                     SequenceEditor.ViewSettings.TimeSignatureList.Set(0, 16);
                     song.Associations.Clear();
                     seqenceEditor.Song = song;
-                    song.ActionStack = new ManagedActionStack();
+                    EditorView.Clear();
+                }
+                else if (cmd == BuzzCommand.OpenFile)
+                {
+                    EditorView.Clear();
                 }
                 else if (cmd == BuzzCommand.Exit)
                 {
@@ -627,7 +637,10 @@ namespace ReBuzz
                     Buzz.Playing = false;
                     Buzz.Release();
 
-                    Environment.Exit(0);
+                    debugWindow.CloseWindow();
+
+                    Process.GetCurrentProcess().Kill();
+                    //Environment.Exit(0);
                 }
                 else if (cmd == BuzzCommand.DebugConsole)
                 {
@@ -644,27 +657,25 @@ namespace ReBuzz
                         if (preferencesWindow.ShowDialog() == true)
                         {
                             Buzz.MidiInOutEngine.ReleaseAll();
+                            Buzz.MidiInOutEngine.Midi2.CreateMidi2Endpoint();
 
                             List<int> midiIns = new List<int>();
-                            foreach (var item in preferencesWindow.lbMidiInputs.Items)
-                            {
-                                var lbItem = item as PreferencesWindow.ControllerCheckboxVM;
-                                if (lbItem.Checked)
-                                    midiIns.Add(lbItem.Id);
+                            foreach (var item in preferencesWindow.MidiInControllerCheckboxes)
+                            {   
+                                if (item.Checked)
+                                    midiIns.Add(item.Id);
                             }
-                            MidiEngine.SetMidiInputDevices(registryEx, midiIns);
-                            Buzz.MidiInOutEngine.OpenMidiInDevices();
-
+                            Buzz.MidiInOutEngine.SetMidiInputDevices2(midiIns);
+                            Buzz.MidiInOutEngine.OpenMidiInDevices2();
 
                             List<int> midiOuts = new List<int>();
-                            foreach (var item in preferencesWindow.lbMidiOutputs.Items)
-                            {
-                                var lbItem = item as PreferencesWindow.ControllerCheckboxVM;
-                                if (lbItem.Checked)
-                                    midiOuts.Add(lbItem.Id);
+                            foreach (var item in preferencesWindow.MidiOutControllerCheckboxes)
+                            {   
+                                if (item.Checked)
+                                    midiOuts.Add(item.Id);
                             }
-                            MidiEngine.SetMidiOutputDevices(registryEx, midiOuts);
-                            Buzz.MidiInOutEngine.OpenMidiOutDevices();
+                            Buzz.MidiInOutEngine.SetMidiOutputDevices2(midiOuts);
+                            Buzz.MidiInOutEngine.OpenMidiOutDevices2();
 
                             Buzz.MidiControllerAssignments.ClearAll();
                             foreach (PreferencesWindow.ControllerVM item in preferencesWindow.lvControllers.Items)
@@ -705,122 +716,147 @@ namespace ReBuzz
 
             this.PreviewKeyDown += (sender, e) =>
             {
-                if (e.Key == Key.F1)
+                if (Keyboard.Modifiers == ModifierKeys.None)
                 {
-                    // Help
-                    var ps = new ProcessStartInfo(System.IO.Path.Combine(buzzPath, "Help/index.html"))
+                    if (e.Key == Key.F1)
                     {
-                        UseShellExecute = true,
-                        Verb = "open"
-                    };
-                    Process.Start(ps);
-                    e.Handled = true;
-                }
-                else if (e.Key == Key.F2)
-                {
-                    Buzz.ActiveView = BuzzView.PatternView;
-                    e.Handled = true;
-                }
-                else if (e.Key == Key.F3)
-                {
-                    Buzz.ActiveView = BuzzView.MachineView;
-                    e.Handled = true;
-                }
-                else if (e.Key == Key.F4)
-                {
-                    Buzz.ActiveView = BuzzView.SequenceView;
-                    e.Handled = true;
-                }
-                else if (e.Key == Key.F5)
-                {
-                    // Play
-                    Buzz.Playing = true;
-                    e.Handled = true;
-                }
-                else if (e.Key == Key.F6)
-                {
-                    // Play from cursur pos
-                    seqenceEditor.PlayCursor();
-                    e.Handled = true;
-                }
-                else if (e.Key == Key.F7)
-                {
-                    // Record
-                    Buzz.Recording = true;
-                    e.Handled = true;
-                }
-                else if (e.Key == Key.F8)
-                {
-                    // Stop
-                    Buzz.Playing = false;
-                    e.Handled = true;
-                }
-                else if (e.Key == Key.F9)
-                {
-                    // Wavetable
-                    Buzz.ActiveView = BuzzView.WaveTableView;
-                    e.Handled = true;
-                }
-                else if (e.SystemKey == Key.F10)
-                {
-                    // Info
-                    Buzz.ActiveView = BuzzView.SongInfoView;
-                    e.Handled = true;
-                }
-                else if (e.Key == Key.F11)
-                {
-                    // Dialogs
-                    foreach (var m in song.Machines)
-                    {
-                        var mac = m as MachineCore;
-                        var pw = mac.ParameterWindow;
-                        if (pw != null)
+                        // Help
+                        var ps = new ProcessStartInfo(System.IO.Path.Combine(buzzPath, "Help/index.html"))
                         {
-                            if (pw.Visibility == Visibility.Visible)
+                            UseShellExecute = true,
+                            Verb = "open"
+                        };
+                        Process.Start(ps);
+                        e.Handled = true;
+                    }
+                    else if (e.Key == Key.F2)
+                    {
+                        Buzz.ActiveView = BuzzView.PatternView;
+                        e.Handled = true;
+                    }
+                    else if (e.Key == Key.F3)
+                    {
+                        Buzz.ActiveView = BuzzView.MachineView;
+                        e.Handled = true;
+                    }
+                    else if (e.Key == Key.F4)
+                    {
+                        Buzz.ActiveView = BuzzView.SequenceView;
+                        e.Handled = true;
+                    }
+                    else if (e.Key == Key.F5)
+                    {
+                        // Play
+                        Buzz.Playing = true;
+                        e.Handled = true;
+                    }
+                    else if (e.Key == Key.F6)
+                    {
+                        // Play from cursur pos
+                        seqenceEditor.PlayCursor();
+                        e.Handled = true;
+                    }
+                    else if (e.Key == Key.F7)
+                    {
+                        // Record
+                        Buzz.Recording = !Buzz.Recording;
+                        e.Handled = true;
+                    }
+                    else if (e.Key == Key.F8)
+                    {
+                        // Stop
+                        Buzz.Playing = false;
+                        e.Handled = true;
+                    }
+                    else if (e.Key == Key.F9)
+                    {
+                        // Wavetable
+                        Buzz.ActiveView = BuzzView.WaveTableView;
+                        e.Handled = true;
+                    }
+                    else if (e.SystemKey == Key.F10)
+                    {
+                        // Info
+                        Buzz.ActiveView = BuzzView.SongInfoView;
+                        e.Handled = true;
+                    }
+                    else if (e.Key == Key.F11)
+                    {
+                        // Dialogs
+                        foreach (var m in song.Machines)
+                        {
+                            var mac = m as MachineCore;
+                            var pw = mac.ParameterWindow;
+                            if (pw != null)
                             {
-                                pw.Visibility = Visibility.Collapsed;
+                                if (pw.Visibility == Visibility.Visible)
+                                {
+                                    pw.Visibility = Visibility.Collapsed;
+                                }
+                                else
+                                {
+                                    pw.Visibility = Visibility.Visible;
+                                }
                             }
-                            else
+
+                            var mgw = mac.MachineGUIWindow; ;
+                            if (mgw != null)
                             {
-                                pw.Visibility = Visibility.Visible;
+                                if (mgw.Visibility == Visibility.Visible)
+                                {
+                                    mgw.Visibility = Visibility.Collapsed;
+                                }
+                                else
+                                {
+                                    mgw.Visibility = Visibility.Visible;
+                                }
                             }
                         }
 
-                        var mgw = mac.MachineGUIWindow; ;
-                        if (mgw != null)
+                        Application.Current.Dispatcher.BeginInvoke(() =>
                         {
-                            if (mgw.Visibility == Visibility.Visible)
+                            Focus();
+                        });
+                        e.Handled = true;
+                    }
+                    else if (e.Key == Key.F12)
+                    {
+                        // Reset Audio
+                        buzzCore.AudioEngine.Reset();
+                        e.Handled = true;
+                    }
+                    else if (e.Key == Key.Space)
+                    {
+                        if (Buzz.ActiveView == BuzzView.PatternView)
+                        {
+                            if (Buzz.PatternEditorPattern != null)
                             {
-                                mgw.Visibility = Visibility.Collapsed;
+                                Buzz.PatternEditorPattern.IsPlayingSolo ^= true;
                             }
-                            else
-                            {
-                                mgw.Visibility = Visibility.Visible;
-                            }
+                            e.Handled = true;
                         }
                     }
-
-                    Application.Current.Dispatcher.BeginInvoke(() =>
-              {
-                    Focus();
-                });
-                    e.Handled = true;
                 }
-                else if (e.Key == Key.F12)
+                if (Keyboard.Modifiers == ModifierKeys.Shift)
                 {
-                    // Reset Audio
-                    buzzCore.AudioEngine.Reset();
-                    e.Handled = true;
-                }
-                else if (e.Key == Key.Space)
-                {
-                    if (Buzz.ActiveView == BuzzView.PatternView)
+                    if (e.Key == Key.Space)
                     {
-                        if (Buzz.PatternEditorPattern != null)
+                        if (Buzz.ActiveView == BuzzView.PatternView)
                         {
-                            Buzz.PatternEditorPattern.IsPlayingSolo ^= true;
+                            if (Buzz.PatternEditorPattern != null)
+                            {
+                                if (Buzz.PatternEditorPattern.IsPlayingSolo)
+                                {
+                                    Buzz.PatternEditorPattern.IsPlayingSolo = false;
+                                }
+                                else
+                                {
+                                    var pattern = Buzz.PatternEditorPattern as PatternCore;
+                                    pattern.PlayFormPatternEditorPosition();
+                                }
+                            }
+                            e.Handled = true;
                         }
-                        e.Handled = true;
                     }
                 }
 
@@ -926,6 +962,12 @@ namespace ReBuzz
             }
         }
 
+        protected override void OnDpiChanged(DpiScale oldDpi, DpiScale newDpi)
+        {
+            base.OnDpiChanged(oldDpi, newDpi);
+            Utils.UpdateDpi(mainGrid);
+        }
+
         private void ModernSequenceEditorHorizontal_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             ResizeModernSequenceEditor();
@@ -965,7 +1007,13 @@ namespace ReBuzz
             {
                 CreateSequenceView(Buzz.Song);
             }
+            else if (e.PropertyName == "DpiScaling")
+            {
+                Utils.UpdateDpi(mainGrid);
+            }
         }
+
+
 
         private void Buzz_FileEvent(FileEventType type, string text, object o)
         {
@@ -1014,7 +1062,7 @@ namespace ReBuzz
         {
             if (EditorView != null)
             {
-                EditorView.editorBorder.Child = null;
+                EditorView.SetEditorControl(null);
             }
 
             Buzz.ThemeColors = Utils.GetThemeColors(buzzPath);
@@ -1113,18 +1161,8 @@ namespace ReBuzz
             {
                 Buzz.ActiveView = BuzzView.PatternView;
             }
-            var editor = EditorView.editorBorder.Child;
-            if (editor != null)
-            {
-                var m = Buzz.PatternEditorPattern?.Machine as MachineCore;
 
-                EditorView.EditorMachine = m?.EditorMachine.DLL;
-                editor.Focus();
-            }
-            else
-            {
-                EditorView.Focus();
-            }
+            EditorView.PatternEditorActivated();
         }
 
         private void Buzz_SequenceEditorActivated()
@@ -1189,17 +1227,16 @@ namespace ReBuzz
                     contentGrid.RowDefinitions[0].Height = new GridLength(1, GridUnitType.Star);
                     borderEditor.Focus();
 
+                    // Force draw to that editor can get keyboard focus
+                    Utils.Refresh(this);
+
                     if (Buzz.NewSequenceEditorActivate)
                     {
-                        EditorView.gridEditorView.RowDefinitions[0].Focus();
+                        EditorView.FocusSequenceEditor();
                     }
                     else
                     {
-                        var editor = EditorView.editorBorder.Child;
-                        if (editor != null)
-                        {
-                            editor.Focus();
-                        }
+                        EditorView.FocusEditor();
                     }
 
                     break;

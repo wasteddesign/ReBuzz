@@ -298,7 +298,7 @@ namespace WDE.ModernSequenceEditorHorizontal
             this.Unloaded += TrackHeaderControl_Unloaded;
             SequenceEditor.Settings.PropertyChanged += Settings_PropertyChanged;
             SetTimer();
-            VUMeterVisibility = SequenceEditor.Settings.VUMeterLevels == true ? Visibility.Visible : Visibility.Hidden;
+            VUMeterVisibility = SequenceEditor.Settings.VUMeterLevels == true ? Visibility.Visible : Visibility.Collapsed;
 
             this.MouseDown += (sender, e) =>
             {
@@ -336,7 +336,7 @@ namespace WDE.ModernSequenceEditorHorizontal
                 if (SequenceEditor.Settings.VUMeterLevels)
                     VUMeterVisibility = Visibility.Visible;
                 else
-                    VUMeterVisibility = Visibility.Hidden;
+                    VUMeterVisibility = Visibility.Collapsed;
             }
         }
 

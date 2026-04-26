@@ -29,7 +29,7 @@ namespace WDE.ModernPatternEditor
         ISong song;
 
         internal MPEPatternDatabase MPEPatternsDB;
-        internal PatternClipboard clipboard = new PatternClipboard();
+        internal static PatternClipboard clipboard = new PatternClipboard();
         internal PlayRecordManager playRecordManager;
         internal ChordsWindow chordsWindow;
 
@@ -45,8 +45,12 @@ namespace WDE.ModernPatternEditor
         }
 
         public bool MidiEdit { get; set; }
-        public int SelectedStepsDown { get; set; }
-        public int SelectedStepsRight { get; set; }
+
+        int selectedStepsDown = 1;
+        public int SelectedStepsDown { get => selectedStepsDown; set { selectedStepsDown = value; PropertyChanged.Raise(this, "SelectedStepsDown"); } }
+
+        int selectedStepsRight = 0;
+        public int SelectedStepsRight { get => selectedStepsRight; set { selectedStepsRight = value; PropertyChanged.Raise(this, "SelectedStepsRight"); } }
 
         public ISong Song
         {
@@ -438,7 +442,7 @@ namespace WDE.ModernPatternEditor
                 ExecuteDelegate = x =>
                 {
                     DoAction(new CreatePatternAction(SelectedMachine.Machine, SelectedMachine.Machine.GetNewPatternName(),
-                        SelectedMachine.SelectedPattern != null ? SelectedMachine.SelectedPattern.Pattern.Length : 16));
+                        SelectedMachine.SelectedPattern != null ? SelectedMachine.SelectedPattern.Pattern.Length : Global.GeneralSettings.PatternLength));
                     patternControl.Focus();
                 }
             };
@@ -565,21 +569,15 @@ namespace WDE.ModernPatternEditor
                     }
                     else if (e.Key == Key.Divide)
                     {
-                        if (SelectedMachine != null && SelectedMachine.BaseOctave > 0)
-                            SelectedMachine.BaseOctave--;
-
-                        //if (SelectedMachine != null && SelectedMachine.Machine.BaseOctave > 0)
-                        //    SelectedMachine.Machine.BaseOctave--;
+                        if (SelectedMachine != null && SelectedMachine.Machine.BaseOctave > 0)
+                            SelectedMachine.Machine.BaseOctave--;
 
                         e.Handled = true;
                     }
                     else if (e.Key == Key.Multiply)
                     {
-                        if (SelectedMachine != null && SelectedMachine.BaseOctave < 9)
-                            SelectedMachine.BaseOctave++;
-
-                        //if (SelectedMachine != null && SelectedMachine.Machine.BaseOctave < 9)
-                        //    SelectedMachine.Machine.BaseOctave++;
+                        if (SelectedMachine != null && SelectedMachine.Machine.BaseOctave < 9)
+                            SelectedMachine.Machine.BaseOctave++;
 
                         e.Handled = true;
                     }
@@ -750,35 +748,6 @@ namespace WDE.ModernPatternEditor
         }
 
         public TextFormattingMode TextFormattingMode { get { return Global.GeneralSettings.WPFIdealFontMetrics ? TextFormattingMode.Ideal : TextFormattingMode.Display; } }
-
-        public IMachineDLL editorMachine;
-        public IMachineDLL EditorMachine
-        {
-            get { return editorMachine; }
-            set
-            {
-                var currentEditor = editorMachine;
-                editorMachine = value;
-                string ename = cb.GetEditorMachine();
-                if (editorMachine.Name != ename)
-                {   
-                    if (MessageBox.Show(@"Changing back to legacy editor loses pattern data. Continue anyway?",
-                        "Change editor?", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
-                    {
-                        cb.SetPatternEditorMachine(editorMachine);
-                    }
-                    else
-                    {
-                        // Reset selection
-                        Dispatcher.InvokeAsync(() =>
-                        {
-                            editorMachine = currentEditor;
-                            PropertyChanged.Raise(this, "EditorMachine");
-                        });
-                    }
-                }
-            }
-        }
 
         IMachine targetMachine;
         public IMachine TargetMachine
@@ -1189,7 +1158,7 @@ namespace WDE.ModernPatternEditor
             // This limits the amount of messages.
             if (songTime.PosInTick == 0)
             {
-                foreach( var pattern in changedPatternsSinceLastTick.Keys.ToList())
+                foreach( var pattern in changedPatternsSinceLastTick.Keys)
                 {
                     pattern.NotifyPatternChanged();
                     changedPatternsSinceLastTick.TryRemove(pattern, out bool result);

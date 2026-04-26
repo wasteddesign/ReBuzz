@@ -16,8 +16,7 @@ namespace ReBuzz.Audio
         private readonly IBuzz buzz;
 
         WorkThreadEngine workEngine;
-        readonly ManualResetEvent fillBufferEvent = new ManualResetEvent(false);
-
+        
         bool stopped;
         private readonly float[] threadBuffer;
         private readonly float[][] threadBufferChannel;
@@ -130,8 +129,8 @@ namespace ReBuzz.Audio
                     Buffer.BlockCopy(fillBuffer, offset << 2, threadBuffer, threadBufferWriteOffset << 2, count << 2);
 
                     // Copy other output channels
-                    int stereaOutChannels = (channels - 2);
-                    for (int j = 1; j < stereaOutChannels; j++)
+                    int stereoOutChannels = channels / 2;
+                    for (int j = 1; j < stereoOutChannels; j++)
                     {
                         var fromBuffer = fillBufferChannel[j];
                         var toBuffer = threadBufferChannel[j];
@@ -156,7 +155,11 @@ namespace ReBuzz.Audio
             // Override audio driver and call workManager.ThreadRead outside of Read
             if (buzz.OverrideAudioDriver || stopped || ReBuzzCore.SkipAudio)
             {
-                Array.Clear(buffer, offset, count);
+                // Array.Clear(buffer, offset, count) is wrongly casted when using ASIO
+                for (int i = 0; i < count; i++)
+                {
+                    buffer[offset + i] = 0;
+                }
                 ClearBuffer();
                 return count;
             }
@@ -167,7 +170,10 @@ namespace ReBuzz.Audio
             {
                 if (ReBuzzCore.SkipAudio)
                 {
-                    Array.Clear(buffer, offset, count);
+                    for (int i = 0; i < count; i++)
+                    {
+                        buffer[offset + i] = 0;
+                    }
                     return count;
                 }
 
@@ -210,26 +216,18 @@ namespace ReBuzz.Audio
                     fillBufferNeed = threadBuffer.Length - threadBufferFillLevel;
                 }
             }
-            if (!stopped && threadType != EAudioThreadType.None)
-            {
-                // Continue filling the buffer in BufferFillThread
-                fillBufferEvent.Set();
-            }
             return count;
         }
 
         public void Stop()
         {
             stopped = true;             // Stop audio thread
-            lock (bufferLock)
-            {
-                fillBufferEvent.Set();      // Stop waiting for request to fill buffer
-            }
 
             workManager.Stop();
             if (workEngine != null)
             {
                 workEngine.Stop();
+                workEngine.AllDoneEvent().WaitOne();
                 workEngine = null;
             }
 
@@ -248,7 +246,8 @@ namespace ReBuzz.Audio
 
         internal void FillChannel(int channel, Sample[] samples, int n)
         {
-            if (channel < 1 || channel > channels / 2)
+            // First channel (0) is the main stereo out
+            if (channel < 1 || channel >= channels / 2 || channel >= 64)
                 return;
 
             var fillChannel = fillBufferChannel[channel];

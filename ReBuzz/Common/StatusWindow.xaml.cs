@@ -1,8 +1,9 @@
-﻿using System;
+﻿using BuzzGUI.Common;
+using System;
 using System.Threading;
 using System.Windows;
+using System.Windows.Media;
 using System.Windows.Threading;
-using BuzzGUI.Common;
 
 namespace ReBuzz.Common
 {
@@ -41,6 +42,9 @@ namespace ReBuzz.Common
             StatusWindow window = null;
 
             var pos = parentWnd.PointToScreen(new Point(0, 0));
+            var dpi = VisualTreeHelper.GetDpi(parentWnd);
+            pos.X /= dpi.DpiScaleX;
+            pos.Y /= dpi.DpiScaleY;
             double pWidth = parentWnd.Width;
             double pHeight = parentWnd.Height;
 

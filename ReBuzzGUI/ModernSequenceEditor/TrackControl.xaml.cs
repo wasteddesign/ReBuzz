@@ -18,7 +18,6 @@ namespace WDE.ModernSequenceEditor
             set
             {
                 viewSettings = value;
-                //backgroundElement.ViewSettings = value;
             }
         }
 
@@ -241,8 +240,6 @@ namespace WDE.ModernSequenceEditor
         {
             TaskScheduler uiScheduler = TaskScheduler.FromCurrentSynchronizationContext();
 
-            //Task.Factory.StartNew(() =>
-            //{
             SequenceEvent e;
             sequence.Events.TryGetValue(time, out e);
 
@@ -275,7 +272,6 @@ namespace WDE.ModernSequenceEditor
                 pv.PropertyChanged += PE_PropertyChanged;
 
             }
-            //}, CancellationToken.None, TaskCreationOptions.None, uiScheduler);
         }
 
         internal void UpdateNoteHints()

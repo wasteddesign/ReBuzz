@@ -1,7 +1,7 @@
 using AtmaFileSystem;
 using AtmaFileSystem.IO;
 using BuzzGUI.Interfaces;
-using FluentAssertions.Execution;
+using AwesomeAssertions.Execution;
 using ReBuzz.Core;
 using ReBuzz.FileOps;
 using ReBuzzTests.Automation.TestMachines;
@@ -49,7 +49,7 @@ namespace ReBuzzTests.Automation
 
         public void AddPrecompiledMachine(ReBuzzCore reBuzz, ITestMachineInfo info, AbsoluteDirectoryPath targetDir)
         {
-            var assemblySourceLocation = AbsoluteDirectoryPath.OfExecutingAssembly().AddFileName(info.DllName);
+            var assemblySourceLocation = AbsoluteDirectoryPath.OfExecutingAssembly().AddFileName(info.RealDllName);
             var assemblyTargetLocation = targetDir.AddFileName(info.DllName);
             var machineDll = info.GetMachineDll(reBuzz, assemblyTargetLocation);
             assemblySourceLocation.Copy(assemblyTargetLocation);
@@ -67,14 +67,14 @@ namespace ReBuzzTests.Automation
             return machineDllsByName[name];
         }
 
-        public void AddMachineDllsToDictionary(ReBuzzCore buzz, XMLMachineDLL[] xmlMachineDLLs, Dictionary<string, MachineDLL> md)
+        public void AddMachineDllsToDictionary(ReBuzzCore buzz, XMLMachineDLL[] xmlMachineDlls, Dictionary<string, MachineDLL> md)
         {
-            Execute.Assertion.FailWith("Not called anywhere yet in the current tests");
+            AssertionChain.GetOrCreate().FailWith("Not called anywhere yet in the current tests");
         }
 
         public XMLMachineDLL ValidateDll(ReBuzzCore buzz, string libName, string path, string buzzPath)
         {
-            Execute.Assertion.FailWith("Not called anywhere yet in the current tests");
+            AssertionChain.GetOrCreate().FailWith("Not called anywhere yet in the current tests");
             return null!;
         }
     }

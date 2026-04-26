@@ -101,9 +101,14 @@
 		</li>
 		<li class="nav-item"><a class="nav-link active" href="#idocs_rebuzz_quickstart">Quick Start</a>
           <ul class="nav flex-column">
-            <li class="nav-item"><a class="nav-link" href="#idocs_rebuzz_quickstart_topic1">Topic 1</a></li>
-            <li class="nav-item"><a class="nav-link" href="#idocs_rebuzz_quickstart_topic2">Topic 2</a></li>
-            <li class="nav-item"><a class="nav-link" href="#idocs_rebuzz_quickstart_topic3">Topic 3</a></li>
+            <li class="nav-item"><a class="nav-link" href="#idocs_rebuzz_quickstart_topic1">Install ReBuzz and Required Runtimes</a></li>
+            <li class="nav-item"><a class="nav-link" href="#idocs_rebuzz_quickstart_topic2">Launch ReBuzz and Create a New Project</a></li>
+            <li class="nav-item"><a class="nav-link" href="#idocs_rebuzz_quickstart_topic3">Add Your First Machine</a></li>
+			<li class="nav-item"><a class="nav-link" href="#idocs_rebuzz_quickstart_topic4">Create a Pattern</a></li>
+			<li class="nav-item"><a class="nav-link" href="#idocs_rebuzz_quickstart_topic5">Arrange Patterns in the Sequence Editor</a></li>
+			<li class="nav-item"><a class="nav-link" href="#idocs_rebuzz_quickstart_topic6">Add Effects and Routing</a></li>
+			<li class="nav-item"><a class="nav-link" href="#idocs_rebuzz_quickstart_topic7">Save and Export</a></li>
+			<li class="nav-item"><a class="nav-link" href="#idocs_rebuzz_quickstart_topic8">What’s Next?</a></li>
           </ul>		
 		</li>
 		
@@ -170,13 +175,6 @@
 		<li class="nav-item"><a class="nav-link" href="#idocs_faq">FAQ</a></li>
         <li class="nav-item"><a class="nav-link" href="#idocs_source_credits">Source & Credits</a></li>
         <li class="nav-item"><a class="nav-link" href="#idocs_support">Support</a></li>
-		<li class="nav-item"><a class="nav-link" href="#idocs_templates">More Templates</a></li>
-		<li class="nav-item"><a class="nav-link" href="#idocs_changelog">Changelog</a>
-			<ul class="nav flex-column">
-            <li class="nav-item"><a class="nav-link" href="#v1-1">v1.1</a></li>
-            <li class="nav-item"><a class="nav-link" href="#v1-0">v1.0</a></li>
-          </ul>
-		</li>
       </ul>
     </div>
     
@@ -199,22 +197,103 @@
 		<!-- Quick Start -->
 		<section id="idocs_rebuzz_quickstart">
 		    <h2>Quick Start</h2>
-			<p>...</p>
+			<p>ReBuzz is a modern re‑imagining of the classic Jeskola Buzz workflow: machines, patterns, and sequences working together in a fast, modular environment. This Quick Start guide gets you from installation to your first sound in just a few minutes.</p>
 		</section>
 		<section id="idocs_rebuzz_quickstart_topic1">
-		    <h2>Topic 1</h2>
-			<p>...</p>
+		    <h2>Install ReBuzz and Required Runtimes</h2>
+			<p>ReBuzz requires a few system components before it can run:
+			<ul>
+				<li>.NET 10.0 Desktop Runtime (x64)</li>
+				<li>Microsoft Visual C++ Redistributables (x86 & x64)</li>
+			</ul>
+
+			Running the ReBuzz installer will install needed runtimes.
+			(Links are available on the ReBuzz GitHub releases page.)</p>
 		</section>	
-		<hr class="divider">
+
 		<section id="idocs_rebuzz_quickstart_topic2">
-		    <h2>Topic 1</h2>
-			<p>...</p>
+		    <h2>Launch ReBuzz and Create a New Project</h2>
+			<p>When ReBuzz opens:
+			<ol>
+				<li>Choose File → New</li>
+				<li>Select a folder where ReBuzz can store your project files</li>
+				<li>You’ll start with an empty machine graph and no patterns yet — perfect for building from scratch</li>
+				</p>
 		</section>	        
-		<hr class="divider">
+		
 		<section id="idocs_rebuzz_quickstart_topic3">
-		    <h2>Topic 1</h2>
-			<p>...</p>
+		    <h2>Add Your First Machine</h2>
+			<p>Machines are the heart of ReBuzz. They can be synths, samplers, effects, or routing utilities.
+			<ol>
+				<li>Right-click in the Machine View</li>
+				<li>Select Add Machine</li>
+				<li>Choose a generator (e.g., Matilde Tracker, Wavetable, or any Buzz-compatible VST/peer machine*)</li>
+				<li>Add an effect machine</li>
+				<li>Drag a connection from your generator to the effect and to master</li>
+			</ol>
+			You now have a signal path.</p>
+		</section>
+		
+		<section id="idocs_rebuzz_quickstart_topic4">
+		    <h2>Create a Pattern</h2>
+			<p>Patterns define notes, automation, and machine parameters.
+			<ol>
+				<li>Open the Pattern Editor</li>
+				<li>Select your generator machine</li>
+				<li>Click New Pattern</li>
+				<li>Enter a few notes (e.g., C-4, E-4, G-4)</li>
+				<li>Adjust velocity or parameters as needed</li>
+			</ol>
+				ReBuzz supports sub‑tick precision, MIDI 2.0 features, and modern editing shortcuts — so pattern editing feels tight and expressive.</p>
 		</section>	
+		
+		<section id="idocs_rebuzz_quickstart_topic5">
+		    <h2>Arrange Patterns in the Sequence Editor</h2>
+			<p>The Sequence Editor determines when patterns play.
+			<ol>
+				<li>Open the Sequence Editor</li>
+				<li>Select your machine</li>
+				<li>Place your pattern on the timeline</li>
+				<li>Add more patterns or duplicate existing ones to build structure</li>
+			</ol>
+			Press Play — you should now hear your first loop.</p>
+		</section>
+
+		<section id="idocs_rebuzz_quickstart_topic6">
+		    <h2>Add Effects and Routing</h2>
+			<p>To shape your sound:
+			<ol>
+				<li>Add an effect machine (e.g., delay, filter, compressor)</li>
+				<li>Connect your generator → effect → output</li>
+				<li>Adjust parameters in real time</li>
+				<li>Automate them inside patterns if desired</li>
+			</ol>
+			ReBuzz’s modular graph makes complex routing easy — parallel chains, feedback loops, and multi‑bus setups are all possible.</p>
+		</section>
+		
+		<section id="idocs_rebuzz_quickstart_topic7">
+		    <h2>Save and Export</h2>
+			<p>When you’re ready:
+			<ul>
+				<li>File → Save to keep working later</li>
+				<li>View → Hard Disk Recorder to render audio output to WAV</li>
+			</ul>
+			</p>
+		</section>
+		
+		<section id="idocs_rebuzz_quickstart_topic8">
+		    <h2>What’s Next?</h2>
+			<p>Once you’ve mastered the basics, explore:
+			<ul>
+				<li>Advanced machine routing</li>
+				<li>Modern Pattern Editor features</li>
+				<li>MIDI 2.0 workflows</li>
+				<li>Wavetable editing</li>
+				<li>Custom machine development</li>
+			</ul>
+			ReBuzz is deep, flexible, and designed for experimentation — this Quick Start simply gets you moving.
+			</p>
+		</section>		
 		
 		<hr class="divider">
 		
@@ -1408,102 +1487,15 @@
 		============================ -->
         <section id="idocs_support">
           <h2>Support</h2>
-          <p>If this documentation doesn't answer your questions, So, Please send us Email via <a class="btn btn-primary" target="_blank" href="https://themeforest.net/user/harnishdesign#contact">Item Support Page</a></p>
-		  <p> We are located in GMT +5:30 time zone and we answer all questions within 12-24 hours in weekdays. In some rare cases the waiting time can be to 48 hours. (except holiday seasons which might take longer).</p>
-          <div class="alert alert-warning mb-4"><span class="badge badge-danger text-uppercase">Note:</span> While we aim to provide the best support possible, please keep in mind that it only extends to verified buyers and only to issues related to our template like bugs and errors. Custom modifications or third party module implementations are not included.</div>
-		  <h4>Don’t forget to Rate this template
-			<i class="fas fa-star text-warning"></i> <i class="fas fa-star text-warning"></i> <i class="fas fa-star text-warning"></i> <i class="fas fa-star text-warning"></i> <i class="fas fa-star text-warning"></i>
-		  </h4>
-		  <div class="alert alert-success">
-            Please Add your Review (Opinion) for Our template. It would be a great support for us.<br>
-            Go to your <strong>Themeforest Profile</strong> > <strong>Downloads Tab</strong> > & then You can Rate & Review for our template.<br>
-			Thank You.
-          </div>
+          <p>
+		  <ul>
+			<li><a target="_blank" href="https://github.com/wasteddesign/ReBuzz">https://github.com/wasteddesign/ReBuzz</a></li>
+		  </ul>
+		  </p>
         </section>
 		
 		<hr class="divider">
 		
-		<!-- More Templates
-		============================ -->
-        <section id="idocs_templates">
-          <h2>More Templates</h2>
-          <p class="lead">Checkout Our Below Premium Templates</p>
-		  
-		  <div class="row">
-		  <div class="col-4 my-3 text-center">
-			<a target="_blank" href="https://themeforest.net/item/x/28476751?ref=HarnishDesign"><img class="img-fluid border" src="assets/images/templates/simone.jpg" alt="">
-			<h6 class="pt-2">Simone - Personal Portfolio Template</h6>
-			</a>
-		  </div>
-		  <div class="col-4 my-3 text-center">
-			<a target="_blank" href="https://themeforest.net/item/x/26454458?ref=HarnishDesign"><img class="img-fluid border" src="assets/images/templates/kenil.jpg" alt="">
-			<h6 class="pt-2">Kenil - Responsive Bootstrap 4 One Page Portfolio Template</h6>
-			</a>
-		  </div>
-		  <div class="col-4 my-3 text-center">
-			<a target="_blank" href="https://themeforest.net/item/x/26313677?ref=HarnishDesign"><img class="img-fluid border" src="assets/images/templates/doon.jpg" alt="">
-			<h6 class="pt-2">Doon - One Page Parallax HTML Template</h6>
-			</a>
-		  </div>
-		  
-		  <div class="col-4 my-3 text-center">
-			<a target="_blank" href="https://themeforest.net/item/x/27172933?ref=HarnishDesign"><img class="img-fluid border" src="assets/images/templates/domainx.jpg" alt="">
-			<h6 class="pt-2">DomainX- Domain for Sale HTML Template</h6>
-			</a>
-		  </div>
-		  <div class="col-4 my-3 text-center">
-			<a target="_blank" href="https://themeforest.net/item/x/28848609?ref=HarnishDesign"><img class="img-fluid border" src="assets/images/templates/oxyy.jpg" alt="">
-			<h6 class="pt-2">Oxyy - Login and Register Form HTML Templates</h6>
-			</a>
-		  </div>
-		  <div class="col-4 my-3 text-center">
-			<a target="_blank" href="https://themeforest.net/item/x/27034971?ref=HarnishDesign"><img class="img-fluid border" src="assets/images/templates/koice.jpg" alt="">
-			<h6 class="pt-2">Koice - Invoice HTML Template</h6>
-			</a>
-		  </div>
-		  
-		  <div class="col-4 my-3 text-center">
-			<a target="_blank" href="https://themeforest.net/item/x/24017808?ref=HarnishDesign"><img class="img-fluid border" src="assets/images/templates/payyed.jpg" alt="">
-			<h6 class="pt-2">Payyed - Money Transfer and Online Payments HTML Template</h6>
-			</a>
-		  </div>
-		  <div class="col-4 my-3 text-center">
-			<a target="_blank" href="https://themeforest.net/item/x/22375065?ref=HarnishDesign"><img class="img-fluid border" src="assets/images/templates/quickai.jpg" alt="">
-			<h6 class="pt-2">Quickai - Recharge & Bill Payment, Booking HTML5 Template</h6>
-			</a>
-		  </div>
-		  </div>
-		  
-		  <p class="text-center"><a class="btn btn-lg btn-primary my-4" target="_blank" href="https://themeforest.net/user/harnishdesign/portfolio?ref=HarnishDesign">Our Portfolio</a></p>
-          
-        </section>
-		
-		<hr class="divider">
-		
-        <!-- Changelog
-		============================ -->
-		
-        <section id="idocs_changelog">
-          <h2>Changelog</h2>
-          <p class="text-4">See what's new added, changed, fixed, improved or updated in the latest versions. </p>
-		  <p class="alert alert-info mb-5"> For Future Updates Follow Us <a target="_blank" href="http://themeforest.net/user/harnishdesign?ref=HarnishDesign">@themeforest</a> / <a target="_blank" href="http://facebook.com/harnishdesign">@facebook</a> / <a target="_blank" href="http://twitter.com/harnishdesign">@twitter</a> / <a target="_blank" href="https://dribbble.com/harnishdesign">@Dribbble</a></p>
-          
-		  <h3 id="v1-1">Version 1.1 <small class="text-muted">(12 Oct, 2020)</small></h3>
-          <ul class="changelog">
-            <li><span class="badge badge-success">Added</span> Your information here for added new feature</li>
-            <li><span class="badge badge-danger">Fixed</span> Some minor bugs for browser compatibility</li>
-			<li><span class="badge badge-danger">Fixed</span> Some minor bugs for responsive</li>
-            <li><span class="badge badge-info">Updated</span> FontAwesome to Latest Version</li>
-			<li><span class="badge badge-info">Updated</span> Bootstrap to Latest Version</li>
-			<li><span class="badge badge-info">Updated</span> Improvements in CSS and JS</li>
-          </ul>
-		  
-		  <hr class="divider">
-		  
-          <h3 id="v1-0">Version 1.0 <small class="text-muted">(8 April, 2020)</small></h3>
-          <p>Initial Release</p>
-        </section>        
-        
       </div>
     </div>
 	

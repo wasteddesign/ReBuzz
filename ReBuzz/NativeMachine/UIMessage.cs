@@ -1,4 +1,5 @@
 ﻿using BuzzGUI.Common;
+using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
 using ReBuzz.Core;
 using ReBuzz.MachineManagement;
@@ -20,7 +21,16 @@ namespace ReBuzz.NativeMachine
         private readonly Lock UIMessageLock = new();
         private readonly IUiDispatcher dispatcher;
 
-        public UIMessage(ChannelType channel, MemoryMappedViewAccessor accessor, NativeMachineHost nativeMachineHost, IUiDispatcher dispatcher) : base(channel, accessor, nativeMachineHost)
+        public UIMessage(
+            ChannelType channel,
+            MemoryMappedViewAccessor accessor,
+            NativeMachineHost nativeMachineHost,
+            IUiDispatcher dispatcher, 
+            EngineSettings engineSettings) : base(
+            channel,
+            accessor,
+            nativeMachineHost,
+            engineSettings)
         {
             this.dispatcher = dispatcher;
         }
@@ -29,7 +39,7 @@ namespace ReBuzz.NativeMachine
 
         public override void ReceaveMessage()
         {
-            DoReveiveIncomingMessage();
+            DoReceiveIncomingMessage();
         }
 
         internal override void Notify()
@@ -59,7 +69,7 @@ namespace ReBuzz.NativeMachine
             }
         }
 
-        internal bool UILoadLibrarySync(IBuzz buzz, MachineCore machine, string libname, string path)
+        internal bool UILoadLibrarySync(ReBuzzCore buzz, MachineCore machine, string libname, string path)
         {
             if (machine.DLL.IsCrashed)
             {
@@ -81,7 +91,7 @@ namespace ReBuzz.NativeMachine
                     if (handle.ToInt64() == 0)
                     {
                         // Failed
-                        Global.Buzz.DCWriteLine(GetMessageString());
+                        buzz.DCWriteLine(GetMessageString(), DCLogLevel.Error);
                         return false;
                     }
                     else
@@ -91,6 +101,14 @@ namespace ReBuzz.NativeMachine
 
                         var info = machineDLL.MachineInfo;
                         info.Type = (MachineType)GetMessageData<int>();
+
+                        // Try to figure out the type some other way if machine returns weird number?
+                        if ((int)info.Type > 2)
+                        {   
+                            buzz.DCWriteLine("Load library failed: " + libname + " type is not valid: " + (int)info.Type, DCLogLevel.Error);
+                            return false;
+                        }
+
                         info.Version = GetMessageData<int>();
                         info.Flags = (MachineInfoFlags)GetMessageData<int>();
                         info.MinTracks = GetMessageData<int>();
@@ -139,7 +157,6 @@ namespace ReBuzz.NativeMachine
                         machine.TrackCount = info.MinTracks;
 
                         machine.SetParametersToDefaulValue();
-                        //machine.SetCommands(commands);
                     }
                     return true;
                 }
@@ -211,7 +228,7 @@ namespace ReBuzz.NativeMachine
                 {
                     Reset();
                     SetMessageData((int)UIMessages.UIInit);
-                    WriteMasterInfo();
+                    WriteMasterInfo(machine);
                     SetMessageDataPtr(machine.CMachinePtr);
                     SetMessageData(machine.CMachineHost);
                     SetMessageData(data.Length);
@@ -523,23 +540,30 @@ namespace ReBuzz.NativeMachine
                 return;
             }
 
-            lock (UIMessageLock)
+            try
             {
-                Reset();
-                SetMessageData((int)UIMessages.UIGetEnvelopeInfos);
-                SetMessageDataPtr(machine.CMachinePtr);
-                DoSendMessage();
-                bool success = GetMessageByte() != 0;
-                if (success)
+                lock (UIMessageLock)
                 {
-                    int count = GetMessageData<int>();
-                    for (int i = 0; i < count; i++)
+                    Reset();
+                    SetMessageData((int)UIMessages.UIGetEnvelopeInfos);
+                    SetMessageDataPtr(machine.CMachinePtr);
+                    DoSendMessage();
+                    bool success = GetMessageByte() != 0;
+                    if (success)
                     {
-                        string name = GetMessageString();
-                        int flags = GetMessageData<int>();
-                        machine.envelopes.Add(name, new Envelope() { Flags = (byte)flags });
+                        int count = GetMessageData<int>();
+                        for (int i = 0; i < count; i++)
+                        {
+                            string name = GetMessageString();
+                            int flags = GetMessageData<int>();
+                            machine.envelopes.Add(name, new Envelope() { Flags = (byte)flags });
+                        }
                     }
                 }
+            }
+            catch (Exception e)
+            {
+                MachineCrashed(machine, e);
             }
         }
 

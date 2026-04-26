@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0-windows</TargetFramework>
+    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -12,27 +12,34 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AtmaFileSystem" Version="7.3.0" />
+    <PackageReference Include="AtmaFileSystem" Version="8.1.0" />
     <PackageReference Include="coverlet.collector" Version="6.0.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="FluentAssertions" Version="[7.1.0]" />
-    <PackageReference Include="FluentAssertions.Analyzers" Version="0.34.1">
+    <PackageReference Include="AwesomeAssertions" Version="9.3.0" />
+    <PackageReference Include="AwesomeAssertions.Analyzers" Version="9.0.8">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+    <PackageReference Include="NUnit" Version="4.4.0" />
+    <PackageReference Include="NUnit.Analyzers" Version="4.11.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.12.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
-    <PackageReference Include="NUnit" Version="4.3.2" />
-    <PackageReference Include="NUnit.Analyzers" Version="4.6.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="5.2.0" />
+    <PackageReference Include="Serilog" Version="4.3.1-dev-02395" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Machines\FakeNativeEffect\FakeNativeEffect.vcxproj">
+	    <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+	    <OutputItemType>Content</OutputItemType>
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	    <Private>true</Private>
+    </ProjectReference>
     <ProjectReference Include="..\Machines\FakeNativeGenerator\FakeNativeGenerator.vcxproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <OutputItemType>Content</OutputItemType>
@@ -61,7 +68,7 @@
   so that the tests can read it and use it to find the ReBuzzEngine files.
   -->
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-	<WriteLinesToFile File="$(OutputPath)\ReBuzzLocation.txt" Lines="$(SolutionDir)bin\$(Configuration)\$(Platform)\net9.0-windows" Overwrite="true">
+	<WriteLinesToFile File="$(OutputPath)\ReBuzzLocation.txt" Lines="$(SolutionDir)bin\$(Configuration)\$(Platform)\net10.0-windows10.0.26100.0" Overwrite="true">
 	</WriteLinesToFile>
   </Target>
 

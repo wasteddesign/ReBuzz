@@ -959,7 +959,12 @@ extern CSubTickInfo g_osSubTickInfo;
 CSubTickInfo const *CMICallbacks::GetSubTickInfo()
 {
 	MICB0;
-	return NULL;
+
+	if (g_SubTickInfo.SamplesPerSubTick == 0)
+		return NULL;
+	else
+		return &g_SubTickInfo;
+
 	/*
 	if (!g_SubTickInfoAvailable)
 		return NULL;
@@ -1551,11 +1556,59 @@ CMachine *CMICallbacks::GetConnectionDestination(CMachineConnection *pmc, int &c
 
 int CMICallbacks::GetTotalLatency()
 {
-	return 0;
+	IPC::Message m(IPC::HostGetTotalLatency);
+	IPC::Message reply;
+	DoCallback(m, reply);
+
+	IPC::MessageReader r(reply);
+	return r.ReadDWORD();
 }
 
 void *CMICallbacks::GetMachineModuleHandle(CMachine *pmac)
 {
 	MICB1(pmac);
 	return NULL;
+}
+
+int CMICallbacksNext::GetMachineBaseOctave(CMachine* pmac)
+{
+	MICB1(pmac);
+	if (pmac == NULL)
+		return GetBaseOctave();
+
+	IPC::Message m(IPC::HostGetMachineBaseOctave);
+	m.WritePtr(pmac);
+	IPC::Message reply;
+	DoCallback(m, reply);
+
+	IPC::MessageReader r(reply);
+	return r.ReadDWORD();
+}
+
+void CMICallbacksNext::SetMachineBaseOctave(CMachine* pmac, int octave)
+{
+	MICB2(pmac, octave);
+	if (pmac == NULL)
+		return;
+
+	IPC::Message m(IPC::HostSetMachineBaseOctave);
+	m.WritePtr(pmac);
+	m.WritePtr(octave);
+	IPC::Message reply;
+	DoCallback(m, reply);
+}
+
+int CMICallbacksNext::GetExtendedHostVersion()
+{
+	return MI_NEXT_VERSION;
+}
+
+void CMICallbacksNext::SetMachineInterfaceNext(CMachineInterfaceNext* pex, CMachineInfoNext* info)
+{
+	MICB1(pex);
+
+	CMachineCallbacks* pmcb = (CMachineCallbacks*)this;
+	pmcb->pMachine->pInterfaceNext = pex;
+
+	// ToDo: send info to host
 }

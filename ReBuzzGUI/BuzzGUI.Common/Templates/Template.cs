@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Windows;
 using System.Xml;
@@ -19,6 +20,7 @@ namespace BuzzGUI.Common.Templates
     public class Template
     {
         public List<Machine> Machines;
+        public List<MachineGroup> MachineGroups;
         public List<Connection> Connections;
         public List<Sequence> Sequences;
         public List<Wave> Wavetable;
@@ -28,7 +30,7 @@ namespace BuzzGUI.Common.Templates
         public string Path;
 
         public Template() { }
-        public Template(IEnumerable<IMachine> machines, TemplatePatternMode patternmode, TemplateWavetableMode wtmode)
+        public Template(IEnumerable<IMachine> machines, IEnumerable<IMachineGroup> groups, TemplatePatternMode patternmode, TemplateWavetableMode wtmode)
         {
             var song = machines.First().Graph as ISong;
 
@@ -37,6 +39,8 @@ namespace BuzzGUI.Common.Templates
             if (patternmode == TemplatePatternMode.PatternsAndSequences) Sequences = song.Sequences.Where(s => machines.Contains(s.Machine)).Select(s => new Sequence(s)).ToList();
             if (wtmode != TemplateWavetableMode.NoWavetable) Wavetable = song.Wavetable.Waves.Where(w => w != null).Select(w => new Wave(w)).ToList();
             Markers = new Markers(song);
+
+            MachineGroups = groups.Select(g => new MachineGroup(g)).ToList();
         }
 
         public void Save(Stream output)
@@ -161,6 +165,14 @@ namespace BuzzGUI.Common.Templates
             return Enumerable.Range(2, 1000).Select(n => name + n.ToString()).Where(x => !names.Contains(x)).First();
         }
 
+        string RenameGroups(string name, IMachineGroupGraph graph)
+        {
+            // NOTE: must load dlls first if we want to use MachineInfo.ShortName to derive the name
+            var names = graph.MachineGroups.Select(m => m.Name);
+            if (!names.Contains(name)) return name;
+            return Enumerable.Range(2, 1000).Select(n => name + n.ToString()).Where(x => !names.Contains(x)).First();
+        }
+
         public Machine SourceMachine
         {
             get
@@ -171,7 +183,7 @@ namespace BuzzGUI.Common.Templates
         }
 
 
-        public IEnumerable<IMachine> Paste(IMachineGraph graph, Point pastepos, IMachine machineToReplace = null)
+        public Tuple<IEnumerable<IMachine>, IEnumerable<IMachineGroup>> Paste(IMachineGraph graph, IMachineGroupGraph graphGroup, Point pastepos, IMachine machineToReplace = null)
         {
             var song = graph as ISong;
             bool songwasempty = song.Machines.Count == 1;
@@ -186,12 +198,15 @@ namespace BuzzGUI.Common.Templates
 
             var sourceMachine = SourceMachine;
             var machinesToCreate = machineToReplace != null ? masterless.Where(m => m != sourceMachine) : masterless;
+            var groupssToCreate = MachineGroups;
 
             var rename = machinesToCreate.ToDictionary(k => k.Name, v => RenameMachine(v.Name, graph));
+            var renameGroup = groupssToCreate.ToDictionary(k => k.Name, v => RenameGroups(v.Name, graphGroup));
 
             graph.BeginImport(rename);
 
             var mlist = new List<IMachine>();
+            var glist = new List<IMachineGroup>();
 
             try
             {
@@ -357,7 +372,32 @@ namespace BuzzGUI.Common.Templates
                                 foreach (var p in m.Patterns)
                                     p.UpdateWaveReferences(remap);
                         }
+                    }
 
+                    if (MachineGroups != null)
+                    {
+                        foreach (var g in groupssToCreate)
+                        {
+                            Point p = CalculatePastePosition(sourceMachine, pastepos, masterPosition, tmasterPosition, new Point(g.PositionX, g.PositionY));
+
+                            graphGroup.CreateMachineGroup(renameGroup[g.Name], (float)p.X, (float)p.Y);
+                            var newg = graphGroup.MachineGroups.Last();
+                            newg.IsGrouped = g.IsGrouped;
+
+                            glist.Add(newg);
+
+                            foreach (var m in g.Machines)
+                            {
+                                var newm = graph.Machines.FirstOrDefault(mg => mg.Name == rename[m.Name]);
+                                if (newm != null)
+                                {
+                                    p = CalculatePastePosition(sourceMachine, pastepos, masterPosition, tmasterPosition, new Point(m.PositionX, m.PositionY));
+                                    graphGroup.AddMachineToGroup(newm, newg);
+                                    graphGroup.UpdateGroupedMachinesPositions([new Tuple<IMachine, Tuple<float, float>>(newm, new Tuple<float, float>((float)p.X, (float)p.Y))]);
+                                    graphGroup.InvokeImportGroupedMachinePositions(newm, (float)p.X, (float)p.Y);
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -366,7 +406,31 @@ namespace BuzzGUI.Common.Templates
                 graph.EndImport();
             }
 
-            return mlist;
+            return new Tuple<IEnumerable<IMachine>, IEnumerable<IMachineGroup>>(mlist, glist);
+        }
+
+        Point CalculatePastePosition(Machine sourceMachine, Point pastepos, Point masterPosition, Point tmasterPosition, Point mp)
+        {
+            Point p;
+            if (sourceMachine != null && !double.IsNaN(pastepos.X))
+            {
+                var sp = new Point(sourceMachine.PositionX, sourceMachine.PositionY);
+                var deltaangle = Vector.AngleBetween(pastepos - masterPosition, sp - tmasterPosition);
+                var spr = (sp - tmasterPosition).Length;
+                var deltaradius = spr > 0 ? (pastepos - masterPosition).Length / spr : 0;
+
+                var mangle = Vector.AngleBetween(mp - tmasterPosition, new Vector(0, 1));
+                var mradius = (mp - tmasterPosition).Length;
+                mangle += deltaangle;
+                mradius *= deltaradius;
+                p = masterPosition + mradius * new Vector(Math.Sin(mangle * Math.PI / 180.0), Math.Cos(mangle * Math.PI / 180.0));
+            }
+            else
+            {
+                p = new Point(mp.X + 0.025, mp.Y + 0.025);
+            }
+
+            return p;
         }
 
         int AllocateWave(ISong song, Wave w)

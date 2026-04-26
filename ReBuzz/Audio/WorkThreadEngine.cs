@@ -76,9 +76,12 @@ namespace ReBuzz.Audio
         {
             lock (workLock)
             {
-                workCounter++;
-                workList.Add(workItem);
-                allDoneHandle.Reset();
+                if (!stopped)
+                {
+                    workCounter++;
+                    workList.Add(workItem);
+                    allDoneHandle.Reset();
+                }
             }
         }
 
@@ -123,7 +126,10 @@ namespace ReBuzz.Audio
 
         public void Stop()
         {
-            stopped = true;
+            lock (workLock)
+            {
+                stopped = true;
+            }
             workWaitHandle.Set();
 
             for (int i = 0; i < threads.Length; i++)

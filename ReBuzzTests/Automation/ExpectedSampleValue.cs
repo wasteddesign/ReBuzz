@@ -38,5 +38,10 @@ namespace ReBuzzTests.Automation
         {
             return Math.Abs(Math.Abs(sample1L) - Math.Abs(sample2L)) < float.Epsilon;
         }
+
+        public static Sample Zero()
+        {
+            return new Sample(-1.0000305E-15F, -1.0000305E-15F);
+        }
     }
 }

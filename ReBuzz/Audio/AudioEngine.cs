@@ -40,12 +40,24 @@ namespace ReBuzz.Audio
             public IWavePlayer WavePlayer;
         }
 
+        public class AudioInDevice
+        {
+            public string Name;
+            public AudioOutType Type;
+
+            public WaveFormat WaveFormat { get; internal set; }
+        }
+
         public AudioOutDevice SelectedOutDevice { get; private set; }
+        public int SampleRateIn { get; private set; }
+        public AudioInDevice SelectedInDevice { get; private set; }
 
         private AudioProvider AudioProvider { get; set; }
         private AudioWaveProvider AudioWaveProvider { get; set; }
         private readonly ReBuzzCore buzzCore;
         WasapiCapture wasapiCapture;
+
+        RealTimeResampler audioInResampler;
 
         public AudioEngine(
           ReBuzzCore buzzCore,
@@ -87,14 +99,17 @@ namespace ReBuzz.Audio
                 int bufferSize = registryEx.Read("BufferSize", 2048, "ASIO");
                 int sampleRate = registryEx.Read("SampleRate", 44100, "ASIO");
                 //AudioProvider = new AudioProvider(buzzCore, machineManager, sampleRate, 2, bufferSize, true);
-                AudioWaveProvider = new AudioWaveProvider(buzzCore, sampleRate, asioOut.DriverOutputChannelCount, bufferSize, true, registryEx);
+                AudioWaveProvider = new AudioWaveProvider(buzzCore, sampleRate, asioOut.DriverOutputChannelCount, bufferSize, true, registryEx, engineSettings);
 
                 //asioOut.Init(AudioProvider);
                 asioOut.InitRecordAndPlayback(AudioWaveProvider, 2, sampleRate);
-
+                
                 asioOut.DriverResetRequest += AsioOut_DriverResetRequest;
                 asioOut.PlaybackStopped += AsioOut_PlaybackStopped;
                 asioOut.AudioAvailable += AsioOut_AudioAvailable;
+
+                SelectedInDevice = new AudioInDevice() { Name = deviceName, Type = AudioOutType.ASIO, WaveFormat = AudioWaveProvider.WaveFormat };
+                SampleRateIn = sampleRate;
             });
         }
 
@@ -121,17 +136,32 @@ namespace ReBuzz.Audio
         }
 
         readonly float[] audioInBuffer = new float[512];
-        private unsafe void WasapiCapture_DataAvailable(object sender, WaveInEventArgs e)
+        private void WasapiCapture_DataAvailable(object sender, WaveInEventArgs e)
         {
             int bytesRemaining = e.BytesRecorded;
             int srcByteOffset = 0;
             while (bytesRemaining > 0)
             {
-                int copyCount = Math.Min(bytesRemaining, audioInBuffer.Length * 4);
-                Buffer.BlockCopy(e.Buffer, srcByteOffset, audioInBuffer, 0, copyCount);
-                buzzCore.AudioInputAvalable(audioInBuffer, copyCount >> 2);
-                srcByteOffset += copyCount;
-                bytesRemaining -= copyCount;
+                int copyCountBytes = Math.Min(bytesRemaining, audioInBuffer.Length * 4);
+                Buffer.BlockCopy(e.Buffer, srcByteOffset, audioInBuffer, 0, copyCountBytes);
+                int floatBufferSamples = copyCountBytes >> 2;
+
+                if (audioInResampler != null)
+                {
+                    audioInResampler.FillBuffer(audioInBuffer, floatBufferSamples >> 1);    // Number of stereo samples
+                    int avialablecCount = Math.Min(audioInResampler.AvailableSamples(), audioInBuffer.Length >> 1);              // Available stereo samples
+                    if (avialablecCount > 0)
+                    {
+                        audioInResampler.GetSamples(audioInBuffer, 0, avialablecCount);
+                        buzzCore.AudioInputAvalable(audioInBuffer, avialablecCount << 1);
+                    }
+                }
+                else
+                {
+                    buzzCore.AudioInputAvalable(audioInBuffer, floatBufferSamples);
+                }
+                srcByteOffset += copyCountBytes;
+                bytesRemaining -= copyCountBytes;
             }
         }
 
@@ -156,6 +186,8 @@ namespace ReBuzz.Audio
             {
                 wasapiOut = new WasapiOut();
             }
+
+            SampleRateIn = wasapiOut.OutputWaveFormat.SampleRate;
 
             AudioProvider = new AudioProvider(buzzCore, engineSettings, wasapiDeviceSamplerate,
               wasapiOut.OutputWaveFormat.Channels, bufferSize, true, registryEx);
@@ -194,10 +226,19 @@ namespace ReBuzz.Audio
                 mMDevice = enumerator.EnumerateAudioEndPoints(DataFlow.Capture, DeviceState.Active).FirstOrDefault(d => d.ID == wasapiDeviceIDIn);
                 if (mMDevice != null)
                 {
-                    int latency = Math.Max(1, 1000 * bufferSize / wasapiDeviceSamplerate / 2);
+                    int latency = Math.Max(1, 1000 * bufferSize / wasapiDeviceSamplerate);
                     wasapiCapture = new WasapiCapture(mMDevice, wasapiMode == 0, latency);
                     wasapiCapture.DataAvailable += WasapiCapture_DataAvailable;
                     wasapiCapture.StartRecording();
+                    SampleRateIn = wasapiCapture.WaveFormat.SampleRate;
+                    SelectedInDevice = new AudioInDevice() { Name = deviceName, Type = AudioOutType.Wasapi, WaveFormat = wasapiCapture.WaveFormat };
+
+                    // NAudio WASAPI input resampling if different from output
+                    if (wasapiDeviceSamplerate != SampleRateIn)
+                    {
+                        audioInResampler = new RealTimeResampler();
+                        audioInResampler.Reset(wasapiDeviceSamplerate, SampleRateIn);
+                    }
                 }
             }
             catch (Exception ex)
@@ -255,11 +296,11 @@ namespace ReBuzz.Audio
             }
         }
 
-        readonly Lock audioEngineLcok = new();
+        readonly Lock audioEngineLock = new();
 
         public void FinalStop()
         {
-            lock (audioEngineLcok)
+            lock (audioEngineLock)
             {
                 ReBuzzCore.SkipAudio = true;
 
@@ -302,13 +343,14 @@ namespace ReBuzz.Audio
         }
 
         public void ReleaseAudioDriver()
-        {
+        {   
             if (wasapiCapture != null)
             {
                 wasapiCapture.DataAvailable -= WasapiCapture_DataAvailable;
                 wasapiCapture.StopRecording();
                 wasapiCapture.Dispose();
                 wasapiCapture = null;
+                SelectedInDevice = null;
             }
 
             if (SelectedOutDevice != null)
@@ -324,6 +366,8 @@ namespace ReBuzz.Audio
             }
 
             SelectedOutDevice = null;
+            audioInResampler?.Dispose();
+            audioInResampler = null;
         }
 
         public List<AudioOutDevice> AudioDevices()

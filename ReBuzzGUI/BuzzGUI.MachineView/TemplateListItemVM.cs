@@ -44,7 +44,15 @@ namespace BuzzGUI.MachineView
             ExploreCommand = new SimpleCommand
             {
                 CanExecuteDelegate = x => true,
-                ExecuteDelegate = x => { System.Diagnostics.Process.Start(Type == Types.Item ? System.IO.Path.GetDirectoryName(Path) : Path); }
+                ExecuteDelegate = x =>
+                {
+                    var psi = new System.Diagnostics.ProcessStartInfo()
+                    {
+                        FileName = Type == Types.Item ? System.IO.Path.GetDirectoryName(Path) : Path,
+                        UseShellExecute = true
+                    };
+                    System.Diagnostics.Process.Start(psi);
+                }
             };
 
         }

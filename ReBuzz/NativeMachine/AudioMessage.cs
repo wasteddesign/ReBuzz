@@ -1,4 +1,6 @@
 ﻿using Buzz.MachineInterface;
+using BuzzGUI.Common;
+using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
 using ReBuzz.Core;
 using ReBuzz.MachineManagement;
@@ -16,7 +18,15 @@ namespace ReBuzz.NativeMachine
     {
         private readonly Lock AudioMessageLock = new();
 
-        public AudioMessage(ChannelType channel, MemoryMappedViewAccessor accessor, NativeMachineHost nativeMachineHost) : base(channel, accessor, nativeMachineHost)
+        public AudioMessage(
+            ChannelType channel,
+            MemoryMappedViewAccessor accessor,
+            NativeMachineHost nativeMachineHost, 
+            EngineSettings engineSettings) : base(
+            channel,
+            accessor,
+            nativeMachineHost,
+            engineSettings)
         {
         }
 
@@ -26,7 +36,7 @@ namespace ReBuzz.NativeMachine
         {
             try
             {
-                DoReveiveIncomingMessage();
+                DoReceiveIncomingMessage();
             }
             catch (Exception e)
             {
@@ -115,7 +125,8 @@ namespace ReBuzz.NativeMachine
 
                     Reset();
                     SetMessageData((int)AudioMessages.AudioTick);
-                    WriteMasterInfo();
+                    WriteMasterInfo(machine);
+                    WriteSubTickInfo(machine);
                     SetMessageDataPtr(machine.CMachinePtr);
                     SetMessageData(globalVals.Count);
                     SetMessageData(globalVals.ToArray());
@@ -151,7 +162,7 @@ namespace ReBuzz.NativeMachine
                 {
                     Reset();
                     SetMessageData((int)AudioMessages.AudioWork);
-                    WriteMasterInfo();
+                    WriteMasterInfo(machine);
                     SetMessageDataPtr(machine.CMachinePtr);
                     SetMessageData(numChannels);
                     SetMessageData(numSamples * numChannels);
@@ -205,7 +216,7 @@ namespace ReBuzz.NativeMachine
                 {
                     Reset();
                     SetMessageData((int)AudioMessages.AudioWorkMonoToStereo);
-                    WriteMasterInfo();
+                    WriteMasterInfo(machine);
                     SetMessageDataPtr(machine.CMachinePtr);
                     SetMessageData(nSamples);
                     SetMessageData((int)mode);
@@ -374,7 +385,7 @@ namespace ReBuzz.NativeMachine
                 {
                     Reset();
                     SetMessageData((int)AudioMessages.AudioMultiWork);
-                    WriteMasterInfo();
+                    WriteMasterInfo(machine);
                     SetMessageDataPtr(machine.CMachinePtr);
                     SetMessageData(numSamples);
                     SetMessageData(samplesIn.Count);
@@ -429,6 +440,28 @@ namespace ReBuzz.NativeMachine
                 MachineCrashed(machine, e);
                 return false;
             }
+        }
+
+        internal int AudioGetLatency(MachineCore machine)
+        {
+            int latency = 0;
+            try
+            {
+                lock (AudioMessageLock)
+                {
+                    Reset();
+                    SetMessageData((int)AudioMessages.AudioGetLatency);
+                    SetMessageDataPtr(machine.CMachinePtr);
+                    DoSendMessage(machine);
+                    latency = GetMessageData<int>();
+                }
+            }
+            catch (Exception e)
+            {
+                 MachineCrashed(machine, e);
+            }
+
+            return latency;
         }
     }
 }

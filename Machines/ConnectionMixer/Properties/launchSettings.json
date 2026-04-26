@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "ConnectionMixer": {
+      "commandName": "Project"
+    },
+    "ReBuzz": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Program Files\\ReBuzz\\ReBuzz.exe"
+    }
+  }
+}

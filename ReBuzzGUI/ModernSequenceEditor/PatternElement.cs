@@ -1,17 +1,9 @@
 ﻿using Buzz.MachineInterface;
 using BuzzGUI.Common;
-using BuzzGUI.Common.Templates;
 using BuzzGUI.Interfaces;
 using ModernSequenceEditor.Interfaces;
 using Sanford.Multimedia.Midi;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics.Eventing.Reader;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -45,19 +37,6 @@ namespace WDE.ModernSequenceEditor
             this.time = time;
             this.se = se;
             viewSettings = vs;
-            /*
-			this.IsVisibleChanged += (sender, e) =>
-			{
-				if (IsVisible)
-				{
-					if (renderPending)
-					{
-						renderPending = false;
-						InvalidateVisual();
-					}
-				}
-			};
-			*/
 
             Loaded += (sender, e) =>
             {
@@ -354,7 +333,6 @@ namespace WDE.ModernSequenceEditor
             dragBottom.SetValue(RenderOptions.EdgeModeProperty, EdgeMode.Aliased);
             this.Children.Add(dragBottom);
 
-            //SetDragHitTestVisibility(tc.Editor.KbHook.ControlPressed);
             SetDragHitTestVisibility(Keyboard.Modifiers == ModifierKeys.Control);
 
             dragBottom.MouseEnter += (sender, e) =>
@@ -837,6 +815,9 @@ namespace WDE.ModernSequenceEditor
 
         internal void Release()
         {
+            if (dtAnimTimer != null)
+                dtAnimTimer.Stop();
+
             SequenceEditor.Settings.PropertyChanged -= Settings_PropertyChanged;
             this.MouseRightButtonDown -= PatternElement_MouseRightButtonDown;
             tc.Editor.PropertyChanged -= Editor_PropertyChanged;
@@ -847,16 +828,10 @@ namespace WDE.ModernSequenceEditor
             tc.Editor.PropertyChanged -= Editor_PropertyChanged;
             Children.Clear();
             this.tc = null;
-            this.viewSettings = null;
 
             eventHintCanvas = null;
             macCanvas = null;
         }
-
-        //PatternVisual childVisual;
-
-        //protected override int VisualChildrenCount { get { return childVisual != null ? 1 : 0; } }
-        //protected override Visual GetVisualChild(int index) { if (childVisual == null) throw new ArgumentOutOfRangeException(); else return childVisual; }
     }
 
     public enum PatternPlayMode { Stop, Play, Looping };

@@ -1,0 +1,171 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"  
+    xmlns:bgc="clr-namespace:BuzzGUI.Common;assembly=BuzzGUI.Common"             
+    xmlns:local="clr-namespace:BuzzGUI.MachineView;assembly=BuzzGUI.MachineView">
+
+  <LinearGradientBrush x:Key="GlassBrush" StartPoint="0,0" EndPoint="1,1" Opacity="0.1" po:Freeze="True">
+    <GradientStop Color="WhiteSmoke" Offset="0.2" />
+    <GradientStop Color="Transparent" Offset="0.4" />
+    <GradientStop Color="WhiteSmoke" Offset="0.5" />
+    <GradientStop Color="Transparent" Offset="0.75" />
+    <GradientStop Color="WhiteSmoke" Offset="0.9" />
+    <GradientStop Color="Transparent" Offset="1" />
+  </LinearGradientBrush>
+
+  <Style x:Key="SmallButtonStyle" TargetType="{x:Type Button}">
+    <Setter Property="SnapsToDevicePixels" Value="True"/>
+    <Setter Property="OverridesDefaultStyle" Value="True"/>
+    <Setter Property="Focusable" Value="False"/>
+    <Setter Property="ClickMode" Value="Press"/>
+    <Setter Property="Width" Value="8"/>
+    <Setter Property="Height" Value="8"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="{x:Type Button}">
+          <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}">
+            <ContentPresenter/>
+          </Border>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <Style x:Key="DeleteButtonStyle" TargetType="{x:Type Button}" BasedOn="{StaticResource SmallButtonStyle}">
+		<Setter Property="Width" Value="9"/>
+		<Setter Property="Height" Value="9"/>
+		<Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="{x:Type Button}">
+          <Border Name="border" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}">
+						<Path Name="path" Data="M0,0 L1,1 M0,1 L1,0" Stroke="{TemplateBinding BorderBrush}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Stretch="Fill"/>
+					</Border>
+					<ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter TargetName="path" Property="Stroke" Value="White"/>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+
+  <Style x:Key="GroupControlStyleBase" TargetType="{x:Type local:GroupControl}">
+    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="{x:Type local:GroupControl}">
+          <Grid Name="Root">
+            <!--
+            <Grid.CacheMode>
+              <BitmapCache EnableClearType="True" RenderAtScale="1" SnapsToDevicePixels="True"/>
+            </Grid.CacheMode>
+            -->
+            <Image Name="shadowImage" Source="gfx/shadow.png" IsHitTestVisible="False" Visibility="Collapsed"/>
+            <Border Name="Border" Width="100" Height="50" BorderThickness="0" SnapsToDevicePixels="True" HorizontalAlignment="Left" VerticalAlignment="Top">
+			
+				<Border.ToolTip>
+					<ToolTip>
+						<Grid>
+							<Grid.RowDefinitions>
+								<RowDefinition Height="Auto" />
+								<RowDefinition Height="Auto" />
+							</Grid.RowDefinitions>
+						    <TextBlock TextAlignment="Center" Margin="0,0,0,10">
+							    <Run FontWeight="Bold"><Binding Path="MachineGroup.Name"></Binding></Run>
+						    </TextBlock>
+							
+							<ListBox Grid.Row="1" Margin="4,4,4,4" ItemsSource="{Binding MachineNames}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">								
+							</ListBox>
+						</Grid>
+					</ToolTip>
+				</Border.ToolTip>
+				
+              <Border.Background>
+                <SolidColorBrush Color="{Binding MachineBackgroundColor}"/>
+              </Border.Background>
+              
+              <Grid Name="grid" SnapsToDevicePixels="True">
+
+                <Rectangle Name="borderRect" StrokeThickness="1">
+                  <Rectangle.Stroke>
+                    <SolidColorBrush Color="{Binding Path=Buzz.ThemeColors[MV Machine Border]}"/>
+                  </Rectangle.Stroke>
+                </Rectangle>
+                
+                <!-- skin or theme image -->
+                <Image Source="{Binding Path=MachineImageSource}" SnapsToDevicePixels="True"/>
+                
+				<!-- Group text -->
+				  <TextBlock Text="{Binding Path=GroupText}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="13,2,0,0" FontFamily="Arial" FontSize="8">
+					  <TextBlock.Foreground>
+						  <SolidColorBrush Color="{Binding Path=MachineTextColor}"/>
+					  </TextBlock.Foreground>
+				  </TextBlock>
+				  
+                <!-- name -->
+				<Viewbox StretchDirection="DownOnly" Stretch="Uniform" Margin="4,0,4,0">
+					<TextBlock Text="{Binding Path=NameText}" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="Arial" FontSize="13">
+						<TextBlock.Foreground>
+							<SolidColorBrush Color="{Binding Path=MachineTextColor}"/>
+						</TextBlock.Foreground>
+					</TextBlock>
+				</Viewbox>
+
+                <!-- led/mute button -->
+                <Canvas>
+                  <Button Name="ledButton" Command="{Binding MuteCommand}" Canvas.Left="2" Canvas.Top="2" Style="{StaticResource SmallButtonStyle}" BorderBrush="Black" BorderThickness="1" ToolTip="Mute">
+                    <Button.Background>
+                      <SolidColorBrush Color="{Binding Path=MachineLEDOffColor}"/>
+                    </Button.Background>
+                    <Image Name="ledButtonSkinImage" Visibility="Visible"/>
+                  </Button>
+                </Canvas>
+
+                <!-- delete button -->
+				<Button Name="deleteButton" Command="{Binding GroupDeleteCommand}" Margin="0,3,3,0" HorizontalAlignment="Right" VerticalAlignment="Top" Style="{StaticResource 			DeleteButtonStyle}" BorderThickness="0" BorderBrush="#000000" Background="Transparent" ToolTip="Delete"/>
+								
+              </Grid>
+
+            </Border>
+
+            <Border Name="selectionVisual" Width="100" Height="50" IsHitTestVisible="False" SnapsToDevicePixels="True" Visibility="Collapsed" CornerRadius="0" Background="{StaticResource GlassBrush}" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+
+          </Grid>
+          
+          <ControlTemplate.Triggers>
+            <DataTrigger Binding="{Binding Path=IsSelected}" Value="True">
+              <Setter TargetName="selectionVisual" Property="Visibility" Value="Visible"/>
+            </DataTrigger>
+
+
+            <DataTrigger Binding="{Binding Path=HasShadow}" Value="True">
+              <Setter TargetName="shadowImage" Property="Visibility" Value="Visible"/>
+            </DataTrigger>
+
+            <DataTrigger Binding="{Binding Path=IsLEDActive}" Value="True">
+              <Setter TargetName="ledButton" Property="Background">
+                <Setter.Value>
+                  <SolidColorBrush Color="{Binding Path=MachineLEDOnColor}"/>
+                </Setter.Value>
+              </Setter>
+            </DataTrigger>
+			            <MultiDataTrigger>
+              <MultiDataTrigger.Conditions>
+                <Condition Binding="{Binding Path=MachineView.Settings.HideDeleteButton}" Value="True"/>
+                <Condition Binding="{Binding Path=IsMouseOver}" Value="False"/>
+              </MultiDataTrigger.Conditions>
+              <Setter TargetName="deleteButton" Property="Visibility" Value="Collapsed"/>
+            </MultiDataTrigger>			
+					</ControlTemplate.Triggers>
+					
+					
+          
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+
+</ResourceDictionary>

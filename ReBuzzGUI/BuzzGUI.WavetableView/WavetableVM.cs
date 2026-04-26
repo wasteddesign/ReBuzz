@@ -133,6 +133,12 @@ namespace BuzzGUI.WavetableView
                 }
 
                 PropertyChanged.RaiseAll(this);
+
+                // Quick delete waves: CTRL + D + Select wave
+                if (Keyboard.Modifiers == ModifierKeys.Control && Keyboard.IsKeyDown(Key.D) && selectedItem != null && selectedItem.Wave != null)
+                {
+                    selectedItem.ClearCommand.Execute(null);
+                }
             }
         }
 

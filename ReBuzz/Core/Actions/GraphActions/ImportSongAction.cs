@@ -1,4 +1,6 @@
-﻿using BuzzGUI.Common.Actions;
+﻿using BuzzGUI.Common;
+using BuzzGUI.Common.Actions;
+using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
 using Microsoft.Win32;
 using ReBuzz.Common;
@@ -19,10 +21,19 @@ namespace ReBuzz.Core.Actions.GraphActions
         private string filename;
         private IReBuzzFile bmxFile;
         private List<MachineCore> machines = new List<MachineCore>();
+        private List<MachineGroupCore> machineGroups = new List<MachineGroupCore>();
         private List<int> waveIndexes = new List<int>();
         private readonly IUiDispatcher dispatcher;
+        private readonly EngineSettings engineSettings;
 
-        internal ImportSongAction(ReBuzzCore buzz, IReBuzzFile bmxFile, string file, float x, float y, IUiDispatcher dispatcher)
+        internal ImportSongAction(
+            ReBuzzCore buzz,
+            IReBuzzFile bmxFile,
+            string file,
+            float x,
+            float y,
+            IUiDispatcher dispatcher,
+            EngineSettings engineSettings)
         {
             this.buzz = buzz;
             this.x = x;
@@ -30,11 +41,13 @@ namespace ReBuzz.Core.Actions.GraphActions
             this.filename = file;
             this.bmxFile = bmxFile;
             this.dispatcher = dispatcher;
+            this.engineSettings = engineSettings;
         }
 
         protected override void DoAction()
         {
             machines.Clear();
+            machineGroups.Clear();
             waveIndexes.Clear();
 
             lock (ReBuzzCore.AudioLock)
@@ -50,16 +63,14 @@ namespace ReBuzz.Core.Actions.GraphActions
                     buzz.NotifyFileEvent(type, eventText, o);
                 };
 
-                //try
+                try
                 {
                     bmxFile.Load(filename, x, y, this);
                 }
-                /*
                 catch (Exception ex)
                 {
                     Utils.MessageBox("Error importing file " + filename + "\n\n" + ex.ToString(), "Error importing file.");
                 }
-                */
 
                 ReBuzzCore.SkipAudio = false;
                 buzz.Playing = playing;
@@ -74,17 +85,24 @@ namespace ReBuzz.Core.Actions.GraphActions
                 foreach (var output in machine.AllOutputs.ToArray())
                 {
                     if (output.Destination.DLL.Info.Type == MachineType.Master)
-                        new DisconnectMachinesAction(buzz, output, dispatcher).Do();
-                }
-
-                // Clear waves
-                foreach (int index in waveIndexes)
-                {
-                    buzz.SongCore.Wavetable.LoadWave(index, null, null, false);
+                        new DisconnectMachinesAction(buzz, output, dispatcher, engineSettings).Do();
                 }
 
                 buzz.RemoveMachine(machine);
             }
+
+            // Clear waves
+            foreach (int index in waveIndexes)
+            {
+                buzz.SongCore.Wavetable.LoadWave(index, null, null, false);
+            }
+
+            // Remove Groups
+            foreach (var g in machineGroups)
+            {
+                buzz.RemoveMachineGroup(g);
+            }
+
         }
 
         internal void AddMachine(MachineCore machineNew)
@@ -95,6 +113,11 @@ namespace ReBuzz.Core.Actions.GraphActions
         internal void AddWaveIndex(int newIndex)
         {
             waveIndexes.Add(newIndex);
+        }
+
+        internal void AddGroupMachine(MachineGroupCore group)
+        {
+            machineGroups.Add(group);
         }
     }
 }

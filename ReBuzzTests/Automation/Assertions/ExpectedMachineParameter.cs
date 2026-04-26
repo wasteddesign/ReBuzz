@@ -1,6 +1,6 @@
 using BuzzGUI.Interfaces;
-using FluentAssertions;
-using FluentAssertions.Execution;
+using AwesomeAssertions;
+using AwesomeAssertions.Execution;
 
 namespace ReBuzzTests.Automation.Assertions
 {

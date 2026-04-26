@@ -1,23 +1,22 @@
-using System;
-using System.IO;
 using AtmaFileSystem;
 using AtmaFileSystem.IO;
 using BuzzGUI.Common;
 using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
 using Core.NullableReferenceTypesExtensions;
-using FluentAssertions;
-using FluentAssertions.Execution;
+using AwesomeAssertions;
+using AwesomeAssertions.Execution;
 using ReBuzz.AppViews;
 using ReBuzz.Audio;
 using ReBuzz.Core;
-using ReBuzz.FileOps;
 using ReBuzz.MachineManagement;
 using ReBuzzTests.Automation.Assertions;
-using ReBuzzTests.Automation.TestMachines;
-using System.Collections.Generic;
-using System.Linq;
 using ReBuzzTests.Automation.TestMachinesControllers;
+using Serilog;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace ReBuzzTests.Automation
 {
@@ -47,6 +46,13 @@ namespace ReBuzzTests.Automation
         /// </summary>
         private static readonly AbsoluteDirectoryPath TestDataRootPath =
             AbsoluteDirectoryPath.Value(Path.GetTempPath()).AddDirectoryName("ReBuzzTestData");
+
+        /// <summary>  
+        /// An in-memory sink used to capture and verify log messages during tests.
+        /// This allows tests to assert that specific log messages were emitted
+        /// without writing to actual log files.
+        /// </summary>
+        private static readonly InMemorySink inMemorySink;
 
         /// <summary>
         /// ReBuzz root directory for the current test. Each test gets its own root directory.
@@ -109,31 +115,83 @@ namespace ReBuzzTests.Automation
         /// </summary>
         private List<Action<FakeMachineDLLScanner, ReBuzzCore>> addMachineActions = [];
         
-        private Dictionary<string, MachineCore> addedGeneratorInstances = new();
-        
         private ReBuzzCoreInitialization initialization;
+
+        /// <summary>
+        /// Represents the absolute file path to the effect crash file.
+        /// </summary>
+        /// <remarks>The crash file is meant as a communication mechanism for machines to crash.
+        /// The reason it's done with a file is that we want to be able to crash during machine constructor
+        /// and there is no other way to pass that information.</remarks>
+        private readonly AbsoluteFilePath crashEffectFilePath;
+
+        /// <summary>
+        /// Represents the absolute file path to the generator crash file.
+        /// </summary>
+        /// <remarks><see cref="crashEffectFilePath"/></remarks>
+        private readonly AbsoluteFilePath crashGeneratorFilePath;
+
+        private ReBuzzMachines reBuzzMachines;
+        private readonly EngineSettings engineSettings;
+
+        public ReBuzzCommandsDriverExtension DawCommands => new(reBuzzCore, fileNameToSaveChoice, fileNameToLoadChoice);
+
+        public GearDriverExtension Gear =>
+            new(GearGeneratorsDir,
+                GearEffectsDir,
+                addMachineActions,
+                crashGeneratorFilePath,
+                crashEffectFilePath);
+        public RecentFilesDriverExtension RecentFiles => new(fakeRegistry);
+
+        public MachineGraphDriverExtension MachineGraph => new(
+            reBuzzCore,
+            reBuzzMachines,
+            fakeMachineDllScanner,
+            dispatcher,
+            DefaultPan,
+            DefaultAmp,
+            engineSettings);
+        public ReBuzzLogDriverExtension ReBuzzLog => new(inMemorySink);
 
         public Driver()
         {
             ResetGlobalState();
+            engineSettings = new EngineSettings
+            {
+                AccurateBPM = true,
+                EqualPowerPanning = true,
+                LowLatencyGC = true,
+                MachineDelayCompensation = true,
+                Multithreading = false,
+                PriorityProfile = PriorityProfileType.NormalAppPriority,
+                ProcessMutedMachines = false,
+                SubTickTiming = true,
+                SubTickResolution = SubTickResolution.Normal
+            };
+            engineSettings.Multithreading = false;
+            engineSettings.SubTickTiming = true;
+
             fakeUserMessages = new FakeUserMessages();
             fakeMachineDllScanner = new FakeMachineDLLScanner(GearDir);
+            crashEffectFilePath = GearEffectsDir.AddFileName("crash_fake_machine");
+            crashGeneratorFilePath = GearGeneratorsDir.AddFileName("crash_fake_machine");
         }
 
         static Driver()
         {
-            AssertionOptions.FormattingOptions.MaxLines = 10000;
+            AssertionEngine.Configuration.Formatting.MaxLines = 10000;
 
             // Cleaning up on start because the machine dlls created in previous test run
             // were probably held locked by the previous test process which prevented deleting them.
             AttemptToCleanupTestRootDirs();
+            inMemorySink = new InMemorySink();
         }
 
         public void Start()
         {
             SetupDirectoryStructure();
 
-            EngineSettings engineSettings = Global.EngineSettings;
             var buzzPath = reBuzzRootDir.ToString();
             GeneralSettings generalSettings = Global.GeneralSettings;
             var registryRoot = Global.RegistryRoot; //Should not matter as the registry is in memory
@@ -152,7 +210,7 @@ namespace ReBuzzTests.Automation
                 new FakeKeyboard());
             fakeMachineDllScanner.AddFakeModernPatternEditor(reBuzzCore);
             addMachineActions.ForEach(addMachine => addMachine(fakeMachineDllScanner, reBuzzCore));
-            initialization = new ReBuzzCoreInitialization(reBuzzCore, buzzPath, dispatcher, fakeRegistry, new FakeKeyboard());
+            initialization = new ReBuzzCoreInitialization(reBuzzCore, buzzPath, dispatcher, fakeRegistry, new FakeKeyboard(), engineSettings);
             initialization.StartReBuzzEngineStep1((sender, args) =>
             {
                 TestContext.Out.WriteLine($"PropertyChanged: {args.PropertyName}");
@@ -188,6 +246,7 @@ namespace ReBuzzTests.Automation
                     reBuzzCore.Release();
                 }
             };
+            reBuzzMachines = new ReBuzzMachines(reBuzzCore);
         }
 
         public AbsoluteFilePath RandomSongPath() => 
@@ -196,30 +255,6 @@ namespace ReBuzzTests.Automation
         public void NewFile()
         {
             reBuzzCore.ExecuteCommand(BuzzCommand.NewFile);
-        }
-
-        public void LoadSong(DialogChoices.FileNameSource source)
-        {
-            fileNameToLoadChoice.SetTo(source);
-            reBuzzCore.ExecuteCommand(BuzzCommand.OpenFile);
-        }
-
-        public void SaveCurrentSongForTheFirstTime(DialogChoices.FileNameSource source)
-        {
-            fileNameToSaveChoice.SetTo(source);
-            reBuzzCore.ExecuteCommand(BuzzCommand.SaveFile);
-        }
-
-        public void SaveCurrentSong()
-        {
-            fileNameToSaveChoice.SetTo(DialogChoices.ThrowIfDialogInvoked());
-            reBuzzCore.ExecuteCommand(BuzzCommand.SaveFile);
-        }
-
-        public void SaveCurrentSongAs(DialogChoices.FileNameSource source)
-        {
-            fileNameToSaveChoice.SetTo(source);
-            reBuzzCore.ExecuteCommand(BuzzCommand.SaveFileAs);
         }
 
         /// <summary>
@@ -274,13 +309,8 @@ namespace ReBuzzTests.Automation
         public void Dispose()
         {
             reBuzzCore?.ExecuteCommand(BuzzCommand.Exit);
-            initialization.ShutDownReBuzzEngine();
+            initialization?.ShutDownReBuzzEngine();
             AttemptToCleanupTestRootDirs();
-        }
-
-        void IInitializationObserver.NotifyMachineManagerCreated(MachineManager machineManager)
-        {
-            TestContext.Out.WriteLine("MachineManager created");
         }
 
         public void AssertInitialStateAfterNewFile()
@@ -318,6 +348,11 @@ namespace ReBuzzTests.Automation
 
         }
 
+        void IInitializationObserver.NotifyMachineManagerCreated(MachineManager machineManager)
+        {
+            TestContext.Out.WriteLine("MachineManager created");
+        }
+
         /// <summary>
         /// Attempts to clean up all the test root directories.
         /// This typically will not be able to delete the machine dlls
@@ -347,6 +382,7 @@ namespace ReBuzzTests.Automation
         {
             using (new AssertionScope())
             {
+                fakeUserMessages.AnyErrorReported.Should().BeTrue();
                 fakeUserMessages.Caption.Should().Be(expectedCaption);
                 fakeUserMessages.Message.Should().Be(expectedMessage);
             }
@@ -356,92 +392,36 @@ namespace ReBuzzTests.Automation
         {
             using (new AssertionScope())
             {
+                fakeUserMessages.AnyErrorReported.Should().BeFalse();
                 fakeUserMessages.Caption.Should().BeEmpty();
                 fakeUserMessages.Message.Should().BeEmpty();
                 fakeUserMessages.StackStrace.Should().BeEmpty();
             }
         }
 
-        public void AssertRecentFileListHasEntry(int index, AbsoluteFilePath songPath)
-        {
-            RecentFiles().ElementAt(index).Should().Be(songPath.ToString());
-        }
-
-        public void AssertRecentFileListHasNoEntryFor(AbsoluteFilePath songPath)
-        {
-            RecentFiles().Should().NotContain(songPath.ToString());
-        }
-
-        private IEnumerable<string> RecentFiles()
-        {
-            return fakeRegistry.ReadNumberedList<string>("File", "Recent File List");
-        }
-
-        public void InsertMachineInstanceConnectedToMasterFor(DynamicMachineController controller)
-        {
-            var addedInstance = InsertMachineInstanceFor(controller);
-            ConnectToMaster(addedInstance);
-        }
-
-        public void DisconnectFromMaster(DynamicMachineController controller)
-        {
-            DisconnectFromMaster(SongCoreMachine(controller.InstanceName));
-        }
-
-        public MachineCore InsertMachineInstanceFor(DynamicMachineController controller)
-        {
-            var machineDll = fakeMachineDllScanner.GetMachineDLL(controller.Name);
-            CreateInstrument(machineDll, controller.InstanceName);
-            var addedInstance = reBuzzCore.SongCore.MachinesList.Last();
-            addedGeneratorInstances[controller.InstanceName] = addedInstance;
-            return addedInstance;
-        }
-
-        public void Connect(
-            DynamicMachineController sourceController, 
-            DynamicMachineController destinationController)
-        {
-            ConnectMachineInstances(
-                SongCoreMachine(sourceController.InstanceName),
-                SongCoreMachine(destinationController.InstanceName));
-        }
-
-        public void ExecuteMachineCommand(ITestMachineInstanceCommand command)
-        {
-            command.Execute(reBuzzCore, addedGeneratorInstances);
-        }
-
-        public void AddDynamicGeneratorToGear(IDynamicTestMachineInfo info)
-        {
-            AddDynamicMachineToGear(info, GearGeneratorsDir);
-        }
-
-        public void AddDynamicEffectToGear(IDynamicTestMachineInfo info)
-        {
-            AddDynamicMachineToGear(info, GearEffectsDir);
-        }
-
-        public void AddPrecompiledGeneratorToGear(FakeNativeGeneratorInfo info)
-        {
-            addMachineActions.Add((scanner, reBuzz) => scanner.AddPrecompiledMachine(reBuzz, info, GearGeneratorsDir));
-        }
-
         public TestReadBuffer ReadStereoSamples(int count)
         {
-            var workManager = new WorkManager(reBuzzCore, new WorkThreadEngine(1), 0, new EngineSettings
-            {
-                AccurateBPM = true,
-                EqualPowerPanning = true,
-                LowLatencyGC = true,
-                MachineDelayCompensation = false,
-                Multithreading = false,
-                ProcessMutedMachines = false,
-                SubTickTiming = true,
-            });
+            var workManager = new WorkManager(reBuzzCore, new WorkThreadEngine(1), 0, engineSettings);
             var readSamplesCount = count * 2;
             var buffer = new float[readSamplesCount];
             var result = workManager.ThreadRead(buffer, 0, readSamplesCount);
             return new TestReadBuffer(result, buffer);
+        }
+
+        /// <summary>
+        /// Asserts that the specified machine instance is in a crashed state.
+        /// </summary>
+        /// <param name="controller">
+        /// The <see cref="DynamicMachineController"/> representing the machine instance to be checked.
+        /// </param>
+        /// <exception cref="AssertionException">
+        /// Thrown if the machine instance is not in a crashed state.
+        /// </exception>
+        public void AssertMachineIsCrashed(DynamicMachineController controller)
+        {
+            reBuzzMachines.GetSongCoreMachineInstance(controller.InstanceName).DLL.IsCrashed.Should().BeTrue();
+            reBuzzMachines.GetMachineManagerMachine(controller.InstanceName).MachineDLL
+                .IsCrashed.Should().BeTrue();
         }
 
         /// <summary>
@@ -452,21 +432,10 @@ namespace ReBuzzTests.Automation
             ReBuzzCore.GlobalState = new BuzzGlobalState();
             ReBuzzCore.subTickInfo = new SubTickInfoExtended();
             ReBuzzCore.masterInfo = new MasterInfoExtended();
-        }
-
-        private void CreateInstrument(IMachineDLL machineDll, string instanceName)
-        {
-            reBuzzCore.SongCore.CreateMachine(machineDll.Name, null!, instanceName, null!, null!, null!, -1, 0, 0);
-        }
-
-        private void ConnectToMaster(MachineCore instance)
-        {
-            ConnectMachineInstances(instance, SongCoreMachine("Master"));
-        }
-
-        private void DisconnectFromMaster(MachineCore instance)
-        {
-            DisconnectMachineInstances(instance, SongCoreMachine("Master"));
+            Log.Logger = new LoggerConfiguration()
+                .WriteTo.Sink(inMemorySink)
+                .MinimumLevel.Debug()
+                .CreateLogger();
         }
 
         public void SetMasterVolumeTo(double newVolume)
@@ -474,25 +443,9 @@ namespace ReBuzzTests.Automation
             reBuzzCore.MasterVolume = newVolume;
         }
 
-        private void AddDynamicMachineToGear(IDynamicTestMachineInfo info, AbsoluteDirectoryPath targetPath)
+        public void SetSubTickResolutionTo(SubTickResolution resolution)
         {
-            addMachineActions.Add((scanner, reBuzz) => scanner.AddDynamicMachine(reBuzz, info, targetPath));
-        }
-
-        private void ConnectMachineInstances(IMachine source, IMachine destination)
-        {
-            reBuzzCore.SongCore.ConnectMachines(source, destination, 0, 0, DefaultAmp, DefaultPan);
-        }
-
-        private void DisconnectMachineInstances(MachineCore source, MachineCore destination)
-        {
-            reBuzzCore.SongCore.DisconnectMachines(new MachineConnectionCore(source, 0, destination, 0, DefaultAmp,
-                DefaultPan, dispatcher));
-        }
-
-        private MachineCore SongCoreMachine(string name)
-        {
-            return reBuzzCore.SongCore.MachinesList.Single(m => m.Name == name);
+            engineSettings.SubTickResolution = resolution;
         }
     }
 }

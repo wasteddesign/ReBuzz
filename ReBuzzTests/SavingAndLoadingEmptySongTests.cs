@@ -1,6 +1,6 @@
 using AtmaFileSystem;
 using AtmaFileSystem.IO;
-using FluentAssertions;
+using AwesomeAssertions;
 using ReBuzzTests.Automation;
 
 namespace ReBuzzTests
@@ -13,7 +13,7 @@ namespace ReBuzzTests
             using var driver = new Driver();
             driver.Start();
 
-            driver.LoadSong(DialogChoices.Cancel());
+            driver.DawCommands.LoadSong(DialogChoices.Cancel());
 
             driver.AssertInitialStateAfterAppStart();
         }
@@ -21,18 +21,16 @@ namespace ReBuzzTests
         [Test]
         public void DoesNotChangeStateWhenUserPicksNonExistentFile()
         {
-            var nonExistentFileName = @"sdfsjhdkfjhsdf";
+            const string nonExistentFileName = @"sdfsjhdkfjhsdf";
             var potentialSavedFileLocation =
                 AbsoluteDirectoryPath.OfCurrentWorkingDirectory().AddFileName(nonExistentFileName);
             using var driver = new Driver();
             driver.Start();
 
-            driver.LoadSong(DialogChoices.Select(nonExistentFileName));
+            driver.DawCommands.LoadSong(DialogChoices.Select(nonExistentFileName));
 
-            driver.AssertInitialStateAfterNewFile();
-            driver.AssertErrorReportedToUser(
-                $"Error loading {nonExistentFileName}",
-                $"Could not find file '{potentialSavedFileLocation}'.");
+            driver.AssertInitialStateAfterAppStart();
+            driver.AssertNoErrorsReportedToUser();
             potentialSavedFileLocation.Exists().Should().BeFalse();
         }
 
@@ -44,11 +42,11 @@ namespace ReBuzzTests
 
             driver.Start();
 
-            driver.SaveCurrentSongForTheFirstTime(DialogChoices.Select(emptySongPath));
+            driver.DawCommands.SaveCurrentSongForTheFirstTime(DialogChoices.Select(emptySongPath));
 
             driver.AssertNoErrorsReportedToUser();
             driver.AssertInitialStateAfterSavingEmptySong(emptySongPath);
-            driver.AssertRecentFileListHasEntry(0, emptySongPath);
+            driver.RecentFiles.AssertHasEntry(0, emptySongPath);
             emptySongPath.Exists().Should().BeTrue();
         }
 
@@ -60,11 +58,11 @@ namespace ReBuzzTests
 
             driver.Start();
 
-            driver.SaveCurrentSongForTheFirstTime(DialogChoices.Cancel());
+            driver.DawCommands.SaveCurrentSongForTheFirstTime(DialogChoices.Cancel());
 
             driver.AssertNoErrorsReportedToUser();
             driver.AssertInitialStateAfterAppStart();
-            driver.AssertRecentFileListHasNoEntryFor(emptySongPath);
+            driver.RecentFiles.AssertHasNoEntryFor(emptySongPath);
             emptySongPath.Exists().Should().BeFalse();
         }
 
@@ -75,12 +73,12 @@ namespace ReBuzzTests
             var emptySongPath = driver.RandomSongPath();
             driver.Start();
 
-            driver.SaveCurrentSongForTheFirstTime(DialogChoices.Select(emptySongPath));
-            driver.SaveCurrentSong();
+            driver.DawCommands.SaveCurrentSongForTheFirstTime(DialogChoices.Select(emptySongPath));
+            driver.DawCommands.SaveCurrentSong();
 
             driver.AssertNoErrorsReportedToUser();
             driver.AssertInitialStateAfterSavingEmptySong(emptySongPath);
-            driver.AssertRecentFileListHasEntry(0, emptySongPath);
+            driver.RecentFiles.AssertHasEntry(0, emptySongPath);
         }
 
         [Test]
@@ -90,12 +88,12 @@ namespace ReBuzzTests
             var emptySongPath = driver.RandomSongPath();
             driver.Start();
 
-            driver.SaveCurrentSongForTheFirstTime(DialogChoices.Select(emptySongPath));
-            driver.LoadSong(DialogChoices.Select(emptySongPath));
+            driver.DawCommands.SaveCurrentSongForTheFirstTime(DialogChoices.Select(emptySongPath));
+            driver.DawCommands.LoadSong(DialogChoices.Select(emptySongPath));
 
             driver.AssertNoErrorsReportedToUser();
             driver.AssertStateAfterLoadingAnEmptySong(emptySongPath);
-            driver.AssertRecentFileListHasEntry(0, emptySongPath);
+            driver.RecentFiles.AssertHasEntry(0, emptySongPath);
         }
 
         [Test]
@@ -105,13 +103,13 @@ namespace ReBuzzTests
             var emptySongPath = driver.RandomSongPath();
             driver.Start();
 
-            driver.SaveCurrentSongForTheFirstTime(DialogChoices.Select(emptySongPath));
-            driver.LoadSong(DialogChoices.Select(emptySongPath));
-            driver.LoadSong(DialogChoices.Select(emptySongPath));
+            driver.DawCommands.SaveCurrentSongForTheFirstTime(DialogChoices.Select(emptySongPath));
+            driver.DawCommands.LoadSong(DialogChoices.Select(emptySongPath));
+            driver.DawCommands.LoadSong(DialogChoices.Select(emptySongPath));
 
             driver.AssertNoErrorsReportedToUser();
             driver.AssertStateAfterLoadingAnEmptySong(emptySongPath);
-            driver.AssertRecentFileListHasEntry(0, emptySongPath);
+            driver.RecentFiles.AssertHasEntry(0, emptySongPath);
         }
     }
 }

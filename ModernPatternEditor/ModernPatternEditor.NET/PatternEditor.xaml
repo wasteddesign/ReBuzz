@@ -184,7 +184,7 @@
                                     <ComboBox Name="waveBox" Margin="4,4,0,4" Height="22" Width="160" SelectedItem="{Binding SelectedWave}" ItemsSource="{Binding Waves}" DisplayMemberPath="Name" ToolTip="Wave (Alt+W)"/>
 
                                     <Label Target="baseOctaveBox" VerticalAlignment="Center" Margin="4,0,0,0">Base Octave:</Label>
-                                    <ComboBox Name="baseOctaveBox" Margin="4,4,0,4" Height="22" Width="40" SelectedItem="{Binding SelectedMachine.BaseOctave}" ItemsSource="{Binding SelectedMachine.BaseOctaves}" ToolTip="Base Octave (Alt+B)"/>
+                                    <ComboBox Name="baseOctaveBox" Margin="4,4,0,4" Height="22" Width="40" SelectedItem="{Binding SelectedMachine.Machine.BaseOctave}" ItemsSource="{Binding SelectedMachine.BaseOctaves}" ToolTip="Base Octave (Alt+B)"/>
                                     <ToggleButton Width="14" Height="14" VerticalAlignment="Center" Margin="4,4,0,4" Focusable="False" Padding="0" FontSize="9" Content="K" ToolTip="Show Keyboard Mapping" IsChecked="{Binding IsKeyboardMappingVisible}"/>
                                     <ComboBox Name="rootNoteBox" Visibility="{Binding KeyboardMappingVisibility}" Margin="4,4,0,4" Height="22" Width="40" SelectedIndex="{Binding SelectedRootNote}" ItemsSource="{Binding RootNotes}" ToolTip="Keyboard Root Note (Alt+R)"/>
                                     <ComboBox Name="kbMappingBox" Visibility="{Binding KeyboardMappingVisibility}" Margin="4,4,0,4" Height="22" Width="120" SelectedItem="{Binding SelectedKeyboardMapping}" ItemsSource="{Binding KeyboardMappings}" DisplayMemberPath="DisplayName" ToolTip="Keyboard Mapping (Alt+Y)"/>

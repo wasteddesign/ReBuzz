@@ -189,7 +189,8 @@ namespace WDE.ModernPatternEditor.MPEStructures
                 //int index = 0;
                 int uiIndex = 0;
 
-                foreach (var parAndTrack in pattern.Machine.AllParametersAndTracks())
+                // To be compatible with PXP, ignore input parameters
+                foreach (var parAndTrack in pattern.Machine.AllParametersAndTracks().Where( pt => pt.Item1.Group.Type != ParameterGroupType.Input) )
                 {
                     MPEPatternColumn column = new MPEPatternColumn(this);
                     IParameter par = parAndTrack.Item1;

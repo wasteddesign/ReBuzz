@@ -11,5 +11,6 @@ namespace ReBuzzTests.Automation.TestMachines
     {
         internal MachineDLL GetMachineDll(ReBuzzCore buzz, AbsoluteFilePath location);
         internal string DllName { get; }
+        internal string RealDllName { get; }
     }
 }

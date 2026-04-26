@@ -64,6 +64,45 @@
             -->
             <Image Name="shadowImage" Source="gfx/shadow.png" IsHitTestVisible="False" Visibility="Collapsed"/>
             <Border Name="Border" Width="100" Height="50" BorderThickness="0" SnapsToDevicePixels="True" HorizontalAlignment="Left" VerticalAlignment="Top">
+				<Border.ToolTip>
+					<ToolTip>
+						<Grid>
+							<Grid.RowDefinitions>
+								<RowDefinition Height="Auto" />
+								<RowDefinition Height="Auto" />
+							</Grid.RowDefinitions>
+							<TextBlock TextAlignment="Center" Margin="0,0,0,10">
+								<Run FontWeight="Bold">
+									<Binding Path="Machine.Name"></Binding>
+								</Run>
+							</TextBlock>
+
+							<Grid Grid.Row="1">
+								<Grid.RowDefinitions>
+									<RowDefinition Height="Auto" />
+									<RowDefinition Height="Auto" />
+									<RowDefinition Height="Auto" />
+									<RowDefinition Height="Auto" />
+									<RowDefinition Height="Auto" />
+								</Grid.RowDefinitions>
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="Auto" />
+									<ColumnDefinition Width="Auto" />
+								</Grid.ColumnDefinitions>
+								<TextBlock Text="Machine:" Grid.Row="0" Grid.Column="0"/>
+								<TextBlock Text="{Binding Path=Machine.DLL.Info.Name}" HorizontalAlignment="Right" FontWeight="Bold" Grid.Row="0" Grid.Column="1"/>
+								<TextBlock Text="Muted:" Grid.Row="1" Grid.Column="0"/>
+								<TextBlock Text="{Binding Path=Machine.IsMuted}" HorizontalAlignment="Right" FontWeight="Bold" Grid.Row="1" Grid.Column="1"/>
+								<TextBlock Text="Bypassed:" Grid.Row="2" Grid.Column="0"/>
+								<TextBlock Text="{Binding Path=Machine.IsBypassed}" HorizontalAlignment="Right" FontWeight="Bold" Grid.Row="2" Grid.Column="1"/>
+								<TextBlock Text="Input Channels:" Grid.Row="3" Grid.Column="0"/>
+								<TextBlock Text="{Binding Path=Machine.InputChannelCount}" HorizontalAlignment="Right" FontWeight="Bold" Grid.Row="3" Grid.Column="1"/>
+								<TextBlock Text="Output Channels:" Grid.Row="4" Grid.Column="0"/>
+								<TextBlock Text="{Binding Path=Machine.OutputChannelCount}" HorizontalAlignment="Right" FontWeight="Bold" Grid.Row="4" Grid.Column="1"/>
+							</Grid>
+						</Grid>
+					</ToolTip>
+				</Border.ToolTip>
              
               <Border.Background>
                 <SolidColorBrush Color="{Binding MachineBackgroundColor}"/>
@@ -91,11 +130,13 @@
                 <TextBlock Text="{Binding Path=ErrorText}" HorizontalAlignment="Center" VerticalAlignment="Bottom" Foreground="DarkRed" FontSize="15" FontWeight="Bold"/>
 
                 <!-- name -->
-                <TextBlock Text="{Binding Path=NameText}" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" FontFamily="Arial" FontSize="13">
-                  <TextBlock.Foreground>
-                    <SolidColorBrush Color="{Binding Path=MachineTextColor}"/>
-                  </TextBlock.Foreground>
-                </TextBlock>
+				<Viewbox StretchDirection="DownOnly" Stretch="Uniform" Margin="4,0,4,0">
+					<TextBlock Text="{Binding Path=NameText}" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" FontFamily="Arial" FontSize="13">
+						<TextBlock.Foreground>
+							<SolidColorBrush Color="{Binding Path=MachineTextColor}"/>
+						</TextBlock.Foreground>
+					</TextBlock>
+				</Viewbox>
 
                 <!-- led/mute button -->
                 <Canvas>

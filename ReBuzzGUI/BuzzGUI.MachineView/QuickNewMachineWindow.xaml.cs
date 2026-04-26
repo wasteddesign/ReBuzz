@@ -2,6 +2,8 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace BuzzGUI.MachineView
 {
@@ -46,8 +48,9 @@ namespace BuzzGUI.MachineView
             var listBox = EnforceInstance<ListBox>("PART_ListBox");
 
             Point p = Win32Mouse.GetScreenPosition();
-            p.X /= WPFExtensions.PixelsPerDip;
-            p.Y /= WPFExtensions.PixelsPerDip;
+            var dpi = VisualTreeHelper.GetDpi(this);
+            p.X /= dpi.DpiScaleX;
+            p.Y /= dpi.DpiScaleY;
             WindowStartupLocation = WindowStartupLocation.Manual;
             Left = p.X - Width / 2;
             Top = p.Y;

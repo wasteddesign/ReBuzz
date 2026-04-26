@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "EnvelopeBlock": {
+      "commandName": "Project"
+    },
+    "Profile ReBuzz": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Program Files\\ReBuzz\\ReBuzz.exe"
+    }
+  }
+}

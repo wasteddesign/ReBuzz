@@ -79,9 +79,6 @@ namespace WDE.ModernSequenceEditorHorizontal
         [BuzzSetting(16, Minimum = 1, Maximum = 64, Description = "Resize pattern snap tp tick.")]
         public int ResizeSnap { get; internal set; }
 
-        [BuzzSetting(16, Minimum = 1, Maximum = 512, Description = "Default Pattern Length.")]
-        public int PatternLength { get; internal set; }
-
         [BuzzSetting(false, Description = "Invert scroll wheel zoom.")]
         public bool InvMouseWheelZoom { get; set; }
 

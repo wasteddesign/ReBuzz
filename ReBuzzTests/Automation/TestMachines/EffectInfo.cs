@@ -54,6 +54,7 @@ namespace ReBuzzTests.Automation.TestMachines
         }
 
         public string DllName => Effect.GetMachineDecl().Name + ".dll";
+        public string RealDllName => DllName;
         public string SourceCode => Effect.GetSourceCode();
     }
 }

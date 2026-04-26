@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net9.0-windows</TargetFrameworks>
+    <TargetFrameworks>net10.0-windows10.0.26100.0</TargetFrameworks>
     <OutputType>WinExe</OutputType>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
@@ -24,7 +24,8 @@
     <UseWindowsThreadPool>true</UseWindowsThreadPool>
 	<CETCompat>false</CETCompat>
 	<IntermediateOutputPath>$(SolutionDir)build\$(Configuration)\$(Platform)\ReBuzz\obj</IntermediateOutputPath>
-	<OutputPath>$(SolutionDir)bin\$(Configuration)\$(Platform)</OutputPath>
+  <OutputPath>$(SolutionDir)bin\$(Configuration)\$(Platform)</OutputPath>
+	<EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
   </PropertyGroup>
   
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -118,6 +119,7 @@
   <ItemGroup>
     <ProjectReference Include="..\3rdParty\serilog\serilog.csproj" />
     <ProjectReference Include="..\3rdParty\serilog\Serilog.Sinks.RichTextBox.Wpf.csproj" />
+    <ProjectReference Include="..\ModernPatternEditor\ModernPatternEditor.NET\ModernPatternEditor.NET.csproj" />
     <ProjectReference Include="..\ReBuzzGUI\BuzzGUI.BuzzUpdate\BuzzGUI.BuzzUpdate.csproj" />
     <ProjectReference Include="..\ReBuzzGUI\BuzzGUI.Common\BuzzGUI.Common.csproj" />
     <ProjectReference Include="..\ReBuzzGUI\BuzzGUI.EnvelopeControl\BuzzGUI.EnvelopeControl.csproj" />
@@ -139,6 +141,9 @@
     <Reference Include="Box2dNet">
       <HintPath>..\3rdParty\Box2dNet.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.Windows.Devices.Midi2.NetProjection">
+      <HintPath>..\3rdParty\Microsoft.Windows.Devices.Midi2.NetProjection.dll</HintPath>
+    </Reference>
     <Reference Include="NAudio">
       <HintPath>..\3rdParty\NAudio\NAudio.dll</HintPath>
     </Reference>
@@ -156,6 +161,9 @@
     </Reference>
     <Reference Include="NAudio.WinMM">
       <HintPath>..\3rdParty\NAudio\NAudio.WinMM.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.Serialization.Formatters">
+      <HintPath>..\3rdParty\System.Runtime.Serialization.Formatters.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -190,10 +198,10 @@
     <ProduceReferenceAssembly>True</ProduceReferenceAssembly>
     <Title>ReBuzz</Title>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-windows|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net10.0-windows|AnyCPU'">
     <DebugType>full</DebugType>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-windows|x64'">
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net10.0-windows|x64'">
     <DebugType>full</DebugType>
   </PropertyGroup>
 

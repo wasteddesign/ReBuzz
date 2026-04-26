@@ -128,15 +128,30 @@ namespace ReBuzz.Core
                 {
                     bc.SoloPattern = this;
                     bc.Playing = true;
-                    nextPositionInSamples = 0;
+                    playPosition = -1;
+                    nextTick = 0;
                 }
                 else
                 {
-                    nextPositionInSamples = 0;
+                    nextTick = 0;
+                    playPosition = -1;
                     bc.Playing = false;
                 }
 
                 PropertyChanged.Raise(this, "IsPlayingSolo");
+            }
+        }
+
+        internal void PlayFormPatternEditorPosition()
+        {
+            var bc = Global.Buzz as ReBuzzCore;
+            int pos = bc.MachineManager.GetEditorPatternPosition(Machine as MachineCore);
+
+            lock (ReBuzzCore.AudioLock)
+            {
+                IsPlayingSolo = true;
+                PlayPosition = pos * PatternEvent.TimeBase;
+                nextTick = pos;
             }
         }
 
@@ -312,23 +327,20 @@ namespace ReBuzz.Core
         {
         }
 
-        double nextPositionInSamples = 0;
+        double nextTick = 0;
         private readonly IUiDispatcher dispatcher;
 
         internal void UpdateSoloPlayPosition(int sampleCount)
         {
             var masterInfo = ReBuzzCore.masterInfo;
 
-            double tick = nextPositionInSamples / masterInfo.SamplesPerTick;
-
-            if (tick >= Length)
+            if (nextTick >= Length)
             {
-                nextPositionInSamples = 0;
-                tick = 0;
+                nextTick = 0;
             }
-            playPosition = (int)(PatternEvent.TimeBase * tick);
+            playPosition = (int)(PatternEvent.TimeBase * nextTick);
 
-            nextPositionInSamples += sampleCount;
+            nextTick += sampleCount / (double)masterInfo.SamplesPerTick;
         }
 
         public void NotifyPatternChanged()

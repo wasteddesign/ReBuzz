@@ -6,7 +6,7 @@ namespace BuzzGUI.Interfaces
 {
     public enum SongMarkers { LoopStart, LoopEnd, SongEnd };
 
-    public interface ISong : IMachineGraph
+    public interface ISong : IMachineGraph, IMachineGroupGraph
     {
         string SongName { get; }
         int PlayPosition { get; set; }

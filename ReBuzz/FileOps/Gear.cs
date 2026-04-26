@@ -1,4 +1,6 @@
-﻿using System;
+﻿using ReBuzz.Core;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Enumeration;
 using System.Linq;
@@ -12,6 +14,12 @@ namespace ReBuzz.FileOps
     {
         [XmlElement(ElementName = "Machine")]
         public Machine[] Machine { get; set; }
+
+        [XmlIgnore]
+        Dictionary<string, Machine> machineDict = new();
+
+        [XmlIgnore]
+        public Dictionary<string, Machine> MachineDict { get => machineDict; }
 
         public Gear()
         {
@@ -39,10 +47,24 @@ namespace ReBuzz.FileOps
                 r.Close();
                 f.Close();
                 var t = o as Gear;
+
+                t.BuildMachineDict();
                 return t;
             }
 
             return new Gear();
+        }
+
+        internal void BuildMachineDict()
+        {
+            machineDict.Clear();
+            foreach (var m in Machine)
+            {
+                machineDict[m.Name] = m;
+                m.DisableSubTickVal = m.DisableSubTick == "True";
+                m.ForceParamRefreshOnTempoChangeVal = m.ForceParamRefreshOnTempoChange == "True";
+                m.IsBlackisted = m.Blacklist == "True";
+            }
         }
 
         public static string SerializeObject<T>(T toSerialize)
@@ -94,6 +116,7 @@ namespace ReBuzz.FileOps
             }
 
             Machine = thisMachineList.ToArray();
+            BuildMachineDict();
         }
 
         internal bool IsBlacklisted(XMLMachineDLL xmac)
@@ -102,7 +125,7 @@ namespace ReBuzz.FileOps
             {
                 if (FileSystemName.MatchesSimpleExpression(m.Name, xmac.Name))
                 {
-                    if (m.Blacklist == "True")
+                    if (m.IsBlackisted)
                         return true;
                     else if (xmac.MachineInfo.Version < m.MinimumMIVersion)
                         return true;
@@ -110,6 +133,42 @@ namespace ReBuzz.FileOps
                 return false;
             });
             return m != null ? true : false;
+        }
+
+        internal int OversampleFactor(string name)
+        {
+            var machine = Machine.FirstOrDefault(m => m.Name == name);
+            if (machine != null)
+                return machine.OversampleFactor;
+            else
+                return 1;
+        }
+
+        internal bool IsSubTickDisabled(MachineCore machine)
+        {
+            bool ret = false;
+            if (machineDict.ContainsKey(machine.DLL.Name))
+                ret = machineDict[machine.DLL.Name].DisableSubTickVal == true;
+
+            return ret;
+        }
+
+        internal bool ForceParamRefreshOnTempoChangeEnabled(MachineCore machine)
+        {
+            bool ret = false;
+            if (machineDict.ContainsKey(machine.DLL.Name))
+                ret = machineDict[machine.DLL.Name].ForceParamRefreshOnTempoChangeVal == true;
+
+            return ret;
+        }
+
+        internal bool IsBlacklisted(string libName)
+        {
+            bool ret = false;
+            if (machineDict.ContainsKey(libName))
+                ret = machineDict[libName].IsBlackisted == true;
+
+            return ret;
         }
     }
 
@@ -127,11 +186,20 @@ namespace ReBuzz.FileOps
         public int MinimumMIVersion { get; set; }
         [XmlAttribute]
         public string Blacklist { get; set; }
+        [XmlIgnore]
+        public bool IsBlackisted { get; set; }
         [XmlAttribute]
         public int OversampleFactor { get; set; }
         [XmlAttribute]
         public int MIDIInputChannel { get; set; }
-
+        [XmlAttribute]
+        public string DisableSubTick { get; set; }
+        [XmlIgnore]
+        public bool DisableSubTickVal { get; set; }
+        [XmlAttribute]
+        public string ForceParamRefreshOnTempoChange { get; set; }
+        [XmlIgnore]
+        public bool ForceParamRefreshOnTempoChangeVal { get; set; }
         public Attribute[] Attribute { get; set; }
     }
 

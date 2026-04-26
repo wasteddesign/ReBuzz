@@ -83,9 +83,11 @@ namespace WDE.MidiOutput
 			GetNoteEvent(track).note = value;
         }
 
+        Dictionary<int,int> dictVelocity = new Dictionary<int, int>();
         [ParameterDecl(IsStateless = true, MinValue = 0, MaxValue =127, DefValue = 120)]
         public void Volume(int value, int track)
         {
+            dictVelocity[track] = value;
         }
 
         [ParameterDecl(IsStateless = true, MinValue = 0, MaxValue = 127, DefValue = 0)]
@@ -129,7 +131,7 @@ namespace WDE.MidiOutput
 					{
                         NoteEvent ne = noteEvents[t];
                         ne.device = pg.Parameters[0].GetValue(t);
-                        ne.velocity = pg.Parameters[2].GetValue(t);
+                        ne.velocity = dictVelocity.ContainsKey(t) ? dictVelocity[t] : pg.Parameters[0].DefValue;
                         ne.channel = pg.Parameters[5].GetValue(t);
                     }
 					else
@@ -197,7 +199,7 @@ namespace WDE.MidiOutput
 					var data = MIDI.Encode(MIDI.ControlChange, ce.control, v);
 					Global.Buzz.SendMIDIOutput(ce.device, data);
                 }
-				
+                ccEvents.Remove(t);
             }
 			
 			return false;

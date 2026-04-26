@@ -126,8 +126,17 @@
 							<Paragraph>Play/stop pattern</Paragraph>
 						</TableCell>
 					</TableRow>
+                    
+                    <TableRow>
+                        <TableCell>
+                            <Paragraph>Shift+Space</Paragraph>
+                        </TableCell>
+                        <TableCell>
+                            <Paragraph>Play pattern from cursor position</Paragraph>
+                        </TableCell>
+                    </TableRow>
 
-					<TableRow>
+                    <TableRow>
 						<TableCell>
 							<Paragraph>Ctrl+Return</Paragraph>
 						</TableCell>
@@ -304,6 +313,22 @@
                             <Paragraph>Beat subdivision + 10</Paragraph>
                         </TableCell>
                     </TableRow>
+                    <TableRow>
+                        <TableCell>
+                            <Paragraph>Ctrl+1,2,3...(numpad)</Paragraph>
+                        </TableCell>
+                        <TableCell>
+                            <Paragraph>Step down</Paragraph>
+                        </TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell>
+                            <Paragraph>Ctrl+Alt+1,2,3...(numpad)</Paragraph>
+                        </TableCell>
+                        <TableCell>
+                            <Paragraph>Step right</Paragraph>
+                        </TableCell>
+                    </TableRow>                    
                     <TableRow>
                         <TableCell>
                             <Paragraph>Keyboard Mapping</Paragraph>

@@ -1,4 +1,6 @@
-﻿using BuzzGUI.Common.Actions;
+﻿using BuzzGUI.Common;
+using BuzzGUI.Common.Actions;
+using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,9 +14,15 @@ namespace ReBuzz.Core.Actions.GraphActions
 
         private readonly ReBuzzCore buzz;
         private readonly IUiDispatcher dispatcher;
+        private readonly EngineSettings engineSettings;
 
-        public DeleteMachinesAction(ReBuzzCore buzz, IEnumerable<IMachine> m, IUiDispatcher dispatcher)
+        public DeleteMachinesAction(
+            ReBuzzCore buzz,
+            IEnumerable<IMachine> m,
+            IUiDispatcher dispatcher,
+            EngineSettings engineSettings)
         {
+            this.engineSettings = engineSettings;
             this.buzz = buzz;
             this.dispatcher = dispatcher;
 
@@ -24,6 +32,24 @@ namespace ReBuzz.Core.Actions.GraphActions
                 MachineInfoRef machineData = new MachineInfoRef(machine);
                 deleteMachineDatas.Add(machineData);
                 SaveConnections(machine, machineData);
+
+                // Save sequences
+                foreach (var seq in buzz.SongCore.Sequences.Where(s => s.Machine == machine))
+                {
+                    var events = seq.Events;
+                    int index = buzz.SongCore.Sequences.IndexOf(seq);
+                    machineData.AddSequence(index, events);
+                }
+
+                // Save pattern colors
+                foreach (var pattern in BuzzGUI.SequenceEditor.SequenceEditor.ViewSettings.PatternAssociations.Keys.Where(pa => pa.Machine == machine))
+                {
+                    if (BuzzGUI.SequenceEditor.SequenceEditor.ViewSettings.PatternAssociations.TryGetValue(pattern, out var pex))
+                    {
+                        // Save pattern color
+                        machineData.patternAssociations.Add(pattern.Name, pex.ColorIndex);
+                    }
+                }
             }
 
         }
@@ -66,26 +92,12 @@ namespace ReBuzz.Core.Actions.GraphActions
                     var machine = buzz.SongCore.MachinesList.FirstOrDefault(x => x.Name == machineData.Name);
                     if (machine != null)
                     {
-                        var sequences = machineData.sequences;
-                        sequences.Clear();
 
-                        // Save sequences
-                        int index = 0;
-                        foreach (var seq in buzz.SongCore.Sequences.Where(s => s.Machine == machine))
-                        {
-                            var events = seq.Events;
-                            index = buzz.SongCore.Sequences.IndexOf(seq);
-                            machineData.AddSequence(index, events);
-                            index++;
-                        }
-
-                        // Save pattern colors
+                        // Remove pattern colors
                         foreach (var pattern in BuzzGUI.SequenceEditor.SequenceEditor.ViewSettings.PatternAssociations.Keys.Where(pa => pa.Machine == machine))
                         {
                             if (BuzzGUI.SequenceEditor.SequenceEditor.ViewSettings.PatternAssociations.TryGetValue(pattern, out var pex))
                             {
-                                // Save pattern color
-                                machineData.patternAssociations.Add(pattern.Name, pex.ColorIndex);
                                 // remove from dictionary
                                 BuzzGUI.SequenceEditor.SequenceEditor.ViewSettings.PatternAssociations.Remove(pattern);
                             }
@@ -124,7 +136,7 @@ namespace ReBuzz.Core.Actions.GraphActions
             if (mc != null)
             {
                 // Call action without adding it to action stack
-                new DisconnectMachinesAction(buzz, mc, dispatcher).Do();
+                new DisconnectMachinesAction(buzz, mc, dispatcher, engineSettings).Do();
             }
 
             mc = machine.AllInputs.FirstOrDefault(input => input.Source.Name == c.Source &&
@@ -132,14 +144,16 @@ namespace ReBuzz.Core.Actions.GraphActions
             if (mc != null)
             {
                 // Call action without adding it to action stack
-                new DisconnectMachinesAction(buzz, mc, dispatcher).Do();
+                new DisconnectMachinesAction(buzz, mc, dispatcher, engineSettings).Do();
             }
         }
 
         protected override void UndoAction()
         {
+            Dictionary<ISequence, int> SeqOrderdict = new Dictionary<ISequence, int>();
+
             // Create machines
-            foreach (var machineData in deleteMachineDatas)
+            foreach (var machineData in deleteMachineDatas.OrderBy(md => md.sequences.Count > 0 ? md.sequences.Keys.OrderBy(o => o).First() : 0))
             {
                 var machine = buzz.CreateMachine(
                     machineData.MachineLib, machineData.Instrument, machineData.Name, machineData.Data,
@@ -189,8 +203,11 @@ namespace ReBuzz.Core.Actions.GraphActions
                 {
                     foreach (var seq in sequences)
                     {
-                        buzz.SongCore.AddSequence(machine, seq.Key);
-                        var seqAdded = buzz.SongCore.SequencesList.ElementAt(seq.Key);
+                        int index = 0;
+                        buzz.SongCore.AddSequence(machine, index);
+                        var seqAdded = buzz.SongCore.SequencesList.ElementAt(index);
+
+                        SeqOrderdict[seqAdded] = seq.Key;
                         foreach (var eventItem in seq.Value)
                         {
                             var seqEvent = eventItem.Value;
@@ -204,12 +221,24 @@ namespace ReBuzz.Core.Actions.GraphActions
                 }
             }
 
+            if (SeqOrderdict.Count > 0)
+            {
+                // Order Seqences
+                foreach (var seq in buzz.SongCore.SequencesList.ToArray())
+                {
+                    int index = SeqOrderdict[seq];
+                    var seqSwap = buzz.SongCore.SequencesList[index];
+                    if (seq != seqSwap)
+                        buzz.SongCore.SwapSequences(seq, seqSwap);
+                }
+            }
+
             // Create connections
             foreach (var machineData in deleteMachineDatas)
             {
                 foreach (var c in machineData.connections)
                 {
-                    var mc = new MachineConnectionCore(dispatcher);
+                    var mc = new MachineConnectionCore(dispatcher, engineSettings);
                     mc.Source = buzz.SongCore.MachinesList.FirstOrDefault(m => m.Name == c.Source);
                     mc.Destination = buzz.SongCore.MachinesList.FirstOrDefault(m => m.Name == c.Destination);
                     mc.SourceChannel = c.SourceChannel;
@@ -221,7 +250,7 @@ namespace ReBuzz.Core.Actions.GraphActions
                     var sourceMachine = mc.Source as MachineCore;
                     if (!sourceMachine.Hidden)
                     {
-                        new ConnectMachinesAction(buzz, mc, dispatcher).Do();
+                        new ConnectMachinesAction(buzz, mc, dispatcher, engineSettings).Do();
                     }
                 }
             }

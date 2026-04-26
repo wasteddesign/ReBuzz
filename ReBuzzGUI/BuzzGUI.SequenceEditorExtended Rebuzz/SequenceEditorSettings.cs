@@ -32,5 +32,7 @@ namespace BuzzGUI.SequenceEditor
 
 		[BuzzSetting(TimelineNumberModes.Tick)]
 		public TimelineNumberModes TimelineNumbers { get; set; }
+        [BuzzSetting(16, Minimum = 1, Maximum = 64, Description = "Resize pattern snap tp tick.")]
+        public int ResizeSnap { get; internal set; }
     }
 }

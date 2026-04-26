@@ -21,6 +21,13 @@ namespace BuzzGUI.ParameterWindow
 
         public IParameter Parameter { get { return parameter; } }
 
+        bool parameterVisibility = true;
+        public bool IsParameterVisibile { get => parameterVisibility; set { parameterVisibility = value; PropertyChanged.Raise(this, "IsParameterVisibile"); } }
+
+
+        Visibility visibility = Visibility.Visible;
+        public Visibility Visibility { get => visibility; set { visibility = value; PropertyChanged.Raise(this, "Visibility"); } }
+
         public string Name
         {
             get
@@ -103,6 +110,9 @@ namespace BuzzGUI.ParameterWindow
                 CanExecuteDelegate = x => true,
                 ExecuteDelegate = x => { parameter.Group.Machine.UnbindAllMIDIControllers(); }
             };
+
+            IsParameterVisibile = ParameterWindowProperties.IsParameterVisible(parameter);
+            Visibility = IsParameterVisibile ? Visibility.Visible : Visibility.Collapsed;
         }
 
         public void Release()
@@ -122,6 +132,7 @@ namespace BuzzGUI.ParameterWindow
             {
                 lastValue = newvalue;
                 PropertyChanged.Raise(this, "Value");
+                PropertyChanged.Raise(this, "Value01");
                 PropertyChanged.Raise(this, "ValueDescription");
             }
         }

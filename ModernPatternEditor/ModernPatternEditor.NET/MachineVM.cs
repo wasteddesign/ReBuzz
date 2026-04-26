@@ -34,7 +34,7 @@ namespace WDE.ModernPatternEditor
                     machine.PatternAdded += machine_PatternAdded;
                     machine.PatternRemoved += machine_PatternRemoved;
 
-                    BaseOctave = PatternEditor.Settings.DefaultBaseOctave ? 3 : machine.BaseOctave;
+                    //BaseOctave = PatternEditor.Settings.DefaultBaseOctave ? 3 : machine.BaseOctave;
 
                     AddAllPatterns();
                 }
@@ -43,8 +43,9 @@ namespace WDE.ModernPatternEditor
             }
         }
 
-        int baseOctave;
-        public int BaseOctave { get => baseOctave; set { baseOctave = value; PropertyChanged.Raise(this, "BaseOctave"); } }
+        //int baseOctave;
+        //public int BaseOctave { get => baseOctave; set { baseOctave = value; PropertyChanged.Raise(this, "BaseOctave"); } }
+        //public int BaseOctave { get => machine.BaseOctave; set { machine.BaseOctave = value; PropertyChanged.Raise(this, "BaseOctave"); } }
 
         void machine_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
@@ -57,6 +58,10 @@ namespace WDE.ModernPatternEditor
                 SortAllPatterns();
                 PropertyChanged.Raise(this, "Machine");
             }
+            //else if (e.PropertyName == "BaseOctave")
+            //{
+            //    PropertyChanged.Raise(this, "BaseOctave");
+            //}
         }
 
         void machine_PatternRemoved(IPattern p)

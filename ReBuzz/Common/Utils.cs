@@ -1,6 +1,8 @@
 ﻿using Buzz.MachineInterface;
 using BuzzGUI.Common;
+using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
+using ReBuzz.Core;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,15 +11,15 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
-using ReBuzz.Core;
 using System.Xml.Linq;
 
 namespace ReBuzz.Common
 {
-    public class Utils
+    public static class Utils
     {
         public static ResourceDictionary GetBuzzThemeResources(string theme, string buzzPath)
         {
@@ -351,6 +353,39 @@ namespace ReBuzz.Common
         internal static void FlipDenormalDC()
         {
             k_DENORMAL_DC = -k_DENORMAL_DC;
+        }
+
+        internal static void UpdateDpi(FrameworkElement frameworkElement)
+        {
+            if (Global.GeneralSettings.DpiScaling != DpiScalingType.System)
+            {
+                double scale = (double)Global.GeneralSettings.DpiScaling / 100.0;
+                Utils.SetWindowDpiScaling(frameworkElement, scale);
+            }
+            else
+            {
+                frameworkElement.LayoutTransform = null;
+            }
+        }
+
+        internal static void SetWindowDpiScaling(FrameworkElement fwElement, double scale)
+        {
+            var source = PresentationSource.FromVisual(fwElement);
+            if (source != null)
+            {
+                var matrix = source.CompositionTarget.TransformToDevice;
+                double dpiX = matrix.M11;
+                double dpiY = matrix.M22;
+                fwElement.LayoutTransform = new ScaleTransform(scale / dpiX, scale / dpiY);
+            }
+        }
+
+
+        private static readonly Action EmptyDelegate = delegate { };
+        // Forces refreshin view
+        public static void Refresh(this UIElement uiElement)
+        {
+            uiElement.Dispatcher.Invoke(DispatcherPriority.Render, EmptyDelegate);
         }
     }
 }

@@ -1,5 +1,8 @@
 ﻿using BuzzGUI.Common;
+using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
+using BuzzGUI.MachineView;
+using ReBuzz.Common;
 using ReBuzz.Core.Actions.GraphActions;
 using ReBuzz.MachineManagement;
 using System;
@@ -101,13 +104,16 @@ namespace ReBuzz.Core
             get { return loopStart; }
             set
             {
-                loopStart = value;
-                ReBuzzCore.GlobalState.LoopStart = value;
-                if (PlayPosition < loopStart)
+                lock (ReBuzzCore.AudioLock)
                 {
-                    PlayPosition = loopStart;
+                    loopStart = value;
+                    ReBuzzCore.GlobalState.LoopStart = value;
+                    if (PlayPosition < loopStart)
+                    {
+                        PlayPosition = loopStart;
+                    }
+                    PropertyChanged.Raise(this, "LoopStart");
                 }
-                PropertyChanged.Raise(this, "LoopStart");
             }
         }
 
@@ -117,17 +123,20 @@ namespace ReBuzz.Core
             get { return loopEnd; }
             set
             {
-                loopEnd = value;
-                ReBuzzCore.GlobalState.LoopEnd = value;
-                if (PlayPosition >= loopEnd)
+                lock (ReBuzzCore.AudioLock)
                 {
-                    PlayPosition = LoopStart;
+                    loopEnd = value;
+                    ReBuzzCore.GlobalState.LoopEnd = value;
+                    if (PlayPosition >= loopEnd)
+                    {
+                        PlayPosition = LoopStart;
+                    }
+                    if (SongEnd < loopEnd)
+                    {
+                        SongEnd = loopEnd;
+                    }
+                    PropertyChanged.Raise(this, "LoopEnd");
                 }
-                if (SongEnd < loopEnd)
-                {
-                    SongEnd = loopEnd;
-                }
-                PropertyChanged.Raise(this, "LoopEnd");
             }
         }
 
@@ -137,13 +146,16 @@ namespace ReBuzz.Core
             get { return songEnd; }
             set
             {
-                songEnd = value;
-                ReBuzzCore.GlobalState.SongEnd = value;
-                if (PlayPosition >= songEnd)
+                lock (ReBuzzCore.AudioLock)
                 {
-                    PlayPosition = LoopStart;
+                    songEnd = value;
+                    ReBuzzCore.GlobalState.SongEnd = value;
+                    if (PlayPosition >= songEnd)
+                    {
+                        PlayPosition = LoopStart;
+                    }
+                    PropertyChanged.Raise(this, "SongEnd");
                 }
-                PropertyChanged.Raise(this, "SongEnd");
             }
         }
 
@@ -165,9 +177,10 @@ namespace ReBuzz.Core
         public event Action<int, ISequence> SequenceRemoved;
         public event Action<int, ISequence> SequenceChanged;
 
-        public SongCore(IUiDispatcher dispatcher)
+        public SongCore(IUiDispatcher dispatcher, EngineSettings engineSettings)
         {
             this.dispatcher = dispatcher;
+            this.engineSettings = engineSettings;
         }
 
         public void AddSequence(IMachine m, int index)
@@ -241,6 +254,7 @@ namespace ReBuzz.Core
         private IDictionary<string, string> importDictionary;
 
         private readonly IUiDispatcher dispatcher;
+        private readonly EngineSettings engineSettings;
         //internal Dictionary<MachineCore, MachineInitData> DictInitData = new Dictionary<MachineCore, MachineInitData>();
         //private bool initImportDone;
 
@@ -300,12 +314,22 @@ namespace ReBuzz.Core
                 // Call native machine init before connecting
                 //InitImport();
             }
-            Do(new ConnectMachinesAction(reBuzzCore, src, dst, srcchn, dstchn, amp, pan, dispatcher));
+            Do(new ConnectMachinesAction(reBuzzCore, src, dst, srcchn, dstchn, amp, pan, dispatcher, engineSettings));
         }
 
         internal void ConnectMachines(MachineConnectionCore mcc)
         {
-            Do(new ConnectMachinesAction(reBuzzCore, mcc.Source, mcc.Destination, mcc.SourceChannel, mcc.DestinationChannel, mcc.Amp, mcc.Pan, dispatcher));
+            Do(
+                new ConnectMachinesAction(
+                    reBuzzCore,
+                    mcc.Source,
+                    mcc.Destination,
+                    mcc.SourceChannel,
+                    mcc.DestinationChannel,
+                    mcc.Amp,
+                    mcc.Pan,
+                    dispatcher,
+                    engineSettings));
         }
 
         public void CreateMachine(int id, float x, float y)
@@ -326,13 +350,13 @@ namespace ReBuzz.Core
             var dm = m.Where(machine => machine.DLL.Info.Type != MachineType.Master);
             if (dm.Count() > 0)
             {
-                Do(new DeleteMachinesAction(reBuzzCore, dm, dispatcher));
+                Do(new DeleteMachinesAction(reBuzzCore, dm, dispatcher, engineSettings));
             }
         }
 
         public void DisconnectMachines(IMachineConnection mc)
         {
-            Do(new DisconnectMachinesAction(reBuzzCore, mc, dispatcher));
+            Do(new DisconnectMachinesAction(reBuzzCore, mc, dispatcher, engineSettings));
         }
 
         public void Do(IAction a)
@@ -404,12 +428,12 @@ namespace ReBuzz.Core
 
         public void InsertMachine(IMachineConnection m, int id, float x, float y)
         {
-            Do(new InsertMachineAction(BuzzCore, m, id, x, y, dispatcher));
+            Do(new InsertMachineAction(BuzzCore, m, id, x, y, dispatcher, engineSettings));
         }
 
         public void InsertMachine(IMachineConnection m, string machineName, string instrument, float x, float y)
         {
-            Do(new InsertMachineAction(BuzzCore, m, machineName, instrument, x, y, dispatcher));
+            Do(new InsertMachineAction(BuzzCore, m, machineName, instrument, x, y, dispatcher, engineSettings));
         }
 
         public void MoveMachines(IEnumerable<Tuple<IMachine, Tuple<float, float>>> mm)
@@ -430,12 +454,12 @@ namespace ReBuzz.Core
 
         public void ReplaceMachine(IMachine m, int id, float x, float y)
         {
-            Do(new ReplaceMachineAction(reBuzzCore, m, id, x, y, dispatcher));
+            Do(new ReplaceMachineAction(reBuzzCore, m, id, x, y, dispatcher, engineSettings));
         }
 
         public void ReplaceMachine(IMachine m, string machine, string instrument, float x, float y)
         {
-            Do(new ReplaceMachineAction(reBuzzCore, m, machine, instrument, x, y, dispatcher));
+            Do(new ReplaceMachineAction(reBuzzCore, m, machine, instrument, x, y, dispatcher, engineSettings));
         }
 
         public void SetConnectionChannel(IMachineConnection mc, bool destination, int channel)
@@ -471,6 +495,7 @@ namespace ReBuzz.Core
         }
 
         public event Action<int, int> ShowMachineViewContextMenu;
+
         public void ShowContextMenu(int x, int y)
         {
             // ToDo: pos
@@ -520,6 +545,7 @@ namespace ReBuzz.Core
                 try
                 {
                     MachineRemoved?.Invoke(machine);
+                    RemoveMachineFromGroup(machine);
                 }
                 catch (Exception e)
                 {
@@ -547,8 +573,144 @@ namespace ReBuzz.Core
 
             this.SoloMode = solo;
         }
-
         #endregion
 
+        #region MachineGraphGroup
+
+        List<MachineGroupCore> machineGroups = new List<MachineGroupCore>();
+        internal List<MachineGroupCore> MachineGroupsList { get => machineGroups; set => machineGroups = value; }
+        public ReadOnlyCollection<IMachineGroup> MachineGroups => machineGroups.Cast<IMachineGroup>().ToReadOnlyCollection();
+
+        Dictionary<IMachine, IMachineGroup> machineToGroupList = new Dictionary<IMachine, IMachineGroup>();
+        public IDictionary<IMachine, IMachineGroup> MachineToGroupDict => machineToGroupList;
+
+        private Dictionary<IMachine, Tuple<float, float>> groupedMachinePositions = new Dictionary<IMachine, Tuple<float, float>>();
+        internal Dictionary<IMachine, Tuple<float, float>> GroupedMachinePositions { get => groupedMachinePositions; set => groupedMachinePositions = value; }
+
+        public void CreateMachineGroup(string name, float x, float y)
+        {
+            Do(new CreateMachineGroupAction(reBuzzCore, name, x, y));
+        }
+
+        public void DeleteMachineGroups(IEnumerable<IMachineGroup> mgl)
+        {
+            Do(new DeleteMachineGroupsAction(reBuzzCore, mgl)); 
+        }
+
+        public void RenameMachineUndoable(MachineCore machine, string name)
+        {
+            Do(new RenameMachineAction(reBuzzCore, machine, name));
+        }
+
+        public void RenameMachineGroupUndoable(MachineGroupCore machine, string name)
+        {
+            Do(new RenameMachineGroupAction(reBuzzCore, machine, name));
+        }
+
+        internal void RemoveGroupFromDictionary(IMachineGroup g)
+        {
+            foreach (var mg in machineToGroupList.ToArray())
+            {
+                if (mg.Value == g)
+                    machineToGroupList.Remove(mg.Key);
+
+                GroupedMachinePositions.Remove(mg.Key);
+            }
+        }
+
+        internal string GetNewGroupName(string name)
+        {
+            while (machineGroups.FirstOrDefault(g => g.Name == name) != null)
+            {
+                var result = string.Concat(name.ToArray().Reverse().TakeWhile(char.IsNumber).Reverse());
+                if (result.Length > 0 &&
+                    name.Length > result.Length &&
+                    name.Substring(name.Length - result.Length - 3).StartsWith(" | "))
+                {
+                    int number = int.Parse(result);
+                    number++;
+                    name = name.Substring(0, name.Length - result.Length) + number;
+                }
+                else
+                {
+                    name += " | 2";
+                }
+            }
+
+            return name;
+        }
+
+        public void AddMachineToGroup(IMachine machine, IMachineGroup machineGroup)
+        {
+            RemoveMachineFromGroup(machine);
+
+            if (machine != null && machineGroup != null)
+            {
+                var mc = machineGroup as MachineGroupCore;
+                mc.machines.Add(machine as MachineCore);
+                machineToGroupList[machine] = machineGroup;
+            }
+        }
+
+        public void RemoveMachineFromGroup(IMachine machine)
+        {
+            if (machine != null)
+            {
+                if (machineToGroupList.ContainsKey(machine))
+                {
+                    var g = machineToGroupList[machine] as MachineGroupCore;
+                    machineToGroupList.Remove(machine);
+                    g.machines.Remove(machine as MachineCore);
+                    GroupedMachinePositions.Remove(machine);
+                }
+            }
+        }
+
+        public void MoveMachineGroups(IEnumerable<Tuple<IMachineGroup, Tuple<float, float>>> mmg)
+        {
+            Do(new MoveGroupMachinesAction(reBuzzCore, mmg));
+        }
+
+        internal void RemoveAllGroups()
+        {
+            DeleteMachineGroups(MachineGroups);
+
+        }
+
+
+        // Needed to save group positions
+        public void UpdateGroupedMachinesPositions(IEnumerable<Tuple<IMachine, Tuple<float, float>>> mm)
+        {
+            foreach (var mp in mm)
+            {
+                var pos = mp.Item2;
+                GroupedMachinePositions[mp.Item1] = pos;
+            }
+        }
+
+        public void InvokeImportGroupedMachinePositions(IMachine machine, float x, float y)
+        {
+            ImportGroupedMachinePosition?.Invoke(machine, x, y);
+        }
+
+        internal void InvokeMachineGroupAdded(IMachineGroup group)
+        {
+            MachineGroupAdded?.Invoke(group);
+        }
+
+        internal void InvokeMachineGroupRemoved(IMachineGroup group)
+        {
+            MachineGroupRemoved?.Invoke(group);
+        }
+
+        public void GroupMachines(IMachineGroup machineGroup, bool group)
+        {
+            Do(new GroupMachinesAction(BuzzCore, machineGroup, group));
+        }
+
+        public event Action<IMachineGroup> MachineGroupAdded;
+        public event Action<IMachineGroup> MachineGroupRemoved;
+        public event Action<IMachine, float, float> ImportGroupedMachinePosition;
+        #endregion
     }
 }

@@ -155,9 +155,14 @@
             <StackPanel Name="trackStack" HorizontalAlignment="Left" Focusable="False"/>
             <l:SelectionLayer x:Name="selectionLayer" IsHitTestVisible="False" HorizontalAlignment="Left"/>
             <Canvas Name="cursorCanvas" HorizontalAlignment="Left">
-              <l:CursorElement x:Name="cursorElement"/>
+
+                <Rectangle x:Name="resizeRect"
+StrokeThickness = "1" StrokeDashArray = "4, 4" SnapsToDevicePixels = "True" Fill="#33000000" Stroke="#aa000000" Visibility="Collapsed">
+                </Rectangle>
+                <l:CursorElement x:Name="cursorElement"/>
             </Canvas>
-          </Grid>
+
+                    </Grid>
         </ScrollViewer>
 				<Border.Style>
 					<Style TargetType="{x:Type Border}">

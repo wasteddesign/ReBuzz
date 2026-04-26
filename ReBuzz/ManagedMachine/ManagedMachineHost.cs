@@ -1,4 +1,5 @@
 ﻿using Buzz.MachineInterface;
+using BuzzGUI.Common;
 using BuzzGUI.Common.InterfaceExtensions;
 using BuzzGUI.Common.Templates;
 using BuzzGUI.Interfaces;
@@ -81,6 +82,8 @@ namespace ReBuzz.ManagedMachine
         private delegate int GetTicksPerBeatDelegate(IPattern pattern, int playPosition);
 
         private delegate void UpdateWaveReferencesDelegate(IPattern patten, IDictionary<int, int> remap);
+
+        private delegate int GetEditorPatternPositionDelegate();
         #endregion
 
         private ControlWorkDelegate ControlWork;
@@ -110,6 +113,7 @@ namespace ReBuzz.ManagedMachine
         private DescribeValueDelegate DescribeValueFunction;
 
         private GetChannelNameDelegate GetChannelNameFunction;
+
 
         #region Pattern Editor
 
@@ -143,6 +147,7 @@ namespace ReBuzz.ManagedMachine
 
         private UpdateWaveReferencesDelegate UpdateWaveReferencesFunction;
 
+        private GetEditorPatternPositionDelegate GetEditorPatternPositionFunction;
         #endregion
 
         private IBuzzMachine machine;
@@ -252,6 +257,7 @@ namespace ReBuzz.ManagedMachine
             ReleaseFunction = (ReleaseDelegate)GetMethod(typeof(ReleaseDelegate), "Release");
             GetTicksPerBeatFunction = (GetTicksPerBeatDelegate)GetMethod(typeof(GetTicksPerBeatDelegate), "GetTicksPerBeat");
             UpdateWaveReferencesFunction = (UpdateWaveReferencesDelegate)GetMethod(typeof(UpdateWaveReferencesDelegate), "UpdateWaveReferences");
+            GetEditorPatternPositionFunction = (GetEditorPatternPositionDelegate)GetMethod(typeof(GetEditorPatternPositionDelegate), "GetEditorPatternPosition");
         }
 
         public IEnumerable<IMenuItem> Commands
@@ -700,7 +706,13 @@ namespace ReBuzz.ManagedMachine
             {
                 return DescribeValue(index, value);
             }
+        }
 
+        internal int GetEditorPatternPosition()
+        {
+            if (GetEditorPatternPositionFunction != null)
+                return GetEditorPatternPositionFunction();
+            return 0;
         }
 
         internal void Activate()
@@ -738,11 +750,19 @@ namespace ReBuzz.ManagedMachine
                 {
                     var track = paramTrack.Value;
                     int index = par.Group.Type == ParameterGroupType.Global ? par.IndexInGroup : par.IndexInGroup + machine.ParameterGroups[1].Parameters.Count;
-                    SetParameterValue(index, track, par.GetValue(track));
+                    var val = par.GetPValue(track);
+
+                    // Properties need to stay within min/max
+                    if (val >= par.MinValue && val <= par.MaxValue)
+                    {
+                        SetParameterValue(index, track, val);
+                    }
+                    else if (par.Type == ParameterType.Note && val == BuzzNote.Off)
+                    {
+                        SetParameterValue(index, track, val);
+                    }
                 }
             }
-
-            //machine.parametersChanged.Clear();
         }
 
         internal void SetParameterDefaults(MachineCore mc)

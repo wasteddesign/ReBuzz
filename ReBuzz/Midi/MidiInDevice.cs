@@ -16,6 +16,9 @@ namespace ReBuzz.Midi
         ConcurrentQueue<object> midiMessages;
         private Task midiMessagesTask;
         private bool stopped;
+
+        public string ProductName { get; private set; }
+
         readonly ManualResetEvent midiMessageReceivedEvent = new ManualResetEvent(false);
 
         public MidiInDevice(IBuzz buzz)
@@ -33,9 +36,10 @@ namespace ReBuzz.Midi
 
                 // Create midi message handler task
                 stopped = false;
-                midiMessagesTask = new Task(() => ProcessMidiMessages(), CancellationToken.None, TaskCreationOptions.LongRunning);
-                midiMessagesTask.Start();
+                //midiMessagesTask = new Task(() => ProcessMidiMessages(), CancellationToken.None, TaskCreationOptions.LongRunning);
+                //midiMessagesTask.Start();
 
+                ProductName = MidiIn.DeviceInfo(selectedDeviceIndex).ProductName;
                 // Start listening Midi messages
                 midiIn = new MidiIn(selectedDeviceIndex);
                 midiIn.MessageReceived += MidiIn_MessageReceived;
@@ -58,6 +62,9 @@ namespace ReBuzz.Midi
                 try
                 {
                     midiIn.Stop();
+                    midiIn.MessageReceived -= MidiIn_MessageReceived;
+                    midiIn.ErrorReceived -= MidiIn_ErrorReceived;
+                    midiIn.SysexMessageReceived -= MidiIn_SysexMessageReceived;
                     midiIn.Dispose();
                 }
                 catch { }

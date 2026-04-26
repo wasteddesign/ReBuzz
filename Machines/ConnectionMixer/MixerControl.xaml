@@ -1,0 +1,172 @@
+﻿<UserControl x:Class="WDE.ConnectionMixer.MixerControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:l="clr-namespace:WDE.ConnectionMixer"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+<!--
+    <UserControl.Resources>
+        <SolidColorBrush x:Key="MixerControlBackgroundBrush" Color="#333"></SolidColorBrush>
+        
+        <SolidColorBrush x:Key="VUMeterBorderBrush" Color="Gray"/>
+        <SolidColorBrush x:Key="TopBGBrush" Color="#FF443C3C"/>
+        <SolidColorBrush x:Key="TopBorderBrush" Color="Gray"/>
+        <SolidColorBrush x:Key="GridLinesBrush" Color="#FF9A8181"/>
+        <Color x:Key="VUMeterBackgroundColor">#333</Color>
+        <SolidColorBrush x:Key="VUMeterBackgroundBrush">#333</SolidColorBrush>
+        <SolidColorBrush x:Key="VUMeterSplitBrush">#292929</SolidColorBrush>
+
+        <LinearGradientBrush x:Key="VUMeterBrush" StartPoint="0,1" EndPoint="0,0">
+            <GradientStop Color="#0F0" Offset="0.0"/>
+            <GradientStop Color="#FF0" Offset="0.75"/>
+            <GradientStop Color="#F00" Offset="1.0"/>
+        </LinearGradientBrush>
+        
+    </UserControl.Resources>
+    -->
+    
+    <Grid Background="{DynamicResource MixerControlBackgroundBrush}" Margin="2" Width="150">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="20"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="345"/>
+        </Grid.RowDefinitions>
+
+        <Border x:Name="bHeader" Grid.Row="0" BorderBrush="{DynamicResource TopBorderBrush}" Background="{DynamicResource TopBGBrush}" BorderThickness="1,1,1,1" HorizontalAlignment="Stretch" CornerRadius="0">
+            <TextBlock Text="{Binding MixerNumber}" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0,0,0" Grid.Row="0"/>
+        </Border>
+
+        <Border Grid.Row="1" BorderBrush="{DynamicResource MidBorderBrush}" BorderThickness="1,0,1,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="20"/>
+                    <RowDefinition Height="20"/>
+                    <RowDefinition Height="20"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="20"/>
+                </Grid.RowDefinitions>
+                <TextBlock x:Name="tbMachineSource" Text="{Binding SelectedConnection.Source.Name}" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0,0,0" Grid.Row="0"/>
+                <TextBlock x:Name="tbMachineDestination" Text="{Binding SelectedConnection.Destination.Name}" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0,0,0" Grid.Row="1"/>
+            
+                <Grid Grid.Row="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="30"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Menu x:Name="mConnection" Grid.Column="0" IsMainMenu="False"></Menu>
+                    <ToggleButton x:Name="tbMute" Grid.Column="1" IsChecked="{Binding SelectedConnection.Source.IsMuted}">Mute</ToggleButton>
+                    <ToggleButton x:Name="tbSolo" Grid.Column="2" IsChecked="{Binding IsSoloed}">Solo</ToggleButton>
+                </Grid>
+                <Grid Grid.Row="3">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="20"/>
+                        <RowDefinition Height="20"/>
+                        <RowDefinition Height="20"/>
+                        <RowDefinition Height="20"/>
+                        <RowDefinition Height="20"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="30"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" Grid.Row="0" Text="Pan" HorizontalAlignment="Center"/>
+                    <Slider x:Name="sliderPan" Minimum="0" Maximum="32768" Value="{Binding SelectedConnection.Pan}" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Stretch"></Slider>
+                    <Menu x:Name="menuPar1" Grid.Column="0" Grid.Row="1" IsMainMenu="False"/>
+                    <Slider x:Name="sliderPar1" Value="0" Grid.Column="1" Grid.Row="1"></Slider>
+                    <Menu x:Name="menuPar2" Grid.Column="0" Grid.Row="2" IsMainMenu="False"/>
+                    <Slider x:Name="sliderPar2" Value="0" Grid.Column="1" Grid.Row="2"></Slider>
+                    <Menu x:Name="menuPar3" Grid.Column="0" Grid.Row="3" IsMainMenu="False"/>
+                    <Slider x:Name="sliderPar3" Value="0" Grid.Column="1" Grid.Row="3"></Slider>
+                    <Menu x:Name="menuPar4" Grid.Column="0" Grid.Row="4" IsMainMenu="False"/>
+                    <Slider x:Name="sliderPar4" Value="0" Grid.Column="1" Grid.Row="4"></Slider>
+                </Grid>
+                <Grid Grid.Row="4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox x:Name="textBlockPan" Grid.Column="0" HorizontalContentAlignment="Center" Text="0" IsReadOnly="true"></TextBox>
+                    <TextBox x:Name="textBlockVol" Grid.Column="1" HorizontalContentAlignment="Center" Text="0" IsReadOnly="true"></TextBox>
+                </Grid>
+            </Grid>
+        </Border>
+        <Border Grid.Row="3" BorderBrush="{DynamicResource VUMeterBorderBrush}" BorderThickness="1" HorizontalAlignment="Stretch" CornerRadius="0" ToolTip="{Binding VUMeterToolTip}" >
+            <Grid x:Name="grid">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="50"></ColumnDefinition>
+                    <ColumnDefinition Width="*"></ColumnDefinition>
+                    <ColumnDefinition Width="2"></ColumnDefinition>
+                    <ColumnDefinition Width="*"></ColumnDefinition>
+                    <ColumnDefinition Width="2"></ColumnDefinition>
+                    <ColumnDefinition Width="*"></ColumnDefinition>
+                    <ColumnDefinition Width="2"></ColumnDefinition>
+                    <ColumnDefinition Width="*"></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" BorderBrush="{DynamicResource VUMeterBorderBrush}" BorderThickness="0,0,1,0" HorizontalAlignment="Stretch" CornerRadius="0" />
+                
+                <Rectangle Grid.Column="1" Fill="{DynamicResource VUMeterBrush}" ToolTip="RMS Left"/>
+                <Rectangle Grid.Column="1" ToolTip="RMS Left">
+                    <Rectangle.Fill>
+                        <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
+                            <GradientStop Color="Transparent" Offset="0"/>
+                            <GradientStop Color="Transparent" Offset="{Binding VUMeterRMSLevelL}"/>
+                            <GradientStop Color="{DynamicResource VUMeterBackgroundColor}" Offset="{Binding VUMeterRMSLevelL}"/>
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
+
+                <Rectangle Fill="{DynamicResource VUMeterSplitBrush}" Grid.Column="2"></Rectangle>
+
+                <Rectangle Grid.Column="3" Fill="{DynamicResource VUMeterBrush}" ToolTip="Peak Left"/>
+                <Rectangle Grid.Column="3" ToolTip="Peak Left">
+                    <Rectangle.Fill>
+                        <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
+                            <GradientStop Color="Transparent" Offset="0"/>
+                            <GradientStop Color="Transparent" Offset="{Binding VUMeterLevelL}"/>
+                            <GradientStop Color="{DynamicResource VUMeterBackgroundColor}" Offset="{Binding VUMeterLevelL}"/>
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
+
+                <Rectangle Fill="{DynamicResource VUMeterSplitBrush}" Grid.Column="4"></Rectangle>
+
+                <Rectangle Grid.Column="5" Fill="{DynamicResource VUMeterBrush}" ToolTip="Peak Right"/>
+                <Rectangle Grid.Column="5" ToolTip="Peak Right">
+                    <Rectangle.Fill>
+                        <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
+                            <GradientStop Color="Transparent" Offset="0"/>
+                            <GradientStop Color="Transparent" Offset="{Binding VUMeterLevelR}"/>
+                            <GradientStop Color="{DynamicResource VUMeterBackgroundColor}" Offset="{Binding VUMeterLevelR}"/>
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
+
+                <Rectangle Fill="{DynamicResource VUMeterSplitBrush}" Grid.Column="6"></Rectangle>
+
+                <Rectangle Grid.Column="7" Fill="{DynamicResource VUMeterBrush}" ToolTip="RMS Right"/>
+                <Rectangle Grid.Column="7" ToolTip="RMS Right">
+                    <Rectangle.Fill>
+                        <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
+                            <GradientStop Color="Transparent" Offset="0"/>
+                            <GradientStop Color="Transparent" Offset="{Binding VUMeterRMSLevelR}"/>
+                            <GradientStop Color="{DynamicResource VUMeterBackgroundColor}" Offset="{Binding VUMeterRMSLevelR}"/>
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
+            </Grid>
+        </Border>
+
+        <Canvas x:Name="volCanvas" Grid.Row="5" ClipToBounds="False" Margin="50,2,1,2" Background="Transparent">
+            <Line x:Name="peakLineL" X1="26" X2="49" Y1="1" Y2="1" StrokeThickness="2" Stroke="Red" SnapsToDevicePixels="True" HorizontalAlignment="Center" Visibility="Collapsed" />
+            <Line x:Name="peakLineR" X1="51" X2="74" Y1="1" Y2="1" StrokeThickness="2" Stroke="Red" SnapsToDevicePixels="True" HorizontalAlignment="Center" Visibility="Collapsed"/>
+            <Line x:Name="volLevel" X1="1" X2="70" Y1="50" Y2="50" StrokeThickness="3" Stroke="#FFE8E8E8" SnapsToDevicePixels="True" HorizontalAlignment="Center" />
+        </Canvas>
+        <Canvas x:Name="volTextCanvas" Grid.Row="5" Margin="0,2,0,2" Width="50" HorizontalAlignment="Left"></Canvas>
+
+    </Grid>
+</UserControl>

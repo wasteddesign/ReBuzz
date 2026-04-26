@@ -1,4 +1,4 @@
-using FluentAssertions;
+using AwesomeAssertions;
 using ReBuzz.Core;
 using ReBuzz.ManagedMachine;
 using ReBuzzTests.Automation.TestMachines;

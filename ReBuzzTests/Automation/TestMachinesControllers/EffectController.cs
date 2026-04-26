@@ -19,12 +19,13 @@ namespace ReBuzzTests.Automation.TestMachinesControllers
         /// Command to make the effect copy the input sample to the output.
         /// </summary>
         public ITestMachineInstanceCommand SetStereoSampleValueToInputValue()
-            => new TestManagedMachineInstanceCommand(this, "ConfigureSampleTransform", (float l, float r) => (l, r));
+            => SetStereoSampleValueToInputValueMultipliedBy(1);
 
         /// <summary>
         /// Command to make the effect copy the multiplied input sample to the output.
         /// </summary>
         public ITestMachineInstanceCommand SetStereoSampleValueToInputValueMultipliedBy(int multiplier)
-            => new TestManagedMachineInstanceCommand(this, "ConfigureSampleTransform", (float l, float r) => (l * multiplier, r * multiplier));
+            => new TestManagedMachineInstanceCommand(this, "ConfigureSampleTransform",
+                (float l, float r) => (l * multiplier, r * multiplier));
     }
 }

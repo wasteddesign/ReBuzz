@@ -1,7 +1,7 @@
 using AtmaFileSystem;
 using BuzzGUI.Common;
 using BuzzGUI.Interfaces;
-using FluentAssertions;
+using AwesomeAssertions;
 using ReBuzz.Core;
 using ReBuzz.MachineManagement;
 using ReBuzz.ManagedMachine;
@@ -137,7 +137,7 @@ namespace ReBuzzTests.Automation.Assertions
             machineCore.LastEngineThread.Should().Be(0);
             machineCore.EngineThreadId.Should().Be(0);
             machineCore.Latency.Should().Be(0);
-            machineCore.OverrideLatency.Should().Be(0);
+            machineCore.OverrideLatency.Should().Be(-1);
 
             machineCore.PatternEditorDLL.Should().BeNull();
             machineCore.BaseOctave.Should().Be(4);

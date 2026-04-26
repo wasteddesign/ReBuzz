@@ -1,5 +1,6 @@
 ﻿using BuzzGUI.Common;
 using ReBuzz.Core;
+using System;
 using System.Threading;
 
 namespace ReBuzz.NativeMachine
@@ -11,7 +12,6 @@ namespace ReBuzz.NativeMachine
         public ChannelType Channel { get; }
         private readonly NativeMessage msg;
         Thread threadPing;
-        //Task taskPing;
 
         public EventWaitHandle WaitHandlePing { get; }
         public EventWaitHandle WaitHandlePong { get; }
@@ -36,8 +36,6 @@ namespace ReBuzz.NativeMachine
             threadPing = new Thread(this.ThreadTaskPing);
             threadPing.Priority = priority;
             threadPing.Start();
-
-            //taskPing = Task.Factory.StartNew(ThreadTaskPing, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Current);
         }
 
         private void ThreadTaskPing()
@@ -65,22 +63,25 @@ namespace ReBuzz.NativeMachine
 
         public void StopAndJoin()
         {
-            Stop();
+            try
+            {
+                Stop();
 
-            if (threadPing != null && threadPing.IsAlive)
-            {
-                threadPing.Join();
+                if (threadPing != null && threadPing.IsAlive)
+                {
+                    threadPing.Join();
+                }
+
+                WaitHandlePing.Dispose();
+                WaitHandlePong.Dispose();
             }
-            /*
-            if (taskPing != null && !taskPing.IsCompleted)
+            catch (Exception e)
             {
-                taskPing.Wait();
+                buzz.DCWriteLine(e.ToString());
             }
-            */
-            WaitHandlePing.Dispose();
-            WaitHandlePong.Dispose();
         }
 
+        // No time limit for waiting. Needed for UI dialogs etc.
         internal void WaitHandlePongWaitOne()
         {
             if (!stop)
@@ -97,7 +98,7 @@ namespace ReBuzz.NativeMachine
                 {
                     machine.MachineDLL.IsCrashed = true;
                     machine.Ready = false;
-                    Global.Buzz.DCWriteLine(machine.Name + " crashed.");
+                    Global.Buzz.DCWriteLine(machine.Name + " crashed.", BuzzGUI.Interfaces.DCLogLevel.Fatal);
                 }
                 return false;
             }

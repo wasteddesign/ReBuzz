@@ -2,6 +2,7 @@
 using ReBuzz.Core;
 using System.Runtime.CompilerServices;
 using BuzzGUI.Common;
+using BuzzGUI.Common.Settings;
 
 namespace ReBuzz.Audio
 {
@@ -11,10 +12,17 @@ namespace ReBuzz.Audio
 
         public CommonAudioProvider AudioSampleProvider { get; }
 
-        public AudioWaveProvider(ReBuzzCore buzzCore, int sampleRate, int channels, int bufferSize, bool doubleBuffer, IRegistryEx registryEx)
+        public AudioWaveProvider(
+            ReBuzzCore buzzCore,
+            int sampleRate,
+            int channels,
+            int bufferSize,
+            bool doubleBuffer,
+            IRegistryEx registryEx, 
+            EngineSettings engineSettings)
         {
             WaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(sampleRate, channels);
-            AudioSampleProvider = new CommonAudioProvider(buzzCore, Global.EngineSettings, sampleRate, channels, bufferSize, doubleBuffer, registryEx);
+            AudioSampleProvider = new CommonAudioProvider(buzzCore, engineSettings, sampleRate, channels, bufferSize, doubleBuffer, registryEx);
         }
 
         public void ClearBuffer()

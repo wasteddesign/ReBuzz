@@ -27,7 +27,7 @@
 #include <string>
 #include <map>
 
-#include "../buzz/MachineInterface.h"
+#include "../buzz/MachineInterfaceNext.h"
 
 typedef unsigned char byte;
 
@@ -35,7 +35,7 @@ using namespace std;
 
 class CMachine;
 
-class CMachineCallbacks : public CMICallbacks
+class CMachineCallbacks : public CMICallbacksNext
 {
 private:
 

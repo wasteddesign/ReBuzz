@@ -18,7 +18,7 @@ namespace ReBuzz
 
         public static void ExHandler(object sender, DispatcherUnhandledExceptionEventArgs e)
         {
-            MessageBox.Show(string.Concat(e.Exception.Message + "\n", e.Exception.StackTrace), e.Exception.Source);
+            ExitOrIgnoreDependingOnUserChoice(e.Exception);
             e.Handled = true;
         }
 
@@ -26,8 +26,36 @@ namespace ReBuzz
         {
             if (e.ExceptionObject is Exception ex)
             {
-                MessageBox.Show(string.Concat(ex.Message + "\n", ex.StackTrace), ex.Source);
+                ExitOrIgnoreDependingOnUserChoice(ex);
             }
+        }
+
+        private static void ExitOrIgnoreDependingOnUserChoice(Exception ex)
+        {
+            var result = MessageBox.Show(
+                GetFullExceptionMessage(ex)
+                + "Do you want the application to terminate? " +
+                "Not terminating the application might leave an unresponsive process running in the background.",
+                "Unhandled Exception — " + (ex.Source ?? "ReBuzz"),
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Error,
+                MessageBoxResult.No);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                Environment.Exit(1);
+            }
+        }
+
+        private static string GetFullExceptionMessage(Exception ex)
+        {
+            var message = "";
+            while (ex != null)
+            {
+                message += ex.GetType().Name + ": " + ex.Message + "\n" + ex.StackTrace + "\n\n";
+                ex = ex.InnerException;
+            }
+            return message;
         }
     }
 }

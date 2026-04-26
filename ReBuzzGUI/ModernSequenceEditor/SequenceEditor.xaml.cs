@@ -1130,7 +1130,7 @@ namespace WDE.ModernSequenceEditor
                 CanExecuteDelegate = x => true,
                 ExecuteDelegate = x =>
                 {
-                    SettingsWindow.Show(this, "Modern Sequence Editor");
+                    SettingsWindow.Show(this, settingsHeader);
                 }
             };
 
@@ -1209,21 +1209,21 @@ namespace WDE.ModernSequenceEditor
 
                         // 1
                         if (!insert)
-                            Do(new TSLInsertOrDeleteAction(BuzzSeq.SequenceEditor.ViewSettings.TimeSignatureList, numPatterns * Settings.PatternLength, CursorSpan, false)); // Delete
-                        Do(new TSLInsertOrDeleteAction(BuzzSeq.SequenceEditor.ViewSettings.TimeSignatureList, numPatterns * Settings.PatternLength, CursorSpan, true)); // Insert
+                            Do(new TSLInsertOrDeleteAction(BuzzSeq.SequenceEditor.ViewSettings.TimeSignatureList, numPatterns * Global.GeneralSettings.PatternLength, CursorSpan, false)); // Delete
+                        Do(new TSLInsertOrDeleteAction(BuzzSeq.SequenceEditor.ViewSettings.TimeSignatureList, numPatterns * Global.GeneralSettings.PatternLength, CursorSpan, true)); // Insert
 
                         // 2
                         if (!insert)
-                            Do(new InsertOrDeleteAction(SelectedSequence, CursorTime, numPatterns * Settings.PatternLength, false)); // Delete
-                        Do(new InsertOrDeleteAction(SelectedSequence, CursorTime, numPatterns * Settings.PatternLength, true)); // Insert
+                            Do(new InsertOrDeleteAction(SelectedSequence, CursorTime, numPatterns * Global.GeneralSettings.PatternLength, false)); // Delete
+                        Do(new InsertOrDeleteAction(SelectedSequence, CursorTime, numPatterns * Global.GeneralSettings.PatternLength, true)); // Insert
 
                         // Add new events
                         for (int i = 0; i < numPatterns; i++)
                         {
                             string pname = SelectedSequence.Machine.GetNewPatternName();
-                            Do(new CreatePatternAction(SelectedSequence.Machine, pname, Settings.PatternLength));
+                            Do(new CreatePatternAction(SelectedSequence.Machine, pname, Global.GeneralSettings.PatternLength));
                             Do(new SetEventAction(SelectedSequence, time, new SequenceEvent(SequenceEventType.PlayPattern, SelectedSequence.Machine.Patterns.First(p => p.Name == pname))));
-                            time += Settings.PatternLength;
+                            time += Global.GeneralSettings.PatternLength;
                         }
 
                         //Do(new SetMarkerAction(song, SongMarkers.SongEnd, song.SongEnd + numPatterns * Settings.PatternLength));
@@ -1317,7 +1317,7 @@ namespace WDE.ModernSequenceEditor
                         using (new ActionGroup(viewSettings.EditContext.ActionStack))
                         {
                             string pname = SelectedSequence.Machine.GetNewPatternName();
-                            Do(new CreatePatternAction(SelectedSequence.Machine, pname, Settings.PatternLength));
+                            Do(new CreatePatternAction(SelectedSequence.Machine, pname, Global.GeneralSettings.PatternLength));
                             Do(new SetEventAction(SelectedSequence, CursorTime, new SequenceEvent(SequenceEventType.PlayPattern, SelectedSequence.Machine.Patterns.First(p => p.Name == pname))));
                         }
                     }
@@ -1506,8 +1506,9 @@ namespace WDE.ModernSequenceEditor
                     PatternListItem pli = (PatternListItem)item.Content;
 
                     Point location = Win32Mouse.GetScreenPosition();
-                    location.X /= WPFExtensions.PixelsPerDip;
-                    location.Y /= WPFExtensions.PixelsPerDip;
+                    var dpi = VisualTreeHelper.GetDpi(this);
+                    location.X /= dpi.DpiScaleX;
+                    location.Y /= dpi.DpiScaleY;
                     patternWnd.Left = location.X - 50;
                     patternWnd.Top = location.Y + 30;
 
@@ -1538,6 +1539,11 @@ namespace WDE.ModernSequenceEditor
             patternListBox.MouseLeave += (sender, e) =>
             {
                 patternWnd.Hide();
+            };
+
+            trackSV.Loaded += (sender, e) =>
+            {
+                UpdateBackgroundMarkers();
             };
         }
 

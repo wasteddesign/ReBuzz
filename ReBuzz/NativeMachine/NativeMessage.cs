@@ -1,5 +1,6 @@
 ﻿using Buzz.MachineInterface;
 using BuzzGUI.Common;
+using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
 using ReBuzz.Audio;
 using ReBuzz.Common;
@@ -9,6 +10,7 @@ using System.Collections.Generic;
 using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Windows;
 using System.Xml.Linq;
 
 namespace ReBuzz.NativeMachine
@@ -70,8 +72,13 @@ namespace ReBuzz.NativeMachine
 
         public abstract event EventHandler<EventArgs> MessageEvent;
 
-        public unsafe NativeMessage(ChannelType channel, MemoryMappedViewAccessor accessor, NativeMachineHost nativeMachineHost)
+        public unsafe NativeMessage(
+            ChannelType channel,
+            MemoryMappedViewAccessor accessor,
+            NativeMachineHost nativeMachineHost,
+            EngineSettings engineSettings)
         {
+            this.engineSettings = engineSettings;
             Channel = channel;
             Accessor = accessor;
             NativeHost = nativeMachineHost;
@@ -90,13 +97,13 @@ namespace ReBuzz.NativeMachine
 
         public void MachineCrashed(MachineCore machine, Exception e)
         {
-            this.ChannelListener.buzz.DCWriteErrorLine(e.Message);
+            this.ChannelListener.buzz.DCWriteLine(e.Message, DCLogLevel.Error);
             machine.MachineDLL.IsCrashed = true;
             machine.Ready = false;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void DoReveiveIncomingMessage()
+        public void DoReceiveIncomingMessage()
         {
             if (IsCallback())
             {
@@ -163,12 +170,12 @@ namespace ReBuzz.NativeMachine
             return done;
         }
 
-        public MessageContent DoSendMessage(MachineCore machine)
-        {
-            return DoSendMessage();
-        }
-
-        public MessageContent DoSendMessage()
+        //public MessageContent DoSendMessage(MachineCore machine)
+        //{
+        //    return DoSendMessage();
+        //}
+        int waitTime = 2000;
+        public MessageContent DoSendMessage(MachineCore machine = null)
         {
             MessageContent msg;
             while (true)
@@ -177,7 +184,14 @@ namespace ReBuzz.NativeMachine
                 if (CopyMessageToSendBuffer())
                 {
                     ChannelListener.WaitHandlePing.Set();
-                    ChannelListener.WaitHandlePongWaitOne();
+                    if (machine == null)
+                        ChannelListener.WaitHandlePongWaitOne();
+                    else
+                    {
+                        bool success = ChannelListener.WaitHandlePongWaitOne(machine, waitTime);
+                        if (!success)
+                            throw new Exception("Process hang. No response after " + waitTime + "ms.");
+                    }
 
                     msg = DoReceiveReply(); // Reply read
                     if (IsCallback())
@@ -191,7 +205,14 @@ namespace ReBuzz.NativeMachine
                 else
                 {
                     ChannelListener.WaitHandlePing.Set();
-                    ChannelListener.WaitHandlePongWaitOne(); // Wait reply
+                    if (machine == null)
+                        ChannelListener.WaitHandlePongWaitOne();
+                    else
+                    {
+                        bool success = ChannelListener.WaitHandlePongWaitOne(machine, waitTime);
+                        if (!success)
+                            throw new Exception("Process hang. No response after " + waitTime + "ms.");
+                    }
                 }
             }
 
@@ -399,7 +420,7 @@ namespace ReBuzz.NativeMachine
                     case HostMessages.HostDCWriteLine:
                         {
                             string text = GetMessageString();
-                            //Global.Buzz.DCWriteLine(text);
+                            Global.Buzz.DCWriteLine(text, DCLogLevel.Debug);
                             Reset();
                             DoReplyMessage();
                         }
@@ -502,7 +523,7 @@ namespace ReBuzz.NativeMachine
                         }
                         break;
                     case HostMessages.HostSetEventHandler:
-                        {
+                        {   
                             long hostMachineId = GetMessageData<long>();
                             var machine = ChannelListener.buzz.GetMachineFromHostID(hostMachineId);
                             // TODO: Can machine register to other machine events?
@@ -713,11 +734,11 @@ namespace ReBuzz.NativeMachine
                             }
                             else if (option == "Accurate BPM")
                             {
-                                result = Global.EngineSettings.AccurateBPM;
+                                result = engineSettings.AccurateBPM;
                             }
                             else if (option == "SubTick Timing")
                             {
-                                result = Global.EngineSettings.SubTickTiming;
+                                result = engineSettings.SubTickTiming;
                             }
                             Reset();
                             SetMessageData(result);
@@ -1182,7 +1203,69 @@ namespace ReBuzz.NativeMachine
                             SetMessageData(ret);
                             DoReplyMessage();
                         }
-                        break;                       
+                        break;
+                    case HostMessages.HostGetConnectionCount:
+                        {
+                            long hostMachineId = GetMessageData<long>();
+                            bool output = GetMessageBool();
+                            Reset();
+
+                            var buzz = Global.Buzz as ReBuzzCore;
+                            MachineCore machine = buzz.SongCore.MachinesList.FirstOrDefault(m => m.CMachineHost == hostMachineId);
+
+                            int ret = 0;
+                            if (machine != null)
+                            {
+                                if (output)
+                                {
+                                    ret = machine.Outputs.Count;
+                                }
+                                else
+                                {
+                                    ret = machine.Inputs.Count;
+                                }
+                            }
+                            SetMessageData(ret);
+                            DoReplyMessage();
+                        }
+                        break;
+                    case HostMessages.HostGetMachineBaseOctave:
+                        {
+                            long hostMachineId = GetMessageData<long>();
+                            Reset();
+
+                            var buzz = Global.Buzz as ReBuzzCore;
+                            MachineCore machine = buzz.SongCore.MachinesList.FirstOrDefault(m => m.CMachineHost == hostMachineId);
+
+                            int ret = machine != null ? machine.BaseOctave: 4;
+
+                            SetMessageData(ret);
+                            DoReplyMessage();
+                        }
+                        break;
+                    case HostMessages.HostSetMachineBaseOctave:
+                        {
+                            long hostMachineId = GetMessageData<long>();
+                            int octave = GetMessageData<int>();
+                            Reset();
+
+                            var buzz = Global.Buzz as ReBuzzCore;
+                            MachineCore machine = buzz.SongCore.MachinesList.FirstOrDefault(m => m.CMachineHost == hostMachineId);
+
+                            if (machine != null)
+                                machine.BaseOctave = octave;
+
+                            DoReplyMessage();
+                        }
+                        break;
+                    case HostMessages.HostGetTotalLatency:
+                        {
+                            var buzz = Global.Buzz as ReBuzzCore;
+                            Reset();
+                            SetMessageData(buzz.totalLatency);
+                            DoReplyMessage();
+                        }
+                        break;
                 }
             }
         }
@@ -1228,6 +1311,7 @@ namespace ReBuzz.NativeMachine
         readonly byte[] intArray = new byte[4];
         readonly byte[] longArray = new byte[8];
         readonly byte[] longlongArray = new byte[16];
+        private readonly EngineSettings engineSettings;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         byte[] GetArray(int size)
@@ -1497,9 +1581,42 @@ namespace ReBuzz.NativeMachine
         internal abstract void Notify();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void WriteMasterInfo()
+        internal void WriteMasterInfo(MachineCore machine)
         {
-            SetMessageData(WorkManager.MasterInfoData);
+            int oversample = machine.oversampleFactorOnTick - 1;
+            if (oversample > 0)
+            {
+                WorkManager.MasterInfoStruct.SamplesPerTick <<= oversample;
+                WorkManager.MasterInfoStruct.SamplesPerSec <<= oversample;
+                WorkManager.MasterInfoData = Utils.SerializeValueTypeChangePointer(WorkManager.MasterInfoStruct, ref WorkManager.MasterInfoData);
+                SetMessageData(WorkManager.MasterInfoData);
+                WorkManager.MasterInfoStruct.SamplesPerTick >>= oversample;
+                WorkManager.MasterInfoStruct.SamplesPerSec >>= oversample;
+                WorkManager.MasterInfoData = Utils.SerializeValueTypeChangePointer(WorkManager.MasterInfoStruct, ref WorkManager.MasterInfoData);
+            }
+            else
+            {
+                SetMessageData(WorkManager.MasterInfoData);
+            }
+            return;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal void WriteSubTickInfo(MachineCore machine)
+        {
+            int oversample = machine.oversampleFactorOnTick - 1;
+            if (oversample > 0)
+            {
+                WorkManager.SubTickInfoStruct.SamplesPerSubTick <<= oversample;
+                WorkManager.SubTickInfoData = Utils.SerializeValueTypeChangePointer(WorkManager.SubTickInfoStruct, ref WorkManager.SubTickInfoData);
+                SetMessageData(WorkManager.SubTickInfoData);
+                WorkManager.SubTickInfoStruct.SamplesPerSubTick >>= oversample;
+                WorkManager.SubTickInfoData = Utils.SerializeValueTypeChangePointer(WorkManager.SubTickInfoStruct, ref WorkManager.SubTickInfoData);
+            }
+            else
+            {
+                SetMessageData(WorkManager.SubTickInfoData);
+            }
             return;
         }
 

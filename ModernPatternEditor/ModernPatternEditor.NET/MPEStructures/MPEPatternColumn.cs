@@ -48,9 +48,26 @@ namespace WDE.ModernPatternEditor.MPEStructures
             BeatRowsList = new List<int>();
         }
 
+        List<PatternEvent> patternEventsList = new List<PatternEvent>(0);
+        PatternEvent[] emptyPatternEventList = Array.Empty<PatternEvent>();
+        Lock patternEventsLock = new Lock();
         public IEnumerable<PatternEvent> GetEvents(int start, int end)
         {
-            return eventList.ToList().Where(e => e.Time >= start && e.Time < end);
+            if (eventList.Count == 0)
+                return emptyPatternEventList;
+
+            patternEventsList.Clear();
+            lock (patternEventsLock)
+            {
+                for (int i = 0; i < eventList.Count; i++)
+                {
+                    var pe = eventList[i];
+
+                    if (pe.Time >= start && pe.Time < end)
+                        patternEventsList.Add(pe);
+                }
+            }
+            return patternEventsList.ToArray();
         }
 
         internal void SetEvents(PatternEvent[] events, bool set, bool play = true)
@@ -60,37 +77,40 @@ namespace WDE.ModernPatternEditor.MPEStructures
             if (pattern != null)
                 patternLenght = pattern.Length * PatternEvent.TimeBase;
 
-            // Paste might introduce wrong numbers for notes, so check.
-            if (Parameter.Type == ParameterType.Note)
+            lock (patternEventsLock)
             {
-                for (int i = 0; i < events.Length; i++)
+                // Paste might introduce wrong numbers for notes, so check.
+                if (Parameter.Type == ParameterType.Note)
                 {
-                    int value = events[i].Value;
-                    if (value != BuzzNote.Off)
+                    for (int i = 0; i < events.Length; i++)
                     {
-                        int o = value >> 4;
-                        if ((value & 15) < 1 || (value & 15) > 12 || o < BuzzNote.MinOctave || o > BuzzNote.MaxOctave)
+                        int value = events[i].Value;
+                        if (value != BuzzNote.Off)
                         {
-                            // convert from midinote
-                            value = Math.Max(0, Math.Min(value, 119));
-                            value = BuzzNote.FromMIDINote(value);
+                            int o = value >> 4;
+                            if ((value & 15) < 1 || (value & 15) > 12 || o < BuzzNote.MinOctave || o > BuzzNote.MaxOctave)
+                            {
+                                // convert from midinote
+                                value = Math.Max(0, Math.Min(value, 119));
+                                value = BuzzNote.FromMIDINote(value);
+                            }
                         }
+                        events[i].Value = value;
                     }
-                    events[i].Value = value;
                 }
-            }
 
-            if (!set)
-            {
-                foreach (var e in events)
-                    eventList.Remove(e);
-            }
-            else
-            {
-                foreach (var e in events)
+                if (!set)
                 {
-                    if (e.Time < patternLenght)
-                        eventList.Add(e);
+                    foreach (var e in events)
+                        eventList.Remove(e);
+                }
+                else
+                {
+                    foreach (var e in events)
+                    {
+                        if (e.Time < patternLenght)
+                            eventList.Add(e);
+                    }
                 }
             }
 
@@ -194,7 +214,7 @@ namespace WDE.ModernPatternEditor.MPEStructures
             {
                 beats.Add(iterator.Beat);
                 int start = startBeat.ParameterColumn.GetDigitTime(iterator);
-                //int numbeats = BuzzTicksToBeats(MPEPattern.Pattern.Length);
+                
                 int beatTime = PatternControl.BUZZ_TICKS_PER_BEAT * PatternEvent.TimeBase;
                 int end = start + beatTime;
                 var events = GetEvents(start, end);
@@ -205,8 +225,8 @@ namespace WDE.ModernPatternEditor.MPEStructures
                 {
                     var e = events.ElementAt(i);
                     Digit nearestRow = startBeat.NearestRow(e.Time - start);
-                    int rowTime = beatTime / startBeat.PatternVM.GetBeat(startBeat).Rows.Count;
-                    e.Time = nearestRow.RowInBeat * rowTime + start;
+                    double rowTime = beatTime / (float)startBeat.PatternVM.GetBeat(startBeat).Rows.Count;
+                    e.Time = (int)(nearestRow.RowInBeat * rowTime + start);
                     cleanedEvents[e.Time] = e;
                 }
 

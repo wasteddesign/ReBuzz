@@ -1,4 +1,5 @@
 ﻿using BuzzGUI.Interfaces;
+using System.ComponentModel.DataAnnotations;
 
 namespace ReBuzz.Core
 {
@@ -21,5 +22,23 @@ namespace ReBuzz.Core
         public string ShortName { get; set; }
 
         public string Author { get; set; }
+
+        internal MachineInfo Clone()
+        {
+            var f = this;
+            var m = new MachineInfo()
+            {
+                Type = f.Type,
+                Version = f.Version,
+                InternalVersion = f.InternalVersion,
+                Flags = f.Flags,
+                MinTracks = f.MinTracks,
+                MaxTracks = f.MaxTracks,
+                Name = f.Name,
+                ShortName = f.ShortName,
+                Author = f.Author
+            };
+            return m;
+        }
     }
 }

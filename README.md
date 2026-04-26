@@ -1,6 +1,10 @@
 # ReBuzz
 ReBuzz is a modular digital audio workstation (DAW) built upon the foundation of [Jeskola Buzz](https://jeskola.net/buzz/) software. Written in C#, ReBuzz combines modern features with the beloved workflow of its predecessor. While it’s still in development, users should exercise some caution regarding stability and other potential uncertainties. The primary focus is on providing a stable experience and robust VST support.
 
+| Machine View | Editor View | Sequencer View |
+| ------------ | ------------ | ------------ |
+| ![Machine View](images/ReBuzzMachineView.png) | ![Editor View](images/ReBuzzEditorView.png) | ![Sequencer View](images/ReBuzzSequencerView.png) |
+
 ## Features
 * 32 and 64 bit VST2/3 support
 * 32 and 64 bit buzz machine support
@@ -15,8 +19,8 @@ ReBuzz is a modular digital audio workstation (DAW) built upon the foundation of
 [ReBuzz Installer](https://github.com/wasteddesign/ReBuzz/releases/latest)
 
 Requires:
-1. [.NET 9.0 Desktop Runtime - Windows x64](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/sdk-9.0.100-windows-x64-installer)
-2. [Latest Microsoft Visual C++ Redistributable](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170)
+1. [.NET 10.0 Desktop Runtime - Windows x64](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-10.0.0-windows-x64-installer)
+2. [Latest Microsoft Visual C++ Redistributable (X86 and X64)](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170)
 
 ## How to build?
 1. Clone this repo. **IMPORTANT: Clone with --recurse-submodules** <br>

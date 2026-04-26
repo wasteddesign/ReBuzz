@@ -1,5 +1,6 @@
 ﻿using Buzz.MachineInterface;
 using BuzzGUI.Common;
+using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
 using ReBuzz.Common;
 using ReBuzz.Core;
@@ -7,10 +8,10 @@ using ReBuzz.MachineManagement;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using BuzzGUI.Common.Settings;
 
 namespace ReBuzz.Audio
 {
@@ -30,8 +31,19 @@ namespace ReBuzz.Audio
             public float TicksPerSec;
         };
 
+        [StructLayout(LayoutKind.Sequential)]
+        public struct BuzzSubTickInfo
+        {
+            public int SubTicksPerTick;
+            public int CurrentSubTick;
+            public int SamplesPerSubTick;
+            public int PosInSubTick;
+        };
+
         internal static BuzzMasterInfo MasterInfoStruct;
         unsafe internal static byte[] MasterInfoData = new byte[sizeof(BuzzMasterInfo)];
+        internal static BuzzSubTickInfo SubTickInfoStruct;
+        unsafe internal static byte[] SubTickInfoData = new byte[sizeof(BuzzSubTickInfo)];
 
         bool multiThreadingEnabled = false;
 
@@ -52,7 +64,11 @@ namespace ReBuzz.Audio
             this.workEngine = workEngine;
             this.algorithm = algorithm;
             engineSettings = settings;
+
+            var master = buzzCore.SongCore.MachinesList.FirstOrDefault(m => m.DLL.Info.Type == MachineType.Master);
+            var masterGlobalParameters = master.ParameterGroupsList[1].ParametersList;
         }
+
         internal void CopyMasterInfo()
         {
             var masterInfo = ReBuzzCore.masterInfo;
@@ -67,40 +83,67 @@ namespace ReBuzz.Audio
             MasterInfoData = Utils.SerializeValueTypeChangePointer(MasterInfoStruct, ref MasterInfoData);
         }
 
+        internal void CopySubTickInfo()
+        {
+            var subtickInfo = ReBuzzCore.subTickInfo;
+            if (engineSettings.SubTickTiming)
+            {   
+                SubTickInfoStruct.CurrentSubTick = subtickInfo.CurrentSubTick;
+                SubTickInfoStruct.PosInSubTick = subtickInfo.PosInSubTick;
+                SubTickInfoStruct.SubTicksPerTick = subtickInfo.SubTicksPerTick;
+                SubTickInfoStruct.SamplesPerSubTick = subtickInfo.SamplesPerSubTick;
+            }
+            else
+            {
+                SubTickInfoStruct.CurrentSubTick = 0;
+                SubTickInfoStruct.PosInSubTick = 0;
+                SubTickInfoStruct.SubTicksPerTick = 0;
+                SubTickInfoStruct.SamplesPerSubTick = 0;
+            }
+
+            // Update array
+            SubTickInfoData = Utils.SerializeValueTypeChangePointer(SubTickInfoStruct, ref SubTickInfoData);
+        }
+
         internal int workBufferOffset;
         // Avoid new object creation to minimize GC.
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         public int ThreadRead(float[] buffer, int offset, int count)
         {
             lock (ReBuzzCore.AudioLock)
             {
-                long time = DateTime.Now.Ticks;
+                long time = DateTime.UtcNow.Ticks;
 
                 multiThreadingEnabled = engineSettings.Multithreading;
 
                 var subTickInfo = ReBuzzCore.subTickInfo;
                 var masterInfo = ReBuzzCore.masterInfo;
-                int subTickSize = subTickInfo.SamplesPerSubTick;
-                int subTickWorkSamplesSize = subTickSize / 2 + 1; // Samples per work call
+                
                 int reminingBuffer = count;
                 workBufferOffset = offset;
-
-                if (buzzCore.TPB != masterInfo.TicksPerBeat ||
-                    buzzCore.BPM != masterInfo.BeatsPerMin)
-                {
-                    buzzCore.UpdateMasterInfo();
-                }
 
                 Utils.FlipDenormalDC();
 
                 while (reminingBuffer > 0)
-                {
-                    int samplesToProcess = Math.Min(reminingBuffer / 2, subTickWorkSamplesSize);
+                {   
+                    int samplesToProcess = Math.Min(reminingBuffer / 2, 256);
+
+                    // More accurate samples per tick?
+                    //if (engineSettings.AccurateBPM)
+                    //{
+                    //    UpdateMasterSamplesPerTick();
+                    //}
+
+                    UpdateMasterParams();
 
                     // Initiate master info for Audio Messages
                     CopyMasterInfo();
 
                     // Update SubTick
                     UpdateSubTickLength();
+
+                    // Initiate master info for Audio Messages
+                    CopySubTickInfo();
 
                     // HandleParameterRecord();
 
@@ -114,7 +157,8 @@ namespace ReBuzz.Audio
                     }
 
                     // Ensure we don't go over subtick
-                    if (subTickInfo.PosInSubTick + samplesToProcess > subTickInfo.SamplesPerSubTick)
+                    if (engineSettings.SubTickTiming && 
+                        subTickInfo.PosInSubTick + samplesToProcess > subTickInfo.SamplesPerSubTick)
                     {
                         // Make sure tick will be zero
                         samplesToProcess = subTickInfo.SamplesPerSubTick - subTickInfo.PosInSubTick;
@@ -137,8 +181,8 @@ namespace ReBuzz.Audio
                     // Call work
                     ReadWork(buffer, workBufferOffset, samplesToProcess);
 
-                    // Reset non static parameteres if tick == 0
-                    UpdateNonStaticParametersToDefault();
+                    // Reset non state parameteres if tick == 0
+                    UpdateNonStateParametersToDefault();
 
                     // Mix waves playing from wavetable 
                     if (buzzCore.SongCore.WavetableCore.IsPlayingWave())
@@ -204,12 +248,30 @@ namespace ReBuzz.Audio
                     }
                 }
 
-                buzzCore.PerformanceCurrent.EnginePerformanceCount += (DateTime.Now.Ticks - time);
+                buzzCore.PerformanceCurrent.EnginePerformanceCount += (DateTime.UtcNow.Ticks - time);
 
                 return count;
             }
         }
 
+        private void UpdateMasterParams()
+        {
+            var masterInfo = ReBuzzCore.masterInfo;
+            // Update master params on the next tick
+            var master = buzzCore.SongCore.MachinesList.FirstOrDefault(m => m.DLL.Info.Type == MachineType.Master);
+            var masterGlobalParameters = master.ParameterGroupsList[1].ParametersList;
+            var bpm = masterGlobalParameters[1].GetValue(0);
+            var tpb = masterGlobalParameters[2].GetValue(0);
+
+            if (tpb != masterInfo.TicksPerBeat ||
+                bpm != masterInfo.BeatsPerMin)
+            {
+                buzzCore.BPM = bpm;
+                buzzCore.TPB = tpb;
+                buzzCore.UpdateMasterInfo();
+                buzzCore.MachineManager.RefreshMachineParams();
+            }
+        }
         private void UpdateSubTickLength()
         {
             var masterInfo = ReBuzzCore.masterInfo;
@@ -230,29 +292,49 @@ namespace ReBuzz.Audio
             }
         }
 
-        private void UpdateNonStaticParametersToDefault()
+        private void UpdateMasterSamplesPerTick()
+        {
+            var masterInfo = ReBuzzCore.masterInfo;
+
+            if (masterInfo.PosInTick == 0)
+            {
+                var ticksPerMin = masterInfo.BeatsPerMin * masterInfo.TicksPerBeat;
+                var samplesPerTickRemainder = 60 * masterInfo.SamplesPerSec % ticksPerMin;
+
+                masterInfo.SamplesPerTick = (int)masterInfo.AverageSamplesPerTick;
+                masterInfo.SamplesPerTickReminderCounter += samplesPerTickRemainder;
+
+                if (masterInfo.SamplesPerTickReminderCounter >= ticksPerMin)
+                {
+                    masterInfo.SamplesPerTickReminderCounter -= ticksPerMin;
+                    masterInfo.SamplesPerTick++;
+                }
+            }
+        }
+
+        private void UpdateNonStateParametersToDefault()
         {
             int noRecord = 1 << 16;
             foreach (var machine in buzzCore.SongCore.MachinesList.Where(m => !m.DLL.IsManaged && m.Ready))
             {
-                if (ReBuzzCore.masterInfo.PosInTick == 0 || (engineSettings.SubTickTiming && ReBuzzCore.subTickInfo.PosInSubTick == 0 && machine.DLL.Info.Version >= MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_42))
+                if (!machine.sendControlChangesFlag && (ReBuzzCore.masterInfo.PosInTick == 0 || (engineSettings.SubTickTiming && ReBuzzCore.subTickInfo.PosInSubTick == 0 && machine.DLL.Info.Version >= MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_42)))
                 {
                     foreach (var p in machine.ParameterGroups[0].Parameters)
                     {
                         // Reset parameters so they wont be triggered next Tick
-                        p.SetValue(noRecord, p.NoValue);
+                            p.SetValue(noRecord, p.NoValue);
                     }
                     foreach (var p in machine.ParameterGroups[1].Parameters)
                     {
                         // Reset parameters so they wont be triggered next Tick
-                        p.SetValue(noRecord, p.NoValue);
+                            p.SetValue(noRecord, p.NoValue);
                     }
                     foreach (var p in machine.ParameterGroups[2].Parameters)
                     {
                         for (int i = 0; i < machine.TrackCount; i++)
                         {
                             // Reset parameters so they wont be triggered next Tick
-                            p.SetValue(i | noRecord, p.NoValue);
+                                p.SetValue(i | noRecord, p.NoValue);
                         }
                     }
                 }
@@ -288,7 +370,7 @@ namespace ReBuzz.Audio
                 {
                     // Update trigger event
                     var te = seq.TriggerEventInfo;
-                    if (te != null)
+                    if (te != null && te.se.Type == SequenceEventType.PlayPattern)
                     {
                         var pattern = te.se.Pattern as PatternCore;
                         if (!te.started)
@@ -365,44 +447,7 @@ namespace ReBuzz.Audio
         }
 
         readonly List<Task> tickTasks = new List<Task>();
-
-        internal void CallTickMultiThread()
-        {
-            foreach (var machine in buzzCore.SongCore.MachinesList)
-            {
-                // Tick should be inexpensive operation so no tasks?
-                // Some old machines don't support subtick
-                if (machine.IsControlMachine && ReBuzzCore.masterInfo.PosInTick == 0 ||
-                    (engineSettings.SubTickTiming && ReBuzzCore.subTickInfo.PosInSubTick == 0 && machine.DLL.Info.Version > MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_42))
-                {
-                    var t = AudioEngine.TaskFactoryAudio.StartNew(() =>
-                    {
-                        var workInstance = buzzCore.MachineManager.GetMachineWorkInstance(machine);
-                        workInstance.Tick(false, false);
-                    });
-                    tickTasks.Add(t);
-                }
-            }
-            Task.WaitAll(tickTasks.ToArray());
-            tickTasks.Clear();
-
-            foreach (var machine in buzzCore.SongCore.MachinesList)
-            {
-                if (!machine.IsControlMachine && ReBuzzCore.masterInfo.PosInTick == 0 ||
-                    (engineSettings.SubTickTiming && ReBuzzCore.subTickInfo.PosInSubTick == 0 && machine.DLL.Info.Version > MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_42))
-                {
-                    var t = AudioEngine.TaskFactoryAudio.StartNew(() =>
-                    {
-                        var workInstance = buzzCore.MachineManager.GetMachineWorkInstance(machine);
-                        workInstance.Tick(false, false);
-                    });
-                    tickTasks.Add(t);
-                }
-            }
-            Task.WaitAll(tickTasks.ToArray());
-            tickTasks.Clear();
-        }
-
+       
         internal void CallTick()
         {
             // First control, then other?
@@ -411,7 +456,8 @@ namespace ReBuzz.Audio
                 // Tick should be inexpensive operation so no tasks?
                 // Some old machines don't support subtick
                 if (machine.IsControlMachine && (ReBuzzCore.masterInfo.PosInTick == 0 ||
-                    (engineSettings.SubTickTiming && ReBuzzCore.subTickInfo.PosInSubTick == 0 && machine.DLL.Info.Version > MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_42)))
+                    (engineSettings.SubTickTiming && ReBuzzCore.subTickInfo.PosInSubTick == 0 && machine.DLL.Info.Version > MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_42 &&
+                    !buzzCore.Gear.IsSubTickDisabled(machine))))
                 {
                     var workInstance = buzzCore.MachineManager.GetMachineWorkInstance(machine);
                     workInstance.Tick(false, false);
@@ -423,7 +469,8 @@ namespace ReBuzz.Audio
                 // Tick should be inexpensive operation so no tasks?
                 // Some old machines don't support subtick
                 if (!machine.IsControlMachine && (ReBuzzCore.masterInfo.PosInTick == 0 ||
-                    (engineSettings.SubTickTiming && ReBuzzCore.subTickInfo.PosInSubTick == 0 && machine.DLL.Info.Version > MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_42)))
+                    (engineSettings.SubTickTiming && ReBuzzCore.subTickInfo.PosInSubTick == 0 && machine.DLL.Info.Version > MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_42 &&
+                    !buzzCore.Gear.IsSubTickDisabled(machine))))
                 {
                     var workInstance = buzzCore.MachineManager.GetMachineWorkInstance(machine);
                     workInstance.Tick(false, false);
@@ -488,6 +535,7 @@ namespace ReBuzz.Audio
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         void PlayPatternColumnEvents(IPattern pattern, int sampleCount)
         {
             if (pattern != null)
@@ -537,6 +585,7 @@ namespace ReBuzz.Audio
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         public int ReadWork(float[] buffer, int offset, int workSamplesCount)
         {
             foreach (var m in buzzCore.SongCore.MachinesList)
@@ -578,7 +627,7 @@ namespace ReBuzz.Audio
             return workSamplesCount;
         }
 
-
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         private void HandleWorkAlgorithmGroups(MachineCore master, int workSamplesCount)
         {
             while (true)
@@ -636,6 +685,7 @@ namespace ReBuzz.Audio
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         internal void HandleWorkAlgorithmRecursive(MachineCore master, int numRead)
         {
             workList.Clear();
@@ -653,6 +703,7 @@ namespace ReBuzz.Audio
         readonly List<Task> workTasks = new List<Task>(100);
         private readonly EngineSettings engineSettings;
 
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         void HandleWorkList(int numRead)
         {
             workTasks.Clear();
@@ -673,6 +724,7 @@ namespace ReBuzz.Audio
             workList.Clear();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         internal void HandleWorkRecursive(MachineCore machine, int numRead)
         {
             lock (machine.workLock)
@@ -727,6 +779,7 @@ namespace ReBuzz.Audio
             machine.IsActive = machine.GetActivity();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         private void HandleWorkAlgorithm2(MachineCore master, int workSamplesCount)
         {
             workEngine.PrepareEngine(workSamplesCount);
@@ -772,6 +825,7 @@ namespace ReBuzz.Audio
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         private void HandleWorkAlgorithmSingleThread(MachineCore master, int workSamplesCount)
         {
             while (true)
@@ -870,6 +924,9 @@ namespace ReBuzz.Audio
 
                 int sCount = (int)(count / div);
                 sCount = sCount % 2 != 0 ? sCount - 1 : sCount;
+
+                if (sCount == 0)
+                    return 0;
 
                 float[] sBuffer = new float[sCount];
                 ThreadRead(sBuffer, 0, sCount);

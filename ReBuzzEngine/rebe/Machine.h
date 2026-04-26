@@ -158,4 +158,5 @@ public:
 
 	int row;
 	float buzzTickPosition;
+	CMachineInterfaceNext* pInterfaceNext;
 };

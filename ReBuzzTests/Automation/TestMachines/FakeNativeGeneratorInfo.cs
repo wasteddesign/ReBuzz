@@ -4,15 +4,26 @@ using ReBuzz.Core;
 
 namespace ReBuzzTests.Automation.TestMachines
 {
-    public class FakeNativeGeneratorInfo : ITestMachineInfo
+    public class FakeNativeGeneratorInfo(string name, string shortName, string realDllName, string dllName)
+        : ITestMachineInfo
     {
-        public static FakeNativeGeneratorInfo Instance { get; } = new FakeNativeGeneratorInfo();
+        public static ITestMachineInfo StereoGeneratorInstance { get; } = new FakeNativeGeneratorInfo(
+            "FakeNativeStereoGenerator",
+            "FakeNativeStereoGen",
+            "FakeNativeGenerator.dll",
+            "FakeNativeStereoGenerator.dll");
+
+        public static ITestMachineInfo MonoGeneratorInstance { get; } = new FakeNativeGeneratorInfo(
+            "FakeNativeMonoGenerator",
+            "FakeNativeMonoGen",
+            "FakeNativeGenerator.dll",
+            "FakeNativeMonoGenerator.dll");
 
         MachineDLL ITestMachineInfo.GetMachineDll(ReBuzzCore buzz, AbsoluteFilePath location)
         {
             return new MachineDLL
             {
-                Name = "FakeNativeGenerator",
+                Name = name,
                 Buzz = buzz,
                 Path = location.ToString(),
                 Is64Bit = true,
@@ -29,8 +40,8 @@ namespace ReBuzzTests.Automation.TestMachines
                     InternalVersion = 0,
                     MaxTracks = 1,
                     MinTracks = 1,
-                    Name = "FakeNativeGenerator",
-                    ShortName = "FakeNativeGen",
+                    Name = name,
+                    ShortName = shortName,
                     Type = MachineType.Generator,
                     Version = 66
                 },
@@ -47,6 +58,7 @@ namespace ReBuzzTests.Automation.TestMachines
             };
         }
 
-        public string DllName => "FakeNativeGenerator.dll";
+        public string DllName => dllName;
+        public string RealDllName => realDllName;
     }
 }
