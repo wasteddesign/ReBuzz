@@ -107,7 +107,6 @@ namespace ReBuzz.NativeMachine
         HostMuteMachine,
         HostSoloMachine,
         HostIsMachineMuted,
-        HostGetConnectionCount,
         HostGetConnection,
         HostGetConnectionSource,
         HostGetConnectionDestination,
