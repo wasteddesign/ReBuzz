@@ -11,6 +11,7 @@ using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using System.Xml.Linq;
 
 namespace ReBuzz.NativeMachine
 {
@@ -999,6 +1000,60 @@ namespace ReBuzz.NativeMachine
                         {
                             var buzz = Global.Buzz as ReBuzzCore;
                             buzz.Playing = true;
+                            DoReplyMessage();
+                        }
+                        break;
+                    case HostMessages.HostStop:
+                        {
+                            var buzz = Global.Buzz as ReBuzzCore;
+                            buzz.Playing = false;
+                            DoReplyMessage();
+                        }
+                        break;
+                    case HostMessages.HostToggleRecordMode:
+                        {
+                            var buzz = Global.Buzz as ReBuzzCore;
+                            buzz.Recording = !buzz.Recording;
+                            DoReplyMessage();
+                        }
+                        break;
+                    case HostMessages.HostMuteMachine:
+                        {
+                            long hostMachineId = GetMessageData<long>();
+                            bool mute = GetMessageData<bool>();
+                            var buzz = Global.Buzz as ReBuzzCore;
+                            MachineCore machine = buzz.SongCore.MachinesList.FirstOrDefault(m => m.CMachineHost == hostMachineId);
+                            if (machine != null)
+                            {
+                                machine.IsMuted = mute;
+                            }
+                            DoReplyMessage();
+                        }
+                        break;
+                    case HostMessages.HostSoloMachine:
+                        {
+                            long hostMachineId = GetMessageData<long>();
+                            var buzz = Global.Buzz as ReBuzzCore;
+                            MachineCore machine = buzz.SongCore.MachinesList.FirstOrDefault(m => m.CMachineHost == hostMachineId);
+                            if (machine != null)
+                            {
+                                machine.IsSoloed = !machine.IsSoloed;
+                            }
+                            DoReplyMessage();
+                        }
+                        break;
+                    case HostMessages.HostIsMachineMuted:
+                        {
+                            long hostMachineId = GetMessageData<long>();
+                            var buzz = Global.Buzz as ReBuzzCore;
+                            MachineCore machine = buzz.SongCore.MachinesList.FirstOrDefault(m => m.CMachineHost == hostMachineId);
+                            bool ret = false;
+                            if (machine != null)
+                            {
+                                ret = machine.IsMuted;
+                            }
+                            Reset();
+                            SetMessageData(ret);
                             DoReplyMessage();
                         }
                         break;

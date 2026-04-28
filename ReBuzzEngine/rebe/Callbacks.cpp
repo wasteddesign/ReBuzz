@@ -759,6 +759,9 @@ void CMICallbacks::Play()
 void CMICallbacks::Stop()
 {
 	MICB0;
+	IPC::Message m(IPC::HostStop);
+	IPC::Message reply;
+	DoCallback(m, reply);
 }
 
 bool CMICallbacks::RenameMachine(CMachine *pmac, char const *name)
@@ -1077,11 +1080,20 @@ void CMICallbacks::SetMachinePosition(CMachine *pmac, float x, float y)
 void CMICallbacks::MuteMachine(CMachine *pmac, bool mute)
 {
 	MICB2(pmac, mute);
+	IPC::Message m(IPC::HostMuteMachine);
+	m.Write(pmac->pHostMac);
+	m.Write(mute);
+	IPC::Message reply;
+	DoCallback(m, reply);
 }
 
 void CMICallbacks::SoloMachine(CMachine *pmac)
 {
 	MICB1(pmac);
+	IPC::Message m(IPC::HostSoloMachine);
+	m.Write(pmac->pHostMac);
+	IPC::Message reply;
+	DoCallback(m, reply);
 }
 
 void CMICallbacks::UpdateParameterDisplays(CMachine *pmac)
@@ -1339,7 +1351,14 @@ void CMICallbacks::RemapLoadedMachineName(char* name, int bufsize)
 bool CMICallbacks::IsMachineMuted(CMachine *pmac)
 {
 	MICB1(pmac);
-	return false;
+	IPC::Message m(IPC::HostIsMachineMuted);
+	m.Write(pmac->pHostMac);
+	IPC::Message reply;
+	DoCallback(m, reply);
+	IPC::MessageReader r(reply);
+	bool muted;
+	r.Read(muted);
+	return muted;
 }
 
 int CMICallbacks::GetInputChannelConnectionCount(CMachine *pmac, int channel)
@@ -1422,6 +1441,9 @@ bool CMICallbacks::GetOption(char const *name)
 void CMICallbacks::ToggleRecordMode()
 {
 	MICB0;
+	IPC::Message m(IPC::HostToggleRecordMode);
+	IPC::Message reply;
+	DoCallback(m, reply);
 }
 
 int CMICallbacks::GetSequenceCount(CMachine *pmac)
