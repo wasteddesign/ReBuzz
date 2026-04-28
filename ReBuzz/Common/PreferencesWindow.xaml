@@ -57,7 +57,7 @@
                             </ListBox.ItemContainerStyle>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <CheckBox IsChecked="{Binding Checked, Mode=TwoWay}" Content="{Binding Label}"/>
+                                    <CheckBox IsEnabled="{Binding Enabled, Mode=TwoWay}" IsChecked="{Binding Checked, Mode=TwoWay}" Content="{Binding Label}"/>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>
@@ -124,7 +124,7 @@
                         </ListBox.ItemContainerStyle>
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <CheckBox IsChecked="{Binding Checked, Mode=TwoWay}" Content="{Binding Label}"/>
+                                <CheckBox IsEnabled="{Binding Enabled, Mode=TwoWay}" IsChecked="{Binding Checked, Mode=TwoWay}" Content="{Binding Label}"/>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>

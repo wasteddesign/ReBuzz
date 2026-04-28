@@ -154,37 +154,37 @@ namespace ReBuzz.Midi
 
         internal void OpenMidiInDevices2()
         {
-            var midiIns = registryEx.ReadNumberedList<string>("MidiIn", "MIDI In List").ToList();
+            var midiIns = registryEx.ReadDictionary("MIDI Inputs");
+            
             int midiInDevsCount = MidiIn.NumberOfDevices;
 
-            foreach (var productName in midiIns)
+            foreach (var item in midiIns)
             {
-                for (int i = 0; i < midiInDevsCount; i++)
+                if ((Int32)item.Value == 1)
                 {
-                    if (MidiIn.DeviceInfo(i).ProductName == productName)
+                    for (int i = 0; i < midiInDevsCount; i++)
                     {
-                        CreateMidiIn(i);
-                        break;
+                        if (MidiIn.DeviceInfo(i).ProductName == item.Key)
+                        {
+                            CreateMidiIn(i);
+                            break;
+                        }
                     }
                 }
             }
         }
 
-        internal void SetMidiInputDevices2(List<int> midiInDevices)
+        internal void SetMidiInputDevices2(Dictionary<string, bool> midiInDevices)
         {
+            var regKey = registryEx.CreateCurrentUserSubKey(buzz.registryRoot + "\\" + "MIDI Inputs");
             try
             {
-                registryEx.DeleteCurrentUserSubKey(buzz.registryRoot + "\\" + "MIDI In List");
+                foreach (var item in midiInDevices)
+                {
+                    regKey.SetValue(item.Key, item.Value ? 1 : 0);
+                }
             }
             catch { }
-
-            var regKey = registryEx.CreateCurrentUserSubKey(buzz.registryRoot + "\\" + "MIDI In List");
-
-            int i = 1;
-            foreach(var id in midiInDevices)
-            {
-                regKey.SetValue("MidiIn" + (i++), MidiIn.DeviceInfo(id).ProductName);
-            }
         }
 
         internal IEnumerable<int> GetMidiOutputDevices()
@@ -193,36 +193,36 @@ namespace ReBuzz.Midi
         }
 
 
-        internal void SetMidiOutputDevices2(List<int> midiOutDevices)
+        internal void SetMidiOutputDevices2(Dictionary<string, bool> midiOutDevices)
         {
+            var regKey = registryEx.CreateCurrentUserSubKey(buzz.registryRoot + "\\" + "MIDI Outputs");
             try
             {
-                registryEx.DeleteCurrentUserSubKey(buzz.registryRoot + "\\" + "MIDI Out List");
+                foreach (var item in midiOutDevices)
+                {
+                    regKey.SetValue(item.Key, item.Value ? 1 : 0);
+                }
             }
             catch { }
-
-            var regKey = registryEx.CreateCurrentUserSubKey(buzz.registryRoot + "\\" + "MIDI Out List");
-
-            int i = 1;
-            foreach (var id in midiOutDevices)
-            {
-                regKey.SetValue("MidiOut" + (i++), MidiOut.DeviceInfo(id).ProductName);
-            }
         }
 
         internal void OpenMidiOutDevices2()
         {
-            var midiOuts = registryEx.ReadNumberedList<string>("MidiOut", "MIDI Out List").ToList();
+            var midiOuts = registryEx.ReadDictionary("MIDI Outputs");
+
             int midiOutDevsCount = MidiOut.NumberOfDevices;
 
-            foreach (var productName in midiOuts)
+            foreach (var item in midiOuts)
             {
-                for (int i = 0; i < midiOutDevsCount; i++)
+                if ((Int32)item.Value == 1)
                 {
-                    if (MidiOut.DeviceInfo(i).ProductName == productName)
+                    for (int i = 0; i < midiOutDevsCount; i++)
                     {
-                        CreateMidiOut(i);
-                        break;
+                        if (MidiOut.DeviceInfo(i).ProductName == item.Key)
+                        {
+                            CreateMidiOut(i);
+                            break;
+                        }
                     }
                 }
             }
