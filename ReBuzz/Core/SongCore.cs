@@ -539,23 +539,22 @@ namespace ReBuzz.Core
         {
             if (machine == null)
                 return;
-
-            if (!machine.Hidden)
-            {
-                try
-                {
-                    MachineRemoved?.Invoke(machine);
-                    RemoveMachineFromGroup(machine);
-                }
-                catch (Exception e)
-                {
-                    Buzz.DCWriteLine(e.Message);
-                }
-
-            }
             lock (ReBuzzCore.AudioLock)
             {
                 MachinesList.Remove(machine);
+
+                if (!machine.Hidden)
+                {
+                    try
+                    {
+                        MachineRemoved?.Invoke(machine);
+                        RemoveMachineFromGroup(machine);
+                    }
+                    catch (Exception e)
+                    {
+                        Buzz.DCWriteLine(e.Message);
+                    }
+                }
             }
         }
 
