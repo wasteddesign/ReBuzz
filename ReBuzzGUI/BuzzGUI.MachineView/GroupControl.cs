@@ -1,6 +1,7 @@
 ﻿using BuzzGUI.Common;
 using BuzzGUI.Interfaces;
 using System.ComponentModel;
+using System.Diagnostics.Metrics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -90,7 +91,8 @@ namespace BuzzGUI.MachineView
             {
                 if (MachineGroup != null)
                 {
-                    machineGroup.PropertyChanged -= new System.ComponentModel.PropertyChangedEventHandler(machineGroup_PropertyChanged);
+                    machineGroup.PropertyChanged -= new PropertyChangedEventHandler(machineGroup_PropertyChanged);
+                    view.PropertyChanged -= View_PropertyChanged;
                 }
 
                 machineGroup = value;
@@ -98,8 +100,17 @@ namespace BuzzGUI.MachineView
 
                 if (machineGroup != null)
                 {
-                    machineGroup.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(machineGroup_PropertyChanged);
+                    view.PropertyChanged += View_PropertyChanged;
+                    machineGroup.PropertyChanged += new PropertyChangedEventHandler(machineGroup_PropertyChanged);
                 }
+            }
+        }
+
+        private void View_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "Groups")
+            {
+                PropertyChanged.Raise(this, "NameText");
             }
         }
 
@@ -159,6 +170,9 @@ namespace BuzzGUI.MachineView
         }
 
         public ICommand CloneCommand { get; private set; }
+        public ICommand MuteCommand { get; private set; }
+        public ICommand SoloCommand { get; private set; }
+        public ICommand BypassCommand { get; private set; }
         public ICommand GroupMachinesCommand { get; private set; }
         public ICommand UnGroupMachinesCommand { get; private set; }
         public ICommand GroupRenameCommand { get; private set; }
@@ -174,6 +188,35 @@ namespace BuzzGUI.MachineView
                 ExecuteDelegate = includepatandseq =>
                 {
                     view.CloneSelectedMachines((bool)includepatandseq);
+                }
+            };
+
+            MuteCommand = new SimpleCommand
+            {
+                CanExecuteDelegate = x => true,
+                ExecuteDelegate = x =>
+                {
+                    bool muted = IsMuted();
+                    view.MuteMachines(!muted);
+                }
+            };
+
+            SoloCommand = new SimpleCommand
+            {
+                CanExecuteDelegate = x => true,
+                ExecuteDelegate = x =>
+                {
+                    bool isSoloed = IsSoloed();
+                    view.SoloMachines(!isSoloed);
+                }
+            };
+
+            BypassCommand = new SimpleCommand
+            {
+                CanExecuteDelegate = x => true,
+                ExecuteDelegate = x => {
+                    bool isBypassed = IsBypassed();
+                    view.BypassMachines(!isBypassed);
                 }
             };
 
@@ -289,6 +332,9 @@ namespace BuzzGUI.MachineView
                 new MenuItemVM() { Text = "UnGroup", Command = UnGroupMachinesCommand },
                 new MenuItemVM() { Text = "Default Input", Children = availableInputs},
                 new MenuItemVM() { Text = "Default Output", Children = availableOutputs},
+                new MenuItemVM() { Text = "Mute", Command = MuteCommand, IsCheckable = true, StaysOpenOnClick = true, IsChecked = IsMuted() },
+                new MenuItemVM() { Text = "Solo", Command = SoloCommand, IsCheckable = true, StaysOpenOnClick = true, IsChecked = IsSoloed() },
+                new MenuItemVM() { Text = "Bypass", Command = BypassCommand, IsCheckable = true, StaysOpenOnClick = true, IsChecked = IsBypassed() },
                 new MenuItemVM() { IsSeparator = true },
                 new MenuItemVM() { Text = "Rename...", Command = GroupRenameCommand, GestureText = "Ctrl+R" },
                 new MenuItemVM() { Text = "Delete",  Command = GroupDeleteCommand, GestureText = "Ctrl+D" },
@@ -318,6 +364,36 @@ namespace BuzzGUI.MachineView
                     PropertyChanged.Raise(this, "HasMachineImageSource");
                     break;
             }
+        }
+
+        bool IsMuted()
+        {
+            bool muted = false;
+            foreach (var m in machineGroup.Machines.Where(x => !x.IsControlMachine))
+            {
+                muted |= m.IsMuted;
+            }
+            return muted;
+        }
+
+        bool IsSoloed()
+        {
+            bool soloed = false;
+            foreach (var m in machineGroup.Machines.Where(x => x.DLL.Info.Type == MachineType.Generator && !x.IsControlMachine))
+            {
+                soloed |= m.IsSoloed;
+            }
+            return soloed;
+        }
+
+        bool IsBypassed()
+        {
+            bool bypassed = false;
+            foreach (var m in machineGroup.Machines.Where(x => x.DLL.Info.Type == MachineType.Effect))
+            {
+                bypassed |= m.IsBypassed;
+            }
+            return bypassed;
         }
 
         public IBuzz Buzz { get; set; }
@@ -807,6 +883,10 @@ namespace BuzzGUI.MachineView
             get
             {
                 string s = MachineGroup.Name;
+                if (IsMuted()) s = '(' + s + ')';
+                if (IsBypassed()) s = '<' + s + '>';
+                bool solomode = view.Machines.Any(m => m.Machine.IsSoloed);
+                if (solomode && !IsSoloed()) s = '[' + s + ']';
                 return s;
             }
         }

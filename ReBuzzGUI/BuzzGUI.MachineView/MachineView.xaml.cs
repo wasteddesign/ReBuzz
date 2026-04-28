@@ -1209,6 +1209,54 @@ namespace BuzzGUI.MachineView
             e.Handled = true;
         }
 
+        internal void MuteMachines(bool mute)
+        {
+            foreach (var m in SelectedMachines.Where(x => x.Machine.DLL.Info.Type != MachineType.Master && !x.Machine.IsControlMachine))
+            {
+                m.Machine.IsMuted = mute;
+            }
+
+            foreach (var g in SelectedGroups)
+            {
+                foreach (var m in g.MachineGroup.Machines.Where(x => !x.IsControlMachine))
+                {
+                    m.IsMuted = mute;
+                }
+            }
+        }
+
+        internal void SoloMachines(bool solo)
+        {
+            foreach (var m in SelectedMachines.Where(x => x.Machine.DLL.Info.Type == MachineType.Generator && x.Machine.DLL.Info.Type != MachineType.Master && !x.Machine.IsControlMachine))
+            {
+                m.Machine.IsSoloed = solo;
+            }
+
+            foreach (var g in SelectedGroups)
+            {
+                foreach (var m in g.MachineGroup.Machines.Where(x => x.DLL.Info.Type == MachineType.Generator && !x.IsControlMachine))
+                {
+                    m.IsSoloed = solo;
+                }
+            }
+        }
+
+        internal void BypassMachines(bool bypass)
+        {
+            foreach (var m in SelectedMachines.Where(x => x.Machine.DLL.Info.Type == MachineType.Effect && x.Machine.DLL.Info.Type != MachineType.Master && !x.Machine.IsControlMachine))
+            {
+                m.Machine.IsBypassed = bypass;
+            }
+
+            foreach (var g in SelectedGroups)
+            {
+                foreach (var m in g.MachineGroup.Machines.Where(x => x.DLL.Info.Type == MachineType.Effect && !x.IsControlMachine))
+                {
+                    m.IsBypassed = bypass;
+                }
+            }
+        }
+
         internal void DeleteMachines(IEnumerable<IMachine> machines)
         {
             if (machines.Count() == 1)
@@ -1575,6 +1623,11 @@ namespace BuzzGUI.MachineView
         internal void UpdateSolo()
         {
             PropertyChanged.Raise(this, "IsSoloActive");
+        }
+
+        internal void UpdateGroups()
+        {
+            PropertyChanged.Raise(this, "Groups");
         }
 
         #region CPUMonitor

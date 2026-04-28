@@ -144,11 +144,13 @@ namespace BuzzGUI.MachineView
                 case "IsBypassed":
                     PropertyChanged.Raise(this, "MachineBackgroundColor");
                     PropertyChanged.Raise(this, "NameText");
+                    view.UpdateGroups();
                     break;
                 case "IsSoloed":
                     foreach (var m in view.Machines.Where(mc => mc.Machine.DLL.Info.Type == MachineType.Generator && !mc.Machine.IsControlMachine))
                         m.PropertyChanged.Raise(m, "NameText");
                     view.UpdateSolo();
+                    view.UpdateGroups();
                     break;
                 case "IsWireless":
                     foreach (var i in inputs)
@@ -204,19 +206,19 @@ namespace BuzzGUI.MachineView
             MuteCommand = new SimpleCommand
             {
                 CanExecuteDelegate = x => true,
-                ExecuteDelegate = x => { machine.IsMuted = !machine.IsMuted; }
+                ExecuteDelegate = x => { view.MuteMachines(!machine.IsMuted); /*machine.IsMuted = !machine.IsMuted;*/ }
             };
 
             SoloCommand = new SimpleCommand
             {
                 CanExecuteDelegate = x => true,
-                ExecuteDelegate = x => { machine.IsSoloed = !machine.IsSoloed; }
+                ExecuteDelegate = x => { view.SoloMachines(!machine.IsSoloed); /*machine.IsSoloed = !machine.IsSoloed;*/ }
             };
 
             BypassCommand = new SimpleCommand
             {
                 CanExecuteDelegate = x => true,
-                ExecuteDelegate = x => { machine.IsBypassed = !machine.IsBypassed; }
+                ExecuteDelegate = x => { view.BypassMachines(!machine.IsBypassed); /*machine.IsBypassed = !machine.IsBypassed;*/ }
             };
 
             OversampleCommand = new SimpleCommand
