@@ -112,7 +112,7 @@ Marc Jacobi - VST.net
             
 Joachip, unz, IX, retrofox, snowglobe,
 fbev, mantratronic, okp, mute, MarCNeT,
-Grzegorz Gałęzowski, zeffii...
+Grzegorz Gałęzowski, zeffii, thepedal...
 For improvements, testing, support, problem
 solving and late night brainstorming
 
