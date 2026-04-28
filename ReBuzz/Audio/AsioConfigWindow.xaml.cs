@@ -51,12 +51,11 @@ namespace BuzzDotNet.Audio
             // Latency
             int currentBufferSize = registryEx.Read("BufferSize", 0, "ASIO");
             int bufferSize = 16;
-            int increment = 8;
-            int selectedIndex = 10;
+            int increment = 16;
+            int incrementCounter = 0;
+            int selectedIndex = 24;         // Defaul buffer size: 1028
             for (int i = 0; i < 40; i++)
             {
-                if (bufferSize > 1000)
-                    bufferSize = 1024;
                 double bufferLatency = 1000.0 * 2 * bufferSize / asioDeviceSamplerate;
                 ComboBoxItem cbiLatency = new ComboBoxItem()
                 {
@@ -68,12 +67,11 @@ namespace BuzzDotNet.Audio
                 if (currentBufferSize == bufferSize)
                     selectedIndex = i;
 
-                if (bufferSize == 1024)
-                    break;
-
-                if (i % 16 == 0)
+                incrementCounter++;
+                if (incrementCounter == 8)
                 {
                     increment *= 2;
+                    incrementCounter = 0;
                 }
                 bufferSize += increment;
             }
