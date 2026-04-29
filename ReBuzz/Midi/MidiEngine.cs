@@ -154,7 +154,7 @@ namespace ReBuzz.Midi
 
         internal void OpenMidiInDevices2()
         {
-            var midiIns = registryEx.ReadDictionary("MIDI Inputs");
+            var midiIns = registryEx.ReadDictionary("MIDI In List");
             
             int midiInDevsCount = MidiIn.NumberOfDevices;
 
@@ -176,7 +176,7 @@ namespace ReBuzz.Midi
 
         internal void SetMidiInputDevices2(Dictionary<string, bool> midiInDevices)
         {
-            var regKey = registryEx.CreateCurrentUserSubKey(buzz.registryRoot + "\\" + "MIDI Inputs");
+            var regKey = registryEx.CreateCurrentUserSubKey(buzz.registryRoot + "\\" + "MIDI In List");
             try
             {
                 foreach (var item in midiInDevices)
@@ -195,7 +195,7 @@ namespace ReBuzz.Midi
 
         internal void SetMidiOutputDevices2(Dictionary<string, bool> midiOutDevices)
         {
-            var regKey = registryEx.CreateCurrentUserSubKey(buzz.registryRoot + "\\" + "MIDI Outputs");
+            var regKey = registryEx.CreateCurrentUserSubKey(buzz.registryRoot + "\\" + "MIDI Out List");
             try
             {
                 foreach (var item in midiOutDevices)
@@ -208,7 +208,7 @@ namespace ReBuzz.Midi
 
         internal void OpenMidiOutDevices2()
         {
-            var midiOuts = registryEx.ReadDictionary("MIDI Outputs");
+            var midiOuts = registryEx.ReadDictionary("MIDI Out List");
 
             int midiOutDevsCount = MidiOut.NumberOfDevices;
 

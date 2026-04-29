@@ -45,7 +45,7 @@ namespace ReBuzz.Common
             DataContext = this;
             InitializeComponent();
 
-            var midiInDevices = registryEx.ReadDictionary("MIDI Inputs");
+            var midiInDevices = registryEx.ReadDictionary("MIDI In List");
 
             for (int device = 0; device < MidiIn.NumberOfDevices; device++) // List connected devices first
             {
@@ -59,7 +59,7 @@ namespace ReBuzz.Common
             }
             lbMidiInputs.InvalidateVisual();
 
-            var midiOutDevices = registryEx.ReadDictionary("MIDI Outputs");
+            var midiOutDevices = registryEx.ReadDictionary("MIDI Out List");
             for (int device = 0; device < MidiOut.NumberOfDevices; device++) // Connected
             {
                 var deviceName = MidiOut.DeviceInfo(device).ProductName;
