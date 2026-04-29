@@ -124,5 +124,10 @@ namespace ReBuzzTests.Automation
                 return new FakeInMemoryRegistryKey(registryDictionary, path);
             }
         }
+
+        public Dictionary<string, object> ReadDictionary(string path = "BuzzGUI")
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }
