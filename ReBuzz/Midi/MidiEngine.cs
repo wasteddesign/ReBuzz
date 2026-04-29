@@ -1,11 +1,13 @@
 ﻿using BuzzGUI.Common;
 using BuzzGUI.Interfaces;
+using NAudio.CoreAudioApi;
 using NAudio.Midi;
 using ReBuzz.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Windows.Devices.Enumeration;
 
 namespace ReBuzz.Midi
 {
@@ -15,6 +17,7 @@ namespace ReBuzz.Midi
         private readonly ReBuzzCore buzz;
         private readonly Dictionary<int, MidiInDevice> midiIns = new Dictionary<int, MidiInDevice>();
         private readonly Dictionary<int, MidiOut> midiOuts = new Dictionary<int, MidiOut>();
+        private DeviceWatcher _watcher;
 
         Midi2 midi2;
 
@@ -26,6 +29,91 @@ namespace ReBuzz.Midi
             this.buzz = buzz;
 
             midi2 = new Midi2(buzz);
+
+            string selector = "System.Devices.InterfaceClassGuid:=\"{6DC23320-AB33-4CE4-80D4-BBB3EBBF2814}\"";
+
+            _watcher = DeviceInformation.CreateWatcher(selector);
+            _watcher.Added += OnDeviceAdded;
+            _watcher.Removed += OnDeviceRemoved;
+            _watcher.Updated += OnDeviceUpdated;
+            _watcher.EnumerationCompleted += OnEnumerationCompleted;
+            _watcher.Stopped += OnWatcherStopped;
+
+            _watcher.Start();
+        }
+        private void OnDeviceAdded(DeviceWatcher sender, DeviceInformation args)
+        {
+            // New device spotted. Called a lot when watcher is started as it enumerates the installed (not connected) MIDI devices
+            //buzz.DCWriteLine("OnDeviceAdded");
+        }
+
+        private void OnDeviceRemoved(DeviceWatcher sender, DeviceInformationUpdate args)
+        {
+            // A known device was removed (uninstalled)
+            //buzz.DCWriteLine("OnDeviceRemoved");
+        }
+
+        private async void OnDeviceUpdated(DeviceWatcher sender, DeviceInformationUpdate args)
+        {
+            // A device that we already know about has changed somehow (connected, disconnected, other?)
+
+            int midiInDevsCount = MidiIn.NumberOfDevices;
+            int midiOutDevsCount = MidiOut.NumberOfDevices;
+
+            var info = await DeviceInformation.CreateFromIdAsync(args.Id);
+
+            if (info.IsEnabled)
+            {
+                buzz.DCWriteLine("Device connected: " + info.Name);
+
+                var inputsInfo = registryEx.ReadDictionary("MIDI In List");
+                if(inputsInfo.ContainsKey(info.Name))
+                {
+                    if((Int32)inputsInfo[info.Name] == 1)
+                    {   
+                        for (int i = 0; i < midiInDevsCount; i++)
+                        {
+                            if (MidiIn.DeviceInfo(i).ProductName == info.Name)
+                            {
+                                CreateMidiIn(i);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                var outputsInfo= registryEx.ReadDictionary("MIDI Out List");
+                if (outputsInfo.ContainsKey(info.Name))
+                {
+                    if ((Int32)outputsInfo[info.Name] == 1)
+                    {
+                        for (int i = 0; i < midiOutDevsCount; i++)
+                        {
+                            if (MidiOut.DeviceInfo(i).ProductName == info.Name)
+                            {
+                                CreateMidiOut(i);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                buzz.DCWriteLine("Device disconnected: " + info.Name);
+            }
+        }
+
+        private void OnEnumerationCompleted(DeviceWatcher sender, object args)
+        {
+            // Watcher has finished enumerating devices
+            //buzz.DCWriteLine("OnEnumerationCompleted");
+        }
+
+        private void OnWatcherStopped(DeviceWatcher sender, object args)
+        {
+            // The watcher has stopped watching
+            //buzz.DCWriteLine("OnWatcherStopped");
         }
 
         public void CreateMidiIn(int selectedDeviceIndex)
@@ -154,11 +242,11 @@ namespace ReBuzz.Midi
 
         internal void OpenMidiInDevices2()
         {
-            var midiIns = registryEx.ReadDictionary("MIDI In List");
+            var inputsInfo = registryEx.ReadDictionary("MIDI In List");
             
             int midiInDevsCount = MidiIn.NumberOfDevices;
 
-            foreach (var item in midiIns)
+            foreach (var item in inputsInfo)
             {
                 if ((Int32)item.Value == 1)
                 {
@@ -208,11 +296,11 @@ namespace ReBuzz.Midi
 
         internal void OpenMidiOutDevices2()
         {
-            var midiOuts = registryEx.ReadDictionary("MIDI Out List");
+            var outputsInfo = registryEx.ReadDictionary("MIDI Out List");
 
             int midiOutDevsCount = MidiOut.NumberOfDevices;
 
-            foreach (var item in midiOuts)
+            foreach (var item in outputsInfo)
             {
                 if ((Int32)item.Value == 1)
                 {

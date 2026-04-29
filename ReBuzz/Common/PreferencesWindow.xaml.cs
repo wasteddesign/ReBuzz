@@ -45,28 +45,28 @@ namespace ReBuzz.Common
             DataContext = this;
             InitializeComponent();
 
-            var midiInDevices = registryEx.ReadDictionary("MIDI In List");
+            var inputsInfo = registryEx.ReadDictionary("MIDI In List");
 
             for (int device = 0; device < MidiIn.NumberOfDevices; device++) // List connected devices first
             {
                 var deviceName = MidiIn.DeviceInfo(device).ProductName;
-                MidiInControllerCheckboxes.Add(new ControllerCheckboxVM { Enabled = true, Id = device, Label = deviceName, Checked = midiInDevices.ContainsKey(deviceName) && (Int32)midiInDevices[deviceName] == 1 });
-                midiInDevices.Remove(deviceName);
+                MidiInControllerCheckboxes.Add(new ControllerCheckboxVM { Enabled = true, Id = device, Label = deviceName, Checked = inputsInfo.ContainsKey(deviceName) && (Int32)inputsInfo[deviceName] == 1 });
+                inputsInfo.Remove(deviceName);
             }
-            foreach (var item in midiInDevices)  // Anything remaining in the collection is a disconnected device
+            foreach (var item in inputsInfo)  // Anything remaining in the collection is a disconnected device
             {
                 MidiInControllerCheckboxes.Add(new ControllerCheckboxVM { Enabled = false, Id = -1, Label = item.Key, Checked = (Int32)item.Value == 1 });
             }
             lbMidiInputs.InvalidateVisual();
 
-            var midiOutDevices = registryEx.ReadDictionary("MIDI Out List");
+            var outputsInfo = registryEx.ReadDictionary("MIDI Out List");
             for (int device = 0; device < MidiOut.NumberOfDevices; device++) // Connected
             {
                 var deviceName = MidiOut.DeviceInfo(device).ProductName;
-                MidiOutControllerCheckboxes.Add(new ControllerCheckboxVM { Enabled = true, Id = device, Label = deviceName, Checked = midiOutDevices.ContainsKey(deviceName) && (Int32)midiOutDevices[deviceName] == 1 });
-                midiOutDevices.Remove(deviceName);
+                MidiOutControllerCheckboxes.Add(new ControllerCheckboxVM { Enabled = true, Id = device, Label = deviceName, Checked = outputsInfo.ContainsKey(deviceName) && (Int32)outputsInfo[deviceName] == 1 });
+                outputsInfo.Remove(deviceName);
             }
-            foreach (var item in midiOutDevices) // Disconnected
+            foreach (var item in outputsInfo) // Disconnected
             {
                 MidiOutControllerCheckboxes.Add(new ControllerCheckboxVM { Enabled = false, Id = -1, Label = item.Key, Checked = (Int32)item.Value == 1 });
             }
