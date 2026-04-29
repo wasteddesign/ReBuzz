@@ -659,18 +659,18 @@ namespace ReBuzz
                             Buzz.MidiInOutEngine.ReleaseAll();
                             Buzz.MidiInOutEngine.Midi2.CreateMidi2Endpoint();
 
-                            Dictionary<string, bool> midiIns = new Dictionary<string, bool>();
+                            Dictionary<string, Int32> midiIns = new Dictionary<string, Int32>();
                             foreach (var item in preferencesWindow.MidiInControllerCheckboxes)
                             {
-                                midiIns[item.Label] = item.Checked;
+                                midiIns[item.Label] = item.Checked ? 1 : 0;
                             }
                             Buzz.MidiInOutEngine.SetMidiInputDevices2(midiIns);
                             Buzz.MidiInOutEngine.OpenMidiInDevices2();
 
-                            Dictionary<string, bool> midiOuts = new Dictionary<string, bool>();
+                            Dictionary<string, Int32> midiOuts = new Dictionary<string, Int32>();
                             foreach (var item in preferencesWindow.MidiOutControllerCheckboxes)
                             {
-                                midiOuts[item.Label] = item.Checked;
+                                midiOuts[item.Label] = item.Checked ? 1 : 0;
                             }
                             Buzz.MidiInOutEngine.SetMidiOutputDevices2(midiOuts);
                             Buzz.MidiInOutEngine.OpenMidiOutDevices2();

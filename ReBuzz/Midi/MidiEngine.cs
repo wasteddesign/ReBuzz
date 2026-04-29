@@ -30,6 +30,8 @@ namespace ReBuzz.Midi
 
             midi2 = new Midi2(buzz);
 
+            CheckRegistryDataFormat();
+
             string selector = "System.Devices.InterfaceClassGuid:=\"{6DC23320-AB33-4CE4-80D4-BBB3EBBF2814}\"";
 
             _watcher = DeviceInformation.CreateWatcher(selector);
@@ -235,6 +237,37 @@ namespace ReBuzz.Midi
             return list;
         }
 
+        internal void CheckRegistryDataFormat()
+        {
+            long version = registryEx.Read("MIDIDeviceFormat", 1, "Settings");
+
+            if(version == 1)
+            {
+                // Convert MidiOut1 = SomeDevice to SomeDevice = flags
+                // flags is just 1 for enabled now but may add more (eg. hidden)
+                var inputsInfoOld = registryEx.ReadDictionary("MIDI In List");
+                Dictionary<string, Int32> inputsInfo = new Dictionary<string, Int32>();
+                foreach (var item in inputsInfoOld)
+                {
+                    inputsInfo.Add((string)item.Value, 1);
+                }
+
+                registryEx.DeleteCurrentUserSubKey(buzz.registryRoot + "\\" + "MIDI In List");
+                SetMidiInputDevices2(inputsInfo);
+
+                var outputsInfoOld = registryEx.ReadDictionary("MIDI Out List");
+                Dictionary<string, Int32> outputsInfo = new Dictionary<string, Int32>();
+                foreach (var item in outputsInfoOld)
+                {
+                    outputsInfo.Add((string)item.Value, 1);
+                }
+                registryEx.DeleteCurrentUserSubKey(buzz.registryRoot + "\\" + "MIDI Out List");
+                SetMidiOutputDevices2(outputsInfo);
+            }
+
+            registryEx.Write("MIDIDeviceFormat", 2, "Settings");
+        }
+
         internal IEnumerable<int> GetMidiInputDevices()
         {
             return midiIns.Keys.ToReadOnlyCollection();
@@ -248,7 +281,7 @@ namespace ReBuzz.Midi
 
             foreach (var item in inputsInfo)
             {
-                if ((Int32)item.Value == 1)
+                if (((Int32)item.Value & 1) > 0) // Flags & 1 == enabled
                 {
                     for (int i = 0; i < midiInDevsCount; i++)
                     {
@@ -262,14 +295,14 @@ namespace ReBuzz.Midi
             }
         }
 
-        internal void SetMidiInputDevices2(Dictionary<string, bool> midiInDevices)
+        internal void SetMidiInputDevices2(Dictionary<string, Int32> midiInDevices)
         {
             var regKey = registryEx.CreateCurrentUserSubKey(buzz.registryRoot + "\\" + "MIDI In List");
             try
             {
                 foreach (var item in midiInDevices)
                 {
-                    regKey.SetValue(item.Key, item.Value ? 1 : 0);
+                    regKey.SetValue(item.Key, item.Value); // DeviceName = BitFlags
                 }
             }
             catch { }
@@ -281,14 +314,14 @@ namespace ReBuzz.Midi
         }
 
 
-        internal void SetMidiOutputDevices2(Dictionary<string, bool> midiOutDevices)
+        internal void SetMidiOutputDevices2(Dictionary<string, Int32> midiOutDevices)
         {
             var regKey = registryEx.CreateCurrentUserSubKey(buzz.registryRoot + "\\" + "MIDI Out List");
             try
             {
                 foreach (var item in midiOutDevices)
                 {
-                    regKey.SetValue(item.Key, item.Value ? 1 : 0);
+                    regKey.SetValue(item.Key, item.Value); // DeviceName = BitFlags
                 }
             }
             catch { }
@@ -302,7 +335,7 @@ namespace ReBuzz.Midi
 
             foreach (var item in outputsInfo)
             {
-                if ((Int32)item.Value == 1)
+                if (((Int32)item.Value & 1) > 0) // Flags & 1 == enabled
                 {
                     for (int i = 0; i < midiOutDevsCount; i++)
                     {

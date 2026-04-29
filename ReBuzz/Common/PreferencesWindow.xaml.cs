@@ -55,7 +55,7 @@ namespace ReBuzz.Common
             }
             foreach (var item in inputsInfo)  // Anything remaining in the collection is a disconnected device
             {
-                MidiInControllerCheckboxes.Add(new ControllerCheckboxVM { Enabled = false, Id = -1, Label = item.Key, Checked = (Int32)item.Value == 1 });
+                MidiInControllerCheckboxes.Add(new ControllerCheckboxVM { Enabled = false, Id = -1, Label = item.Key, Checked = ((Int32)item.Value & 1) > 0 });
             }
             lbMidiInputs.InvalidateVisual();
 
@@ -68,7 +68,7 @@ namespace ReBuzz.Common
             }
             foreach (var item in outputsInfo) // Disconnected
             {
-                MidiOutControllerCheckboxes.Add(new ControllerCheckboxVM { Enabled = false, Id = -1, Label = item.Key, Checked = (Int32)item.Value == 1 });
+                MidiOutControllerCheckboxes.Add(new ControllerCheckboxVM { Enabled = false, Id = -1, Label = item.Key, Checked = ((Int32)item.Value & 1) > 0 });
             }
             lbMidiOutputs.InvalidateVisual();
 
