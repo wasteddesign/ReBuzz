@@ -217,6 +217,13 @@ namespace ReBuzz.Midi
 
         public void ReleaseAll()
         {
+            _watcher.Added -= OnDeviceAdded;
+            _watcher.Removed -= OnDeviceRemoved;
+            _watcher.Updated -= OnDeviceUpdated;
+            _watcher.EnumerationCompleted -= OnEnumerationCompleted;
+            _watcher.Stopped -= OnWatcherStopped;
+            _watcher.Stop();
+
             DisposeMidiIn();
             DisposeMidiOuts();
 
