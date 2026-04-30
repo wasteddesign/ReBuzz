@@ -1538,15 +1538,7 @@ namespace ReBuzz.Core
 
         public IEnumerable<Tuple<int, string>> GetMidiOuts()
         {
-            var mos = MidiInOutEngine.GetMidiOutputDevices();
-            List<Tuple<int, string>> moList = new List<Tuple<int, string>>();
-            foreach (var mo in mos)
-            {
-                var di = MidiOut.DeviceInfo(mo);
-                moList.Add(new Tuple<int, string>(mo, di.ProductName));
-            }
-
-            return moList;
+            return MidiInOutEngine.GetMidiOuts();
         }
 
         public void SendMIDIOutput(int device, int data)
@@ -1643,7 +1635,7 @@ namespace ReBuzz.Core
                     pdc.MaxEngineLockTime = 0;
                 }
 
-                long now = DateTime.Now.Ticks;
+                long now = DateTime.UtcNow.Ticks;
                 PerformanceCurrent.PerformanceCount += now - performanceCountTime;
                 performanceCountTime = now;
 

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using ReBuzz.Common;
 
 namespace ReBuzz.Common
 {
@@ -45,7 +46,7 @@ namespace ReBuzz.Common
             DataContext = this;
             InitializeComponent();
 
-            var inputsInfo = registryEx.ReadDictionary("MIDI In List");
+            var inputsInfo = registryEx.ReadDictionary("MIDI In List").KeyValuesToStringInt();
 
             for (int device = 0; device < MidiIn.NumberOfDevices; device++) // List connected devices first
             {
@@ -59,7 +60,7 @@ namespace ReBuzz.Common
             }
             lbMidiInputs.InvalidateVisual();
 
-            var outputsInfo = registryEx.ReadDictionary("MIDI Out List");
+            var outputsInfo = registryEx.ReadDictionary("MIDI Out List").KeyValuesToStringInt();
             for (int device = 0; device < MidiOut.NumberOfDevices; device++) // Connected
             {
                 var deviceName = MidiOut.DeviceInfo(device).ProductName;

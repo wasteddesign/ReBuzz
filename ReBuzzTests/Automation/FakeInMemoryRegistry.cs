@@ -52,6 +52,7 @@ namespace ReBuzzTests.Automation
             [("Settings", "MidiControllerRecord")] = "",
             [("Settings", "MidiControllerForward")] = "",
             [("Settings", "MidiControllerBackward")] = "",
+            [("Settings", "MIDIDeviceFormat")] = 1,
             [("WASAPI", "DeviceID")] = "{0.0.0.00000000}.{49a443a1-228c-42cf-bcbb-2c9a48480989}",
             [("WASAPI", "DeviceIDIn")] = "",
             [("WASAPI", "SampleRate")] = 44100,
@@ -127,7 +128,11 @@ namespace ReBuzzTests.Automation
 
         public Dictionary<string, object> ReadDictionary(string path = "BuzzGUI")
         {
-            throw new System.NotImplementedException();
+            lock (lockObject)
+            {
+                // Fix me
+                return new Dictionary<string, object>();
+            }
         }
     }
 }

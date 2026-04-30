@@ -387,5 +387,18 @@ namespace ReBuzz.Common
         {
             uiElement.Dispatcher.Invoke(DispatcherPriority.Render, EmptyDelegate);
         }
+
+        public static Dictionary<string, int> KeyValuesToStringInt(this Dictionary<string, object> d)
+        {
+            Dictionary<string, int> ret = new Dictionary<string, int>();
+            foreach (var key in d.Keys)
+            {
+                if (d[key] is int)
+                {
+                    ret[key] = (int)d[key];
+                }
+            }
+            return ret;
+        }
     }
 }

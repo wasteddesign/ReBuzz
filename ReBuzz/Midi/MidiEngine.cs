@@ -16,7 +16,7 @@ namespace ReBuzz.Midi
         private readonly IRegistryEx registryEx;
         private readonly ReBuzzCore buzz;
         private readonly Dictionary<int, MidiInDevice> midiIns = new Dictionary<int, MidiInDevice>();
-        private readonly Dictionary<int, MidiOut> midiOuts = new Dictionary<int, MidiOut>();
+        private readonly Dictionary<int, MidiOutDevice> midiOuts = new Dictionary<int, MidiOutDevice>();
         private DeviceWatcher _watcher;
 
         Midi2 midi2;
@@ -32,7 +32,8 @@ namespace ReBuzz.Midi
 
             CheckRegistryDataFormat();
 
-            string selector = "System.Devices.InterfaceClassGuid:=\"{6DC23320-AB33-4CE4-80D4-BBB3EBBF2814}\"";
+            // Use empty selector to get all MIDI devices
+            string selector = "";// "System.Devices.InterfaceClassGuid:=\"{6DC23320-AB33-4CE4-80D4-BBB3EBBF2814}\"";
 
             _watcher = DeviceInformation.CreateWatcher(selector);
             _watcher.Added += OnDeviceAdded;
@@ -103,6 +104,33 @@ namespace ReBuzz.Midi
             else
             {
                 buzz.DCWriteLine("Device disconnected: " + info.Name);
+
+                var inputsInfo = registryEx.ReadDictionary("MIDI In List");
+                if (inputsInfo.ContainsKey(info.Name))
+                {
+                    for (int i = 0; i < midiIns.Count; i++)
+                    {
+                        if (midiIns.ElementAt(i).Value.ProductName == info.Name)
+                        {
+                            midiIns.ElementAt(i).Value.UnsubscribeEvents();
+                            midiIns.Remove(midiIns.ElementAt(i).Key);
+                            break;
+                        }
+                    }
+                }
+
+                var outputsInfo = registryEx.ReadDictionary("MIDI Out List");
+                if (outputsInfo.ContainsKey(info.Name))
+                {
+                    for (int i = 0; i < midiOuts.Count; i++)
+                    {  
+                        if (midiOuts.ElementAt(i).Value.ProductName == info.Name)
+                        {   
+                            midiOuts.Remove(midiOuts.ElementAt(i).Key);
+                            break;
+                        }
+                    }
+                }
             }
         }
 
@@ -122,6 +150,12 @@ namespace ReBuzz.Midi
         {
             try
             {
+                if (midiIns.ContainsKey(selectedDeviceIndex))
+                {
+                    midiIns[selectedDeviceIndex].DisposeMidiIn();
+                    midiIns.Remove(selectedDeviceIndex);
+                }
+
                 if (!midiIns.ContainsKey(selectedDeviceIndex))
                 {
                     var midiIn = new MidiInDevice(buzz);
@@ -148,8 +182,16 @@ namespace ReBuzz.Midi
         {
             try
             {
+                if (midiOuts.ContainsKey(selectedDeviceIndex))
+                {
+                    midiOuts[selectedDeviceIndex].MidiOut.Dispose();
+                    midiOuts.Remove(selectedDeviceIndex);
+                }
+
                 if (!midiOuts.ContainsKey(selectedDeviceIndex))
-                    midiOuts.Add(selectedDeviceIndex, new MidiOut(selectedDeviceIndex));
+                {
+                    midiOuts.Add(selectedDeviceIndex, new MidiOutDevice(selectedDeviceIndex));
+                }
             }
             catch (Exception e)
             {
@@ -167,7 +209,7 @@ namespace ReBuzz.Midi
                 {
                     try
                     {
-                        midiOuts[device].Send(message);
+                        midiOuts[device].MidiOut.Send(message);
                     }
                     catch (Exception e)
                     {
@@ -185,7 +227,7 @@ namespace ReBuzz.Midi
                 {
                     try
                     {
-                        midiOuts[device].SendBuffer(message);
+                        midiOuts[device].MidiOut.SendBuffer(message);
                     }
                     catch (Exception e)
                     {
@@ -199,11 +241,11 @@ namespace ReBuzz.Midi
         {
             lock (ReBuzzCore.AudioLock)
             {
-                foreach (MidiOut midiOut in midiOuts.Values)
+                foreach (var midiOut in midiOuts.Values)
                 {
                     try
                     {
-                        midiOut.Dispose();
+                        midiOut.MidiOut.Dispose();
                     }
                     catch (Exception e)
                     {
@@ -222,7 +264,8 @@ namespace ReBuzz.Midi
             _watcher.Updated -= OnDeviceUpdated;
             _watcher.EnumerationCompleted -= OnEnumerationCompleted;
             _watcher.Stopped -= OnWatcherStopped;
-            _watcher.Stop();
+            if (_watcher.Status == DeviceWatcherStatus.Started)
+                _watcher.Stop();
 
             DisposeMidiIn();
             DisposeMidiOuts();
@@ -288,7 +331,7 @@ namespace ReBuzz.Midi
 
             foreach (var item in inputsInfo)
             {
-                if (((Int32)item.Value & 1) > 0) // Flags & 1 == enabled
+                if (item.Value is int && ((Int32)item.Value & 1) > 0) // Flags & 1 == enabled
                 {
                     for (int i = 0; i < midiInDevsCount; i++)
                     {
@@ -320,6 +363,14 @@ namespace ReBuzz.Midi
             return midiOuts.Keys.ToReadOnlyCollection();
         }
 
+        internal IEnumerable<Tuple<int, string>> GetMidiOuts()
+        {
+            List<Tuple<int, string>> moList = new List<Tuple<int, string>>();
+            foreach (var mo in midiOuts)
+                moList.Add(new Tuple<int, string>(mo.Key, mo.Value.ProductName));
+
+            return moList;
+        }
 
         internal void SetMidiOutputDevices2(Dictionary<string, Int32> midiOutDevices)
         {

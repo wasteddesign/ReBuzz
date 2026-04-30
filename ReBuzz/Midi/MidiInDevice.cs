@@ -6,6 +6,8 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 using BuzzGUI.Interfaces;
+using System.Security.RightsManagement;
+using System.Xml.Serialization;
 
 namespace ReBuzz.Midi
 {
@@ -53,6 +55,16 @@ namespace ReBuzz.Midi
             }
         }
 
+        public void UnsubscribeEvents()
+        {
+            try
+            {
+                midiIn.MessageReceived -= MidiIn_MessageReceived;
+                midiIn.ErrorReceived -= MidiIn_ErrorReceived;
+                midiIn.SysexMessageReceived -= MidiIn_SysexMessageReceived;
+            }
+            catch { }
+        }
         public void DisposeMidiIn()
         {
             stopped = true;
@@ -62,9 +74,7 @@ namespace ReBuzz.Midi
                 try
                 {
                     midiIn.Stop();
-                    midiIn.MessageReceived -= MidiIn_MessageReceived;
-                    midiIn.ErrorReceived -= MidiIn_ErrorReceived;
-                    midiIn.SysexMessageReceived -= MidiIn_SysexMessageReceived;
+                    UnsubscribeEvents();
                     midiIn.Dispose();
                 }
                 catch { }
