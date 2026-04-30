@@ -110,6 +110,34 @@ namespace BuzzGUI.Common
             return ret;
         }
 
+        public static Dictionary<string, object> ReadDictionary(string path = "BuzzGUI")
+        {
+            Dictionary<string, object> ret = new Dictionary<string, object>();
+            Microsoft.Win32.RegistryKey? regkey = null;
+            try
+            {
+                regkey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(regpath + "\\" + path);
+                if (regkey == null)
+                    return ret;
+
+                var keys = regkey.GetValueNames();
+                foreach (var k in keys)
+                {
+                    ret.Add(k, regkey.GetValue(k));
+                }
+            }
+            finally
+            {
+                if (regkey != null)
+                {
+                    regkey.Close();
+                    regkey.Dispose();
+                }
+            }
+
+            return ret;
+        }
+
         public static RegistryMonitor CreateMonitor(string path = "BuzzGUI")
         {
             return new RegistryMonitor(Microsoft.Win32.RegistryHive.CurrentUser, regpath + path);

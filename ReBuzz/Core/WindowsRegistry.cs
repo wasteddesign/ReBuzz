@@ -10,6 +10,7 @@ namespace ReBuzz.Core
         void Write<T>(string key, T x, string path = "BuzzGUI");
         T Read<T>(string key, T def, string path = "BuzzGUI");
         IEnumerable<T> ReadNumberedList<T>(string key, string path = "BuzzGUI");
+        Dictionary<string, object> ReadDictionary(string path = "BuzzGUI");
         void DeleteCurrentUserSubKey(string key);
         IRegistryKey CreateCurrentUserSubKey(string subKey);
     }
@@ -31,6 +32,13 @@ namespace ReBuzz.Core
             IEnumerable<T> numberedList = RegistryEx.ReadNumberedList<T>(key, path);
             Console.WriteLine("ReadNumberedList: " + key + " [" + string.Join(", ", numberedList) + "] " + path);
             return numberedList;
+        }
+
+        public Dictionary<string, object> ReadDictionary(string path = "BuzzGUI")
+        {
+            Dictionary<string, object> values = RegistryEx.ReadDictionary(path);
+            Console.WriteLine("ReadDictionary: " + " [" + string.Join(", ", values) + "] " + path);
+            return values;
         }
 
         public void DeleteCurrentUserSubKey(string key)

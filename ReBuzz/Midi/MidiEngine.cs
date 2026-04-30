@@ -1,11 +1,13 @@
 ﻿using BuzzGUI.Common;
 using BuzzGUI.Interfaces;
+using NAudio.CoreAudioApi;
 using NAudio.Midi;
 using ReBuzz.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Windows.Devices.Enumeration;
 
 namespace ReBuzz.Midi
 {
@@ -15,6 +17,7 @@ namespace ReBuzz.Midi
         private readonly ReBuzzCore buzz;
         private readonly Dictionary<int, MidiInDevice> midiIns = new Dictionary<int, MidiInDevice>();
         private readonly Dictionary<int, MidiOut> midiOuts = new Dictionary<int, MidiOut>();
+        private DeviceWatcher _watcher;
 
         Midi2 midi2;
 
@@ -26,6 +29,93 @@ namespace ReBuzz.Midi
             this.buzz = buzz;
 
             midi2 = new Midi2(buzz);
+
+            CheckRegistryDataFormat();
+
+            string selector = "System.Devices.InterfaceClassGuid:=\"{6DC23320-AB33-4CE4-80D4-BBB3EBBF2814}\"";
+
+            _watcher = DeviceInformation.CreateWatcher(selector);
+            _watcher.Added += OnDeviceAdded;
+            _watcher.Removed += OnDeviceRemoved;
+            _watcher.Updated += OnDeviceUpdated;
+            _watcher.EnumerationCompleted += OnEnumerationCompleted;
+            _watcher.Stopped += OnWatcherStopped;
+
+            _watcher.Start();
+        }
+        private void OnDeviceAdded(DeviceWatcher sender, DeviceInformation args)
+        {
+            // New device spotted. Called a lot when watcher is started as it enumerates the installed (not connected) MIDI devices
+            //buzz.DCWriteLine("OnDeviceAdded");
+        }
+
+        private void OnDeviceRemoved(DeviceWatcher sender, DeviceInformationUpdate args)
+        {
+            // A known device was removed (uninstalled)
+            //buzz.DCWriteLine("OnDeviceRemoved");
+        }
+
+        private async void OnDeviceUpdated(DeviceWatcher sender, DeviceInformationUpdate args)
+        {
+            // A device that we already know about has changed somehow (connected, disconnected, other?)
+
+            int midiInDevsCount = MidiIn.NumberOfDevices;
+            int midiOutDevsCount = MidiOut.NumberOfDevices;
+
+            var info = await DeviceInformation.CreateFromIdAsync(args.Id);
+
+            if (info.IsEnabled)
+            {
+                buzz.DCWriteLine("Device connected: " + info.Name);
+
+                var inputsInfo = registryEx.ReadDictionary("MIDI In List");
+                if(inputsInfo.ContainsKey(info.Name))
+                {
+                    if((Int32)inputsInfo[info.Name] == 1)
+                    {   
+                        for (int i = 0; i < midiInDevsCount; i++)
+                        {
+                            if (MidiIn.DeviceInfo(i).ProductName == info.Name)
+                            {
+                                CreateMidiIn(i);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                var outputsInfo= registryEx.ReadDictionary("MIDI Out List");
+                if (outputsInfo.ContainsKey(info.Name))
+                {
+                    if ((Int32)outputsInfo[info.Name] == 1)
+                    {
+                        for (int i = 0; i < midiOutDevsCount; i++)
+                        {
+                            if (MidiOut.DeviceInfo(i).ProductName == info.Name)
+                            {
+                                CreateMidiOut(i);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                buzz.DCWriteLine("Device disconnected: " + info.Name);
+            }
+        }
+
+        private void OnEnumerationCompleted(DeviceWatcher sender, object args)
+        {
+            // Watcher has finished enumerating devices
+            //buzz.DCWriteLine("OnEnumerationCompleted");
+        }
+
+        private void OnWatcherStopped(DeviceWatcher sender, object args)
+        {
+            // The watcher has stopped watching
+            //buzz.DCWriteLine("OnWatcherStopped");
         }
 
         public void CreateMidiIn(int selectedDeviceIndex)
@@ -127,6 +217,13 @@ namespace ReBuzz.Midi
 
         public void ReleaseAll()
         {
+            _watcher.Added -= OnDeviceAdded;
+            _watcher.Removed -= OnDeviceRemoved;
+            _watcher.Updated -= OnDeviceUpdated;
+            _watcher.EnumerationCompleted -= OnEnumerationCompleted;
+            _watcher.Stopped -= OnWatcherStopped;
+            _watcher.Stop();
+
             DisposeMidiIn();
             DisposeMidiOuts();
 
@@ -147,6 +244,37 @@ namespace ReBuzz.Midi
             return list;
         }
 
+        internal void CheckRegistryDataFormat()
+        {
+            long version = registryEx.Read("MIDIDeviceFormat", 1, "Settings");
+
+            if(version == 1)
+            {
+                // Convert MidiOut1 = SomeDevice to SomeDevice = flags
+                // flags is just 1 for enabled now but may add more (eg. hidden)
+                var inputsInfoOld = registryEx.ReadDictionary("MIDI In List");
+                Dictionary<string, Int32> inputsInfo = new Dictionary<string, Int32>();
+                foreach (var item in inputsInfoOld)
+                {
+                    inputsInfo.Add((string)item.Value, 1);
+                }
+
+                registryEx.DeleteCurrentUserSubKey(buzz.registryRoot + "\\" + "MIDI In List");
+                SetMidiInputDevices2(inputsInfo);
+
+                var outputsInfoOld = registryEx.ReadDictionary("MIDI Out List");
+                Dictionary<string, Int32> outputsInfo = new Dictionary<string, Int32>();
+                foreach (var item in outputsInfoOld)
+                {
+                    outputsInfo.Add((string)item.Value, 1);
+                }
+                registryEx.DeleteCurrentUserSubKey(buzz.registryRoot + "\\" + "MIDI Out List");
+                SetMidiOutputDevices2(outputsInfo);
+            }
+
+            registryEx.Write("MIDIDeviceFormat", 2, "Settings");
+        }
+
         internal IEnumerable<int> GetMidiInputDevices()
         {
             return midiIns.Keys.ToReadOnlyCollection();
@@ -154,37 +282,37 @@ namespace ReBuzz.Midi
 
         internal void OpenMidiInDevices2()
         {
-            var midiIns = registryEx.ReadNumberedList<string>("MidiIn", "MIDI In List").ToList();
+            var inputsInfo = registryEx.ReadDictionary("MIDI In List");
+            
             int midiInDevsCount = MidiIn.NumberOfDevices;
 
-            foreach (var productName in midiIns)
+            foreach (var item in inputsInfo)
             {
-                for (int i = 0; i < midiInDevsCount; i++)
+                if (((Int32)item.Value & 1) > 0) // Flags & 1 == enabled
                 {
-                    if (MidiIn.DeviceInfo(i).ProductName == productName)
+                    for (int i = 0; i < midiInDevsCount; i++)
                     {
-                        CreateMidiIn(i);
-                        break;
+                        if (MidiIn.DeviceInfo(i).ProductName == item.Key)
+                        {
+                            CreateMidiIn(i);
+                            break;
+                        }
                     }
                 }
             }
         }
 
-        internal void SetMidiInputDevices2(List<int> midiInDevices)
+        internal void SetMidiInputDevices2(Dictionary<string, Int32> midiInDevices)
         {
+            var regKey = registryEx.CreateCurrentUserSubKey(buzz.registryRoot + "\\" + "MIDI In List");
             try
             {
-                registryEx.DeleteCurrentUserSubKey(buzz.registryRoot + "\\" + "MIDI In List");
+                foreach (var item in midiInDevices)
+                {
+                    regKey.SetValue(item.Key, item.Value); // DeviceName = BitFlags
+                }
             }
             catch { }
-
-            var regKey = registryEx.CreateCurrentUserSubKey(buzz.registryRoot + "\\" + "MIDI In List");
-
-            int i = 1;
-            foreach(var id in midiInDevices)
-            {
-                regKey.SetValue("MidiIn" + (i++), MidiIn.DeviceInfo(id).ProductName);
-            }
         }
 
         internal IEnumerable<int> GetMidiOutputDevices()
@@ -193,36 +321,36 @@ namespace ReBuzz.Midi
         }
 
 
-        internal void SetMidiOutputDevices2(List<int> midiOutDevices)
+        internal void SetMidiOutputDevices2(Dictionary<string, Int32> midiOutDevices)
         {
+            var regKey = registryEx.CreateCurrentUserSubKey(buzz.registryRoot + "\\" + "MIDI Out List");
             try
             {
-                registryEx.DeleteCurrentUserSubKey(buzz.registryRoot + "\\" + "MIDI Out List");
+                foreach (var item in midiOutDevices)
+                {
+                    regKey.SetValue(item.Key, item.Value); // DeviceName = BitFlags
+                }
             }
             catch { }
-
-            var regKey = registryEx.CreateCurrentUserSubKey(buzz.registryRoot + "\\" + "MIDI Out List");
-
-            int i = 1;
-            foreach (var id in midiOutDevices)
-            {
-                regKey.SetValue("MidiOut" + (i++), MidiOut.DeviceInfo(id).ProductName);
-            }
         }
 
         internal void OpenMidiOutDevices2()
         {
-            var midiOuts = registryEx.ReadNumberedList<string>("MidiOut", "MIDI Out List").ToList();
+            var outputsInfo = registryEx.ReadDictionary("MIDI Out List");
+
             int midiOutDevsCount = MidiOut.NumberOfDevices;
 
-            foreach (var productName in midiOuts)
+            foreach (var item in outputsInfo)
             {
-                for (int i = 0; i < midiOutDevsCount; i++)
+                if (((Int32)item.Value & 1) > 0) // Flags & 1 == enabled
                 {
-                    if (MidiOut.DeviceInfo(i).ProductName == productName)
+                    for (int i = 0; i < midiOutDevsCount; i++)
                     {
-                        CreateMidiOut(i);
-                        break;
+                        if (MidiOut.DeviceInfo(i).ProductName == item.Key)
+                        {
+                            CreateMidiOut(i);
+                            break;
+                        }
                     }
                 }
             }
