@@ -2,6 +2,7 @@
 using BuzzGUI.Interfaces;
 using NAudio.CoreAudioApi;
 using NAudio.Midi;
+using ReBuzz.Common;
 using ReBuzz.Core;
 using System;
 using System.Collections.Generic;
@@ -56,6 +57,7 @@ namespace ReBuzz.Midi
             //buzz.DCWriteLine("OnDeviceRemoved");
         }
 
+        Lock midiLock = new();
         private async void OnDeviceUpdated(DeviceWatcher sender, DeviceInformationUpdate args)
         {
             // A device that we already know about has changed somehow (connected, disconnected, other?)
@@ -65,69 +67,72 @@ namespace ReBuzz.Midi
 
             var info = await DeviceInformation.CreateFromIdAsync(args.Id);
 
-            if (info.IsEnabled)
+            lock (midiLock)
             {
-                buzz.DCWriteLine("Device connected: " + info.Name);
-
-                var inputsInfo = registryEx.ReadDictionary("MIDI In List");
-                if(inputsInfo.ContainsKey(info.Name))
+                if (info.IsEnabled)
                 {
-                    if((Int32)inputsInfo[info.Name] == 1)
-                    {   
-                        for (int i = 0; i < midiInDevsCount; i++)
+                    buzz.DCWriteLine("Device connected: " + info.Name);
+
+                    var inputsInfo = registryEx.ReadDictionary("MIDI In List");
+                    if (inputsInfo.ContainsKey(info.Name))
+                    {
+                        if ((Int32)inputsInfo[info.Name] == 1)
                         {
-                            if (MidiIn.DeviceInfo(i).ProductName == info.Name)
+                            for (int i = 0; i < midiInDevsCount; i++)
                             {
-                                CreateMidiIn(i);
-                                break;
+                                if (MidiIn.DeviceInfo(i).ProductName == info.Name)
+                                {
+                                    CreateMidiIn(i);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    var outputsInfo = registryEx.ReadDictionary("MIDI Out List");
+                    if (outputsInfo.ContainsKey(info.Name))
+                    {
+                        if ((Int32)outputsInfo[info.Name] == 1)
+                        {
+                            for (int i = 0; i < midiOutDevsCount; i++)
+                            {
+                                if (MidiOut.DeviceInfo(i).ProductName == info.Name)
+                                {
+                                    CreateMidiOut(i);
+                                    break;
+                                }
                             }
                         }
                     }
                 }
-
-                var outputsInfo= registryEx.ReadDictionary("MIDI Out List");
-                if (outputsInfo.ContainsKey(info.Name))
+                else
                 {
-                    if ((Int32)outputsInfo[info.Name] == 1)
+                    buzz.DCWriteLine("Device disconnected: " + info.Name);
+
+                    var inputsInfo = registryEx.ReadDictionary("MIDI In List");
+                    if (inputsInfo.ContainsKey(info.Name))
                     {
-                        for (int i = 0; i < midiOutDevsCount; i++)
+                        for (int i = 0; i < midiIns.Count; i++)
                         {
-                            if (MidiOut.DeviceInfo(i).ProductName == info.Name)
+                            if (midiIns.ElementAt(i).Value.ProductName == info.Name)
                             {
-                                CreateMidiOut(i);
+                                midiIns.ElementAt(i).Value.UnsubscribeEvents();
+                                midiIns.Remove(midiIns.ElementAt(i).Key);
                                 break;
                             }
                         }
                     }
-                }
-            }
-            else
-            {
-                buzz.DCWriteLine("Device disconnected: " + info.Name);
 
-                var inputsInfo = registryEx.ReadDictionary("MIDI In List");
-                if (inputsInfo.ContainsKey(info.Name))
-                {
-                    for (int i = 0; i < midiIns.Count; i++)
+                    var outputsInfo = registryEx.ReadDictionary("MIDI Out List");
+                    if (outputsInfo.ContainsKey(info.Name))
                     {
-                        if (midiIns.ElementAt(i).Value.ProductName == info.Name)
+                        for (int i = 0; i < midiOuts.Count; i++)
                         {
-                            midiIns.ElementAt(i).Value.UnsubscribeEvents();
-                            midiIns.Remove(midiIns.ElementAt(i).Key);
-                            break;
-                        }
-                    }
-                }
-
-                var outputsInfo = registryEx.ReadDictionary("MIDI Out List");
-                if (outputsInfo.ContainsKey(info.Name))
-                {
-                    for (int i = 0; i < midiOuts.Count; i++)
-                    {  
-                        if (midiOuts.ElementAt(i).Value.ProductName == info.Name)
-                        {   
-                            midiOuts.Remove(midiOuts.ElementAt(i).Key);
-                            break;
+                            if (midiOuts.ElementAt(i).Value.ProductName == info.Name)
+                            {
+                                midiOuts.Remove(midiOuts.ElementAt(i).Key);
+                                break;
+                            }
                         }
                     }
                 }
@@ -152,7 +157,7 @@ namespace ReBuzz.Midi
             {
                 if (midiIns.ContainsKey(selectedDeviceIndex))
                 {
-                    midiIns[selectedDeviceIndex].DisposeMidiIn();
+                    //midiIns[selectedDeviceIndex].DisposeMidiIn();
                     midiIns.Remove(selectedDeviceIndex);
                 }
 
@@ -184,7 +189,7 @@ namespace ReBuzz.Midi
             {
                 if (midiOuts.ContainsKey(selectedDeviceIndex))
                 {
-                    midiOuts[selectedDeviceIndex].MidiOut.Dispose();
+                    //midiOuts[selectedDeviceIndex].MidiOut.Dispose();
                     midiOuts.Remove(selectedDeviceIndex);
                 }
 
@@ -325,13 +330,13 @@ namespace ReBuzz.Midi
 
         internal void OpenMidiInDevices2()
         {
-            var inputsInfo = registryEx.ReadDictionary("MIDI In List");
+            var inputsInfo = registryEx.ReadDictionary("MIDI In List").KeyValuesToStringInt();
             
             int midiInDevsCount = MidiIn.NumberOfDevices;
 
             foreach (var item in inputsInfo)
             {
-                if (item.Value is int && ((Int32)item.Value & 1) > 0) // Flags & 1 == enabled
+                if (((Int32)item.Value & 1) > 0) // Flags & 1 == enabled
                 {
                     for (int i = 0; i < midiInDevsCount; i++)
                     {
@@ -387,7 +392,7 @@ namespace ReBuzz.Midi
 
         internal void OpenMidiOutDevices2()
         {
-            var outputsInfo = registryEx.ReadDictionary("MIDI Out List");
+            var outputsInfo = registryEx.ReadDictionary("MIDI Out List").KeyValuesToStringInt();
 
             int midiOutDevsCount = MidiOut.NumberOfDevices;
 

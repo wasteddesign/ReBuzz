@@ -836,7 +836,7 @@ namespace WDE.ModernPatternEditor
 
             if (velocity == 0)
             {
-                PlayingNotesList.RemoveAll(x => x.note == buzzNote);
+                PlayingNotesList.RemoveAll(x => x != null && x.note == buzzNote);
             }
             else if (Editor.SelectedMachine != null)
             {
