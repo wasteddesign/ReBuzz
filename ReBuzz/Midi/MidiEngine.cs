@@ -42,8 +42,8 @@ namespace ReBuzz.Midi
             _watcher.Updated += OnDeviceUpdated;
             _watcher.EnumerationCompleted += OnEnumerationCompleted;
             _watcher.Stopped += OnWatcherStopped;
-
             _watcher.Start();
+
         }
         private void OnDeviceAdded(DeviceWatcher sender, DeviceInformation args)
         {
@@ -149,6 +149,26 @@ namespace ReBuzz.Midi
         {
             // The watcher has stopped watching
             //buzz.DCWriteLine("OnWatcherStopped");
+        }
+
+        public void DisposeWatcher()
+        {
+            if (_watcher != null)
+            {
+                _watcher.Added -= OnDeviceAdded;
+                _watcher.Removed -= OnDeviceRemoved;
+                _watcher.Updated -= OnDeviceUpdated;
+                _watcher.EnumerationCompleted -= OnEnumerationCompleted;
+                _watcher.Stopped -= OnWatcherStopped;
+
+                if (_watcher.Status == DeviceWatcherStatus.Started ||
+                    _watcher.Status == DeviceWatcherStatus.EnumerationCompleted)
+                {
+                    _watcher.Stop();
+                }
+
+                _watcher = null;
+            }
         }
 
         public void CreateMidiIn(int selectedDeviceIndex)
@@ -264,14 +284,6 @@ namespace ReBuzz.Midi
 
         public void ReleaseAll()
         {
-            _watcher.Added -= OnDeviceAdded;
-            _watcher.Removed -= OnDeviceRemoved;
-            _watcher.Updated -= OnDeviceUpdated;
-            _watcher.EnumerationCompleted -= OnEnumerationCompleted;
-            _watcher.Stopped -= OnWatcherStopped;
-            if (_watcher.Status == DeviceWatcherStatus.Started)
-                _watcher.Stop();
-
             DisposeMidiIn();
             DisposeMidiOuts();
 

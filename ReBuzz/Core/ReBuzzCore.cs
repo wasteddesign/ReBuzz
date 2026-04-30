@@ -1206,6 +1206,7 @@ namespace ReBuzz.Core
 
             timerAutomaticBackups.Stop();
             MidiInOutEngine.ReleaseAll();
+            MidiInOutEngine.DisposeWatcher();
             AudioEngine.FinalStop();
             DeleteBackup();
         }
