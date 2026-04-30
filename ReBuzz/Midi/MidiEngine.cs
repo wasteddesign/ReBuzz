@@ -57,7 +57,6 @@ namespace ReBuzz.Midi
             //buzz.DCWriteLine("OnDeviceRemoved");
         }
 
-        Lock midiLock = new();
         private async void OnDeviceUpdated(DeviceWatcher sender, DeviceInformationUpdate args)
         {
             // A device that we already know about has changed somehow (connected, disconnected, other?)
@@ -67,72 +66,69 @@ namespace ReBuzz.Midi
 
             var info = await DeviceInformation.CreateFromIdAsync(args.Id);
 
-            lock (midiLock)
+            if (info.IsEnabled)
             {
-                if (info.IsEnabled)
+                buzz.DCWriteLine("Device connected: " + info.Name);
+
+                var inputsInfo = registryEx.ReadDictionary("MIDI In List");
+                if (inputsInfo.ContainsKey(info.Name))
                 {
-                    buzz.DCWriteLine("Device connected: " + info.Name);
-
-                    var inputsInfo = registryEx.ReadDictionary("MIDI In List");
-                    if (inputsInfo.ContainsKey(info.Name))
+                    if ((Int32)inputsInfo[info.Name] == 1)
                     {
-                        if ((Int32)inputsInfo[info.Name] == 1)
+                        for (int i = 0; i < midiInDevsCount; i++)
                         {
-                            for (int i = 0; i < midiInDevsCount; i++)
+                            if (MidiIn.DeviceInfo(i).ProductName == info.Name)
                             {
-                                if (MidiIn.DeviceInfo(i).ProductName == info.Name)
-                                {
-                                    CreateMidiIn(i);
-                                    break;
-                                }
-                            }
-                        }
-                    }
-
-                    var outputsInfo = registryEx.ReadDictionary("MIDI Out List");
-                    if (outputsInfo.ContainsKey(info.Name))
-                    {
-                        if ((Int32)outputsInfo[info.Name] == 1)
-                        {
-                            for (int i = 0; i < midiOutDevsCount; i++)
-                            {
-                                if (MidiOut.DeviceInfo(i).ProductName == info.Name)
-                                {
-                                    CreateMidiOut(i);
-                                    break;
-                                }
+                                CreateMidiIn(i);
+                                break;
                             }
                         }
                     }
                 }
-                else
-                {
-                    buzz.DCWriteLine("Device disconnected: " + info.Name);
 
-                    var inputsInfo = registryEx.ReadDictionary("MIDI In List");
-                    if (inputsInfo.ContainsKey(info.Name))
+                var outputsInfo = registryEx.ReadDictionary("MIDI Out List");
+                if (outputsInfo.ContainsKey(info.Name))
+                {
+                    if ((Int32)outputsInfo[info.Name] == 1)
                     {
-                        for (int i = 0; i < midiIns.Count; i++)
+                        for (int i = 0; i < midiOutDevsCount; i++)
                         {
-                            if (midiIns.ElementAt(i).Value.ProductName == info.Name)
+                            if (MidiOut.DeviceInfo(i).ProductName == info.Name)
                             {
-                                midiIns.ElementAt(i).Value.UnsubscribeEvents();
-                                midiIns.Remove(midiIns.ElementAt(i).Key);
+                                CreateMidiOut(i);
                                 break;
                             }
                         }
                     }
+                }
+            }
+            else
+            {
+                buzz.DCWriteLine("Device disconnected: " + info.Name);
 
-                    var outputsInfo = registryEx.ReadDictionary("MIDI Out List");
-                    if (outputsInfo.ContainsKey(info.Name))
+                var inputsInfo = registryEx.ReadDictionary("MIDI In List");
+                if (inputsInfo.ContainsKey(info.Name))
+                {
+                    for (int i = 0; i < midiIns.Count; i++)
                     {
-                        for (int i = 0; i < midiOuts.Count; i++)
+                        if (midiIns.ElementAt(i).Value.ProductName == info.Name)
                         {
-                            if (midiOuts.ElementAt(i).Value.ProductName == info.Name)
-                            {
-                                midiOuts.Remove(midiOuts.ElementAt(i).Key);
-                                break;
-                            }
+                            midiIns.ElementAt(i).Value.UnsubscribeEvents();
+                            midiIns.Remove(midiIns.ElementAt(i).Key);
+                            break;
+                        }
+                    }
+                }
+
+                var outputsInfo = registryEx.ReadDictionary("MIDI Out List");
+                if (outputsInfo.ContainsKey(info.Name))
+                {
+                    for (int i = 0; i < midiOuts.Count; i++)
+                    {
+                        if (midiOuts.ElementAt(i).Value.ProductName == info.Name)
+                        {
+                            midiOuts.Remove(midiOuts.ElementAt(i).Key);
+                            break;
                         }
                     }
                 }
@@ -383,7 +379,7 @@ namespace ReBuzz.Midi
         internal IEnumerable<Tuple<int, string>> GetMidiOuts()
         {
             List<Tuple<int, string>> moList = new List<Tuple<int, string>>();
-            foreach (var mo in midiOuts)
+            foreach (var mo in midiOuts.ToList())
                 moList.Add(new Tuple<int, string>(mo.Key, mo.Value.ProductName));
 
             return moList;
