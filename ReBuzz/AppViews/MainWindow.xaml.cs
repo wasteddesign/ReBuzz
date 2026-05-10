@@ -936,7 +936,7 @@ namespace ReBuzz
 
             if (Global.GeneralSettings.SequenceView == SequenceEditorType.ModernVertical)
             {
-                ModernSequenceEditor = new WDE.ModernSequenceEditor.SequenceEditor(Buzz, Utils.GetBuzzThemeResources(Buzz.Theme.SequenceEditor.Source, buzzPath));
+                ModernSequenceEditor = new WDE.ModernSequenceEditor.SequenceEditor(Buzz, Utils.GetBuzzThemeResources(Buzz.Theme.SequenceEditor.Source, buzzPath), true);
                 borderSequenceEditor.Child = ModernSequenceEditor;
                 ModernSequenceEditor.SizeChanged += ModernSequenceEditorHorizontal_SizeChanged;
 
@@ -948,7 +948,7 @@ namespace ReBuzz
             }
             else
             {
-                ModernSequenceEditorHorizontal = new WDE.ModernSequenceEditorHorizontal.SequenceEditor(Buzz, Utils.GetBuzzThemeResources(Buzz.Theme.SequenceEditor.Source, buzzPath));
+                ModernSequenceEditorHorizontal = new WDE.ModernSequenceEditorHorizontal.SequenceEditor(Buzz, Utils.GetBuzzThemeResources(Buzz.Theme.SequenceEditor.Source, buzzPath), true);
                 borderSequenceEditor.Child = ModernSequenceEditorHorizontal;
                 ModernSequenceEditorHorizontal.SizeChanged += ModernSequenceEditorHorizontal_SizeChanged;
 
