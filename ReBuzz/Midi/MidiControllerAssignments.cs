@@ -313,13 +313,14 @@ namespace ReBuzz.Midi
                         {
                             isActive = true;
                         }
-
                         else if (paramValue <= paramCurrentValue && !below)
                         {
                             isActive = true;
                         }
-
-                        return;
+                        else
+                        {
+                            return;
+                        }
                     }
                 }
 
