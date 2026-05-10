@@ -4,6 +4,7 @@ using BuzzGUI.Common.DSP;
 using BuzzGUI.Common.InterfaceExtensions;
 using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
+using Microsoft.Windows.Devices.Midi2;
 using ReBuzz.Core;
 using ReBuzz.Core.Actions.GraphActions;
 using ReBuzz.MachineManagement;
@@ -583,6 +584,18 @@ namespace ReBuzz.FileOps
                 }
             }
 
+            // Parameter MIDI bindings
+            foreach (var bind in songData.ParameterMidiBindings)
+            {
+                string machineName = bind.Machine;
+                machineName = importDictionaryAll.ContainsKey(machineName) ? importDictionaryAll[machineName] : machineName;
+                MachineCore machine = machines.FirstOrDefault(m => m.Name == machineName);
+
+                var all = machine.AllNonInputStateParameters();
+                var param = all.ElementAt(bind.ParamIndex);
+                buzz.MidiControllerAssignments.BindParameter(param as ParameterCore, bind.Track, bind.MidiChannel, bind.MidiController);
+            }
+
             // Info text
             buzz.InfoText = songData.InfoText;
 
@@ -1135,6 +1148,27 @@ namespace ReBuzz.FileOps
 
             file.Waves = waves.ToArray();
 
+            // Parameter MIDI bindings
+            List<BMXMLParameterMidiBinding> pmbList = new List<BMXMLParameterMidiBinding>();
+            var controllers = buzz.MidiControllerAssignments.ContollerBindings;
+            if (controllers.Count > 0)
+            {
+                foreach (var controller in controllers)
+                {
+                    BMXMLParameterMidiBinding pmb = new BMXMLParameterMidiBinding();
+                    var machine = controller.Parameter.Group.Machine;
+                    pmb.Machine = machine.Name;
+                    pmb.Group = machine.ParameterGroups.IndexOf(controller.Parameter.Group);
+                    pmb.Track = controller.Track;
+                    pmb.ParamIndex = machine.AllNonInputStateParameters().FindIndex(m => m == controller.Parameter);
+                    pmb.MidiChannel = controller.MidiChannel;
+                    pmb.MidiController = controller.MidiController;
+                    pmbList.Add(pmb);
+                }
+
+                file.ParameterMidiBindings = pmbList.ToArray();
+            }
+
             // Info Text
             file.InfoText = buzz.InfoText == null ? "" : buzz.InfoText;
 
@@ -1199,6 +1233,8 @@ namespace ReBuzz.FileOps
         public int SongEnd { get; set; }
         public int Speed { get; set; }
 
+        public BMXMLParameterMidiBinding[] ParameterMidiBindings { get; set; }
+
     }
 
     [XmlType(TypeName = "Machine")]
@@ -1210,7 +1246,6 @@ namespace ReBuzz.FileOps
         public string Name { get; set; }
         public BMXMLPattern[] Patterns { get; set; }
         public BMXMLParameterGroup[] ParameterGroups { get; set; }
-
         public BMXMLAttribute[] Attributes { get; set; }
         public MachineType Type { get; set; }
         public float X { get; set; }
@@ -1226,6 +1261,17 @@ namespace ReBuzz.FileOps
         public BMXMLMachineWindow GUIWindow { get; set; }
         public BMXMLMachineWindow ParameterWindow { get; set; }
         public bool IsBypassed { get; set; }
+    }
+
+    [XmlType(TypeName = "ParameterMidiBinding")]
+    public class BMXMLParameterMidiBinding
+    {
+        public string Machine { get; set; }
+        public int Group { get; set; }
+        public int Track { get; set; }
+        public int ParamIndex { get; set; }
+        public int MidiChannel { get; set; }
+        public int MidiController { get; set; }
     }
 
     [XmlType(TypeName = "MachineGroup")]

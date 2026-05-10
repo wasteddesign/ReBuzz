@@ -44,6 +44,8 @@ namespace ReBuzz.Midi
             }
         }
 
+        internal List<ContollerBinding> ContollerBindings => contollerBindings;
+
         private void SongCore_MachineRemoved(IMachine obj)
         {
             UnbindAllMIDIControllers(obj);
@@ -68,22 +70,9 @@ namespace ReBuzz.Midi
                 channel = (b & 0x0F);
             }
 
-            int index = 0;
-            foreach (var mc in midiControllers)
+            foreach (var cb in ContollerBindings)
             {
-                if (mc.Channel == channel && mc.Contoller == data1 && commandCode == MIDI.ControlChange)
-                {
-                    foreach (var cb in contollerBindings)
-                    {
-                        if (cb.McIndex == index)
-                        {
-                            float pos = data2 / 127f;
-                            int value = (int)(cb.Parameter.MaxValue * pos);
-                            cb.Parameter.SetValue(cb.Track, value);
-                        }
-                    }
-                }
-                index++;
+                cb.Update(channel, data1, data2);
             }
         }
 
@@ -93,7 +82,7 @@ namespace ReBuzz.Midi
 
             midiReBuzzControllers.Clear();
             midiControllers.Clear();
-            contollerBindings.Clear();
+            ContollerBindings.Clear();
         }
 
         internal void LoadAssignments()
@@ -254,26 +243,87 @@ namespace ReBuzz.Midi
 
         internal void BindParameter(ParameterCore parameterCore, int track, int mcindex)
         {
-            ContollerBinding contollerBind = new ContollerBinding(parameterCore, track, mcindex);
-            contollerBindings.Add(contollerBind);
+            if (mcindex < 0 || mcindex >= midiControllers.Count)
+                return;
+
+            var c = midiControllers[mcindex];
+            BindParameter(parameterCore, track, c.Channel, c.Contoller);
+        }
+
+        internal void BindParameter(ParameterCore parameterCore, int track, int midiChannel, int midiController)
+        {
+            ContollerBinding contollerBind = new ContollerBinding(parameterCore, track, midiChannel, midiController, Global.MIDISettings.ParameterSoftTakeover);
+            ContollerBindings.Add(contollerBind);
         }
 
         internal void UnbindAllMIDIControllers(IMachine machineCore)
         {
-            contollerBindings.RemoveAll(cb => cb.Parameter.Group.Machine == machineCore);
+            ContollerBindings.RemoveAll(cb => cb.Parameter.Group.Machine == machineCore);
         }
 
         internal class ContollerBinding
         {
             internal ParameterCore Parameter { get; }
             internal int Track { get; }
-            internal int McIndex { get; }
+            internal int MidiChannel { get; }
+            internal int MidiController { get; }
 
-            internal ContollerBinding(ParameterCore parameter, int track, int mcIndex)
+            private bool softTakeover;
+            private bool isActive;
+            private bool initialized;
+            private bool below;
+
+            internal ContollerBinding(ParameterCore parameter, int track, int midiChannel, int midiCC, bool softTakeover = true)
             {
                 Parameter = parameter;
                 Track = track;
-                McIndex = mcIndex;
+                MidiChannel = midiChannel;
+                MidiController = midiCC;
+
+                this.softTakeover = softTakeover;
+            }
+
+            internal void Update(int channel, int controller, int value)
+            {
+                if (MidiChannel != channel || MidiController != controller)
+                {
+                    return;
+                }
+
+                float pos = value / 127f;
+                int paramValue = (int)((Parameter.MaxValue - Parameter.MinValue) * pos + Parameter.MinValue);
+                int paramCurrentValue = Parameter.GetValue(Track);
+
+                if (softTakeover)
+                {
+                    if (!isActive)
+                    {
+                        if (!initialized)
+                        {
+                            initialized = true;
+                            below = paramValue < paramCurrentValue ? true : false;
+
+                            if (paramValue == paramCurrentValue)
+                                isActive = true;
+
+                            return;
+                        }
+
+                        if (paramValue >= paramCurrentValue && below)
+                        {
+                            isActive = true;
+                        }
+
+                        else if (paramValue <= paramCurrentValue && !below)
+                        {
+                            isActive = true;
+                        }
+
+                        return;
+                    }
+                }
+
+                Parameter.SetValue(Track, paramValue);
             }
         }
     }

@@ -75,10 +75,10 @@ namespace ReBuzz.FileOps
             SEQU = 0x55514553, // Ok
             WAVT = 0x54564157, // Ok
             CWAV = 0x56415743,
-            WAVE = 0x45564157,
+            WAVE = 0x45564157, // Ok
             BLAH = 0x48414c42, // Info text
             PARA = 0x41524150, // Ok
-            MIDI = 0x4944494D,
+            MIDI = 0x4944494D, // Ok
             CON2 = 0x324E4F43,
             REVB = 0x52455642, // Buzz Build info
             GLDP = 0x474C4450, // Dialog states?
@@ -134,6 +134,7 @@ namespace ReBuzz.FileOps
                 LoadDialogProperties();
                 LoadXQES();
                 LoadMGRP(x, y, import);
+                LoadMIDI();
 
                 foreach (var machine in machines)
                 {
@@ -1265,6 +1266,38 @@ namespace ReBuzz.FileOps
             return true;
         }
 
+        private bool LoadMIDI()
+        {
+            Section section;
+            if (sections.TryGetValue(SectionType.MIDI, out section))
+            {
+                FileOpsEvent(FileEventType.StatusUpdate, "Load MIDI Properties...");
+
+                fs.Position = section.Offset;
+
+                while (true)
+                {
+                    string machineName = ReadString(fs);
+                    if (machineName.Length == 0)
+                        break;
+
+                    int group = ReadByte(fs);
+                    int track = ReadByte(fs);
+                    int paramIndex = ReadByte(fs);
+                    int midiChannel = ReadByte(fs);
+                    int midiController = ReadByte(fs);
+
+                    machineName = importDictionaryAll.ContainsKey(machineName) ? importDictionaryAll[machineName] : machineName;
+                    MachineCore machine = machines.FirstOrDefault(m => m.Name == machineName);
+
+                    var all = machine.AllNonInputStateParameters();
+                    var param = all.ElementAt(paramIndex);
+                    buzz.MidiControllerAssignments.BindParameter(param as ParameterCore, track, midiChannel, midiController);
+                }
+            }
+            return true;
+        }
+
         // Call this after sequeces have been loaded
         private bool LoadXQES()
         {
@@ -1662,6 +1695,7 @@ namespace ReBuzz.FileOps
             CreateDialogPropertiesSection();
             CreateXQESSection();
             CreateMGRPSection();
+            CreateMIDI();
 
             uint offset = 4;                                // Buzz magic
             offset += 4;                                    // Number of sections
@@ -2265,6 +2299,39 @@ namespace ReBuzz.FileOps
                 }
             }
             AddSection(ms.ToArray(), SectionType.MGRP);
+        }
+
+        private bool CreateMIDI()
+        {
+            MemoryStream ms = new MemoryStream();
+            var song = buzz.SongCore;
+
+            var controllers = buzz.MidiControllerAssignments.ContollerBindings;
+            if (controllers.Count == 0)
+                return true;
+
+            foreach (var controller in controllers)
+            {
+                var machine = controller.Parameter.Group.Machine;
+                WriteString(ms, machine.Name);
+                int group = machine.ParameterGroups.IndexOf(controller.Parameter.Group);
+                int track = controller.Track;
+                int paramIndex = machine.AllNonInputStateParameters().FindIndex(m => m == controller.Parameter);
+                int midiChannel = controller.MidiChannel;
+                int midiController = controller.MidiController;
+
+                WriteByte(ms, (byte)group);
+                WriteByte(ms, (byte)track);
+                WriteByte(ms, (byte)paramIndex);
+                WriteByte(ms, (byte)midiChannel);
+                WriteByte(ms, (byte)midiController);
+            }
+
+            // Machine name == ""
+            WriteByte(ms, 0);
+
+            AddSection(ms.ToArray(), SectionType.MIDI);
+            return true;
         }
 
         void CreateWaveTableSection()

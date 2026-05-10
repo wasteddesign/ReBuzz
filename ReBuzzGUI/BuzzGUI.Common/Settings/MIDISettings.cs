@@ -11,5 +11,7 @@
         [BuzzSetting(false, Description = "Try to re-open MIDI input device once per second after it closes.")]
         public bool ReopenMIDIInput { get; set; }
 
+        [BuzzSetting(true, Description = "Soft takeover for parameter MIDI bindings.")]
+        public bool ParameterSoftTakeover { get; set; }
     }
 }
