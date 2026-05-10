@@ -7,11 +7,8 @@ using BuzzGUI.Common.Actions.SongActions;
 using BuzzGUI.Common.InterfaceExtensions;
 using BuzzGUI.Interfaces;
 using BuzzGUI.SequenceEditor.Actions;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -22,7 +19,6 @@ using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using static BuzzGUI.SequenceEditor.TrackHeaderControl;
-//using WDE.Info; // Info
 
 namespace BuzzGUI.SequenceEditor
 {
@@ -31,12 +27,6 @@ namespace BuzzGUI.SequenceEditor
     /// </summary>
     public partial class SequenceEditor : UserControl, INotifyPropertyChanged
 	{
-		
-		// public WDE.ModernSequenceEditor.SequenceEditor MSequenceEditor { get; private set; }
-		// public WDE.ModernSequenceEditor.CustomSequencerWindow CustomSequencerWindow { get; private set; }
-
-        // public WDE.Info.CustomInfoWindow CustomInfoWindow { get; private set; }
-
         public static SequenceEditor SequenceEditorInstance { get; set; }
 
 		public bool TimeSignatureListInit { get; }
@@ -173,7 +163,6 @@ namespace BuzzGUI.SequenceEditor
 			if (e.PropertyName == "Patterns")
 			{
 				viewSettings.PatternAssociations.Remove(k => k.Machine == m && !m.Patterns.Contains(k));
-				//viewSettings.PatternAssociationsList.RemovedPatterns(m);
 			}
 		}
 
@@ -758,7 +747,6 @@ namespace BuzzGUI.SequenceEditor
 						song.Buzz.ActivatePatternEditor();
 					else
 						this.Focus();
-
 				}
 			};
 
@@ -777,9 +765,7 @@ namespace BuzzGUI.SequenceEditor
 						if (song.SongEnd >= CursorRightTime) Do(new SetMarkerAction(song, SongMarkers.SongEnd, song.SongEnd + CursorSpan));
 						if (song.LoopEnd >= CursorRightTime) Do(new SetMarkerAction(song, SongMarkers.LoopEnd, song.LoopEnd + CursorSpan));
 						if (song.LoopStart >= CursorRightTime) Do(new SetMarkerAction(song, SongMarkers.LoopStart, song.LoopStart + CursorSpan));
-
 					}
-
 
 					cursorElement.Update();
 				}
@@ -864,11 +850,7 @@ namespace BuzzGUI.SequenceEditor
 					if (!viewSettings.PatternAssociations.ContainsKey(CursorPattern))
 						viewSettings.PatternAssociations[CursorPattern] = new PatternEx();
 
-					//if (!viewSettings.PatternAssociationsList.ContainsKey(CursorPattern))
-					//	viewSettings.PatternAssociationsList.Add(CursorPattern, new PatternEx());
-
 					viewSettings.PatternAssociations[CursorPattern].ColorIndex = (int)index;
-					//viewSettings.PatternAssociationsList.SetColorIndex(CursorPattern, (int)index);
 
 					foreach (TrackControl tc in trackStack.Children) tc.EventsChanged();
 
@@ -1195,9 +1177,8 @@ namespace BuzzGUI.SequenceEditor
 			bw.Write(zoomSlider.Value);
 			viewSettings.TimeSignatureList.Write(bw);
 
-			//bw.Write(viewSettings.PatternAssociationsList.PatternAssociations.Count());
 			bw.Write(viewSettings.PatternAssociations.Count());
-			//foreach (var pa in viewSettings.PatternAssociationsList.PatternAssociations)
+			
 			foreach (var pa in viewSettings.PatternAssociations)
 			{
 				bw.Write(pa.Key.Machine.Name);
