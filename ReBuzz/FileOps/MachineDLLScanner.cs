@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Security.Cryptography;
+using Cryptography = System.Security.Cryptography;
 using System.Windows;
 using System.Xml;
 using System.Xml.Serialization;
@@ -45,7 +45,8 @@ namespace ReBuzz.FileOps
                         var effectDllFiles = GetDllList(filepath);
                         filepath = Path.Combine(buzzPath, @"Gear\Generators");
                         var generatorDllFiles = GetDllList(filepath);
-                        if (Global.GeneralSettings.AlwaysRescanPlugins || xmlMachines.NumDLLsInEffectsFolder != effectDllFiles.Count || xmlMachines.NumDLLsGeneratorsFolder != generatorDllFiles.Count)
+                        if (Global.GeneralSettings.PluginRescanStragety == PluginRescanStrategyType.Always ||
+                            (Global.GeneralSettings.PluginRescanStragety == PluginRescanStrategyType.WhenChanged && (xmlMachines.NumDLLsInEffectsFolder != effectDllFiles.Count || xmlMachines.NumDLLsGeneratorsFolder != generatorDllFiles.Count)))
                         {
                             xmlMachines = RescanMachineDLLs(buzz, buzzPath, dispatcher, engineSettings);
                         }
@@ -96,6 +97,8 @@ namespace ReBuzz.FileOps
 
         public void AddMachineDllsToDictionary(ReBuzzCore buzz, XMLMachineDLL[] xMLMachineDLLs, Dictionary<string, MachineDLL> md)
         {
+            var sha256 = Cryptography.SHA1.Create();
+
             foreach (var xmac in xMLMachineDLLs)
             {
                 if (!buzz.Gear.IsBlacklisted(xmac))
@@ -110,7 +113,7 @@ namespace ReBuzz.FileOps
 
                     using (var fs = File.OpenRead(mDll.Path))
                     {
-                        mDll.SHA1Hash = string.Join("", new SHA1CryptoServiceProvider().ComputeHash(fs).Select(b => b.ToString("X2")));
+                        mDll.SHA1Hash = string.Join("", sha256.ComputeHash(fs).Select(b => b.ToString("X2")));
                     }
 
                     var mi = new MachineInfo();
@@ -134,6 +137,8 @@ namespace ReBuzz.FileOps
                     }
                 }
             }
+
+            sha256.Dispose();
         }
 
         public static XMLMachineDLLs LoadMachineDLLs(Stream input, IBuzz buzz)
@@ -416,7 +421,6 @@ namespace ReBuzz.FileOps
         public static List<FileInfo> GetDllList(string filepath)
         {
             List<string> list = new List<string>();
-
             DirectoryInfo d = new DirectoryInfo(filepath);
 
             return d.GetFiles().Where(f => f.Name.EndsWith(".dll")).ToList();

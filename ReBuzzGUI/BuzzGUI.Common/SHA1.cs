@@ -1,18 +1,18 @@
 ﻿using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
+using Cryptography = System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace BuzzGUI.Common
 {
     public static class SHA1
     {
-        static SHA1CryptoServiceProvider sha;
+        static Cryptography.SHA1? sha;
 
         public static Task<string> ComputeForFileTaskAsync(string path)
         {
             if (sha == null)
-                sha = new SHA1CryptoServiceProvider();
+                sha = Cryptography.SHA1.Create();
 
             return Task.Factory.StartNew(() =>
             {
