@@ -6,6 +6,8 @@
         Scale_200 = 200, Scale_225 = 225, Scale_250 = 250, Scale_275 = 275, Scale_300 = 300,
         Scale_325 = 325, Scale_350 = 350, Scale_375 = 375, Scale_400 = 400 };
     public enum WorkingModeType { Normal, Play };
+
+    public enum PluginRescanStrategyType { WhenChanged, Always, Never };
     public class GeneralSettings : Settings
     {
         [BuzzSetting(true, Description = "Rename previous version to <songname>.backup when saving a song.")]
@@ -23,8 +25,8 @@
         [BuzzSetting(false, Description = "Disable hardware accelerated (GPU) graphics rendering. Not recommended unless your GPU/drivers suck. Restart required.")]
         public bool WPFSoftwareRendering { get; set; }
 
-        [BuzzSetting(false, Description = "Always rescan plugins on start (ignore plugin cache).")]
-        public bool AlwaysRescanPlugins { get; set; }
+        [BuzzSetting(PluginRescanStrategyType.WhenChanged, Description = "Plugin rescan strategy: Rescan when DLL count changes, Always, Never.")]
+        public PluginRescanStrategyType PluginRescanStragety { get; set; }
 
         [BuzzSetting(SequenceEditorType.ModernVertical, Description = "Sequence View Type.")]
         public SequenceEditorType SequenceView { get; set; }
