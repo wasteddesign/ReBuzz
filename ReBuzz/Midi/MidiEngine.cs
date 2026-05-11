@@ -1,6 +1,4 @@
 ﻿using BuzzGUI.Common;
-using BuzzGUI.Interfaces;
-using NAudio.CoreAudioApi;
 using NAudio.Midi;
 using ReBuzz.Common;
 using ReBuzz.Core;
@@ -312,20 +310,22 @@ namespace ReBuzz.Midi
                 Dictionary<string, Int32> inputsInfo = new Dictionary<string, Int32>();
                 foreach (var item in inputsInfoOld)
                 {
-                    inputsInfo.Add((string)item.Value, 1);
+                    if (item.Value is not int)
+                        inputsInfo.Add((string)item.Value, 1);
                 }
 
                 registryEx.DeleteCurrentUserSubKey(buzz.registryRoot + "\\" + "MIDI In List");
-                SetMidiInputDevices2(inputsInfo);
+                SetMidiInputDevices(inputsInfo);
 
                 var outputsInfoOld = registryEx.ReadDictionary("MIDI Out List");
                 Dictionary<string, Int32> outputsInfo = new Dictionary<string, Int32>();
                 foreach (var item in outputsInfoOld)
                 {
-                    outputsInfo.Add((string)item.Value, 1);
+                    if (item.Value is not int)
+                        outputsInfo.Add((string)item.Value, 1);
                 }
                 registryEx.DeleteCurrentUserSubKey(buzz.registryRoot + "\\" + "MIDI Out List");
-                SetMidiOutputDevices2(outputsInfo);
+                SetMidiOutputDevices(outputsInfo);
             }
 
             registryEx.Write("MIDIDeviceFormat", 2, "Settings");
@@ -336,7 +336,7 @@ namespace ReBuzz.Midi
             return midiIns.Keys.ToReadOnlyCollection();
         }
 
-        internal void OpenMidiInDevices2()
+        internal void OpenMidiInDevices()
         {
             var inputsInfo = registryEx.ReadDictionary("MIDI In List").KeyValuesToStringInt();
             
@@ -358,7 +358,7 @@ namespace ReBuzz.Midi
             }
         }
 
-        internal void SetMidiInputDevices2(Dictionary<string, Int32> midiInDevices)
+        internal void SetMidiInputDevices(Dictionary<string, Int32> midiInDevices)
         {
             var regKey = registryEx.CreateCurrentUserSubKey(buzz.registryRoot + "\\" + "MIDI In List");
             try
@@ -385,7 +385,7 @@ namespace ReBuzz.Midi
             return moList;
         }
 
-        internal void SetMidiOutputDevices2(Dictionary<string, Int32> midiOutDevices)
+        internal void SetMidiOutputDevices(Dictionary<string, Int32> midiOutDevices)
         {
             var regKey = registryEx.CreateCurrentUserSubKey(buzz.registryRoot + "\\" + "MIDI Out List");
             try
@@ -398,7 +398,7 @@ namespace ReBuzz.Midi
             catch { }
         }
 
-        internal void OpenMidiOutDevices2()
+        internal void OpenMidiOutDevices()
         {
             var outputsInfo = registryEx.ReadDictionary("MIDI Out List").KeyValuesToStringInt();
 

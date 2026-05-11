@@ -664,16 +664,16 @@ namespace ReBuzz
                             {
                                 midiIns[item.Label] = item.Checked ? 1 : 0;
                             }
-                            Buzz.MidiInOutEngine.SetMidiInputDevices2(midiIns);
-                            Buzz.MidiInOutEngine.OpenMidiInDevices2();
+                            Buzz.MidiInOutEngine.SetMidiInputDevices(midiIns);
+                            Buzz.MidiInOutEngine.OpenMidiInDevices();
 
                             Dictionary<string, Int32> midiOuts = new Dictionary<string, Int32>();
                             foreach (var item in preferencesWindow.MidiOutControllerCheckboxes)
                             {
                                 midiOuts[item.Label] = item.Checked ? 1 : 0;
                             }
-                            Buzz.MidiInOutEngine.SetMidiOutputDevices2(midiOuts);
-                            Buzz.MidiInOutEngine.OpenMidiOutDevices2();
+                            Buzz.MidiInOutEngine.SetMidiOutputDevices(midiOuts);
+                            Buzz.MidiInOutEngine.OpenMidiOutDevices();
 
                             Buzz.MidiControllerAssignments.ClearAll();
                             foreach (PreferencesWindow.ControllerVM item in preferencesWindow.lvControllers.Items)

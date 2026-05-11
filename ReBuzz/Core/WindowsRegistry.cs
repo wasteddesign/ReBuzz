@@ -43,7 +43,14 @@ namespace ReBuzz.Core
 
         public void DeleteCurrentUserSubKey(string key)
         {
-            Registry.CurrentUser.DeleteSubKey(key);
+            using (RegistryKey rkey = Registry.CurrentUser.OpenSubKey(key))
+            {
+                // Check if the key exists
+                if (rkey != null)
+                {
+                    Registry.CurrentUser.DeleteSubKey(key);
+                }
+            }
         }
 
         public IRegistryKey CreateCurrentUserSubKey(string subKey)
