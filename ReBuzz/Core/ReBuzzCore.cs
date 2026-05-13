@@ -890,7 +890,6 @@ namespace ReBuzz.Core
         private void DeleteBackup()
         {
             if (SongCore.SongName != null && !generalSettings.KeepBackups)
-            
             {
                 timerAutomaticBackups.Stop();
                 int len = SongCore.SongName.Length;
@@ -899,7 +898,10 @@ namespace ReBuzz.Core
                 {
                     File.Delete(backupName);
                 }
-                timerAutomaticBackups.Start();
+                if (generalSettings.AutomaticBackups)
+                {
+                    timerAutomaticBackups.Start();
+                }
             }
         }
 
