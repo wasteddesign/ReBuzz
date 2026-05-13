@@ -3,11 +3,12 @@ using BuzzGUI.Interfaces;
 using Microsoft.Win32;
 using ReBuzz.Core;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 
 namespace ReBuzz.Midi
 {
-    internal class MidiControllerAssignments
+    internal class MidiControllerAssignments : INotifyPropertyChanged
     {
         private readonly IBuzz buzz;
         private readonly List<MidiController> midiControllers = new List<MidiController>();
@@ -241,10 +242,15 @@ namespace ReBuzz.Midi
         readonly List<ContollerBinding> contollerBindings = new List<ContollerBinding>();
         private readonly IRegistryEx registryEx;
 
+        public event PropertyChangedEventHandler PropertyChanged;
+
         internal void BindParameter(ParameterCore parameterCore, int track, int mcindex)
         {
             if (mcindex < 0 || mcindex >= midiControllers.Count)
+            {
+                parameterCore.MidiBindings.TryRemove(track, out (int, int)_);
                 return;
+            }
 
             var c = midiControllers[mcindex];
             BindParameter(parameterCore, track, c.Channel, c.Contoller);
@@ -252,12 +258,24 @@ namespace ReBuzz.Midi
 
         internal void BindParameter(ParameterCore parameterCore, int track, int midiChannel, int midiController)
         {
+            if (midiChannel < 0 || midiController < 0)
+            {
+                ContollerBindings.RemoveAll(cb => cb.Parameter == parameterCore && cb.Track == track);
+                parameterCore.RemoveMIDIBinding(track);
+                return;
+            }
+
             ContollerBinding contollerBind = new ContollerBinding(parameterCore, track, midiChannel, midiController, Global.MIDISettings.ParameterSoftTakeover);
             ContollerBindings.Add(contollerBind);
+            parameterCore.SetMIDIBinding(track, midiChannel, midiController);
         }
 
         internal void UnbindAllMIDIControllers(IMachine machineCore)
         {
+            foreach (var cb in ContollerBindings)
+            {
+                cb.Parameter.RemoveMIDIBinding(cb.Track);
+            }
             ContollerBindings.RemoveAll(cb => cb.Parameter.Group.Machine == machineCore);
         }
 

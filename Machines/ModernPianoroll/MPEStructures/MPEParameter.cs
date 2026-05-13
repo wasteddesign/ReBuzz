@@ -149,6 +149,7 @@ namespace WDE.ModernPatternEditor.MPEStructures
         public int DefValue { get; private set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
+        public event Action<int> MIDIBindingChanged;
 
         public IMachine Machine { get; }
 
@@ -189,6 +190,15 @@ namespace WDE.ModernPatternEditor.MPEStructures
 
         public void UnsubscribeEvents(int track, Action<IParameter, int> valueChanged, Action<IParameter, int> valueDescriptionChanged)
         {
+        }
+
+        public void BindToMIDIController(int track, int controller, int channel)
+        {   
+        }
+
+        public (int, int) GetMIDIBinding(int track)
+        {
+            return (-1, -1);
         }
     }
 

@@ -186,16 +186,17 @@ namespace ReBuzz.Common
             btAddController.Click += (sender, e) =>
             {
                 MidiControllerAssignWindow mcaw = new MidiControllerAssignWindow();
-                mcaw.Resources.MergedDictionaries.Add(this.Resources);
+                mcaw.ControllerName = "Controller";
+
                 if (mcaw.ShowDialog() == true)
                 {
                     ControllerVM cVM = new ControllerVM();
                     try
                     {
-                        cVM.Name = mcaw.Name.Text;
-                        cVM.Channel = int.Parse(mcaw.Channel.Text);
-                        cVM.Value = int.Parse(mcaw.Value.Text);
-                        cVM.Controller = int.Parse(mcaw.Controller.Text);
+                        cVM.Name = mcaw.ControllerName;
+                        cVM.Channel = int.Parse(mcaw.MidiChannel);
+                        cVM.Value = int.Parse(mcaw.MidiValue);
+                        cVM.Controller = int.Parse(mcaw.MidiController);
                         lvControllers.Items.Add(cVM);
                     }
                     catch { }
@@ -204,27 +205,7 @@ namespace ReBuzz.Common
 
             btModifyController.Click += (sender, e) =>
             {
-                ControllerVM cVM = (ControllerVM)lvControllers.SelectedItem;
-
-                if (cVM != null)
-                {
-                    MidiControllerAssignWindow mcaw = new MidiControllerAssignWindow();
-                    mcaw.SelectedController(cVM);
-                    mcaw.Resources.MergedDictionaries.Add(this.Resources);
-                    if (mcaw.ShowDialog() == true)
-                    {
-                        try
-                        {
-                            cVM.Name = mcaw.Name.Text;
-                            cVM.Channel = int.Parse(mcaw.Channel.Text);
-                            cVM.Value = int.Parse(mcaw.Value.Text);
-                            cVM.Controller = int.Parse(mcaw.Controller.Text);
-                        }
-                        catch { }
-                        ICollectionView view = CollectionViewSource.GetDefaultView(lvControllers.Items.SourceCollection);
-                        view.Refresh();
-                    }
-                }
+                ModifyController();
             };
 
             btRemoveController.Click += (sender, e) =>
@@ -252,6 +233,41 @@ namespace ReBuzz.Common
                 cVM.Value = controller.Value;
 
                 lvControllers.Items.Add(cVM);
+            }
+
+            lvControllers.MouseDoubleClick += (sender, e) =>
+            {
+                ModifyController();
+            };
+        }
+
+        void ModifyController()
+        {
+            ControllerVM cVM = (ControllerVM)lvControllers.SelectedItem;
+
+            if (cVM != null)
+            {
+                MidiControllerAssignWindow mcaw = new MidiControllerAssignWindow()
+                {
+                    ControllerName = cVM.Name,
+                    MidiController = "" + cVM.Controller,
+                    MidiChannel = "" + cVM.Channel,
+                    MidiValue = "" + cVM.Value
+                };
+
+                if (mcaw.ShowDialog() == true)
+                {
+                    try
+                    {
+                        cVM.Name = mcaw.ControllerName;
+                        cVM.Channel = int.Parse(mcaw.MidiChannel);
+                        cVM.Value = int.Parse(mcaw.MidiValue);
+                        cVM.Controller = int.Parse(mcaw.MidiController);
+                    }
+                    catch { }
+                    ICollectionView view = CollectionViewSource.GetDefaultView(lvControllers.Items.SourceCollection);
+                    view.Refresh();
+                }
             }
         }
 

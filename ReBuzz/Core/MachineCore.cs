@@ -26,6 +26,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Threading;
+using Windows.Media.Devices;
 
 namespace ReBuzz.Core
 {

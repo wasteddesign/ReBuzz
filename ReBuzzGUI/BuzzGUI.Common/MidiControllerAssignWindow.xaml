@@ -1,0 +1,39 @@
+﻿<Window x:Class="BuzzGUI.Common.MidiControllerAssignWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:BuzzGUI.Common"
+        mc:Ignorable="d"
+        WindowStyle="ToolWindow"
+        TextOptions.TextFormattingMode="{Binding TextFormattingMode}"
+        Style="{DynamicResource ThemeWindowStyle}" ResizeMode="NoResize"
+        Title="Midi Controller" Height="237" Width="313">
+    <Grid Margin="4" x:Name="mainGrid">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="30"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="100"/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <TextBlock Text="Move MIDI controller to select it" Grid.ColumnSpan="2"/>
+        <TextBlock Grid.Row="1" Text="Controller"/>
+        <TextBox x:Name="tbController" Grid.Row="1" Grid.Column="1" Text="{Binding MidiController, Mode=TwoWay}" HorizontalAlignment="Left" Width="50"/>
+        <TextBlock Grid.Row="2" Text="Channel"/>
+        <TextBox x:Name="tbChannel" Grid.Row="2" Grid.Column="1" Text="{Binding MidiChannel, Mode=TwoWay}" HorizontalAlignment="Left" Width="50"/>
+        <TextBlock Grid.Row="3" Text="Value"/>
+        <TextBox x:Name="tbValue" Grid.Row="3" Grid.Column="1" Text="{Binding MidiValue, Mode=TwoWay}" HorizontalAlignment="Left" Width="50"/>
+        <TextBlock x:Name="tblName" Grid.Row="4" Text="Name"/>
+        <TextBox x:Name="tbName" Grid.Row="4" Grid.Column="1" Text="{Binding ControllerName, Mode=TwoWay}" HorizontalAlignment="Left" Width="200"/>
+        <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Name="btOk" IsDefault="True" Margin ="4" Height ="20" Width="60" VerticalAlignment="Bottom" Content="Ok" IsEnabled="{Binding IsInputValid}"></Button>
+            <Button Name="btCance" Margin ="4" Height ="20" Width="60" VerticalAlignment="Bottom" IsCancel="true" Content="Cancel"></Button>
+        </StackPanel>
+    </Grid>
+</Window>

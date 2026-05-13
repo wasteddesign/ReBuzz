@@ -370,6 +370,79 @@
                             <ContentControl Grid.Row="3" IsEnabled="{Binding IsListBoxEnabled}" ContentTemplate="{StaticResource MachineListItemDetailTemplate}" Content="{Binding ElementName=mdbListBox, Path=SelectedItem}"/>
                         </Grid>
                     </TabItem>
+                    <TabItem Header="_MIDI Bindings" Name="midiBindingsTab" DataContext="{Binding MIDIBindingsTabVM}">
+                        <Grid>
+                            <Grid.Resources>
+                                <Style x:Key="{x:Type Thumb}" TargetType="{x:Type Thumb}" BasedOn="{StaticResource ParameterSliderThumb}"/>
+                            </Grid.Resources>
+
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <WrapPanel Margin="0,0,0,4">
+                                <RadioButton Margin="4,4,8,4" VerticalAlignment="Center" IsChecked="{Binding Path=VisibleMachines, Converter={StaticResource enumBooleanConverter}, ConverterParameter=All}">All</RadioButton>
+                                <RadioButton Margin="0,4,8,4" VerticalAlignment="Center" IsChecked="{Binding Path=VisibleMachines, Converter={StaticResource enumBooleanConverter}, ConverterParameter=Selected}">Selected</RadioButton>
+                                <bgc:SearchTextBox Text="{Binding MachineFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" LabelText="Machine" Width="100" Height="21" SearchEventTimeDelay="0"/>
+                                <bgc:SearchTextBox Text="{Binding ParameterFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" LabelText="Parameter" Margin="8,0,0,0" Width="100" Height="21" SearchEventTimeDelay="0"/>
+
+                            </WrapPanel>
+
+                            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Visible" Margin="2,2,2,2">
+                                <ItemsControl ItemsSource="{Binding Machines}" Focusable="False">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Visibility="{Binding Visibility}">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="24"/>
+                                                    <RowDefinition Height="*"/>
+                                                </Grid.RowDefinitions>
+
+                                                <Border BorderThickness="1" BorderBrush="Black" Margin="0,0,2,0">
+                                                    <Border.Background>
+                                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                            <GradientStop Color="{Binding TitleBackgroundColor}" Offset="0"/>
+                                                            <GradientStop Color="White" Offset="2"/>
+                                                        </LinearGradientBrush>
+                                                    </Border.Background>
+
+                                                    <TextBlock Text="{Binding Name}" Margin="4,0,0,0" VerticalAlignment="Center">
+                                                        <TextBlock.Foreground>
+                                                            <SolidColorBrush Color="{Binding TitleForegroundColor}"/>
+                                                        </TextBlock.Foreground>
+                                                    </TextBlock>
+                                                </Border>
+
+                                                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="4,4,4,4">
+                                                    <ItemsControl ItemsSource="{Binding Parameters}" Focusable="False">
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <Grid Height="22" Visibility="{Binding Visibility}" Margin="0,0,0,2">
+
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="90"/>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                        <ColumnDefinition Width="30"/>
+                                                                    </Grid.ColumnDefinitions>
+
+                                                                    <TextBlock Grid.Column="0" Text="{Binding Name}" ToolTip="{Binding Description}"/>
+                                                                    <TextBlock Grid.Column="1" Margin="4,0,0,0" Text="{Binding MIDIBindingDescription}"/>
+                                                                    <Button Grid.Column="2" Margin="4,0,0,0" Content="X" ToolTip="Clear" Command="{Binding ClearBindingCommand}"/>
+                                                                </Grid>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </ScrollViewer>
+
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+
+                        </Grid>
+                    </TabItem>                    
                 </TabControl>
             </Grid>
         </Border>

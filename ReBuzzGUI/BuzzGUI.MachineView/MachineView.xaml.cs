@@ -235,6 +235,8 @@ namespace BuzzGUI.MachineView
         public MDBTab.MDBTabVM MDBTabVM { get; private set; }
         public MachineList MachineList { get; private set; }
 
+        public MIDIBindingsTab.MIDIBindingsTabVM MIDIBindingsTabVM { get; private set; }
+
         void GeneralSettings_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             switch (e.PropertyName)
@@ -495,6 +497,7 @@ namespace BuzzGUI.MachineView
             ParametersTabVM = new ParametersTab.ParametersTabVM(this);
             MachineList = new MachineList(this);
             MDBTabVM = new MDBTab.MDBTabVM(this);
+            MIDIBindingsTabVM = new MIDIBindingsTab.MIDIBindingsTabVM(this);
 
             InitializeComponent();
 
@@ -593,6 +596,7 @@ namespace BuzzGUI.MachineView
             ParametersTabVM.Release();
             MDBTabVM.Release();
             templateList.Release();
+            MIDIBindingsTabVM.Release();
         }
 
         void grid_GotFocus(object sender, RoutedEventArgs e)

@@ -151,12 +151,21 @@ namespace WDE.ModernPatternEditor.MPEStructures
         public int DefValue { get; private set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
+        public event Action<int> MIDIBindingChanged;
 
         public IMachine Machine { get; }
 
+        public (int, int) GetMIDIBinding(int track)
+        {
+            return (-1, -1);
+        }
+
         public void BindToMIDIController(int track, int mcindex)
         {
+        }
 
+        public void BindToMIDIController(int track, int controllerm, int channel)
+        {
         }
 
         public string DescribeValue(int value)

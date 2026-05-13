@@ -78,10 +78,10 @@ namespace BespokeFusion
                 }
                 msg.BtnOk.Focus();
 
-                var md = Utils.GetUserControlXAML<Window>("ParameterWindowShell.xaml", Global.BuzzPath);
+                var md = Utils.GetUserControlXAML<ResourceDictionary>("MainWindow.xaml", Global.BuzzPath);
                 if (md != null)
                 {
-                    msg.Resources.MergedDictionaries.Add(md.Resources);
+                    msg.Resources.MergedDictionaries.Add(md);
                 }
 
                 msg.ShowDialog();

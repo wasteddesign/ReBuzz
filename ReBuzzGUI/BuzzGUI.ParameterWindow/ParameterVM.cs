@@ -5,7 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Input;
 
 namespace BuzzGUI.ParameterWindow
@@ -81,8 +83,11 @@ namespace BuzzGUI.ParameterWindow
             get { return metadata != null ? metadata.Indicator : -1.0; }
         }
 
+        readonly SimpleCommand quickBindMIDICommand;
         readonly SimpleCommand bindMIDICommand;
         readonly SimpleCommand unbindMIDICommand;
+
+        public ICommand QuickBindMIDICommand { get { return quickBindMIDICommand; } }
         public ICommand UnbindMIDICommand { get { return unbindMIDICommand; } }
         public ICommand CopyPresetCommand { get { return window.CopyPresetCommand; } }
         public ICommand PastePresetCommand { get { return window.PastePresetCommand; } }
@@ -98,6 +103,26 @@ namespace BuzzGUI.ParameterWindow
             if (metadata != null) metadata.PropertyChanged += metadata_PropertyChanged;
 
             isLocked = p.Group.Type == ParameterGroupType.Input;
+
+            quickBindMIDICommand = new SimpleCommand
+            {
+                CanExecuteDelegate = x => true,
+                ExecuteDelegate = x =>
+                {
+                    MidiControllerAssignWindow mcaw = new MidiControllerAssignWindow(true);
+                    
+                    if (mcaw.ShowDialog() == true)
+                    {
+                        try
+                        {   
+                            var channel = int.Parse(mcaw.MidiChannel) - 1;
+                            var controller = int.Parse(mcaw.MidiController);
+                            parameter.BindToMIDIController(track, controller, channel);
+                        }
+                        catch { }
+                    }
+                }
+            };
 
             bindMIDICommand = new SimpleCommand
             {
@@ -225,6 +250,10 @@ namespace BuzzGUI.ParameterWindow
             {
                 var mc = parameter.Group.Machine.DLL.Buzz.MIDIControllers;
                 List<MenuItemVM> l = new List<MenuItemVM>();
+
+                l.Add(new MenuItemVM() { Text = "Bind...", Command = quickBindMIDICommand });
+                l.Add(new MenuItemVM() { IsSeparator = true});
+
                 if (mc.Count > 0)
                 {
                     int index = 0;

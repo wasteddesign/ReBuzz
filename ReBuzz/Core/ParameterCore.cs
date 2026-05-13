@@ -52,13 +52,31 @@ namespace ReBuzz.Core
         public ParameterFlags Flags { get; set; }
 
         public int DefValue { get; set; }
+        internal ConcurrentDictionary<int, (int, int)> MidiBindings { get => midiBindings; set => midiBindings = value; }
+
+        ConcurrentDictionary<int, (int, int)> midiBindings = new ConcurrentDictionary<int, (int, int)>();
+       
+        public (int, int) GetMIDIBinding(int track)
+        {
+            if (MidiBindings.TryGetValue(track, out var binding))
+                return binding;
+
+            return (-1, -1);
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
+        public event Action<int> MIDIBindingChanged;
 
         public void BindToMIDIController(int track, int mcindex)
         {
             var buzz = Group.Machine.Graph.Buzz as ReBuzzCore;
             buzz.MidiControllerAssignments.BindParameter(this, track, mcindex);
+        }
+
+        public void BindToMIDIController(int track, int controller, int channel)
+        {
+            var buzz = Group.Machine.Graph.Buzz as ReBuzzCore;
+            buzz.MidiControllerAssignments.BindParameter(this, track, channel, controller);
         }
 
         int describeValuePrev = -1;
@@ -440,6 +458,18 @@ namespace ReBuzz.Core
             //parameter.Group = machine.ParameterGroups[2]; // Put Midi parameters to to Track Group
 
             return parameter;
+        }
+
+        internal void SetMIDIBinding(int track, int midiChannel, int midiController)
+        {
+            MidiBindings[track] = (midiChannel, midiController);
+            MIDIBindingChanged.Invoke(track);
+        }
+
+        internal void RemoveMIDIBinding(int track)
+        {
+            MidiBindings.TryRemove(track, out (int, int)_);
+            MIDIBindingChanged.Invoke(track);
         }
     }
 }
