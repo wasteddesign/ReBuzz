@@ -181,9 +181,6 @@ namespace ReBuzz.Audio
                     // Call work
                     ReadWork(buffer, workBufferOffset, samplesToProcess);
 
-                    // Reset non state parameteres if tick == 0
-                    UpdateNonStateParametersToDefault();
-
                     // Mix waves playing from wavetable 
                     if (buzzCore.SongCore.WavetableCore.IsPlayingWave())
                     {
@@ -308,35 +305,6 @@ namespace ReBuzz.Audio
                 {
                     masterInfo.SamplesPerTickReminderCounter -= ticksPerMin;
                     masterInfo.SamplesPerTick++;
-                }
-            }
-        }
-
-        private void UpdateNonStateParametersToDefault()
-        {
-            int noRecord = 1 << 16;
-            foreach (var machine in buzzCore.SongCore.MachinesList.Where(m => !m.DLL.IsManaged && m.Ready))
-            {
-                if (!machine.sendControlChangesFlag && (ReBuzzCore.masterInfo.PosInTick == 0 || (engineSettings.SubTickTiming && ReBuzzCore.subTickInfo.PosInSubTick == 0 && machine.DLL.Info.Version >= MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_42)))
-                {
-                    foreach (var p in machine.ParameterGroups[0].Parameters)
-                    {
-                        // Reset parameters so they wont be triggered next Tick
-                            p.SetValue(noRecord, p.NoValue);
-                    }
-                    foreach (var p in machine.ParameterGroups[1].Parameters)
-                    {
-                        // Reset parameters so they wont be triggered next Tick
-                            p.SetValue(noRecord, p.NoValue);
-                    }
-                    foreach (var p in machine.ParameterGroups[2].Parameters)
-                    {
-                        for (int i = 0; i < machine.TrackCount; i++)
-                        {
-                            // Reset parameters so they wont be triggered next Tick
-                                p.SetValue(i | noRecord, p.NoValue);
-                        }
-                    }
                 }
             }
         }

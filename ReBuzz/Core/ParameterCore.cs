@@ -306,48 +306,43 @@ namespace ReBuzz.Core
                     track &= ~do_not_record_flag;
                 }
 
-                // Do we need this?
-                if (pvalues.ContainsKey(track) && pvalues[track] == value)
-                    return;
-
-                // Check ranges
-                if (value != NoValue || (value == NoValue && (Flags & ParameterFlags.State) != ParameterFlags.State) && Type != ParameterType.Note)
-                {
-                    if (Type == ParameterType.Note && value != BuzzNote.Off)
-                        value = Math.Max(MinValue, Math.Min(MaxValue, value));
-
-                    values[track] = value;
-
-                    // Update inputs. Should this be moved to tick?
-                    if (Group.Type == ParameterGroupType.Input && machine.ParameterGroups.Count != 0)
-                    {
-                        if (IndexInGroup < machine.ParameterGroups[0].Parameters.Count
-                            && track < machine.Inputs.Count)
-                        {
-                            var input = machine.Inputs[track];
-                            if (IndexInGroup == 0)
-                            {
-                                input.Amp = value;
-                            }
-                            else
-                            {
-                                input.Pan = value;
-                            }
-                        }
-                    }
-                    else if (record && Group != null && Group.Machine.Graph != null)
-                    {
-                        var bc = Group.Machine.Graph.Buzz as ReBuzzCore;
-                        //bc.RecordParametersDictionary.TryAdd(new Tuple<ParameterCore,int>(this, track), value);
-                        bc.RecordControlChange(this, track, value);
-                    }
-
-                    // Save changes to be sent to managed machines and as events to listeners.
-                    machine.parametersChanged[this] = track;
-                }
-
                 // This is sent to native machines
                 pvalues[track] = value;
+
+                // This is the value of GetValue(in track)
+                values[track] = value;
+
+
+                if (Type == ParameterType.Note && value != BuzzNote.Off)
+                    value = Math.Max(MinValue, Math.Min(MaxValue, value));
+
+                // Update inputs. Should this be moved to tick?
+                if (Group.Type == ParameterGroupType.Input && machine.ParameterGroups.Count != 0)
+                {
+                    if (IndexInGroup < machine.ParameterGroups[0].Parameters.Count
+                        && track < machine.Inputs.Count)
+                    {
+                        var input = machine.Inputs[track];
+                        if (IndexInGroup == 0)
+                        {
+                            input.Amp = value;
+                        }
+                        else
+                        {
+                            input.Pan = value;
+                        }
+                    }
+                }
+                else if (record && Group != null && Group.Machine.Graph != null)
+                {
+                    var bc = Group.Machine.Graph.Buzz as ReBuzzCore;
+                    //bc.RecordParametersDictionary.TryAdd(new Tuple<ParameterCore,int>(this, track), value);
+                    bc.RecordControlChange(this, track, value);
+                }
+
+
+                // Save changes to be sent to managed machines and as events to listeners.
+                machine.parametersChanged[this] = track;
             }
         }
 
@@ -453,9 +448,8 @@ namespace ReBuzz.Core
             parameter.Type = ParameterType.Note;
             parameter.Flags = ParameterFlags.State | ParameterFlags.TickOnEdit;
             parameter.SetValue(0, parameter.NoValue);
-            parameter.IndexInGroup = -1;// (int)InternalParameter.MidiNote;
-            //parameter.Machine = machine;
-            //parameter.Group = machine.ParameterGroups[2]; // Put Midi parameters to to Track Group
+            parameter.IndexInGroup = -1;// (int)InternalParameter.MidiNote
+            parameter.Group = machine.ParameterGroups[2]; // Put Midi parameters to to Track Group
 
             return parameter;
         }

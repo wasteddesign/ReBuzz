@@ -600,7 +600,10 @@ namespace ReBuzz.MachineManagement
                 // Set pvalues to NoValue immediately to avoid sending param value twice
                 foreach (var p in Machine.ParameterGroupsList[0].ParametersList)
                 {
-                    p.SetPValue(0, p.NoValue);
+                    for (int i = 0; i < Machine.ParameterGroupsList[0].TrackCount; i++)
+                    {
+                        p.SetPValue(i, p.NoValue);
+                    }
                 }
                 foreach (var p in Machine.ParameterGroupsList[1].ParametersList)
                 {
