@@ -104,7 +104,7 @@ namespace ReBuzzTests.Automation.Assertions
             reBuzzCore.MachineIndex.Should().BeEquivalentTo(new MenuItemCore());
 
             reBuzzCore.MIDIControllers.Should().BeEmpty();
-            reBuzzCore.MidiControllerAssignments.MIDIControllers.Should().BeEmpty();
+            reBuzzCore.MidiControllerAssignments.PredefinedMIDIControllers.Should().BeEmpty();
             reBuzzCore.MidiControllerAssignments.ReBuzzMIDIControllers.Should().BeEmpty();
             reBuzzCore.MidiControllerAssignments.Song.Should().Be(reBuzzCore.SongCore);
             reBuzzCore.MIDIControllers.Should().BeEmpty();

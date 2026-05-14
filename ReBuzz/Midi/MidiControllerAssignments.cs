@@ -1,23 +1,23 @@
 ﻿using BuzzGUI.Common;
 using BuzzGUI.Interfaces;
-using Microsoft.Win32;
 using ReBuzz.Core;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Windows.Forms.VisualStyles;
 
 namespace ReBuzz.Midi
 {
     internal class MidiControllerAssignments : INotifyPropertyChanged
     {
         private readonly IBuzz buzz;
-        private readonly List<MidiController> midiControllers = new List<MidiController>();
-        private readonly List<MidiController> midiReBuzzControllers = new List<MidiController>();
+        private readonly List<MidiController> predefinedMIDIControllers = new List<MidiController>();
+        private readonly List<MidiController> reBuzzMIDIControllers = new List<MidiController>();
+        private readonly List<ContollerBinding> contollerBindings = new List<ContollerBinding>();
         private readonly string registryRoot;
 
-        public IList<MidiController> ReBuzzMIDIControllers { get { return midiReBuzzControllers; } }
-        public IList<MidiController> MIDIControllers { get { return midiControllers; } }
+        public IList<MidiController> ReBuzzMIDIControllers { get { return reBuzzMIDIControllers; } }
+        public IList<MidiController> PredefinedMIDIControllers { get { return predefinedMIDIControllers; } }
+        internal List<ContollerBinding> ContollerBindings => contollerBindings;
 
         internal MidiControllerAssignments(IBuzz reBuzzCore, IRegistryEx registryEx, string registryRoot)
         {
@@ -45,8 +45,6 @@ namespace ReBuzz.Midi
                 }
             }
         }
-
-        internal List<ContollerBinding> ContollerBindings => contollerBindings;
 
         private void SongCore_MachineRemoved(IMachine obj)
         {
@@ -80,10 +78,10 @@ namespace ReBuzz.Midi
 
         internal void ClearAll()
         {
-            RegClearAllMidiControllers(registryEx, midiControllers.Count, registryRoot);
+            RegClearAllMidiControllers(registryEx, predefinedMIDIControllers.Count, registryRoot);
 
-            midiReBuzzControllers.Clear();
-            midiControllers.Clear();
+            reBuzzMIDIControllers.Clear();
+            predefinedMIDIControllers.Clear();
             ContollerBindings.Clear();
         }
 
@@ -100,27 +98,27 @@ namespace ReBuzz.Midi
             var controller = RegGetController(registryEx, "MidiControllerPlay");
             if (controller != null)
             {
-                midiReBuzzControllers.Add(controller);
+                reBuzzMIDIControllers.Add(controller);
             }
             controller = RegGetController(registryEx, "MidiControllerStop");
             if (controller != null)
             {
-                midiReBuzzControllers.Add(controller);
+                reBuzzMIDIControllers.Add(controller);
             }
             controller = RegGetController(registryEx, "MidiControllerRecord");
             if (controller != null)
             {
-                midiReBuzzControllers.Add(controller);
+                reBuzzMIDIControllers.Add(controller);
             }
             controller = RegGetController(registryEx, "MidiControllerForward");
             if (controller != null)
             {
-                midiReBuzzControllers.Add(controller);
+                reBuzzMIDIControllers.Add(controller);
             }
             controller = RegGetController(registryEx, "MidiControllerBackward");
             if (controller != null)
             {
-                midiReBuzzControllers.Add(controller);
+                reBuzzMIDIControllers.Add(controller);
             }
 
             int numControllers = RegGetNumberOfMidiControllers(registryEx);
@@ -129,7 +127,7 @@ namespace ReBuzz.Midi
                 MidiController mc = RegGetControllerById(registryEx, i);
                 if (mc != null)
                 {
-                    midiControllers.Add(mc);
+                    predefinedMIDIControllers.Add(mc);
                 }
             }
         }
@@ -216,53 +214,38 @@ namespace ReBuzz.Midi
         internal IList<string> GetMidiControllerNames()
         {
             List<string> names = new List<string>();
-            midiControllers.ForEach(m => names.Add(m.Name));
+            predefinedMIDIControllers.ForEach(m => names.Add(m.Name));
             return names;
         }
 
         internal void Add(string name, int channel, int controller, int value)
         {
-            int index = midiControllers.Count;
+            int index = predefinedMIDIControllers.Count;
             MidiController midiController = new MidiController();
             midiController.Name = name;
             midiController.Contoller = controller;
             midiController.Channel = channel;
             midiController.Value = value;
 
-            midiControllers.Add(midiController);
+            predefinedMIDIControllers.Add(midiController);
             RegSetControllerById(registryEx, index, name, channel, controller);
-            RegSetNumberOfMidiControllers(registryEx, midiControllers.Count);
+            RegSetNumberOfMidiControllers(registryEx, predefinedMIDIControllers.Count);
         }
 
-        internal int GetAssignmentIndex(int ctrl, int channel, int value)
-        {
-            int index = 0;
-            foreach (MidiController midiController in midiControllers)
-            {
-                if (midiController.Contoller == ctrl && midiController.Channel == channel)
-                {
-                    return index;
-                }
-                index++;
-            }
-            return -1;
-        }
-
-        readonly List<ContollerBinding> contollerBindings = new List<ContollerBinding>();
         private readonly IRegistryEx registryEx;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
         internal void BindParameter(ParameterCore parameterCore, int track, int mcindex)
         {
-            if (mcindex < 0 || mcindex >= midiControllers.Count)
+            if (mcindex < 0 || mcindex >= predefinedMIDIControllers.Count)
             {
                 ContollerBindings.RemoveAll(cb => cb.Parameter == parameterCore && cb.Track == track);
                 parameterCore.RemoveMIDIBinding(track);
                 return;
             }
 
-            var c = midiControllers[mcindex];
+            var c = predefinedMIDIControllers[mcindex];
             BindParameter(parameterCore, track, c.Channel, c.Contoller);
         }
 

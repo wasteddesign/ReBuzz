@@ -224,7 +224,7 @@ namespace ReBuzz.Common
                 PropertyChanged.Raise(this, "IsControllerSelected");
             };
 
-            foreach (var controller in buzz.MidiControllerAssignments.MIDIControllers)
+            foreach (var controller in buzz.MidiControllerAssignments.PredefinedMIDIControllers)
             {
                 ControllerVM cVM = new ControllerVM();
                 cVM.Name = controller.Name;
