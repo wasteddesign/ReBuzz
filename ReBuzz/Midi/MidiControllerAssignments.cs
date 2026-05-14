@@ -5,6 +5,7 @@ using ReBuzz.Core;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Windows.Forms.VisualStyles;
 
 namespace ReBuzz.Midi
 {
@@ -84,6 +85,14 @@ namespace ReBuzz.Midi
             midiReBuzzControllers.Clear();
             midiControllers.Clear();
             ContollerBindings.Clear();
+        }
+
+        internal void ClearControllerBindings()
+        {
+            foreach (var cb in ContollerBindings.ToList())
+            {
+                BindParameter(cb.Parameter, cb.Track, -1, -1);
+            }
         }
 
         internal void LoadAssignments()
@@ -248,7 +257,8 @@ namespace ReBuzz.Midi
         {
             if (mcindex < 0 || mcindex >= midiControllers.Count)
             {
-                parameterCore.MidiBindings.TryRemove(track, out (int, int)_);
+                ContollerBindings.RemoveAll(cb => cb.Parameter == parameterCore && cb.Track == track);
+                parameterCore.RemoveMIDIBinding(track);
                 return;
             }
 

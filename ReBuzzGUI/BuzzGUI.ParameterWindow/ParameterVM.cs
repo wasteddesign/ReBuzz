@@ -252,11 +252,13 @@ namespace BuzzGUI.ParameterWindow
                 List<MenuItemVM> l = new List<MenuItemVM>();
 
                 l.Add(new MenuItemVM() { Text = "Bind...", Command = quickBindMIDICommand });
-                l.Add(new MenuItemVM() { IsSeparator = true});
 
                 if (mc.Count > 0)
                 {
                     int index = 0;
+
+                    l.Add(new MenuItemVM() { IsSeparator = true });
+
                     foreach (string s in mc)
                     {
                         l.Add(new MenuItemVM() { Text = s, Command = bindMIDICommand, CommandParameter = index, IsEnabled = true });

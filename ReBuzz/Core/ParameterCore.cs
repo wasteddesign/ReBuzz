@@ -34,7 +34,7 @@ namespace ReBuzz.Core
         public IParameterGroup Group { get; set; }
 
         public int IndexInGroup { get; set; }
-        public MachineCore Machine { get; private set; }
+        
         public ParameterType Type { get; set; }
 
         public string Name { get; set; }
@@ -454,7 +454,7 @@ namespace ReBuzz.Core
             parameter.Flags = ParameterFlags.State | ParameterFlags.TickOnEdit;
             parameter.SetValue(0, parameter.NoValue);
             parameter.IndexInGroup = -1;// (int)InternalParameter.MidiNote;
-            parameter.Machine = machine;
+            //parameter.Machine = machine;
             //parameter.Group = machine.ParameterGroups[2]; // Put Midi parameters to to Track Group
 
             return parameter;
@@ -463,13 +463,13 @@ namespace ReBuzz.Core
         internal void SetMIDIBinding(int track, int midiChannel, int midiController)
         {
             MidiBindings[track] = (midiChannel, midiController);
-            MIDIBindingChanged.Invoke(track);
+            MIDIBindingChanged?.Invoke(track);
         }
 
         internal void RemoveMIDIBinding(int track)
         {
             MidiBindings.TryRemove(track, out (int, int)_);
-            MIDIBindingChanged.Invoke(track);
+            MIDIBindingChanged?.Invoke(track);
         }
     }
 }

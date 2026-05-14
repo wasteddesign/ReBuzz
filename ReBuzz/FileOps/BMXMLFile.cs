@@ -4,6 +4,7 @@ using BuzzGUI.Common.DSP;
 using BuzzGUI.Common.InterfaceExtensions;
 using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
+using BuzzGUI.MachineView;
 using Microsoft.Windows.Devices.Midi2;
 using ReBuzz.Core;
 using ReBuzz.Core.Actions.GraphActions;
@@ -243,6 +244,7 @@ namespace ReBuzz.FileOps
                         buzz.BPM = masterGlobals.Parameters[1].GetValue(0);
                         buzz.TPB = masterGlobals.Parameters[2].GetValue(0);
                     }
+                    machines.Add(machineProto);
                 }
                 else
                 {
@@ -591,7 +593,7 @@ namespace ReBuzz.FileOps
                 machineName = importDictionaryAll.ContainsKey(machineName) ? importDictionaryAll[machineName] : machineName;
                 MachineCore machine = machines.FirstOrDefault(m => m.Name == machineName);
 
-                var all = machine.AllNonInputStateParameters();
+                var all = machine.AllParameters().Where(p => p.Flags.HasFlag(ParameterFlags.State));
                 var param = all.ElementAt(bind.ParamIndex);
                 buzz.MidiControllerAssignments.BindParameter(param as ParameterCore, bind.Track, bind.MidiChannel, bind.MidiController);
             }
@@ -911,9 +913,9 @@ namespace ReBuzz.FileOps
                         BMXMLPatternColumn bPatternColumn = new BMXMLPatternColumn();
 
                         var targetMachine = column.Parameter.Group != null ? column.Parameter.Group.Machine as MachineCore : null;
-                        if (targetMachine == null && param.Machine != null)
+                        if (targetMachine == null && param.Group.Machine != null)
                         {
-                            targetMachine = param.Machine;
+                            targetMachine = param.Group.Machine as MachineCore;
                         }
 
                         bPatternColumn.Machine = targetMachine != null ? XmlConvert.EncodeName(targetMachine.Name) : "";
@@ -1157,10 +1159,11 @@ namespace ReBuzz.FileOps
                 {
                     BMXMLParameterMidiBinding pmb = new BMXMLParameterMidiBinding();
                     var machine = controller.Parameter.Group.Machine;
+                    var all = machine.AllParameters().Where(p => p.Flags.HasFlag(ParameterFlags.State));
                     pmb.Machine = machine.Name;
                     pmb.Group = machine.ParameterGroups.IndexOf(controller.Parameter.Group);
                     pmb.Track = controller.Track;
-                    pmb.ParamIndex = machine.AllNonInputStateParameters().FindIndex(m => m == controller.Parameter);
+                    pmb.ParamIndex = all.FindIndex(m => m == controller.Parameter);
                     pmb.MidiChannel = controller.MidiChannel;
                     pmb.MidiController = controller.MidiController;
                     pmbList.Add(pmb);

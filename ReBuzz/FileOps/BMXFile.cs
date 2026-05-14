@@ -1290,7 +1290,7 @@ namespace ReBuzz.FileOps
                     machineName = importDictionaryAll.ContainsKey(machineName) ? importDictionaryAll[machineName] : machineName;
                     MachineCore machine = machines.FirstOrDefault(m => m.Name == machineName);
 
-                    var all = machine.AllNonInputStateParameters();
+                    var all = machine.AllParameters().Where(p => p.Flags.HasFlag(ParameterFlags.State));
                     var param = all.ElementAt(paramIndex);
                     buzz.MidiControllerAssignments.BindParameter(param as ParameterCore, track, midiChannel, midiController);
                 }
@@ -2098,9 +2098,9 @@ namespace ReBuzz.FileOps
                         var column = pattern.Columns[j];
                         var parameter = column.Parameter as ParameterCore;
                         var targetMachine = column.Parameter.Group != null ? column.Parameter.Group.Machine as MachineCore : null;
-                        if (targetMachine == null && parameter.Machine != null)
+                        if (targetMachine == null && parameter.Group.Machine != null)
                         {
-                            targetMachine = parameter.Machine;
+                            targetMachine = parameter.Group.Machine as MachineCore;
                         }
                         ushort pMachineIndex = targetMachine != null ? (ushort)buzz.SongCore.MachinesList.IndexOf(targetMachine) : (ushort)0xFFFF;
                         WriteUShort(ms, pMachineIndex);
@@ -2313,10 +2313,11 @@ namespace ReBuzz.FileOps
             foreach (var controller in controllers)
             {
                 var machine = controller.Parameter.Group.Machine;
+                var all = machine.AllParameters().Where(p => p.Flags.HasFlag(ParameterFlags.State));
                 WriteString(ms, machine.Name);
                 int group = machine.ParameterGroups.IndexOf(controller.Parameter.Group);
                 int track = controller.Track;
-                int paramIndex = machine.AllNonInputStateParameters().FindIndex(m => m == controller.Parameter);
+                int paramIndex = all.FindIndex(m => m == controller.Parameter);
                 int midiChannel = controller.MidiChannel;
                 int midiController = controller.MidiController;
 

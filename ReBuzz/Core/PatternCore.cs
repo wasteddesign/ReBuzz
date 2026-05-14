@@ -296,7 +296,7 @@ namespace ReBuzz.Core
         public void InsertColumn(int index, IParameter p, int track)
         {
             PatternColumnType type = p.IndexInGroup == (int)InternalParameter.MidiNote || p.IndexInGroup == -1 ? PatternColumnType.MIDI : PatternColumnType.Parameter;
-            PatternColumnCore pcc = new PatternColumnCore(type, this, (p as ParameterCore).Machine, p, track, null, null);
+            PatternColumnCore pcc = new PatternColumnCore(type, this, p.Group.Machine, p, track, null, null);
             //int newIndex = Math.Min(index, columns.Count);
             //columns.Insert(newIndex, pcc);
             columns.Insert(index, pcc);

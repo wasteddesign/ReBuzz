@@ -1990,6 +1990,8 @@ namespace ReBuzz.Core
             // Create status window
             OpenFile.Invoke("Closing song...");
 
+            MidiControllerAssignments.ClearControllerBindings();
+
             DeleteBackup();
             lock (AudioLock)
             {
