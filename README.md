@@ -8,6 +8,7 @@ ReBuzz is a modular digital audio workstation (DAW) built upon the foundation of
 ## Features
 * 32 and 64 bit VST2/3 support
 * 32 and 64 bit buzz machine support
+* MIDI 2.0
 * Modern Pattern Editor, Modern Sequence Editor, AudioBlock, EnvelopeBlock, CMC, TrackScript...
 * Multi-process architecture
 * Multi-io for native and managed machines
@@ -74,6 +75,11 @@ https://github.com/wasteddesign/ReBuzz/blob/1243cc9ef40e4c25804c462d290d511c02b3
 4. Start ReBuzz debug session
 5. When break point is hit, do _Attach to Process..._ and find _ReBuzzEngine_
 6. Continue debugging
+
+## Machine Source Code
+Dive into the machine source code
+* https://github.com/Buzztrax/buzzmachines
+* https://github.com/thepedal
 
 ## How can I help?
 All the basic functionality is implemented but there many areas to improve. In general, contributions are needed in every part of the software, but here are few items to look into:
