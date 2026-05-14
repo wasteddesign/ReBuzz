@@ -219,8 +219,6 @@ namespace ReBuzz.Core
             {
                 if (Event != null)
                 {
-                    //dispatcher.BeginInvoke(new Action(() =>
-                    //{
                     try
                     {
                         if (Event != null)
@@ -234,8 +232,6 @@ namespace ReBuzz.Core
                     {
                         describeValueEventPending = false;
                     }
-
-                    //}), DispatcherPriority.Normal);
                 }
             }
 
