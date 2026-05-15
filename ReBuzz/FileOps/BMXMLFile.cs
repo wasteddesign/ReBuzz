@@ -593,9 +593,12 @@ namespace ReBuzz.FileOps
                 machineName = importDictionaryAll.ContainsKey(machineName) ? importDictionaryAll[machineName] : machineName;
                 MachineCore machine = machines.FirstOrDefault(m => m.Name == machineName);
 
-                var all = machine.AllParameters().Where(p => p.Flags.HasFlag(ParameterFlags.State));
-                var param = all.ElementAt(bind.ParamIndex);
-                buzz.MidiControllerAssignments.BindParameter(param as ParameterCore, bind.Track, bind.MidiChannel, bind.MidiController);
+                if (machine != null)
+                {
+                    var all = machine.AllParameters().Where(p => p.Flags.HasFlag(ParameterFlags.State));
+                    var param = all.ElementAt(bind.ParamIndex);
+                    buzz.MidiControllerAssignments.BindParameter(param as ParameterCore, bind.Track, bind.MidiChannel, bind.MidiController);
+                }
             }
 
             // Info text
