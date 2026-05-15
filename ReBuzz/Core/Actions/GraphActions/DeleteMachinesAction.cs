@@ -34,7 +34,7 @@ namespace ReBuzz.Core.Actions.GraphActions
                 SaveConnections(machine, machineData);
 
                 // Save sequences
-                foreach (var seq in buzz.SongCore.Sequences.Where(s => s.Machine == machine))
+                foreach (var seq in buzz.SongCore.Sequences.Where(s => s.Machine == machine).OrderBy(s => buzz.SongCore.Sequences.IndexOf(s)))
                 {
                     var events = seq.Events;
                     int index = buzz.SongCore.Sequences.IndexOf(seq);
@@ -51,21 +51,18 @@ namespace ReBuzz.Core.Actions.GraphActions
                     }
                 }
             }
-
         }
 
         private void SaveConnections(MachineCore machine, MachineInfoRef machineData)
         {
             foreach (var connection in machine.AllOutputs)
             {
-                ConnectionInfoRef c = new ConnectionInfoRef(connection);
-                machineData.connections.Add(c);
+                machineData.disconnectActions.Add( new DisconnectMachinesAction(buzz, connection, dispatcher, engineSettings) );
             }
 
             foreach (var connection in machine.AllInputs)
             {
-                ConnectionInfoRef c = new ConnectionInfoRef(connection);
-                machineData.connections.Add(c);
+                machineData.disconnectActions.Add(new DisconnectMachinesAction(buzz, connection, dispatcher, engineSettings));
             }
         }
 
@@ -79,9 +76,14 @@ namespace ReBuzz.Core.Actions.GraphActions
                     var machine = buzz.SongCore.MachinesList.FirstOrDefault(x => x.Name == machineData.Name);
                     if (machine != null)
                     {
-                        foreach (var c in machineData.connections)
+                        //foreach (var c in machineData.connections)
+                        //{
+                        //    RemoveConnection(machine, c);
+                        //}
+
+                        foreach (var c in machineData.disconnectActions)
                         {
-                            RemoveConnection(machine, c);
+                            c.Do();
                         }
                     }
                 }
@@ -126,32 +128,8 @@ namespace ReBuzz.Core.Actions.GraphActions
             }
         }
 
-        private void RemoveConnection(MachineCore machine, ConnectionInfoRef c)
-        {
-            if (machine == null)
-                return;
-
-            var mc = machine.AllOutputs.FirstOrDefault(output => output.Source.Name == c.Source &&
-                output.Destination.Name == c.Destination);
-            if (mc != null)
-            {
-                // Call action without adding it to action stack
-                new DisconnectMachinesAction(buzz, mc, dispatcher, engineSettings).Do();
-            }
-
-            mc = machine.AllInputs.FirstOrDefault(input => input.Source.Name == c.Source &&
-                input.Destination.Name == c.Destination);
-            if (mc != null)
-            {
-                // Call action without adding it to action stack
-                new DisconnectMachinesAction(buzz, mc, dispatcher, engineSettings).Do();
-            }
-        }
-
         protected override void UndoAction()
         {
-            Dictionary<ISequence, int> SeqOrderdict = new Dictionary<ISequence, int>();
-
             // Create machines
             foreach (var machineData in deleteMachineDatas.OrderBy(md => md.sequences.Count > 0 ? md.sequences.Keys.OrderBy(o => o).First() : 0))
             {
@@ -203,11 +181,10 @@ namespace ReBuzz.Core.Actions.GraphActions
                 {
                     foreach (var seq in sequences)
                     {
-                        int index = 0;
+                        int index = seq.Key;
                         buzz.SongCore.AddSequence(machine, index);
                         var seqAdded = buzz.SongCore.SequencesList.ElementAt(index);
 
-                        SeqOrderdict[seqAdded] = seq.Key;
                         foreach (var eventItem in seq.Value)
                         {
                             var seqEvent = eventItem.Value;
@@ -221,37 +198,14 @@ namespace ReBuzz.Core.Actions.GraphActions
                 }
             }
 
-            if (SeqOrderdict.Count > 0)
-            {
-                // Order Seqences
-                foreach (var seq in buzz.SongCore.SequencesList.ToArray())
-                {
-                    int index = SeqOrderdict[seq];
-                    var seqSwap = buzz.SongCore.SequencesList[index];
-                    if (seq != seqSwap)
-                        buzz.SongCore.SwapSequences(seq, seqSwap);
-                }
-            }
 
             // Create connections
+
             foreach (var machineData in deleteMachineDatas)
             {
-                foreach (var c in machineData.connections)
+                foreach (var c in machineData.disconnectActions)
                 {
-                    var mc = new MachineConnectionCore(dispatcher, engineSettings);
-                    mc.Source = buzz.SongCore.MachinesList.FirstOrDefault(m => m.Name == c.Source);
-                    mc.Destination = buzz.SongCore.MachinesList.FirstOrDefault(m => m.Name == c.Destination);
-                    mc.SourceChannel = c.SourceChannel;
-                    mc.DestinationChannel = c.DestinationChannel;
-                    mc.Amp = c.Amp;
-                    mc.Pan = c.Pan;
-
-                    // Hidden machines are automatically connected to Master so skip them here
-                    var sourceMachine = mc.Source as MachineCore;
-                    if (!sourceMachine.Hidden)
-                    {
-                        new ConnectMachinesAction(buzz, mc, dispatcher, engineSettings).Do();
-                    }
+                    c.Undo();
                 }
             }
         }

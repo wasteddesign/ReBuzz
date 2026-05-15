@@ -192,6 +192,8 @@ namespace ReBuzz.Core
             dtDescribeEvent = new DispatcherTimer();
             dtDescribeEvent.Interval = TimeSpan.FromMilliseconds(1000 / 30.0);
             this.dispatcher = dispatcher;
+
+            Description = "";
         }
         internal class EventManager(IUiDispatcher dispatcher)
         {
@@ -450,7 +452,7 @@ namespace ReBuzz.Core
             return parameter;
         }
 
-        internal void SetMIDIBinding(int track, int midiChannel, int midiController)
+        internal void SetMIDIBindingValues(int track, int midiChannel, int midiController)
         {
             MidiBindings[track] = (midiChannel, midiController);
             MIDIBindingChanged?.Invoke(track);
@@ -458,8 +460,10 @@ namespace ReBuzz.Core
 
         internal void RemoveMIDIBinding(int track)
         {
-            MidiBindings.TryRemove(track, out (int, int)_);
-            MIDIBindingChanged?.Invoke(track);
+            if (MidiBindings.TryRemove(track, out (int, int) _))
+            {
+                MIDIBindingChanged?.Invoke(track);
+            }
         }
     }
 }

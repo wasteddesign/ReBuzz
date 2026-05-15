@@ -260,12 +260,12 @@ namespace ReBuzz.Midi
 
             ContollerBinding contollerBind = new ContollerBinding(parameterCore, track, midiChannel, midiController, Global.MIDISettings.ParameterSoftTakeover);
             ContollerBindings.Add(contollerBind);
-            parameterCore.SetMIDIBinding(track, midiChannel, midiController);
+            parameterCore.SetMIDIBindingValues(track, midiChannel, midiController);
         }
 
         internal void UnbindAllMIDIControllers(IMachine machineCore)
         {
-            foreach (var cb in ContollerBindings)
+            foreach (var cb in ContollerBindings.Where(b => b.Parameter.Group.Machine == machineCore))
             {
                 cb.Parameter.RemoveMIDIBinding(cb.Track);
             }

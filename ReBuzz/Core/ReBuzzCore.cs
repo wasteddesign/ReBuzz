@@ -1891,6 +1891,8 @@ namespace ReBuzz.Core
             if (machine.DLL.Info.Type == MachineType.Master)
                 return;
 
+            MidiControllerAssignments.UnbindAllMIDIControllers(machine);
+
             lock (AudioLock)
             {
                 foreach (var seq in SongCore.Sequences.Where(s => s.Machine == machine).ToArray())

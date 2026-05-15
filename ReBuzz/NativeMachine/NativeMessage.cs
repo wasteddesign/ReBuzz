@@ -1523,7 +1523,7 @@ namespace ReBuzz.NativeMachine
 
             SetMessageData(info.Name);
             SetMessageData(info.ShortName);
-            SetMessageData(info.Author);
+            SetMessageData(info.Author == null ? "" : info.Author);
             SetMessageData("");
             //SetMessageData(false);
         }

@@ -2,7 +2,9 @@
 using BuzzGUI.Common.Actions;
 using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
+using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Input;
 
 namespace ReBuzz.Core.Actions.GraphActions
 {
@@ -19,6 +21,8 @@ namespace ReBuzz.Core.Actions.GraphActions
         private readonly ReBuzzCore buzz;
         private readonly IUiDispatcher dispatcher;
         private readonly EngineSettings engineSettings;
+
+        private readonly List<(int, int)> midiBindings = new();
 
         public DisconnectMachinesAction(
             ReBuzzCore buzz,
@@ -70,9 +74,16 @@ namespace ReBuzz.Core.Actions.GraphActions
                 {
                     machine.RemoveOutput(mc);
                 }
+
                 machine = mc.Destination as MachineCore;
                 if (machine != null)
                 {
+                    int track = machine.Inputs.IndexOf(mc);
+                    var group = machine.ParameterGroupsList[0];
+                    foreach (var p in group.ParametersList)
+                    {
+                        midiBindings.Add(p.GetMIDIBinding(track));
+                    }
                     machine.RemoveInput(mc);
                 }
 
@@ -108,13 +119,27 @@ namespace ReBuzz.Core.Actions.GraphActions
                 if (machine != null)
                 {
                     machine.AddInput(mc);
-                }
+                    int track = machine.Inputs.IndexOf(mc);
+                    var group = machine.ParameterGroupsList[0];
 
-                if (!(mc.Source as MachineCore).Hidden && !(mc.Destination as MachineCore).Hidden)
-                {
-                    buzz.SongCore.InvokeConnectionAdded(mc);
+                    if (!(mc.Source as MachineCore).Hidden && !(mc.Destination as MachineCore).Hidden)
+                    {
+                        ParameterGroup.AddInputs(mc, group);
+                        buzz.SongCore.InvokeConnectionAdded(mc);
+
+                        for (int i = 0; i < group.ParametersList.Count; i++)
+                        {
+                            var b = midiBindings[i];
+                            if (b.Item1 != -1)
+                            {
+                                buzz.MidiControllerAssignments.BindParameter(group.ParametersList[i], track, b.Item1, b.Item2);
+                            }
+                        }
+
+                        midiBindings.Clear();
+                    }
+                    buzz.UpdateMachineDelayCompensation();
                 }
-                buzz.UpdateMachineDelayCompensation();
             }
         }
     }

@@ -1,4 +1,5 @@
 ﻿using BuzzGUI.Interfaces;
+using ReBuzz.Core.Actions.GraphActions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,6 +25,7 @@ namespace ReBuzz.Core.Actions
         public List<ConnectionInfoRef> connections = new List<ConnectionInfoRef>();
         internal List<ParameterGroup> parameterGroups = new List<ParameterGroup>();
         internal List<PatternInfoRef> patterns = new List<PatternInfoRef>();
+        internal List<DisconnectMachinesAction> disconnectActions = new List<DisconnectMachinesAction>();
 
         public MachineInfoRef(MachineCore machine)
         {

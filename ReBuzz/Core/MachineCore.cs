@@ -26,6 +26,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Threading;
+using Windows.ApplicationModel.Activation;
 using Windows.Media.Devices;
 
 namespace ReBuzz.Core
@@ -1107,12 +1108,38 @@ namespace ReBuzz.Core
         }
         internal void RemoveInput(IMachineConnection mc)
         {
-            if (inputs.Remove(mc) == true && parameterGroups[0].TrackCount > 0)
-            {
-                parameterGroups[0].TrackCount--;
-            }
-
             var buzz = graph.Buzz as ReBuzzCore;
+            var group = parameterGroups[0];
+            int trackToRemove = Inputs.IndexOf(mc);
+
+            if (inputs.Remove(mc) == true && group.TrackCount > 0)
+            {
+                var parameters = group.ParametersList;
+                foreach (var p in parameters)
+                {
+                    buzz.MidiControllerAssignments.BindParameter(p, trackToRemove, -1);     // Remove MIDI binding
+                }
+
+                // Move rest of the parameters to correct positions
+                for (int i = trackToRemove; i < group.TrackCount - 1; i++)
+                {
+                    foreach (var p in parameters)
+                    {
+                        p.SetDisplayName(i, p.GetDisplayName(i + 1));
+                        p.SetValue(i, p.GetValue(i + 1));
+                        var b = p.GetMIDIBinding(i + 1);
+                        buzz.MidiControllerAssignments.BindParameter(p, i, -1);     // Remove MIDI binding
+                        buzz.MidiControllerAssignments.BindParameter(p, i + 1, -1); // Remove MIDI binding
+                        if (b.Item1 != -1)
+                        {
+                            buzz.MidiControllerAssignments.BindParameter(p, i, b.Item1, b.Item2);   // Set midi biding
+                        }
+                    }
+                }
+
+                group.TrackCount--;
+            }
+            PropertyChanged.Raise(this, "Inputs");
             buzz.MachineManager.DeleteInput(this, mc.Source);
         }
 
