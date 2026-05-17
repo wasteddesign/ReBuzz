@@ -509,11 +509,20 @@ namespace ReBuzz.Audio
             if (pattern != null)
             {
                 var masterInfo = ReBuzzCore.masterInfo;
-                int nextPos = (sampleCount + masterInfo.PosInTick * PatternEvent.TimeBase) / masterInfo.SamplesPerTick;
-                foreach (var column in pattern.Columns.ToArray())
+                int nextPos = ((sampleCount + masterInfo.PosInTick) * PatternEvent.TimeBase) / masterInfo.SamplesPerTick;
+
+                var columns = pattern.Columns;
+
+                for (int i = 0; i < columns.Count; i++)
                 {
-                    foreach (var pe in column.GetEvents(pattern.PlayPosition, pattern.PlayPosition + nextPos))
+                    var column = columns[i];
+                    if (column.Machine == null)
+                        continue;
+
+                    var ces = column.GetEvents(pattern.PlayPosition, pattern.PlayPosition + nextPos);
+                    for (int j = 0; j < ces.Count(); j++)
                     {
+                        var pe = ces.ElementAt(j);
                         if (column.Type == PatternColumnType.MIDI)
                         {
                             var data = pe.Value;
@@ -688,7 +697,7 @@ namespace ReBuzz.Audio
             }
 
             // Wait all tasks to complete
-            Task.WaitAll(workTasks.ToArray());
+            Task.WaitAll(workTasks);
             workList.Clear();
         }
 
@@ -724,7 +733,7 @@ namespace ReBuzz.Audio
                 // Wait all input tasks to complete
                 if (machine.workTasks.Count > 0)
                 {
-                    Task.WaitAll(machine.workTasks.ToArray());
+                    Task.WaitAll(machine.workTasks);
                 }
 
                 // All inputs handled (if any)

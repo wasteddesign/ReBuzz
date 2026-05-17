@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading;
 using System.Windows;
 using static ReBuzz.Core.ParameterCore;
 
@@ -277,49 +278,58 @@ namespace ReBuzz.Core
             }
         }
 
-
         public event Action<IPatternColumn> ColumnAdded;
         public event Action<IPatternColumn> ColumnRemoved;
         public event PropertyChangedEventHandler PropertyChanged;
         public event Action<IPatternColumn> PatternChanged;
+        Lock patternLock = new();
 
         public void DeleteColumn(int index)
         {
-            if (index < columns.Count)
+            lock (patternLock)
             {
-                var pcc = columns[index];
-                columns.RemoveAt(index);
-                ColumnRemoved?.Invoke(pcc);
+                if (index < columns.Count)
+                {
+                    var pcc = columns[index];
+                    columns.RemoveAt(index);
+                    ColumnRemoved?.Invoke(pcc);
+                }
             }
         }
 
         public void InsertColumn(int index, IParameter p, int track)
         {
-            PatternColumnType type = p.IndexInGroup == (int)InternalParameter.MidiNote || p.IndexInGroup == -1 ? PatternColumnType.MIDI : PatternColumnType.Parameter;
-            PatternColumnCore pcc = new PatternColumnCore(type, this, p.Group.Machine, p, track, null, null);
-            //int newIndex = Math.Min(index, columns.Count);
-            //columns.Insert(newIndex, pcc);
-            columns.Insert(index, pcc);
-            ColumnAdded?.Invoke(pcc);
+            lock (patternLock)
+            {
+                PatternColumnType type = p.IndexInGroup == (int)InternalParameter.MidiNote || p.IndexInGroup == -1 ? PatternColumnType.MIDI : PatternColumnType.Parameter;
+                PatternColumnCore pcc = new PatternColumnCore(type, this, p.Group.Machine, p, track, null, null);
+                //int newIndex = Math.Min(index, columns.Count);
+                //columns.Insert(newIndex, pcc);
+                columns.Insert(index, pcc);
+                ColumnAdded?.Invoke(pcc);
+            }
         }
 
         public void InsertColumn(int index, IMachine? m)
         {
-            if (m != null)
+            lock (patternLock)
             {
-                if (index < m.AllNonInputParameters().Count())
+                if (m != null)
                 {
-                    var p = m.AllNonInputParameters().ElementAt(index);
-                    InsertColumn(columns.Count, p, 0);
+                    if (index < m.AllNonInputParameters().Count())
+                    {
+                        var p = m.AllNonInputParameters().ElementAt(index);
+                        InsertColumn(columns.Count, p, 0);
+                    }
                 }
-            }
-            else
-            {
-                ParameterCore parameter = ParameterCore.GetMidiParameter(Machine as MachineCore, dispatcher);
+                else
+                {
+                    ParameterCore parameter = ParameterCore.GetMidiParameter(Machine as MachineCore, dispatcher);
 
-                PatternColumnCore pcc = new PatternColumnCore(PatternColumnType.MIDI, this, Machine, parameter, 0, null, null);
-                columns.Insert(index, pcc);
-                ColumnAdded?.Invoke(pcc);
+                    PatternColumnCore pcc = new PatternColumnCore(PatternColumnType.MIDI, this, Machine, parameter, 0, null, null);
+                    columns.Insert(index, pcc);
+                    ColumnAdded?.Invoke(pcc);
+                }
             }
         }
 
