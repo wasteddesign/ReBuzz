@@ -6,7 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Windows;
 using System.Xml;
@@ -16,6 +18,7 @@ namespace BuzzGUI.Common.Templates
 {
     public enum TemplatePatternMode { NoPatterns, PatternsOnly, PatternsAndSequences };
     public enum TemplateWavetableMode { NoWavetable, WaveRefsOnly, WaveFiles };
+    public enum TemplateMIDIBindingsMode { NoBindings, All };
 
     public class Template
     {
@@ -25,12 +28,13 @@ namespace BuzzGUI.Common.Templates
         public List<Sequence> Sequences;
         public List<Wave> Wavetable;
         public Markers Markers;
+        public List<ParameterMidiBinding> ParameterMidiBindings;
 
         [XmlIgnore]
         public string Path;
 
         public Template() { }
-        public Template(IEnumerable<IMachine> machines, IEnumerable<IMachineGroup> groups, TemplatePatternMode patternmode, TemplateWavetableMode wtmode)
+        public Template(IEnumerable<IMachine> machines, IEnumerable<IMachineGroup> groups, TemplatePatternMode patternmode, TemplateWavetableMode wtmode, TemplateMIDIBindingsMode bindingMode)
         {
             var song = machines.First().Graph as ISong;
 
@@ -41,6 +45,31 @@ namespace BuzzGUI.Common.Templates
             Markers = new Markers(song);
 
             MachineGroups = groups.Select(g => new MachineGroup(g)).ToList();
+
+            if (bindingMode == TemplateMIDIBindingsMode.All)
+            {
+                ParameterMidiBindings = new();
+
+                foreach (var machine in machines)
+                {
+                    foreach (var group in machine.ParameterGroups)
+                    {
+                        foreach (var parameter in group.Parameters)
+                        {
+                            for (int i = 0; i < group.TrackCount; i++)
+                            {
+                                var binding = parameter.GetMIDIBinding(i);
+                                if (binding.Item1 != -1)
+                                {
+                                    var all = machine.AllParameters().Where(p => p.Flags.HasFlag(ParameterFlags.State));
+                                    int index = all.FindIndex(p2 => p2 == parameter);
+                                    ParameterMidiBindings.Add(new ParameterMidiBinding(machine, machine.ParameterGroups.IndexOf(group), i, index, binding.Item1, binding.Item2));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         public void Save(Stream output)
@@ -383,6 +412,10 @@ namespace BuzzGUI.Common.Templates
                             graphGroup.CreateMachineGroup(renameGroup[g.Name], (float)p.X, (float)p.Y);
                             var newg = graphGroup.MachineGroups.Last();
                             newg.IsGrouped = g.IsGrouped;
+                            if (g.MainInputMachineName != null)
+                                newg.MainInputMachine = graph.Machines.FirstOrDefault(mg => mg.Name == rename[g.MainInputMachineName]);
+                            if (g.MainOutputMachineName != null)
+                                newg.MainOutputMachine = graph.Machines.FirstOrDefault(mg => mg.Name == rename[g.MainOutputMachineName]);
 
                             glist.Add(newg);
 
@@ -397,6 +430,20 @@ namespace BuzzGUI.Common.Templates
                                     graphGroup.InvokeImportGroupedMachinePositions(newm, (float)p.X, (float)p.Y);
                                 }
                             }
+                        }
+                    }
+
+                    foreach (var bind in ParameterMidiBindings)
+                    {
+                        string machineName = bind.Machine;
+                        machineName = rename[machineName];
+                        IMachine machine = song.Machines.FirstOrDefault(m => m.Name == machineName);
+
+                        if (machine != null)
+                        {
+                            var all = machine.AllParameters().Where(p => p.Flags.HasFlag(ParameterFlags.State));
+                            var param = all.ElementAt(bind.ParamIndex);
+                            param.BindToMIDIController(bind.Track, bind.MidiChannel, bind.MidiController);
                         }
                     }
                 }

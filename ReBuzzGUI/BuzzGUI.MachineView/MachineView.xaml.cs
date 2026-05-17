@@ -1356,7 +1356,7 @@ namespace BuzzGUI.MachineView
             {
                 Mouse.OverrideCursor = Cursors.Wait;
 
-                var t = new BuzzGUI.Common.Templates.Template(GetSelectedAndAllGroupMachines(), SelectedGroups.Select(g => g.MachineGroup), BuzzGUI.Common.Templates.TemplatePatternMode.PatternsAndSequences, BuzzGUI.Common.Templates.TemplateWavetableMode.NoWavetable);
+                var t = new BuzzGUI.Common.Templates.Template(GetSelectedAndAllGroupMachines(), SelectedGroups.Select(g => g.MachineGroup), BuzzGUI.Common.Templates.TemplatePatternMode.PatternsAndSequences, BuzzGUI.Common.Templates.TemplateWavetableMode.NoWavetable, Common.Templates.TemplateMIDIBindingsMode.NoBindings);
 
                 var ms = new MemoryStream();
                 t.Save(ms);
@@ -1419,7 +1419,7 @@ namespace BuzzGUI.MachineView
                 Mouse.OverrideCursor = Cursors.Wait;
                 var t = new BuzzGUI.Common.Templates.Template(GetSelectedAndAllGroupMachines(), SelectedGroups.Select(g => g.MachineGroup),
                     includepatandseq ? BuzzGUI.Common.Templates.TemplatePatternMode.PatternsAndSequences : BuzzGUI.Common.Templates.TemplatePatternMode.NoPatterns,
-                    BuzzGUI.Common.Templates.TemplateWavetableMode.NoWavetable);
+                    BuzzGUI.Common.Templates.TemplateWavetableMode.NoWavetable, Common.Templates.TemplateMIDIBindingsMode.NoBindings);
 
                 var newmachines = t.Paste(machineGraph, machineGroupGraph, new Point(double.NaN, double.NaN));
                 SetSelection(newmachines.Item1, false);
@@ -1503,7 +1503,7 @@ namespace BuzzGUI.MachineView
             new WindowInteropHelper(w).Owner = ((HwndSource)PresentationSource.FromVisual(this)).Handle;
             if ((bool)w.ShowDialog())
             {
-                var t = new BuzzGUI.Common.Templates.Template(sm, sg, CreateTemplateWindow.PatternMode, CreateTemplateWindow.WavetableMode);
+                var t = new BuzzGUI.Common.Templates.Template(sm, sg, CreateTemplateWindow.PatternMode, CreateTemplateWindow.WavetableMode, CreateTemplateWindow.MIDIBindingsMode);
                 TemplateList.SaveTemplate(w.TemplateName, t, CreateTemplateWindow.WavetableMode == Common.Templates.TemplateWavetableMode.WaveFiles ? MachineGraph.Buzz.Song.Wavetable : null);
             }
         }

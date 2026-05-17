@@ -73,7 +73,7 @@ namespace ReBuzz.Core
             buzz.MidiControllerAssignments.BindParameter(this, track, mcindex);
         }
 
-        public void BindToMIDIController(int track, int controller, int channel)
+        public void BindToMIDIController(int track, int channel, int controller)
         {
             var buzz = Group.Machine.Graph.Buzz as ReBuzzCore;
             buzz.MidiControllerAssignments.BindParameter(this, track, channel, controller);

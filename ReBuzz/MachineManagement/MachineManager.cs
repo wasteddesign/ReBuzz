@@ -716,6 +716,8 @@ namespace ReBuzz.MachineManagement
 
         internal void SendMidiInput(IMachine machine, int data, bool polacConversion)
         {
+            if (machine == null)
+                return;
             //lock (machine)
             //lock (ReBuzzCore.AudioLock)
             {

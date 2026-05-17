@@ -21,6 +21,12 @@ namespace BuzzGUI.Common.Templates
         [XmlAttribute]
         public bool IsGrouped;
 
+        [XmlAttribute]
+        public string MainInputMachineName { get; set; }
+
+        [XmlAttribute]
+        public string MainOutputMachineName { get; set; }
+
         public List<MachineGroupMachine> Machines;
 
         public MachineGroup() { }
@@ -30,6 +36,9 @@ namespace BuzzGUI.Common.Templates
             PositionX = g.Position.Item1;
             PositionY = g.Position.Item2;
             IsGrouped = g.IsGrouped;
+
+            MainInputMachineName = g.MainInputMachine?.Name;
+            MainOutputMachineName = g.MainOutputMachine?.Name;
 
             List<MachineGroupMachine> machineGroupMachines = new List<MachineGroupMachine>();
             foreach (var machine in g.Machines)

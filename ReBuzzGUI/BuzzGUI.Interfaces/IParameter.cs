@@ -26,7 +26,7 @@ namespace BuzzGUI.Interfaces
         void SetValue(int track, int value);
         string DescribeValue(int value);
         void BindToMIDIController(int track, int mcindex);
-        void BindToMIDIController(int track, int controller, int channel);   // Show window
+        void BindToMIDIController(int track, int channel, int controller);   // Show window
         bool IsValidAsciiChar(int ch);      // ParameterFlags.Ascii
 
         void SubscribeEvents(int track, Action<IParameter, int> valueChanged, Action<IParameter, int> valueDescriptionChanged);

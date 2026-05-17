@@ -31,7 +31,8 @@ namespace ReBuzz.NativeMachine
         {
             // Use async not to block host listener
             //MessageEvent?.BeginInvoke(this, new MessageEventArgs() { MessageId = GetMessageId() }, null, null);
-            Task task = Task.Run(() => MessageEvent?.Invoke(this, new MessageEventArgs() { MessageId = GetMessageId() }));
+            //Task task = Task.Run(() => MessageEvent?.Invoke(this, new MessageEventArgs() { MessageId = GetMessageId() }));
+            MessageEvent?.Invoke(this, new MessageEventArgs() { MessageId = GetMessageId() });
         }
     }
 }

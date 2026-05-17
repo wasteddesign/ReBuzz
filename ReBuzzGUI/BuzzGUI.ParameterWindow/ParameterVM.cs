@@ -117,7 +117,7 @@ namespace BuzzGUI.ParameterWindow
                         {   
                             var channel = int.Parse(mcaw.MidiChannel) - 1;
                             var controller = int.Parse(mcaw.MidiController);
-                            parameter.BindToMIDIController(track, controller, channel);
+                            parameter.BindToMIDIController(track, channel, controller);
                         }
                         catch { }
                     }

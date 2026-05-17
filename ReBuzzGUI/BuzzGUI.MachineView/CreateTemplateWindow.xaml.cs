@@ -20,10 +20,13 @@ namespace BuzzGUI.MachineView
         public static TemplatePatternMode PatternMode { get; set; }
         public static TemplateWavetableMode WavetableMode { get; set; }
 
+        public static TemplateMIDIBindingsMode MIDIBindingsMode { get; set; }
+
         static CreateTemplateWindow()
         {
             PatternMode = TemplatePatternMode.PatternsAndSequences;
             WavetableMode = TemplateWavetableMode.NoWavetable;
+            MIDIBindingsMode = TemplateMIDIBindingsMode.All;
         }
 
         public CreateTemplateWindow(IEnumerable<IMachine> machines, IEnumerable<IMachineGroup> groups, IEnumerable<string> existing)
@@ -41,6 +44,9 @@ namespace BuzzGUI.MachineView
             noWaves.IsChecked = WavetableMode == TemplateWavetableMode.NoWavetable;
             waveRefs.IsChecked = WavetableMode == TemplateWavetableMode.WaveRefsOnly;
             waves.IsChecked = WavetableMode == TemplateWavetableMode.WaveFiles;
+
+            noMidiBinding.IsChecked = MIDIBindingsMode == TemplateMIDIBindingsMode.NoBindings;
+            midiBindings.IsChecked = MIDIBindingsMode == TemplateMIDIBindingsMode.All;
 
             var generators = Machines.Where(m => m.DLL.Info.Type == MachineType.Generator && !m.IsControlMachine);
             var effects = Machines.Where(m => m.DLL.Info.Type == MachineType.Effect && !m.IsControlMachine);
@@ -74,6 +80,11 @@ namespace BuzzGUI.MachineView
                     WavetableMode = TemplateWavetableMode.WaveFiles;
                 else
                     WavetableMode = TemplateWavetableMode.NoWavetable;
+
+                if ((bool)midiBindings.IsChecked)
+                    MIDIBindingsMode = TemplateMIDIBindingsMode.All;
+                else if ((bool)noMidiBinding.IsChecked)
+                    MIDIBindingsMode = TemplateMIDIBindingsMode.NoBindings;
 
                 TemplateName = name.Text;
                 this.DialogResult = true;
