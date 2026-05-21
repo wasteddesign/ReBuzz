@@ -134,5 +134,9 @@ namespace ReBuzzTests.Automation
                 return new Dictionary<string, object>();
             }
         }
+
+        public void DeleteCurrentUserValue(string value, string path)
+        {   
+        }
     }
 }

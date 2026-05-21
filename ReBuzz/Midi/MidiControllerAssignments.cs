@@ -1,12 +1,15 @@
 ﻿using BuzzGUI.Common;
 using BuzzGUI.Interfaces;
 using ReBuzz.Core;
+using Sanford.Multimedia.Midi;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Xml.Linq;
 
 namespace ReBuzz.Midi
-{
+{   
     internal class MidiControllerAssignments : INotifyPropertyChanged
     {
         private readonly IBuzz buzz;
@@ -74,11 +77,50 @@ namespace ReBuzz.Midi
             {
                 cb.Update(channel, data1, data2);
             }
+
+            bool activate = data2 == 127;
+            if (activate)
+            {
+                foreach (var cb in ReBuzzMIDIControllers)
+                {
+                    switch (cb.ControllerType)
+                    {
+                        case ReBuzzMIDIControllerType.Play:
+                            buzz.Playing = !buzz.Playing;
+                            break;
+                        case ReBuzzMIDIControllerType.Stop:
+                            buzz.Playing = false;
+                            break;
+                        case ReBuzzMIDIControllerType.Record:
+                            buzz.Recording = !buzz.Recording;
+                            break;
+                        case ReBuzzMIDIControllerType.Forward:
+                            buzz.Song.PlayPosition += 4;
+                            break;
+                        case ReBuzzMIDIControllerType.Backward:
+                            buzz.Song.PlayPosition -= 4;
+                            break;
+                        case ReBuzzMIDIControllerType.Loop:
+                            buzz.Looping = !buzz.Looping;
+                            break;
+                        case ReBuzzMIDIControllerType.Beginning:
+                            buzz.Song.PlayPosition = buzz.Song.LoopStart;
+                            break;
+                        case ReBuzzMIDIControllerType.SpeedUp:
+                            buzz.Speed += 1;
+                            break;
+                        case ReBuzzMIDIControllerType.SpeedDown:
+                            buzz.Speed -= 1;
+                            break;
+                    }
+                }
+            }
         }
 
         internal void ClearAll()
         {
-            RegClearAllMidiControllers(registryEx, predefinedMIDIControllers.Count, registryRoot);
+            RegClearAllMidiControllers(registryEx, RegGetNumberOfMidiControllers(registryEx), registryRoot);
+            RegClearAllMidiDAWControllers(registryEx, RegGetNumberOfMidiDAWControllers(registryEx), registryRoot);
 
             reBuzzMIDIControllers.Clear();
             predefinedMIDIControllers.Clear();
@@ -95,30 +137,14 @@ namespace ReBuzz.Midi
 
         internal void LoadAssignments()
         {
-            var controller = RegGetController(registryEx, "MidiControllerPlay");
-            if (controller != null)
+            int numDAWControllers = RegGetNumberOfMidiDAWControllers(registryEx);
+            for (int i = 0; i < numDAWControllers; i++)
             {
-                reBuzzMIDIControllers.Add(controller);
-            }
-            controller = RegGetController(registryEx, "MidiControllerStop");
-            if (controller != null)
-            {
-                reBuzzMIDIControllers.Add(controller);
-            }
-            controller = RegGetController(registryEx, "MidiControllerRecord");
-            if (controller != null)
-            {
-                reBuzzMIDIControllers.Add(controller);
-            }
-            controller = RegGetController(registryEx, "MidiControllerForward");
-            if (controller != null)
-            {
-                reBuzzMIDIControllers.Add(controller);
-            }
-            controller = RegGetController(registryEx, "MidiControllerBackward");
-            if (controller != null)
-            {
-                reBuzzMIDIControllers.Add(controller);
+                MidiController mc = RegGetDAWControllerById(registryEx, i);
+                if (mc != null)
+                {
+                    reBuzzMIDIControllers.Add(mc);
+                }
             }
 
             int numControllers = RegGetNumberOfMidiControllers(registryEx);
@@ -133,7 +159,7 @@ namespace ReBuzz.Midi
         }
 
         // Return true if controller assignment found
-        public static MidiController RegGetController(IRegistryEx registryEx, string regKey)
+        public static MidiController RegGetController(IRegistryEx registryEx, string regKey, bool dawController = false)
         {
             MidiController mc = new MidiController();
 
@@ -152,7 +178,15 @@ namespace ReBuzz.Midi
                     return null;
                 }
 
-                mc.Name = values[0].Trim();
+                if (dawController)
+                {
+                    mc.ControllerType = (ReBuzzMIDIControllerType)int.Parse(values[0]);
+                }
+                else
+                {
+                    mc.Name = values[0].Trim();
+                }
+                
                 mc.Channel = int.Parse(values[1]);
                 mc.Contoller = int.Parse(values[2]);
 
@@ -166,10 +200,23 @@ namespace ReBuzz.Midi
             return RegGetController(registryEx, regKey);
         }
 
+        public static MidiController RegGetDAWControllerById(IRegistryEx registryEx, int id)
+        {
+            string regKey = "MidiDAWController" + id;
+            return RegGetController(registryEx, regKey, true);
+        }
+
         public static void RegSetController(
           IRegistryEx registryEx, string regKey, string name, int channel, int controller)
         {
             var values = name + "," + channel + "," + controller;
+            registryEx.Write(regKey, values, "Settings");
+        }
+
+        public static void RegSetController(
+  IRegistryEx registryEx, string regKey, ReBuzzMIDIControllerType t, int channel, int controller)
+        {
+            var values = (int)t + "," + channel + "," + controller;
             registryEx.Write(regKey, values, "Settings");
         }
 
@@ -180,9 +227,21 @@ namespace ReBuzz.Midi
             RegSetController(registryEx, regKey, name, channel, controller);
         }
 
+        public static void RegSetDAWControllerById(
+          IRegistryEx registryEx, int id, ReBuzzMIDIControllerType controllerType, int channel, int controller)
+        {
+            string regKey = "MidiDAWController" + id;
+            RegSetController(registryEx, regKey, controllerType, channel, controller);
+        }
+
         public static int RegGetNumberOfMidiControllers(IRegistryEx registryEx)
         {
             return registryEx.Read("numMidiControllers", 0, "Settings");
+        }
+
+        public static int RegGetNumberOfMidiDAWControllers(IRegistryEx registryEx)
+        {
+            return registryEx.Read("numMidiDAWControllers", 0, "Settings");
         }
 
         public static void RegSetNumberOfMidiControllers(IRegistryEx registryEx, int num)
@@ -190,10 +249,15 @@ namespace ReBuzz.Midi
             registryEx.Write("numMidiControllers", num, "Settings");
         }
 
+        public static void RegSetNumberOfMidiDAWControllers(IRegistryEx registryEx, int num)
+        {
+            registryEx.Write("numMidiDAWControllers", num, "Settings");
+        }
+
         public static void RegClearAllMidiControllers(
           IRegistryEx registryEx, int numControllers, string registryRoot)
         {
-            string regKeyBase = registryRoot + "Settings\\MidiController";
+            string regKeyBase = registryRoot + "Settings";
             int id = 0;
 
             for (int i = 0; i < numControllers; i++)
@@ -201,7 +265,7 @@ namespace ReBuzz.Midi
                 string key = regKeyBase + id;
                 try
                 {
-                    registryEx.DeleteCurrentUserSubKey(key);
+                    registryEx.DeleteCurrentUserValue("MidiController" + i, regKeyBase);
                 }
                 catch { }
 
@@ -209,6 +273,27 @@ namespace ReBuzz.Midi
             }
 
             RegSetNumberOfMidiControllers(registryEx, 0);
+        }
+
+        public static void RegClearAllMidiDAWControllers(
+  IRegistryEx registryEx, int numControllers, string registryRoot)
+        {
+            string regKeyBase = registryRoot + "Settings";
+            int id = 0;
+
+            for (int i = 0; i < numControllers; i++)
+            {
+                string key = regKeyBase + id;
+                try
+                {
+                    registryEx.DeleteCurrentUserValue("MidiDAWController" + i, regKeyBase);
+                }
+                catch { }
+
+                id++;
+            }
+
+            RegSetNumberOfMidiDAWControllers(registryEx, 0);
         }
 
         internal IList<string> GetMidiControllerNames()
@@ -230,6 +315,20 @@ namespace ReBuzz.Midi
             predefinedMIDIControllers.Add(midiController);
             RegSetControllerById(registryEx, index, name, channel, controller);
             RegSetNumberOfMidiControllers(registryEx, predefinedMIDIControllers.Count);
+        }
+
+        internal void AddDAWController(ReBuzzMIDIControllerType controllerType, int channel, int controller, int value)
+        {
+            int index = reBuzzMIDIControllers.Count;
+            MidiController midiController = new MidiController();
+            midiController.ControllerType = controllerType;
+            midiController.Contoller = controller;
+            midiController.Channel = channel;
+            midiController.Value = value;
+
+            this.reBuzzMIDIControllers.Add(midiController);
+            RegSetDAWControllerById(registryEx, index, controllerType, channel, controller);
+            RegSetNumberOfMidiDAWControllers(registryEx, reBuzzMIDIControllers.Count);
         }
 
         private readonly IRegistryEx registryEx;

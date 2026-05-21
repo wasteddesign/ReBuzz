@@ -1,16 +1,9 @@
-﻿using System.ComponentModel;
+﻿using Sanford.Multimedia.Midi;
+using System.ComponentModel;
 
 namespace ReBuzz.Midi
 {
-    public enum EMidiContollerTupe
-    {
-        Custom,
-        Play,
-        Record,
-        Stop,
-        Forward,
-        Backward
-    }
+    public enum ReBuzzMIDIControllerType { Play, Stop, Record, Forward, Backward, Beginning, Loop, SpeedUp, SpeedDown }
     internal class MidiController : INotifyPropertyChanged
     {
         public string Name { get; set; }
@@ -18,7 +11,7 @@ namespace ReBuzz.Midi
         public int Contoller { get; set; }
         public int Value { get; internal set; }
 
-        public EMidiContollerTupe Type { get; internal set; }
+        public ReBuzzMIDIControllerType ControllerType { get; internal set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
     }

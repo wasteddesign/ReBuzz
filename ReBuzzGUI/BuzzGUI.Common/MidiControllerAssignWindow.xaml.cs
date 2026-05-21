@@ -1,5 +1,6 @@
 ﻿using BuzzGUI.Common;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Windows;
@@ -14,6 +15,31 @@ namespace BuzzGUI.Common
     public partial class MidiControllerAssignWindow : Window, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
+
+        List<string> dropDownSelection;
+        public List<string> DropDownSelection { get => dropDownSelection;
+            set
+            {
+                dropDownSelection = value;
+                cbBindList.SelectedIndex = 0;
+                if (dropDownSelection != null)
+                {
+                    mainGrid.RowDefinitions[1].Height = new GridLength(30);
+                }
+                else
+                {
+                    mainGrid.RowDefinitions[1].Height = new GridLength(0);
+                }
+                PropertyChanged.Raise(this, "DropDownSelection");
+            }
+        }
+
+        public int DropDownSelectedIndex
+        {
+            get => cbBindList.SelectedIndex;
+            set => cbBindList.SelectedIndex = value;
+        }
+            
 
         public bool IsInputValid
         {
@@ -65,14 +91,16 @@ namespace BuzzGUI.Common
             this.quickAssign = quickAssign;
             this.hideValue = hideValue;
 
+            mainGrid.RowDefinitions[1].Height = new GridLength(0);
+
             if (quickAssign)
             {
-                mainGrid.RowDefinitions[4].Height = new GridLength(0);
+                mainGrid.RowDefinitions[5].Height = new GridLength(0);
             }
 
             if (hideValue)
             {
-                mainGrid.RowDefinitions[3].Height = new GridLength(0);
+                mainGrid.RowDefinitions[4].Height = new GridLength(0);
             }
 
             btOk.Click += (sender, e) =>

@@ -1,7 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using BuzzGUI.Common;
+﻿using BuzzGUI.Common;
 using Microsoft.Win32;
+using System;
+using System.Collections.Generic;
+using System.Windows.Forms;
+using System.Windows.Input;
 
 namespace ReBuzz.Core
 {
@@ -13,6 +15,7 @@ namespace ReBuzz.Core
         Dictionary<string, object> ReadDictionary(string path = "BuzzGUI");
         void DeleteCurrentUserSubKey(string key);
         IRegistryKey CreateCurrentUserSubKey(string subKey);
+        void DeleteCurrentUserValue(string value, string path);
     }
 
     public class WindowsRegistry : IRegistryEx
@@ -43,7 +46,7 @@ namespace ReBuzz.Core
 
         public void DeleteCurrentUserSubKey(string key)
         {
-            using (RegistryKey rkey = Registry.CurrentUser.OpenSubKey(key))
+            using (RegistryKey rkey = Registry.CurrentUser.OpenSubKey(key, true))
             {
                 // Check if the key exists
                 if (rkey != null)
@@ -56,6 +59,18 @@ namespace ReBuzz.Core
         public IRegistryKey CreateCurrentUserSubKey(string subKey)
         {
             return new WindowsRegistryKey(Registry.CurrentUser.CreateSubKey(subKey));
+        }
+
+        public void DeleteCurrentUserValue(string value, string path)
+        {
+            using (RegistryKey rkey = Registry.CurrentUser.OpenSubKey(path, true))
+            {
+                // Check if the key exists
+                if (rkey != null)
+                {
+                    rkey.DeleteValue(value);
+                }
+            }
         }
     }
 }

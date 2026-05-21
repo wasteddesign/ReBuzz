@@ -1,6 +1,7 @@
 ﻿using BuzzGUI.Common;
 using NAudio.Midi;
 using ReBuzz.Core;
+using ReBuzz.Midi;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -8,7 +9,6 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using ReBuzz.Common;
 
 namespace ReBuzz.Common
 {
@@ -25,6 +25,8 @@ namespace ReBuzz.Common
             public int Channel { get; set; }
             public int Controller { get; set; }
             public int Value { get; internal set; }
+            public ReBuzzMIDIControllerType DAWControllerType { get; set; }
+            public string DAWControllerName { get; internal set; }
 
             public event PropertyChangedEventHandler PropertyChanged;
         }
@@ -47,6 +49,7 @@ namespace ReBuzz.Common
             InitializeComponent();
 
             var inputsInfo = registryEx.ReadDictionary("MIDI In List").KeyValuesToStringInt();
+            var bindList = Enum.GetNames(typeof(ReBuzzMIDIControllerType)).ToList();
 
             for (int device = 0; device < MidiIn.NumberOfDevices; device++) // List connected devices first
             {
@@ -132,26 +135,6 @@ namespace ReBuzz.Common
                 wpCPU.Children.Add(cbCpu);
             }
 
-            /*
-            int threadType = registryEx.Read("AudioThreadType", 0, "Settings");
-            {
-                ComboBoxItem cbi = new ComboBoxItem();
-                cbi.Content = "Dedicated Scheduler";
-                cbAudioThreadType.Items.Add(cbi);
-
-                cbi = new ComboBoxItem();
-                cbi.Content = "Thread";
-                cbAudioThreadType.Items.Add(cbi);
-
-                cbi = new ComboBoxItem();
-                cbi.Content = "None";
-                cbAudioThreadType.Items.Add(cbi);
-            }
-            
-
-            cbAudioThreadType.SelectedIndex = threadType;
-            */
-
             int numThreads = registryEx.Read("AudioThreads", 2, "Settings");
             for (int i = 1; i <= 8; i++)
             {
@@ -205,7 +188,7 @@ namespace ReBuzz.Common
 
             btModifyController.Click += (sender, e) =>
             {
-                ModifyController();
+                ModifyController(lvControllers);
             };
 
             btRemoveController.Click += (sender, e) =>
@@ -237,17 +220,83 @@ namespace ReBuzz.Common
 
             lvControllers.MouseDoubleClick += (sender, e) =>
             {
-                ModifyController();
+                ModifyController(lvControllers);
             };
+
+            btAddDAWController.Click += (sender, e) =>
+            {
+                MidiControllerAssignWindow mcaw = new MidiControllerAssignWindow(true);
+                mcaw.ControllerName = "Controller";
+
+                var bindList = Enum.GetNames(typeof(ReBuzzMIDIControllerType)).ToList();
+                mcaw.DropDownSelection = bindList;
+
+                if (mcaw.ShowDialog() == true)
+                {
+                    ControllerVM cVM = new ControllerVM();
+                    try
+                    {
+                        cVM.DAWControllerType = (ReBuzzMIDIControllerType)mcaw.DropDownSelectedIndex;
+                        cVM.DAWControllerName = bindList[mcaw.DropDownSelectedIndex];
+                        cVM.Name = mcaw.ControllerName;
+                        cVM.Channel = int.Parse(mcaw.MidiChannel);
+                        cVM.Value = int.Parse(mcaw.MidiValue);
+                        cVM.Controller = int.Parse(mcaw.MidiController);
+                        lvDAWControllers.Items.Add(cVM);
+                    }
+                    catch { }
+                }
+            };
+
+            btModifyDAWController.Click += (sender, e) =>
+            {   
+                ModifyController(lvDAWControllers, bindList);
+            };
+
+            btRemoveDAWController.Click += (sender, e) =>
+            {
+                ControllerVM cVM = (ControllerVM)lvDAWControllers.SelectedItem;
+                int index = lvDAWControllers.SelectedIndex;
+
+                if (cVM != null)
+                {
+                    lvDAWControllers.Items.Remove(cVM);
+                }
+            };
+
+            this.lvDAWControllers.SelectionChanged += (sender, e) =>
+            {
+                IsControllerSelected = lvDAWControllers.SelectedIndex != -1;
+                PropertyChanged.Raise(this, "IsControllerSelected");
+            };
+
+            lvDAWControllers.MouseDoubleClick += (sender, e) =>
+            {   
+                ModifyController(lvDAWControllers, bindList);
+            };
+
+            
+            foreach (var controller in buzz.MidiControllerAssignments.ReBuzzMIDIControllers)
+            {
+                ControllerVM cVM = new ControllerVM();
+                cVM.DAWControllerName = bindList[(int)controller.ControllerType];
+                cVM.DAWControllerType = controller.ControllerType;
+                cVM.Channel = controller.Channel + 1;
+                cVM.Controller = controller.Contoller;
+                cVM.Value = controller.Value;
+
+                lvDAWControllers.Items.Add(cVM);
+            }
         }
 
-        void ModifyController()
+        void ModifyController(ListView lv, List<string> bindList = null)
         {
-            ControllerVM cVM = (ControllerVM)lvControllers.SelectedItem;
+            ControllerVM cVM = (ControllerVM)lv.SelectedItem;
+            bool dawBinding = bindList != null;
 
             if (cVM != null)
             {
-                MidiControllerAssignWindow mcaw = new MidiControllerAssignWindow()
+                MidiControllerAssignWindow mcaw = new MidiControllerAssignWindow(dawBinding)
                 {
                     ControllerName = cVM.Name,
                     MidiController = "" + cVM.Controller,
@@ -255,17 +304,26 @@ namespace ReBuzz.Common
                     MidiValue = "" + cVM.Value
                 };
 
+                mcaw.DropDownSelection = bindList;
+                if (dawBinding)
+                {
+                    mcaw.DropDownSelectedIndex = (int)cVM.DAWControllerType;
+                }
+
                 if (mcaw.ShowDialog() == true)
                 {
                     try
                     {
-                        cVM.Name = mcaw.ControllerName;
+                        if (dawBinding)
+                            cVM.DAWControllerType = (ReBuzzMIDIControllerType)mcaw.DropDownSelectedIndex;
+                        else
+                            cVM.Name = mcaw.ControllerName;
                         cVM.Channel = int.Parse(mcaw.MidiChannel);
                         cVM.Value = int.Parse(mcaw.MidiValue);
                         cVM.Controller = int.Parse(mcaw.MidiController);
                     }
                     catch { }
-                    ICollectionView view = CollectionViewSource.GetDefaultView(lvControllers.Items.SourceCollection);
+                    ICollectionView view = CollectionViewSource.GetDefaultView(lv.Items.SourceCollection);
                     view.Refresh();
                 }
             }

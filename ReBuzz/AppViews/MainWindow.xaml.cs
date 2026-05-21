@@ -681,6 +681,11 @@ namespace ReBuzz
                                 Buzz.MidiControllerAssignments.Add(item.Name, item.Channel - 1, item.Controller, item.Value);
                             }
 
+                            foreach (PreferencesWindow.ControllerVM item in preferencesWindow.lvDAWControllers.Items)
+                            {
+                                Buzz.MidiControllerAssignments.AddDAWController(item.DAWControllerType, item.Channel - 1, item.Controller, item.Value);
+                            }
+
                             Buzz.MIDIControllers = Buzz.MidiControllerAssignments.GetMidiControllerNames().ToReadOnlyCollection();
 
                             Buzz.AudioEngine.FinalStop();
