@@ -115,6 +115,17 @@ namespace ReBuzz.Audio
         {
             lock (bufferLock)
             {
+                // Override audio driver and call workManager.ThreadRead outside of Read
+                if (buzz.OverrideAudioDriver || stopped || ReBuzzCore.SkipAudio)
+                {
+                    // Array.Clear(buffer, offset, count) is wrongly casted when using ASIO
+                    for (int i = 0; i < readSize; i++)
+                    {
+                        fillBuffer[i] = 0;
+                    }
+                    return readSize;
+                }
+
                 int numRead = workManager.ThreadReadSpeedAdjust(fillBuffer, 0, readSize);
 
                 int offset = 0;
@@ -168,15 +179,6 @@ namespace ReBuzz.Audio
 
             while (countRemaining > 0 && !stopped)
             {
-                if (ReBuzzCore.SkipAudio)
-                {
-                    for (int i = 0; i < count; i++)
-                    {
-                        buffer[offset + i] = 0;
-                    }
-                    return count;
-                }
-
                 lock (bufferLock)
                 {
                     int readCount = countRemaining;
@@ -241,7 +243,7 @@ namespace ReBuzz.Audio
 
         internal int ReadOverride(float[] buffer, int offset, int count)
         {
-            return workManager.ThreadRead(buffer, offset, count);
+            return workManager.MainAudioFillBuffer(buffer, offset, count);
         }
 
         internal void FillChannel(int channel, Sample[] samples, int n)

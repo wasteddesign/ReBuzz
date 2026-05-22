@@ -50,9 +50,9 @@ namespace ReBuzz.Core.Actions.GraphActions
             machineGroups.Clear();
             waveIndexes.Clear();
 
+            ReBuzzCore.SkipAudio = true;
             lock (ReBuzzCore.AudioLock)
-            {
-                ReBuzzCore.SkipAudio = true;
+            {   
                 bool playing = buzz.Playing;
                 buzz.Playing = false;
 
@@ -71,10 +71,10 @@ namespace ReBuzz.Core.Actions.GraphActions
                 {
                     Utils.MessageBox("Error importing file " + filename + "\n\n" + ex.ToString(), "Error importing file.");
                 }
-
-                ReBuzzCore.SkipAudio = false;
                 buzz.Playing = playing;
             }
+
+            ReBuzzCore.SkipAudio = false;
         }
 
         protected override void UndoAction()

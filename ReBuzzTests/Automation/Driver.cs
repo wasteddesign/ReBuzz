@@ -404,7 +404,7 @@ namespace ReBuzzTests.Automation
             var workManager = new WorkManager(reBuzzCore, new WorkThreadEngine(1), 0, engineSettings);
             var readSamplesCount = count * 2;
             var buffer = new float[readSamplesCount];
-            var result = workManager.ThreadRead(buffer, 0, readSamplesCount);
+            var result = workManager.MainAudioFillBuffer(buffer, 0, readSamplesCount);
             return new TestReadBuffer(result, buffer);
         }
 

@@ -1292,9 +1292,9 @@ namespace ReBuzz.Core
                 DeleteBackup();
                 NewSong();
 
+                SkipAudio = true;
                 lock (AudioLock)
-                {
-                    SkipAudio = true;
+                {   
                     bool playing = Playing;
                     Playing = false;
                 }

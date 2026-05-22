@@ -109,21 +109,21 @@ namespace ReBuzz.Audio
         internal int workBufferOffset;
         // Avoid new object creation to minimize GC.
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-        public int ThreadRead(float[] buffer, int offset, int count)
+        public int MainAudioFillBuffer(float[] buffer, int offset, int count)
         {
+            // Override audio driver and call workManager.ThreadRead outside of Read
+            if (stopped || ReBuzzCore.SkipAudio)
+            {
+                // Array.Clear(buffer, offset, count) is wrongly casted when using ASIO
+                for (int i = 0; i < count; i++)
+                {
+                    buffer[offset + i] = 0;
+                }
+                return count;
+            }
+
             lock (ReBuzzCore.AudioLock)
             {
-                // Override audio driver and call workManager.ThreadRead outside of Read
-                if (buzzCore.OverrideAudioDriver || stopped || ReBuzzCore.SkipAudio)
-                {
-                    // Array.Clear(buffer, offset, count) is wrongly casted when using ASIO
-                    for (int i = 0; i < count; i++)
-                    {
-                        buffer[offset + i] = 0;
-                    }
-                    return count;
-                }
-
                 long time = Stopwatch.GetTimestamp();
 
                 multiThreadingEnabled = engineSettings.Multithreading;
@@ -906,7 +906,7 @@ namespace ReBuzz.Audio
         {
             if (buzzCore.Speed == 0)
             {
-                return ThreadRead(buffer, offset, count);
+                return MainAudioFillBuffer(buffer, offset, count);
             }
             else
             {
@@ -919,7 +919,7 @@ namespace ReBuzz.Audio
                     return 0;
 
                 float[] sBuffer = new float[sCount];
-                ThreadRead(sBuffer, 0, sCount);
+                MainAudioFillBuffer(sBuffer, 0, sCount);
 
                 SpeedDown(buffer, offset, count, sBuffer, sCount, SpeedAdjustLinear);
             }
