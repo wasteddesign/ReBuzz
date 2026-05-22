@@ -123,7 +123,7 @@ namespace ReBuzz.FileOps
                 LoadConnections();
                 LoadXNOC();
                 LoadXTAP(import);
-                LoadPatterns();
+                LoadPatterns(import);
                 LoadSequences(import);
                 LoadXCAM();
                 LoadWaves();
@@ -787,7 +787,7 @@ namespace ReBuzz.FileOps
             }
         }
 
-        private bool LoadPatterns()
+        private bool LoadPatterns(bool import)
         {
             Section section;
             if (sections.TryGetValue(SectionType.PATT, out section))
@@ -882,6 +882,12 @@ namespace ReBuzz.FileOps
                         {
                             ReadTrack(machine, 2, l, rows, msConvertToPXP);
                         }
+                    }
+
+                    // Don't import Master patterns
+                    if (import && machine.DLL.Info.Type == MachineType.Master)
+                    {
+                        continue;
                     }
 
                     // Create patterns
@@ -1134,7 +1140,6 @@ namespace ReBuzz.FileOps
 
                 for (int i = 0; i < numSequences; i++)
                 {
-
                     ushort machineIndex = ReadUShort(fs);
                     MachineCore machine = machines[machineIndex];
                     SequenceCore sequence;
@@ -1147,7 +1152,8 @@ namespace ReBuzz.FileOps
                         eventSize = ReadByte(fs);
                     }
 
-                    if (machine != null)
+                    // Don't import master sequence
+                    if (machine != null && !(machine.DLL.Info.Type == MachineType.Master && import))
                     {
                         song.AddSequence(machine, seqIndex);
                         sequence = song.Sequences[seqIndex] as SequenceCore;
@@ -1188,6 +1194,9 @@ namespace ReBuzz.FileOps
                     }
                     else
                     {
+                        // Ensure list has correct count of sequences
+                        bmxSequences.Add(null);
+
                         // plugin does not exists; skip events
                         for (int j = 0; j < events; j++)
                         {
@@ -1334,7 +1343,7 @@ namespace ReBuzz.FileOps
 
                         if (itemName == "IsDisabled")
                         {
-                            seq.IsDisabled = val == 1;
+                            seq?.IsDisabled = val == 1;
                         }
                     }
                 }

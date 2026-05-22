@@ -383,6 +383,12 @@ namespace ReBuzz.FileOps
                 var machine = buzz.SongCore.MachinesList.FirstOrDefault(c => c.Name == machineName);
                 if (machine != null)
                 {
+                    // Don't import Master patterns
+                    if (import && machine.DLL.Info.Type == MachineType.Master)
+                    {
+                        continue;
+                    }
+
                     foreach (var p in machineData.Patterns)
                     {
                         machine.CreatePattern(p.Name, p.Length);
@@ -454,7 +460,9 @@ namespace ReBuzz.FileOps
             foreach (var seq in songData.Sequences)
             {
                 var machine = buzz.SongCore.Machines.FirstOrDefault(m => m.Name == GetImportedName(XmlConvert.DecodeName(seq.Machine)));
-                if (machine != null)
+
+                // Don't import master sequence
+                if (machine != null && !(machine.DLL.Info.Type == MachineType.Master && import))
                 {
                     buzz.SongCore.AddSequence(machine, seqIndex);
                     var s = buzz.SongCore.Sequences[seqIndex];
@@ -587,17 +595,20 @@ namespace ReBuzz.FileOps
             }
 
             // Parameter MIDI bindings
-            foreach (var bind in songData.ParameterMidiBindings)
+            if (songData.ParameterMidiBindings != null)
             {
-                string machineName = bind.Machine;
-                machineName = importDictionaryAll.ContainsKey(machineName) ? importDictionaryAll[machineName] : machineName;
-                MachineCore machine = machines.FirstOrDefault(m => m.Name == machineName);
-
-                if (machine != null)
+                foreach (var bind in songData.ParameterMidiBindings)
                 {
-                    var all = machine.AllParameters().Where(p => p.Flags.HasFlag(ParameterFlags.State));
-                    var param = all.ElementAt(bind.ParamIndex);
-                    buzz.MidiControllerAssignments.BindParameter(param as ParameterCore, bind.Track, bind.MidiChannel, bind.MidiController);
+                    string machineName = bind.Machine;
+                    machineName = importDictionaryAll.ContainsKey(machineName) ? importDictionaryAll[machineName] : machineName;
+                    MachineCore machine = machines.FirstOrDefault(m => m.Name == machineName);
+
+                    if (machine != null)
+                    {
+                        var all = machine.AllParameters().Where(p => p.Flags.HasFlag(ParameterFlags.State));
+                        var param = all.ElementAt(bind.ParamIndex);
+                        buzz.MidiControllerAssignments.BindParameter(param as ParameterCore, bind.Track, bind.MidiChannel, bind.MidiController);
+                    }
                 }
             }
 
