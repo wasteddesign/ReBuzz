@@ -7,6 +7,7 @@ using ReBuzz.Core;
 using ReBuzz.MachineManagement;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -112,7 +113,18 @@ namespace ReBuzz.Audio
         {
             lock (ReBuzzCore.AudioLock)
             {
-                long time = DateTime.UtcNow.Ticks;
+                // Override audio driver and call workManager.ThreadRead outside of Read
+                if (buzzCore.OverrideAudioDriver || stopped || ReBuzzCore.SkipAudio)
+                {
+                    // Array.Clear(buffer, offset, count) is wrongly casted when using ASIO
+                    for (int i = 0; i < count; i++)
+                    {
+                        buffer[offset + i] = 0;
+                    }
+                    return count;
+                }
+
+                long time = Stopwatch.GetTimestamp();
 
                 multiThreadingEnabled = engineSettings.Multithreading;
 
@@ -121,8 +133,6 @@ namespace ReBuzz.Audio
                 
                 int reminingBuffer = count;
                 workBufferOffset = offset;
-
-                Utils.FlipDenormalDC();
 
                 while (reminingBuffer > 0)
                 {   
@@ -165,9 +175,6 @@ namespace ReBuzz.Audio
                         if (samplesToProcess < 0)
                             return 0;
                     }
-
-                    // Update position info in patterns
-                    UpdatePatternPositions(samplesToProcess);
 
                     // Call Pattern Column Events
                     UpdatePatternColumnEvents(samplesToProcess);
@@ -221,6 +228,9 @@ namespace ReBuzz.Audio
                         }
                     }
 
+                    // Update position info in patterns
+                    UpdatePatternPositions(samplesToProcess);
+
                     // Update frame count
                     unchecked { ReBuzzCore.GlobalState.AudioFrame++; }
                 }
@@ -228,7 +238,7 @@ namespace ReBuzz.Audio
                 float audioOutMul = 1 / 32768.0f;
                 for (int i = 0; i < count; i++)
                 {
-                    buffer[offset + i] = Utils.FlushDenormalToZero(buffer[offset + i] * audioOutMul); // From Buzz to audio output scale
+                    buffer[offset + i] = buffer[offset + i] * audioOutMul; // From Buzz to audio output scale
                 }
 
                 // Update sample counters
@@ -245,7 +255,7 @@ namespace ReBuzz.Audio
                     }
                 }
 
-                buzzCore.PerformanceCurrent.EnginePerformanceCount += (DateTime.UtcNow.Ticks - time);
+                buzzCore.PerformanceCurrent.EnginePerformanceCount += (Stopwatch.GetTimestamp() - time);
 
                 return count;
             }
@@ -255,7 +265,7 @@ namespace ReBuzz.Audio
         {
             var masterInfo = ReBuzzCore.masterInfo;
             // Update master params on the next tick
-            var master = buzzCore.SongCore.MachinesList.FirstOrDefault(m => m.DLL.Info.Type == MachineType.Master);
+            var master = buzzCore.SongCore.MachinesList[0];
             var masterGlobalParameters = master.ParameterGroupsList[1].ParametersList;
             var bpm = masterGlobalParameters[1].GetValue(0);
             var tpb = masterGlobalParameters[2].GetValue(0);
@@ -595,11 +605,11 @@ namespace ReBuzz.Audio
             Sample[] samples = master.GetStereoSamples(workSamplesCount);
             for (int i = 0; i < workSamplesCount; i++)
             {
-                buffer[offset + i * 2] = Utils.FlushDenormalToZero(samples[i].L * (float)buzzCore.MasterVolume);
-                buffer[offset + i * 2 + 1] = Utils.FlushDenormalToZero(samples[i].R * (float)buzzCore.MasterVolume);
+                buffer[offset + i * 2] = samples[i].L * (float)buzzCore.MasterVolume;
+                buffer[offset + i * 2 + 1] = samples[i].R * (float)buzzCore.MasterVolume;
             }
 
-            master.IsActive = master.GetActivity();
+            master.IsActive = master.GetActivity(workSamplesCount);
 
             return workSamplesCount;
         }
@@ -713,6 +723,9 @@ namespace ReBuzz.Audio
                 machine.workTasks.Clear();
 
                 // Process most time consuming branches first
+                //
+                // Note: We use OrderByDescending to handle most computing heavy branches first.
+                // OrderByDescending should perform ok bececause there is only few inputs per machine.
                 foreach (var input in machine.AllInputs.OrderByDescending(c => (c.Source as MachineCore).performanceBranchCount))
                 {
                     var sourceMachine = input.Source as MachineCore;
@@ -753,7 +766,7 @@ namespace ReBuzz.Audio
             }
 
             // Some machines report the active state wrong, double check
-            machine.IsActive = machine.GetActivity();
+            machine.IsActive = machine.GetActivity(numRead);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
@@ -915,7 +928,7 @@ namespace ReBuzz.Audio
 
         internal static void SpeedDown(float[] buffer, int offset, int count, float[] sBuffer, int sCount, bool SpeedAdjustLinear)
         {
-            float step = Utils.FlushDenormalToZero(sCount / (float)count);
+            float step = sCount / (float)count;
             float pos = 0;
 
             // Linear interpolation. FIXME
