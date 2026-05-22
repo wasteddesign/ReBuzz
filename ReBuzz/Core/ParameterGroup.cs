@@ -34,6 +34,7 @@ namespace ReBuzz.Core
                 if (trackCount != value)
                 {
                     trackCount = value;
+                    
                     if (Type == ParameterGroupType.Track)
                     {
                         machine.TrackCount = value;

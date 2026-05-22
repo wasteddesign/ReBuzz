@@ -80,8 +80,8 @@ namespace ReBuzz.Core
 
                         double panScaled = pan / ((double)0x4000);
                         double pPan = panScaled / 2.0 * Math.PI / 2.0;
-                        panL = Utils.FlushDenormalToZero((float)(2.0 / Math.Sqrt(2.0) * Math.Cos(pPan)));
-                        panR = Utils.FlushDenormalToZero((float)(2.0 / Math.Sqrt(2.0) * Math.Sin(pPan)));
+                        panL = (float)(2.0 / Math.Sqrt(2.0) * Math.Cos(pPan));
+                        panR = (float)(2.0 / Math.Sqrt(2.0) * Math.Sin(pPan));
 
                         if (engineSettings.EqualPowerPanning)
                         {
@@ -124,9 +124,9 @@ namespace ReBuzz.Core
 
         internal void UpdateBuffer(Sample[] samples, int nSamples)
         {
-            float ampStart = Utils.FlushDenormalToZero(interpolatorAmp.Value / 0x4000);
-            float ampCurrent = (int)interpolatorAmp.Tick();
-            float ampStep = Utils.FlushDenormalToZero(((ampStart - ampCurrent / 0x4000) / 0x4000) / nSamples);
+            float ampStart = interpolatorAmp.Value / 0x4000;
+            float ampCurrent = interpolatorAmp.Tick() / 0x4000;
+            float ampStep = (ampStart - ampCurrent) / nSamples;
 
             for (int i = 0; i < nSamples; i++)
             {
@@ -142,13 +142,11 @@ namespace ReBuzz.Core
                 buffer[i].R = latencyBuffer[latencyBufferReadPos].R;
                 latencyBufferReadPos = (latencyBufferReadPos + 1) % latencyBuffer.Length;
             }
-
-            Utils.FlushDenormalToZero(Buffer);
         }
 
-        internal void ClearBuffer()
+        internal void ClearBuffer(int num)
         {
-            for (int i = 0; i < buffer.Length; i++)
+            for (int i = 0; i < num; i++)
             {
                 buffer[i].L = 0;
                 buffer[i].R = 0;

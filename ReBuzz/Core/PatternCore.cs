@@ -48,8 +48,9 @@ namespace ReBuzz.Core
         {
             get => length;
             set
-            {
-                length = value; 
+            {   
+                length = value;
+                Math.Max(length, 1);
                 PropertyChanged.Raise(this, "Length");
                 UpdateSequences();
             }

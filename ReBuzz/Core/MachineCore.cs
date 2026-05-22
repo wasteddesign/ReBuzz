@@ -1243,8 +1243,7 @@ namespace ReBuzz.Core
         readonly Sample[] stereoSamples = new Sample[256];
         internal Sample[] GetStereoSamples(int nSamples)
         {
-            for (int i = 0; i < stereoSamples.Length; i++)
-                stereoSamples[i].L = stereoSamples[i].R = 0;
+            Array.Clear(stereoSamples, 0, nSamples);
 
             foreach (var input in Inputs)
             {
@@ -1266,10 +1265,6 @@ namespace ReBuzz.Core
             foreach (var output in Outputs)
             {
                 var outputCore = output as MachineConnectionCore;
-                if (denormal)
-                {
-                    Utils.FlushDenormalToZero(samples);
-                }
                 outputCore.UpdateBuffer(samples, nSamples);
             }
         }
@@ -1294,7 +1289,7 @@ namespace ReBuzz.Core
                     var ci = channels[i];
                     if (ci != null)
                     {
-                        for (int j = 0; j < ci.Length; j++)
+                        for (int j = 0; j < nSamples; j++)
                         {
                             ci[j] = 0;
                         }
@@ -1316,7 +1311,7 @@ namespace ReBuzz.Core
 
                     Sample[] samples = channels[inputCore.DestinationChannel];
 
-                    for (int i = 0; i < samples.Length; i++)
+                    for (int i = 0; i < nSamples; i++)
                     {
                         samples[i].L += inputCore.Buffer[i].L;
                         samples[i].R += inputCore.Buffer[i].R;
@@ -1336,14 +1331,13 @@ namespace ReBuzz.Core
                     multiSamplesOut[outputCore.SourceChannel] != null)
                 {
                     Sample[] samples = multiSamplesOut[outputCore.SourceChannel];
-                    Utils.FlushDenormalToZero(samples);
                     outputCore.UpdateBuffer(samples, nSamples);
                 }
             }
         }
 
         private readonly float AMP_EPS = 1.0f;
-        public bool GetActivity()
+        public bool GetActivity(int num)
         {
             bool isActive = false;
 
@@ -1355,7 +1349,7 @@ namespace ReBuzz.Core
             {
                 var outputCore = output as MachineConnectionCore;
                 Sample[] samples = outputCore.Buffer;
-                for (int i = 0; i < samples.Length; i++)
+                for (int i = 0; i < num; i++)
                 {
                     maxSample = Math.Max(Math.Abs(samples[i].L), maxSample);
                     maxSample = Math.Max(Math.Abs(samples[i].R), maxSample);

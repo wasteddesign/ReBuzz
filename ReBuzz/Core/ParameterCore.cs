@@ -147,17 +147,21 @@ namespace ReBuzz.Core
         // Return values between min & max. No NoValue
         public int GetValue(int track)
         {
-            if (!values.ContainsKey(track))
-                values[track] = DefValue;
+            if (values.TryGetValue(track, out int val))
+            {
+                return val;
+            }
+            values[track] = DefValue;
+            pvalues[track] = DefValue;
 
-            return values[track];
+            return DefValue;
         }
 
         // Return current value. Used to send calue to native machines
         public int GetPValue(int track)
         {
-            if (!pvalues.ContainsKey(track))
-                return NoValue;
+            //if (!pvalues.ContainsKey(track))
+            //    return NoValue;
 
             return pvalues[track];
         }
@@ -169,7 +173,8 @@ namespace ReBuzz.Core
 
         public void ClearPVal()
         {
-            pvalues.Clear();
+            //pvalues.Clear();
+            Array.Fill(pvalues, NoValue, 0, Group.TrackCount);
         }
 
         public bool IsValidAsciiChar(int ch)
@@ -177,16 +182,15 @@ namespace ReBuzz.Core
             return true;
         }
 
-
         ConcurrentDictionary<int, int> values = new ConcurrentDictionary<int, int>();
-        readonly ConcurrentDictionary<int, int> pvalues = new ConcurrentDictionary<int, int>();
+        // readonly ConcurrentDictionary<int, int> pvalues = new ConcurrentDictionary<int, int>();
+        int[] pvalues = new int[256]; 
         readonly Dictionary<int, string> displayNames = new Dictionary<int, string>();
 
         // Is ConcurrentDictionary needed. Adds locks and latency?
         private readonly ConcurrentDictionary<int, EventManager> valueChangedEvent = new ConcurrentDictionary<int, EventManager>();
         private readonly ConcurrentDictionary<int, EventManager> valueDescrtiptionChangedEvent = new ConcurrentDictionary<int, EventManager>();
 
-        //internal Dictionary<int, int> Values { get => values; set => values = value; }
         public ParameterCore(IUiDispatcher dispatcher)
         {
             dtDescribeEvent = new DispatcherTimer();
