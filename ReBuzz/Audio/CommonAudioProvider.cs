@@ -96,7 +96,11 @@ namespace ReBuzz.Audio
                     }
                 }
             };
-            multimediaTimer.Start();
+
+            if (Global.EngineSettings.AudioBufferFillThread)
+            {
+                multimediaTimer.Start();
+            }
         }
 
         MultimediaTimer multimediaTimer;
@@ -235,7 +239,10 @@ namespace ReBuzz.Audio
 
             if (multimediaTimer != null)
             {
-                multimediaTimer.Stop();
+                if (multimediaTimer.IsRunning)
+                {
+                    multimediaTimer.Stop();
+                }
                 multimediaTimer.Dispose();
                 multimediaTimer = null;
             }

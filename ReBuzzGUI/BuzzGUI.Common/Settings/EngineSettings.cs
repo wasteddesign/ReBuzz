@@ -28,6 +28,9 @@
         [BuzzSetting(SubTickResolution.Normal, Description = "Sub‑tick resolution. Lower values decrease CPU load.")]
         public SubTickResolution SubTickResolution { get; set; }
 
+        [BuzzSetting(false, Description = "Use background thread to fill audio buffer (restart).")]
+        public bool AudioBufferFillThread { get; set; }
+
         [BuzzSetting(PriorityProfileType.NormalAppPriority, Description = "Priority setting for threads and processes (restart).")]
         public PriorityProfileType PriorityProfile { get; set; }
 
