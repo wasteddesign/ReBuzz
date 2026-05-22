@@ -77,6 +77,9 @@ namespace ReBuzz.NativeMachine
             }
         }
 
+        List<byte> globalVals = new List<byte>();
+        List<byte> trackVals = new List<byte>();
+
         internal void AudioTick(MachineCore machine)
         {
             if (machine.DLL.IsCrashed)
@@ -88,8 +91,8 @@ namespace ReBuzz.NativeMachine
             {
                 lock (AudioMessageLock)
                 {
-                    List<byte> globalVals = new List<byte>();
-                    List<byte> trackVals = new List<byte>();
+                    globalVals.Clear();
+                    trackVals.Clear();
 
                     foreach (var p in machine.ParameterGroupsList[1].ParametersList)
                     {
@@ -129,9 +132,9 @@ namespace ReBuzz.NativeMachine
                     WriteSubTickInfo(machine);
                     SetMessageDataPtr(machine.CMachinePtr);
                     SetMessageData(globalVals.Count);
-                    SetMessageData(globalVals.ToArray());
+                    SetMessageData(globalVals);
                     SetMessageData(trackVals.Count);
-                    SetMessageData(trackVals.ToArray());
+                    SetMessageData(trackVals);
 
                     // Do this to avoid unnecessary IPC during recording
                     int row = 0;

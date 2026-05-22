@@ -605,9 +605,9 @@ namespace ReBuzz.MachineManagement
 
         internal void AudioBeginFrame(MachineCore machine)
         {
-            if (nativeMachines.ContainsKey(machine))
+            if (nativeMachines.TryGetValue(machine, out NativeMachineHost nmh))
             {
-                var audiom = nativeMachines[machine].AudioMessage;
+                var audiom = nmh.AudioMessage;
                 audiom.AudioBeginFrame(machine);
             }
         }
@@ -627,13 +627,13 @@ namespace ReBuzz.MachineManagement
         {
             string str = value.ToString();
 
-            if (managedMachines.ContainsKey(machine))
+            if (managedMachines.TryGetValue(machine, out ManagedMachineHost hm))
             {
-                str = managedMachines[machine].DescribeParameterValue(index, value);
+                str = hm.DescribeParameterValue(index, value);
             }
-            if (nativeMachines.ContainsKey(machine))
+            if (nativeMachines.TryGetValue(machine, out NativeMachineHost hn))
             {
-                str = nativeMachines[machine].UIMessage.UIDescribeValue(machine, index, value);
+                str = hn.UIMessage.UIDescribeValue(machine, index, value);
             }
 
             return str;
@@ -653,9 +653,9 @@ namespace ReBuzz.MachineManagement
 
         internal void AudioBeginBlock(MachineCore machine)
         {
-            if (nativeMachines.ContainsKey(machine))
+            if (nativeMachines.TryGetValue(machine, out NativeMachineHost nmh))
             {
-                nativeMachines[machine].AudioMessage.AudioBeginBlock(machine, buzz.Song.Wavetable as WavetableCore);
+                nmh.AudioMessage.AudioBeginBlock(machine, buzz.Song.Wavetable as WavetableCore);
             }
         }
 
@@ -807,12 +807,12 @@ namespace ReBuzz.MachineManagement
 
         internal byte[] SendGUIMessage(MachineCore machine, byte[] message)
         {
-            if (nativeMachines.ContainsKey(machine))
+            if (nativeMachines.TryGetValue(machine, out NativeMachineHost nmh))
             {
                 // TODO: Check if machine locks are needed elsewhere
                 lock (machine.workLock)
                 {
-                    return nativeMachines[machine].UIMessage.UIHandleGUIMessage(machine, message);
+                    return nmh.UIMessage.UIHandleGUIMessage(machine, message);
                 }
             }
 
@@ -821,11 +821,11 @@ namespace ReBuzz.MachineManagement
 
         internal void SetNumTracks(MachineCore machine, int trackCount)
         {
-            if (nativeMachines.ContainsKey(machine))
+            if (nativeMachines.TryGetValue(machine, out NativeMachineHost nmh))
             {
                 lock (ReBuzzCore.AudioLock)
                 {
-                    nativeMachines[machine].AudioMessage.AudioSetNumTracks(machine, trackCount);
+                    nmh.AudioMessage.AudioSetNumTracks(machine, trackCount);
                 }
             }
         }
@@ -1017,15 +1017,15 @@ namespace ReBuzz.MachineManagement
 
         internal MachineWorkInstance GetMachineWorkInstance(MachineCore machine)
         {
-            if (!workInstances.ContainsKey(machine))
+            if (workInstances.TryGetValue(machine, out MachineWorkInstance wi))
+            {
+                return wi;
+            }
+            else
             {
                 var mwi = new MachineWorkInstance(machine, Buzz, engineSettings);
                 workInstances[machine] = mwi;
                 return mwi;
-            }
-            else
-            {
-                return workInstances[machine];
             }
         }
 

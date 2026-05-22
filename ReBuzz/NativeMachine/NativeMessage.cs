@@ -66,6 +66,7 @@ namespace ReBuzz.NativeMachine
         // 2. When data fully read/written, parse data from lists
 
         readonly List<byte> sendMessageData = new List<byte>();
+        private int sendMessageDataoffset;
         byte[] receaveMessageTable;
 
         readonly MessageContent messageContent = new MessageContent();
@@ -141,28 +142,29 @@ namespace ReBuzz.NativeMachine
         public bool CopyMessageToSendBuffer()
         {
             bool done = false;
-            int size = sendMessageData.Count;
+            int size = sendMessageData.Count - sendMessageDataoffset;
 
             if (size > MessageBuffer.MaxSize)
             {
-                fixed (byte* source = sendMessageData.ToArray())
+                for (int i = 0; i < MessageBuffer.MaxSize; i++)
                 {
-                    Unsafe.CopyBlock(dataRootPointer, source, (uint)MessageBuffer.MaxSize);
+                    dataRootPointer[i] = sendMessageData[i + sendMessageDataoffset];
                 }
 
-                sendMessageData.RemoveRange(0, MessageBuffer.MaxSize);
+                sendMessageDataoffset += MessageBuffer.MaxSize;
                 size = MessageBuffer.MaxSize;
 
                 SetChannelState(ChannelState.sendbuffer);
             }
             else
             {
-                fixed (byte* source = sendMessageData.ToArray())
+                for (int i = 0; i < size; i++)
                 {
-                    Unsafe.CopyBlock(dataRootPointer, source, (uint)size);
+                    dataRootPointer[i] = sendMessageData[i + sendMessageDataoffset];
                 }
-
+                
                 done = true;
+                sendMessageDataoffset = 0;
                 SetChannelState(ChannelState.sendlastbuffer);
             }
 
@@ -170,11 +172,8 @@ namespace ReBuzz.NativeMachine
             return done;
         }
 
-        //public MessageContent DoSendMessage(MachineCore machine)
-        //{
-        //    return DoSendMessage();
-        //}
         int waitTime = 2000;
+
         public MessageContent DoSendMessage(MachineCore machine = null)
         {
             MessageContent msg;
@@ -271,17 +270,17 @@ namespace ReBuzz.NativeMachine
         }
         public bool CopyReplyMessageToSendBuffer()
         {
-            int size = sendMessageData.Count;
+            int size = sendMessageData.Count - sendMessageDataoffset;
             bool done = false;
 
             if (size > MessageBuffer.MaxSize)
             {
-                fixed (byte* source = sendMessageData.ToArray())
+                for (int i = 0; i < MessageBuffer.MaxSize; i++)
                 {
-                    Unsafe.CopyBlock(dataRootPointer, source, (uint)MessageBuffer.MaxSize);
+                    dataRootPointer[i] = sendMessageData[i + sendMessageDataoffset];
                 }
 
-                sendMessageData.RemoveRange(0, MessageBuffer.MaxSize);
+                sendMessageDataoffset += MessageBuffer.MaxSize;
                 size = MessageBuffer.MaxSize;
 
                 if (IsCallback())
@@ -295,12 +294,14 @@ namespace ReBuzz.NativeMachine
             }
             else
             {
-                fixed (byte* source = sendMessageData.ToArray())
+                for (int i = 0; i < size; i++)
                 {
-                    Unsafe.CopyBlock(dataRootPointer, source, (uint)size);
+                    dataRootPointer[i] = sendMessageData[i + sendMessageDataoffset];
                 }
 
                 done = true;
+                sendMessageDataoffset = 0;
+
                 if (IsCallback())
                 {
                     SetChannelState(ChannelState.sendlastbuffer);
@@ -1340,6 +1341,12 @@ namespace ReBuzz.NativeMachine
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetMessageData(byte[] data)
+        {
+            sendMessageData.AddRange(data);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetMessageData(List<byte> data)
         {
             sendMessageData.AddRange(data);
         }

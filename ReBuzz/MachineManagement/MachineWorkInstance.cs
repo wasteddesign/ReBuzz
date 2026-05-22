@@ -8,6 +8,7 @@ using ReBuzz.ManagedMachine;
 using ReBuzz.NativeMachine;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 
 namespace ReBuzz.MachineManagement
@@ -42,7 +43,7 @@ namespace ReBuzz.MachineManagement
         internal bool WorkMachine(int nSamples)
         {
             bool isActive = false;
-            DateTime dtStart = DateTime.UtcNow;
+            long dtStart = Stopwatch.GetTimestamp();
             Machine.EngineThreadId = Thread.CurrentThread.ManagedThreadId;
 
             foreach (var tracks in Machine.setMachineTrackCountList)
@@ -75,8 +76,8 @@ namespace ReBuzz.MachineManagement
                     isActive = WorkMachineNative(nSamples);
                 }
             }
-            DateTime dtEnd = DateTime.UtcNow;
-            long timeDelta = dtEnd.Ticks - dtStart.Ticks;
+            long dtEnd = Stopwatch.GetTimestamp();
+            long timeDelta = dtEnd - dtStart;
             Machine.PerformanceDataCurrent.PerformanceCount += timeDelta;
             Machine.PerformanceDataCurrent.CycleCount += timeDelta;
             Machine.PerformanceDataCurrent.MaxEngineLockTime = 0;
@@ -109,7 +110,7 @@ namespace ReBuzz.MachineManagement
                 {
                     foreach (var mo in Machine.Outputs)
                     {
-                        (mo as MachineConnectionCore).ClearBuffer();
+                        (mo as MachineConnectionCore).ClearBuffer(nSamples);
                     }
                     return false;
                 }
@@ -131,7 +132,7 @@ namespace ReBuzz.MachineManagement
                 {
                     var inputCore = input as MachineConnectionCore;
                     samples = inputCore.Buffer;
-                    audiom.AudioInput(Machine, samples, nSamples, Utils.FlushDenormalToZero(input.Amp / (float)0x4000), true);
+                    audiom.AudioInput(Machine, samples, nSamples, input.Amp / (float)0x4000, true);
                 }
             }
 
@@ -595,26 +596,11 @@ namespace ReBuzz.MachineManagement
                 Machine.parametersChanged.Clear();
                 TickSent = true;
 
-                int noRecord = 1 << 16;
-
                 // Set pvalues to NoValue immediately to avoid sending param value twice
-                foreach (var p in Machine.ParameterGroupsList[0].ParametersList)
+                for (int i = 0; i < Machine.ParameterGroupsList.Count; i++)
                 {
-                    for (int i = 0; i < Machine.ParameterGroupsList[0].TrackCount; i++)
-                    {
-                        p.SetPValue(i, p.NoValue);
-                    }
-                }
-                foreach (var p in Machine.ParameterGroupsList[1].ParametersList)
-                {
-                    p.SetPValue(0, p.NoValue);
-                }
-                foreach (var p in Machine.ParameterGroupsList[2].ParametersList)
-                {
-                    for (int i = 0; i < Machine.TrackCount; i++)
-                    {
-                        p.SetPValue(i, p.NoValue);
-                    }
+                    for (int j = 0; j < Machine.ParameterGroupsList[i].ParametersList.Count; j++)
+                        Machine.ParameterGroupsList[i].ParametersList[j].ClearPVal();
                 }
             }
         }
@@ -650,10 +636,10 @@ namespace ReBuzz.MachineManagement
                 Machine.IsActive = WorkMachine(nSamples);
 
                 // Some machines report the active state wrong, double check
-                if (Machine.IsActive)
-                {
-                    Machine.IsActive = Machine.GetActivity();
-                }
+                //if (Machine.IsActive)
+                //{
+                //    Machine.IsActive = Machine.GetActivity(nSamples);
+                //}
             }
         }
     }

@@ -312,7 +312,7 @@ void UIReceive(IPC::Message const &msg, IPC::Message &reply)
 
 	case IPC::UIDescribeValue:
 	{
-		DCWrite("[Engine32] DescribeValue");
+		//DCWrite("[Engine32] DescribeValue");
 		CMachine* pmac = (CMachine*)r.ReadPtr();
 		int param = (int)r.ReadDWORD();
 		int value = (int)r.ReadDWORD();
