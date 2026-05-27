@@ -651,7 +651,11 @@ namespace ReBuzz
                 {
                     if (preferencesWindow == null)
                     {
-                        preferencesWindow = new PreferencesWindow(Buzz, registryEx);
+                        preferencesWindow = new PreferencesWindow(Buzz, registryEx)
+                        {
+                            Owner = this
+                        };
+
                         var rd = Utils.GetUserControlXAML<ResourceDictionary>("MachineView\\MVResources.xaml", buzzPath);
                         preferencesWindow.Resources.MergedDictionaries.Add(rd);
                         if (preferencesWindow.ShowDialog() == true)

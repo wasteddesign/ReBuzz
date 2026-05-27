@@ -111,13 +111,8 @@ namespace WDE.ModernPatternEditor
             {
                 int playPosition = GetPositionInPattern(out pat, seq, Editor.TargetMachine);
 
-                if (playPosition != -1 && pat != null)
+                if (playPosition != -1 && pat != null && playInfoDictionary.TryGetValue(seq, out PlayInfo playInfo))
                 {
-                    PlayInfo playInfo = new PlayInfo();
-
-                    if (playInfoDictionary.ContainsKey(seq))
-                        playInfo = this.playInfoDictionary[seq];
-
                     int prevPlayPos = playInfo.PreviousPosition;
 
                     if ((pat.Length * PatternEvent.TimeBase + playPosition - prevPlayPos) % (pat.Length * PatternEvent.TimeBase) > PatternEvent.TimeBase)
@@ -239,12 +234,9 @@ namespace WDE.ModernPatternEditor
 
         private void FireCollectedMidiEvents(List<CollectedEventState> collectEvents, int playPosition)
         {
-            Dictionary<IMachine, int> machines = new Dictionary<IMachine, int>();
-
             for (int i = 0; i < collectEvents.Count; i++)
             {
                 var e = collectEvents[i];
-                machines[e.parameter.Group.Machine] = 0;
 
                 IMachine machine = e.machine;
                 if (e.eventType == CollectedEventType.MidiNote)
@@ -341,7 +333,7 @@ namespace WDE.ModernPatternEditor
             }
         }
 
-        internal int GetPositionInPattern(out IPattern pat, ISequence seq, IMachine target)
+        internal int GetPositionInPattern(out IPattern? pat, ISequence seq, IMachine target)
         {
             pat = null;
 
@@ -374,9 +366,9 @@ namespace WDE.ModernPatternEditor
             return sequences.AsReadOnly();
         }
 
-        internal IPattern GetPlayingPattern(IMachine target)
+        internal IPattern? GetPlayingPattern(IMachine target)
         {
-            IPattern pattern = null;
+            IPattern? pattern = null;
             foreach (ISequence seq in Global.Buzz.Song.Sequences)
             {
                 if (seq.Machine == target)

@@ -10,11 +10,13 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace ReBuzz.Common
@@ -399,6 +401,26 @@ namespace ReBuzz.Common
                 }
             }
             return ret;
+        }
+
+        public static string RemoveInvalidXmlChars(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return text;
+
+            StringBuilder sb = new StringBuilder(text.Length);
+
+            foreach (char ch in text)
+            {
+                // Keep only valid XML characters
+                if (XmlConvert.IsXmlChar(ch))
+                {
+                    sb.Append(ch);
+                }
+                // else skip invalid char
+            }
+
+            return sb.ToString();
         }
     }
 }

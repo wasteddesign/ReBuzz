@@ -30,6 +30,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -37,6 +38,7 @@ using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
+using System.Xml;
 using System.Xml.Linq;
 using Timer = System.Timers.Timer;
 
@@ -1095,7 +1097,8 @@ namespace ReBuzz.Core
         {
             if (s != null)
             {
-                s = s.Replace("\x01", "");
+                s = Utils.RemoveInvalidXmlChars(s);
+
                 switch (level)
                 {
                     case DCLogLevel.Verbose:

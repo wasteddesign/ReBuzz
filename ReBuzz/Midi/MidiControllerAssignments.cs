@@ -83,35 +83,38 @@ namespace ReBuzz.Midi
             {
                 foreach (var cb in ReBuzzMIDIControllers)
                 {
-                    switch (cb.ControllerType)
+                    if (cb.Contoller == data1 && cb.Channel == channel)
                     {
-                        case ReBuzzMIDIControllerType.Play:
-                            buzz.Playing = !buzz.Playing;
-                            break;
-                        case ReBuzzMIDIControllerType.Stop:
-                            buzz.Playing = false;
-                            break;
-                        case ReBuzzMIDIControllerType.Record:
-                            buzz.Recording = !buzz.Recording;
-                            break;
-                        case ReBuzzMIDIControllerType.Forward:
-                            buzz.Song.PlayPosition += 4;
-                            break;
-                        case ReBuzzMIDIControllerType.Backward:
-                            buzz.Song.PlayPosition -= 4;
-                            break;
-                        case ReBuzzMIDIControllerType.Loop:
-                            buzz.Looping = !buzz.Looping;
-                            break;
-                        case ReBuzzMIDIControllerType.Beginning:
-                            buzz.Song.PlayPosition = buzz.Song.LoopStart;
-                            break;
-                        case ReBuzzMIDIControllerType.SpeedUp:
-                            buzz.Speed += 1;
-                            break;
-                        case ReBuzzMIDIControllerType.SpeedDown:
-                            buzz.Speed -= 1;
-                            break;
+                        switch (cb.ControllerType)
+                        {
+                            case ReBuzzMIDIControllerType.Play:
+                                buzz.Playing = !buzz.Playing;
+                                break;
+                            case ReBuzzMIDIControllerType.Stop:
+                                buzz.Playing = false;
+                                break;
+                            case ReBuzzMIDIControllerType.Record:
+                                buzz.Recording = !buzz.Recording;
+                                break;
+                            case ReBuzzMIDIControllerType.Forward:
+                                buzz.Song.PlayPosition += 4;
+                                break;
+                            case ReBuzzMIDIControllerType.Backward:
+                                buzz.Song.PlayPosition -= 4;
+                                break;
+                            case ReBuzzMIDIControllerType.Loop:
+                                buzz.Looping = !buzz.Looping;
+                                break;
+                            case ReBuzzMIDIControllerType.Beginning:
+                                buzz.Song.PlayPosition = buzz.Song.LoopStart;
+                                break;
+                            case ReBuzzMIDIControllerType.SpeedUp:
+                                buzz.Speed += 1;
+                                break;
+                            case ReBuzzMIDIControllerType.SpeedDown:
+                                buzz.Speed -= 1;
+                                break;
+                        }
                     }
                 }
             }

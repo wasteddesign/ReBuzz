@@ -170,6 +170,7 @@ namespace ReBuzz.Common
             {
                 MidiControllerAssignWindow mcaw = new MidiControllerAssignWindow();
                 mcaw.ControllerName = "Controller";
+                mcaw.Owner = this;
 
                 if (mcaw.ShowDialog() == true)
                 {
@@ -226,6 +227,7 @@ namespace ReBuzz.Common
             btAddDAWController.Click += (sender, e) =>
             {
                 MidiControllerAssignWindow mcaw = new MidiControllerAssignWindow(true);
+                
                 mcaw.ControllerName = "Controller";
 
                 var bindList = Enum.GetNames(typeof(ReBuzzMIDIControllerType)).ToList();
