@@ -1290,7 +1290,7 @@ namespace ReBuzz.Core
             if (CheckSaveSong())
             {
                 masterLoading = true;
-                AudioEngine.Stop();
+                //AudioEngine.Stop();
 
                 DeleteBackup();
                 NewSong();
@@ -1340,7 +1340,7 @@ namespace ReBuzz.Core
                 SongCore.PlayPosition = 0;
 
                 SkipAudio = false;
-                AudioEngine.Play();
+                //AudioEngine.Play();
 
                 dispatcher.BeginInvoke(() =>
                 {
@@ -1417,7 +1417,7 @@ namespace ReBuzz.Core
             file.SetSubSections(ss);
 
             SkipAudio = true;
-            AudioEngine.Stop();
+            //AudioEngine.Stop();
 
             lock (AudioLock)
             {
@@ -1431,7 +1431,7 @@ namespace ReBuzz.Core
                 }
             }
 
-            AudioEngine.Play();
+            //AudioEngine.Play();
             SkipAudio = false;
             Modified = false;
         }
