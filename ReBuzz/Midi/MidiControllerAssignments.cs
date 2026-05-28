@@ -73,6 +73,9 @@ namespace ReBuzz.Midi
                 channel = (b & 0x0F);
             }
 
+            if (commandCode != MIDI.ControlChange)
+                return;
+
             foreach (var cb in ContollerBindings)
             {
                 cb.Update(channel, data1, data2);
