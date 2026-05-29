@@ -1,1 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ReBuzz – Modular Digital Audio Workstation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta
+    name="description"
+    content="ReBuzz is a modular digital audio workstation (DAW) built upon the foundation of Jeskola Buzz, written in C#."
+  />
+  
+  <style>
+    :root {
+      --bg: #05060a;
+      --bg-alt: #0c0f18;
+      --accent: #ffb300;
+      --accent-soft: rgba(255, 179, 0, 0.12);
+      --text: #f5f5f7;
+      --muted: #a0a4b8;
+      --border: #262a3a;
+      --code-bg: #111320;
+      --link: #5fb3ff;
+      --link-hover: #9ad1ff;
+      --danger: #ff4b6a;
+    }
 
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      background: radial-gradient(circle at top, #15192b 0, #05060a 55%);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    a {
+      color: var(--link);
+      text-decoration: none;
+    }
+
+    a:hover {
+      color: var(--link-hover);
+      text-decoration: underline;
+    }
+
+    .page {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 32px 16px 64px;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 0 32px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-mark {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: conic-gradient(
+        from 210deg,
+        #ffb300,
+        #ff4b6a,
+        #5fb3ff,
+        #ffb300
+      );
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #05060a;
+      font-weight: 800;
+      font-size: 20px;
+      box-shadow: 0 0 24px rgba(0, 0, 0, 0.6);
+    }
+
+    .logo-text-title {
+      font-weight: 650;
+      font-size: 1.4rem;
+      letter-spacing: 0.04em;
+    }
+
+    .logo-text-sub {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 0.9rem;
+    }
+
+    nav a {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+    }
+
+    nav a:hover {
+      border-color: var(--border);
+      text-decoration: none;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 3fr) minmax(0, 2.5fr);
+      gap: 32px;
+      padding: 32px 0 40px;
+    }
+
+    @media (max-width: 800px) {
+      .hero {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .hero-title {
+      font-size: clamp(2.1rem, 3vw, 2.6rem);
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .hero-tagline {
+      color: var(--muted);
+      font-size: 0.98rem;
+      max-width: 34rem;
+      margin-bottom: 20px;
+    }
+
+    .hero-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .badge {
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(12, 15, 24, 0.9);
+      color: var(--muted);
+    }
+
+    .badge-accent {
+      border-color: rgba(255, 179, 0, 0.4);
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 9px 16px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      font-size: 0.9rem;
+      cursor: pointer;
+      background: transparent;
+      color: var(--text);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #ffb300, #ff4b6a);
+      color: #05060a;
+      font-weight: 600;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.05);
+      text-decoration: none;
+    }
+
+    .btn-ghost {
+      border-color: var(--border);
+      background: rgba(5, 6, 10, 0.8);
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--accent-soft);
+      text-decoration: none;
+    }
+
+    .hero-note {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .hero-card {
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: radial-gradient(circle at top left, #1b2136 0, #05060a 55%);
+      padding: 18px 18px 16px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.7);
+    }
+
+    .hero-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .hero-card-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .hero-card-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #2ecc71;
+      box-shadow: 0 0 10px rgba(46, 204, 113, 0.7);
+    }
+
+    .hero-card-body {
+      border-radius: 12px;
+      background: rgba(5, 6, 10, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      padding: 12px 12px 10px;
+      font-size: 0.78rem;
+    }
+
+    .hero-card-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .hero-card-label {
+      color: var(--muted);
+    }
+
+    .hero-card-value {
+      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
+        Consolas, "Liberation Mono", "Courier New", monospace;
+      color: var(--text);
+    }
+
+    .hero-card-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(255, 179, 0, 0.08);
+      color: var(--accent);
+      margin-top: 6px;
+    }
+
+    .hero-card-pill span {
+      font-size: 0.7rem;
+    }
+
+    .section {
+      padding: 24px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .section h2 {
+      font-size: 1.2rem;
+      margin: 0 0 12px;
+    }
+
+    .section p {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 20px;
+    }
+
+    @media (max-width: 800px) {
+      .grid-2 {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .card {
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(5, 6, 10, 0.9);
+      padding: 14px 14px 12px;
+      font-size: 0.9rem;
+    }
+
+    .card h3 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+    }
+
+    ul {
+      padding-left: 18px;
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    li + li {
+      margin-top: 4px;
+    }
+
+    code {
+      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
+        Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.8rem;
+      background: var(--code-bg);
+      padding: 2px 5px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    pre {
+      margin: 10px 0 0;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: var(--code-bg);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      overflow-x: auto;
+      font-size: 0.8rem;
+    }
+
+    pre code {
+      border: none;
+      padding: 0;
+      background: transparent;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .pill {
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .pill-strong {
+      border-color: rgba(255, 179, 0, 0.4);
+      color: var(--accent);
+    }
+
+    .warning {
+      font-size: 0.8rem;
+      color: var(--danger);
+      margin-top: 6px;
+    }
+
+    footer {
+      padding-top: 24px;
+      margin-top: 16px;
+      border-top: 1px solid var(--border);
+      font-size: 0.8rem;
+      color: var(--muted);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 10px;
+    }
+  </style>
+
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div class="logo">
+        <div class="logo-mark">R</div>
+        <div>
+          <div class="logo-text-title">ReBuzz</div>
+          <div class="logo-text-sub">
+            Modular Digital Audio Workstation for Windows
+          </div>
+        </div>
+      </div>
+      <nav>
+        <a href="#features">Features</a>
+        <a href="#download">Download</a>
+        <a href="#build">Build from source</a>
+        <a href="#contribute">Contribute</a>
+        <a href="https://github.com/wasteddesign/ReBuzz">GitHub repo →</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <h1 class="hero-title">
+            A modern C#‑based modular digital audio workstation.
+          </h1>
+          <p class="hero-tagline">
+            ReBuzz is a modular digital audio workstation with a modern C# codebase, 32/64‑bit VST2/3
+            support, MIDI 2.0, and a multi‑process architecture focused on
+            stability.
+          </p>
+
+          <div class="hero-badges">
+            <span class="badge badge-accent">Open Source</span>
+            <span class="badge">Windows · .NET 10 Desktop Runtime</span>
+            <span class="badge">32 &amp; 64‑bit VST2/3</span>
+            <span class="badge">MIDI 2.0</span>
+          </div>
+
+          <div class="hero-actions">
+            <a
+              class="btn btn-primary"
+              href="https://github.com/wasteddesign/ReBuzz/releases"
+            >
+              <span>Download latest preview</span>
+              <span>⬇</span>
+            </a>
+            <a
+              class="btn btn-ghost"
+              href="https://github.com/wasteddesign/ReBuzz"
+            >
+              <span>View source on GitHub</span>
+              <span>↗</span>
+            </a>
+          </div>
+
+          <p class="hero-note">
+            Still in active development—expect rough edges and keep backups of
+            important projects.
+          </p>
+        </div>
+
+        <aside class="hero-card" aria-label="ReBuzz quick info">
+          <div class="hero-card-header">
+            <div>
+              <div class="hero-card-title">Project snapshot</div>
+              <div>ReBuzz · wasteddesign/ReBuzz</div>
+            </div>
+            <div class="hero-card-dot" title="Active development"></div>
+          </div>
+          <div class="hero-card-body">
+            <div class="hero-card-row">
+              <span class="hero-card-label">Language</span>
+              <span class="hero-card-value">C# · .NET 10</span>
+            </div>
+            <div class="hero-card-row">
+              <span class="hero-card-label">Platform</span>
+              <span class="hero-card-value">Windows x64</span>
+            </div>
+            <div class="hero-card-row">
+              <span class="hero-card-label">Audio</span>
+              <span class="hero-card-value">VST2/3 · Buzz machines</span>
+            </div>
+            <div class="hero-card-row">
+              <span class="hero-card-label">MIDI</span>
+              <span class="hero-card-value">MIDI 1.0 &amp; 2.0</span>
+            </div>
+            <div class="hero-card-row">
+              <span class="hero-card-label">Architecture</span>
+              <span class="hero-card-value">Multi‑process</span>
+            </div>
+
+            <div class="hero-card-pill">
+              <span>⚠</span>
+              <span>Preview builds · use with care in production projects</span>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <section id="features" class="section">
+        <h2>Core features</h2>
+        <p>
+          ReBuzz aims to preserve the fast, modular workflow of Jeskola Buzz
+          while embracing modern tooling and standards.
+        </p>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3>Audio &amp; plugin support</h3>
+            <ul>
+              <li>32‑bit and 64‑bit VST2/3 support.</li>
+              <li>32‑bit and 64‑bit Buzz machine support.</li>
+              <li>
+                Includes the
+                <code>NWaves</code> .NET DSP library for audio processing.
+              </li>
+              <li>
+                Multi‑I/O for native and managed machines, designed for complex
+                modular setups.
+              </li>
+              <li>
+                <code>bmx</code> and <code>bmxml</code> file support for
+                compatibility with Buzz projects.
+              </li>
+            </ul>
+            <div class="pill-row">
+              <span class="pill pill-strong">VST2/3</span>
+              <span class="pill">Buzz machines</span>
+              <span class="pill">Multi‑I/O</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Editing &amp; workflow</h3>
+            <ul>
+              <li>Modern Pattern Editor and Sequence Editor.</li>
+              <li>AudioBlock, EnvelopeBlock, CMC, TrackScript and more.</li>
+              <li>Machine View, Editor View, Sequencer View.</li>
+              <li>Multi‑process architecture for improved stability.</li>
+            </ul>
+            <div class="pill-row">
+              <span class="pill">Pattern‑based workflow</span>
+              <span class="pill">Scriptable tracks</span>
+              <span class="pill">Modular routing</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="download" class="section">
+        <h2>Download &amp; runtime requirements</h2>
+        <p>
+          The easiest way to try ReBuzz is to use the installer from the GitHub
+          Releases page.
+        </p>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3>Get the latest preview</h3>
+            <p>
+              Head to the Releases page and download the most recent
+              <code>ReBuzzSetup_*.exe</code>:
+            </p>
+            <p>
+              <a href="https://github.com/wasteddesign/ReBuzz/releases">
+                Browse releases on GitHub →
+              </a>
+            </p>
+            <p class="warning">
+              Preview builds may contain bugs or breaking changes. Use at your
+              own risk.
+            </p>
+          </div>
+
+          <div class="card">
+            <h3>Runtime dependencies</h3>
+            <ul>
+              <li>.NET 10.0 Desktop Runtime – Windows x64.</li>
+              <li>Latest Microsoft Visual C++ Redistributable (x86 and x64).</li>
+              <li>
+                For MIDI 2.0 features on Windows 11, install the Microsoft MIDI
+                Services tools as described in the release notes.
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="build" class="section">
+        <h2>Build from source</h2>
+        <p>
+          If you want to hack on ReBuzz or build your own binaries, clone the
+          repository and open the solution in Visual Studio 2022.
+        </p>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3>1. Clone the repository</h3>
+            <p>
+              ReBuzz uses submodules, so make sure you clone with
+              <code>--recurse-submodules</code>:
+            </p>
+            <pre><code>git clone --recurse-submodules https://github.com/wasteddesign/ReBuzz.git
+cd ReBuzz</code></pre>
+          </div>
+
+          <div class="card">
+            <h3>2. Open the solution</h3>
+            <ul>
+              <li>
+                Open
+                <code>ReBuzz/ReBuzz.sln</code> in Visual Studio 2022 (Community
+                is fine).
+              </li>
+              <li>
+                Ensure the <code>ReBuzz</code> project is set as the startup
+                project (bold in Solution Explorer).
+              </li>
+              <li>Build the solution (Debug or Release, x64).</li>
+            </ul>
+            <p>
+              Output will be placed under something like:
+              <code>bin/Debug/x64/net9.0-windows</code> or
+              <code>bin/Release/x64/net9.0-windows</code>, depending on the
+              configuration.
+            </p>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: 16px;">
+          <h3>Build layout notes</h3>
+          <p>
+            Intermediate files are kept under
+            <code>build/</code> to avoid polluting the source tree. This is
+            configured via <code>Directory.Build.props</code> and custom
+            <code>IntermediateOutputPath</code>/<code>OutputPath</code> entries
+            in the project files.
+          </p>
+        </div>
+      </section>
+
+      <section id="contribute" class="section">
+        <h2>Contributing</h2>
+        <p>
+          ReBuzz is open source and welcomes contributions—from bug reports and
+          testing to new machines, UI improvements, and documentation.
+        </p>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3>Ways to help</h3>
+            <ul>
+              <li>Report issues and crashes with clear reproduction steps.</li>
+              <li>Test new preview builds and provide feedback.</li>
+              <li>
+                Contribute C# code, DSP modules, or editor improvements via pull
+                requests.
+              </li>
+              <li>Improve documentation and examples for new users.</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>Start from the GitHub repo</h3>
+            <p>
+              All source code, issues, and releases live in the main repository:
+            </p>
+            <p>
+              <a href="https://github.com/wasteddesign/ReBuzz">
+                github.com/wasteddesign/ReBuzz →
+              </a>
+            </p>
+            <p>
+              Check the README and existing issues before opening new ones to
+              keep the tracker tidy.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>ReBuzz · Modular DAW in C#</span>
+      <span>
+        Source code:
+        <a href="https://github.com/wasteddesign/ReBuzz">wasteddesign/ReBuzz</a>
+      </span>
+    </footer>
+  </div>
+</body>
+</html>
