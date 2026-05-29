@@ -52,7 +52,7 @@ namespace BuzzGUI.MachineView.MIDIBindingsTab
         public string MIDIBindingDescription { get
             {
                 var m = parameter.GetMIDIBinding(track);
-                return "Chan " + m.Item1 + " | Ctrl " + m.Item2;
+                return "Chan " + (m.Item1 + 1) + " | Ctrl " + m.Item2;
             }
         }
 

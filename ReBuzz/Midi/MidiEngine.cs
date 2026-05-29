@@ -62,74 +62,81 @@ namespace ReBuzz.Midi
             int midiInDevsCount = MidiIn.NumberOfDevices;
             int midiOutDevsCount = MidiOut.NumberOfDevices;
 
-            var info = await DeviceInformation.CreateFromIdAsync(args.Id);
-
-            if (info.IsEnabled)
+            try
             {
-                buzz.DCWriteLine("Device connected: " + info.Name);
+                var info = await DeviceInformation.CreateFromIdAsync(args.Id);
 
-                var inputsInfo = registryEx.ReadDictionary("MIDI In List");
-                if (inputsInfo.ContainsKey(info.Name))
+                if (info.IsEnabled)
                 {
-                    if ((Int32)inputsInfo[info.Name] == 1)
+                    buzz.DCWriteLine("Device connected: " + info.Name);
+
+                    var inputsInfo = registryEx.ReadDictionary("MIDI In List");
+                    if (inputsInfo.ContainsKey(info.Name))
                     {
-                        for (int i = 0; i < midiInDevsCount; i++)
+                        if ((Int32)inputsInfo[info.Name] == 1)
                         {
-                            if (MidiIn.DeviceInfo(i).ProductName == info.Name)
+                            for (int i = 0; i < midiInDevsCount; i++)
                             {
-                                CreateMidiIn(i);
-                                break;
+                                if (MidiIn.DeviceInfo(i).ProductName == info.Name)
+                                {
+                                    CreateMidiIn(i);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    var outputsInfo = registryEx.ReadDictionary("MIDI Out List");
+                    if (outputsInfo.ContainsKey(info.Name))
+                    {
+                        if ((Int32)outputsInfo[info.Name] == 1)
+                        {
+                            for (int i = 0; i < midiOutDevsCount; i++)
+                            {
+                                if (MidiOut.DeviceInfo(i).ProductName == info.Name)
+                                {
+                                    CreateMidiOut(i);
+                                    break;
+                                }
                             }
                         }
                     }
                 }
-
-                var outputsInfo = registryEx.ReadDictionary("MIDI Out List");
-                if (outputsInfo.ContainsKey(info.Name))
+                else
                 {
-                    if ((Int32)outputsInfo[info.Name] == 1)
+                    buzz.DCWriteLine("Device disconnected: " + info.Name);
+
+                    var inputsInfo = registryEx.ReadDictionary("MIDI In List");
+                    if (inputsInfo.ContainsKey(info.Name))
                     {
-                        for (int i = 0; i < midiOutDevsCount; i++)
+                        for (int i = 0; i < midiIns.Count; i++)
                         {
-                            if (MidiOut.DeviceInfo(i).ProductName == info.Name)
+                            if (midiIns.ElementAt(i).Value.ProductName == info.Name)
                             {
-                                CreateMidiOut(i);
+                                midiIns.ElementAt(i).Value.UnsubscribeEvents();
+                                midiIns.Remove(midiIns.ElementAt(i).Key);
+                                break;
+                            }
+                        }
+                    }
+
+                    var outputsInfo = registryEx.ReadDictionary("MIDI Out List");
+                    if (outputsInfo.ContainsKey(info.Name))
+                    {
+                        for (int i = 0; i < midiOuts.Count; i++)
+                        {
+                            if (midiOuts.ElementAt(i).Value.ProductName == info.Name)
+                            {
+                                midiOuts.Remove(midiOuts.ElementAt(i).Key);
                                 break;
                             }
                         }
                     }
                 }
             }
-            else
+            catch (Exception ex)
             {
-                buzz.DCWriteLine("Device disconnected: " + info.Name);
-
-                var inputsInfo = registryEx.ReadDictionary("MIDI In List");
-                if (inputsInfo.ContainsKey(info.Name))
-                {
-                    for (int i = 0; i < midiIns.Count; i++)
-                    {
-                        if (midiIns.ElementAt(i).Value.ProductName == info.Name)
-                        {
-                            midiIns.ElementAt(i).Value.UnsubscribeEvents();
-                            midiIns.Remove(midiIns.ElementAt(i).Key);
-                            break;
-                        }
-                    }
-                }
-
-                var outputsInfo = registryEx.ReadDictionary("MIDI Out List");
-                if (outputsInfo.ContainsKey(info.Name))
-                {
-                    for (int i = 0; i < midiOuts.Count; i++)
-                    {
-                        if (midiOuts.ElementAt(i).Value.ProductName == info.Name)
-                        {
-                            midiOuts.Remove(midiOuts.ElementAt(i).Key);
-                            break;
-                        }
-                    }
-                }
+                buzz.DCWriteLine(ex.Message, BuzzGUI.Interfaces.DCLogLevel.Error);
             }
         }
 
