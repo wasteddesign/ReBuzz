@@ -954,8 +954,7 @@ namespace WDE.ModernPatternEditor
         // From native
         public void MidiNote(int channel, int value, int velocity)
         {
-            
-            //lock (syncLock)
+            lock (syncLock)
             {
                 if (Global.Buzz.Recording)
                 {
@@ -1141,27 +1140,30 @@ namespace WDE.ModernPatternEditor
             patternControl.PasteCommand.Execute(patternControl);
         }
 
-        public object syncLock = new object();
+        public Lock syncLock = new();
         // Audio thread.
 
         public void Work(SongTime songTime)
         {
-            if (/*songTime.PosInTick != 0 &&*/ songTime.PosInSubTick == 0)
+            lock (syncLock)
             {
-                if (Global.Buzz.Playing && TargetMachine != null)
+                if (/*songTime.PosInTick != 0 &&*/ songTime.PosInSubTick == 0)
                 {
-                    playRecordManager.Play(songTime);
+                    if (Global.Buzz.Playing && TargetMachine != null)
+                    {
+                        playRecordManager.Play(songTime);
+                    }
                 }
-            }
 
-            // Notify patterns changed so seq editor can update the pattern block UI.
-            // This limits the amount of messages.
-            if (songTime.PosInTick == 0)
-            {
-                foreach( var pattern in changedPatternsSinceLastTick.Keys)
+                // Notify patterns changed so seq editor can update the pattern block UI.
+                // This limits the amount of messages.
+                if (songTime.PosInTick == 0)
                 {
-                    pattern.NotifyPatternChanged();
-                    changedPatternsSinceLastTick.TryRemove(pattern, out bool result);
+                    foreach (var pattern in changedPatternsSinceLastTick.Keys)
+                    {
+                        pattern.NotifyPatternChanged();
+                        changedPatternsSinceLastTick.TryRemove(pattern, out bool result);
+                    }
                 }
             }
         }
