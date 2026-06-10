@@ -111,8 +111,13 @@ namespace WDE.ModernPatternEditor
             {
                 int playPosition = GetPositionInPattern(out pat, seq, Editor.TargetMachine);
 
-                if (playPosition != -1 && pat != null && playInfoDictionary.TryGetValue(seq, out PlayInfo playInfo))
+                if (playPosition != -1 && pat != null)
                 {
+                    if (!playInfoDictionary.TryGetValue(seq, out PlayInfo playInfo))
+                    {
+                        playInfo = new PlayInfo();
+                        playInfoDictionary[seq] = playInfo;
+                    }
                     int prevPlayPos = playInfo.PreviousPosition;
 
                     if ((pat.Length * PatternEvent.TimeBase + playPosition - prevPlayPos) % (pat.Length * PatternEvent.TimeBase) > PatternEvent.TimeBase)
