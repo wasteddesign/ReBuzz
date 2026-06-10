@@ -1403,5 +1403,16 @@ namespace ReBuzz.Core
         {
             PropertyChanged.Raise(this, "Attributes");
         }
+
+        internal void UpdateIsActive()
+        {
+            bool active = false;
+            foreach (var input in Inputs)
+            {
+                active |= input.Source.IsActive;
+            }
+
+            IsActive = active;
+        }
     }
 }

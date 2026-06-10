@@ -609,7 +609,7 @@ namespace ReBuzz.Audio
                 buffer[offset + i * 2 + 1] = samples[i].R * (float)buzzCore.MasterVolume;
             }
 
-            master.IsActive = master.GetActivity(workSamplesCount);
+            master.UpdateIsActive();
 
             return workSamplesCount;
         }
