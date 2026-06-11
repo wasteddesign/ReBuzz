@@ -2,11 +2,13 @@ using BuzzGUI.Common;
 using BuzzGUI.Interfaces;
 using System;
 using System.ComponentModel;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 //using PropertyChanged;
 
 namespace BuzzGUI.MachineView
@@ -19,6 +21,8 @@ namespace BuzzGUI.MachineView
         public MachineControl Destination { get; set; }
         public Point MousePoint { get; set; }
         public Control ConnectionControl { get; set; }
+
+        public Control ConnectionVUMeterControl { get; set; }
         public IMachineGraph MachineGraph { get; set; }
 
         readonly MachineView machineView;
@@ -131,6 +135,81 @@ namespace BuzzGUI.MachineView
 
         public ICommand MouseDownCommand { get; set; }
 
+        // VU meter level tuple (left,right)
+        public Tuple<double, double> VUMeterLevel { get; set; }
+
+        const double VUMeterRange = 80.0;
+        float maxSampleLeft;
+        float maxSampleRight;
+        DispatcherTimer dtVUMeter = new();
+
+        Visibility vuMeterVisibility = Visibility.Collapsed;
+        public Visibility VUMeterVisibility { get => vuMeterVisibility; set { vuMeterVisibility = value; PropertyChanged.Raise(this, "VUMeterVisibility"); } }
+        void SetVuMeterEvents()
+        {
+            dtVUMeter.Tick += DtVUMeter_Tick;
+            dtVUMeter.Start();
+            MachineConnection?.Tap += MachineConnection_Tap;
+
+            VUMeterVisibility = Visibility.Visible;
+        }
+
+        void ClearVuMeterEvents()
+        {
+            dtVUMeter.Tick -= DtVUMeter_Tick;
+            dtVUMeter.Stop();
+            MachineConnection?.Tap -= MachineConnection_Tap;
+
+            VUMeterVisibility = Visibility.Collapsed;
+        }
+
+        private void MachineConnection_Tap(float[] buf, bool stereo, SongTime s)
+        {
+            int count = buf.Length;
+
+            float scale = (1.0f / 32768.0f);
+            if (stereo)
+            {
+                count = count / 2;
+                for (int i = 0; i < count; i += 2)
+                {
+                    maxSampleLeft = Math.Max(maxSampleLeft, Math.Abs(buf[i]));
+                    maxSampleRight = Math.Max(maxSampleRight, Math.Abs(buf[i + 1]));
+                }
+            }
+            else
+            {
+                for (int i = 0; i < count; i += 2)
+                {
+                    maxSampleLeft = Math.Max(maxSampleLeft, Math.Abs(buf[i]));
+                }
+                maxSampleRight = maxSampleLeft;
+            }
+
+            maxSampleLeft *= scale;
+            maxSampleRight *= scale;
+        }
+
+        private void DtVUMeter_Tick(object? sender, EventArgs e)
+        {
+            if (maxSampleLeft >= 0)
+            {
+                var db = Math.Min(Math.Max(Decibel.FromAmplitude(maxSampleLeft), -VUMeterRange), 0.0);
+                double left = (db + VUMeterRange) / VUMeterRange;
+                db = Math.Min(Math.Max(Decibel.FromAmplitude(maxSampleRight), -VUMeterRange), 0.0);
+                double right = (db + VUMeterRange) / VUMeterRange;
+
+                maxSampleLeft = 0;
+                maxSampleRight = 0;
+
+                if ((left >= 0) && (right >= 0) && (left != VUMeterLevel.Item1 || right != VUMeterLevel.Item2))
+                {
+                    VUMeterLevel = new Tuple<double, double>(left, right);
+                    PropertyChanged.Raise(this, "VUMeterLevel");
+                }
+            }
+        }
+
         public Connection(IMachineConnection mc, MachineView mv, MachineControl src, MachineControl dst, Point p)
         {
             this.MachineConnection = mc;
@@ -145,6 +224,20 @@ namespace BuzzGUI.MachineView
             DestinationPlugInfo = new PlugInfo();
             DestinationPlugInfo.Connection = this;
             DestinationPlugInfo.Machine = dst;
+
+            VUMeterLevel = new Tuple<double, double>(0, 0);
+            dtVUMeter.Interval = TimeSpan.FromMilliseconds(1000 / 30);
+
+            machineView.Settings.PropertyChanged += Settings_PropertyChanged;
+
+            if (machineView.Settings.ConnenctionVUMeterLevels)
+            {
+                SetVuMeterEvents();
+            }
+            else
+            {
+                ClearVuMeterEvents();
+            }
 
             if (mc != null)
             {
@@ -190,6 +283,11 @@ namespace BuzzGUI.MachineView
                 RenderTransform = new RotateTransform(),
             };
 
+            ConnectionVUMeterControl = new Control()
+            {
+                DataContext = this,
+                Style = canvas.TryFindResource("MachineConnectionVUMeterStyle") as Style
+            };
 
 
             if (mc != null)
@@ -258,6 +356,7 @@ namespace BuzzGUI.MachineView
             if (path2 != null) canvas.Children.Add(path2);
 
             canvas.Children.Add(ConnectionControl);
+            canvas.Children.Add(ConnectionVUMeterControl);
             canvas.Children.Add(srcPlug);
             canvas.Children.Add(dstPlug);
 
@@ -269,6 +368,21 @@ namespace BuzzGUI.MachineView
                 CanExecuteDelegate = x => true,
                 ExecuteDelegate = _e => { HandleMouseDown(_e as MouseButtonEventArgs); }
             };
+        }
+
+        private void Settings_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "ConnenctionVUMeterLevels")
+            {
+                if (machineView.Settings.ConnenctionVUMeterLevels)
+                {
+                    SetVuMeterEvents();
+                }
+                else
+                {
+                    ClearVuMeterEvents();
+                }
+            }
         }
 
         void HandleMouseDown(MouseButtonEventArgs e)
@@ -373,13 +487,18 @@ namespace BuzzGUI.MachineView
             canvas.Children.Remove(path);
             canvas.Children.Remove(path2);
             canvas.Children.Remove(ConnectionControl);
+            canvas.Children.Remove(ConnectionVUMeterControl);
             canvas.Children.Remove(srcPlug);
             canvas.Children.Remove(dstPlug);
+
+            ClearVuMeterEvents();
+            machineView.Settings.PropertyChanged -= Settings_PropertyChanged;
 
             // apparently styles hold references to elements so must null to avoid memory leaks
             path = null;
             path2 = null;
             ConnectionControl = null;
+            ConnectionVUMeterControl = null;
             srcPlug = null;
             dstPlug = null;
         }
@@ -422,6 +541,7 @@ namespace BuzzGUI.MachineView
                 srcPlug.Visibility = Visibility.Collapsed;
                 dstPlug.Visibility = Visibility.Collapsed;
                 ConnectionControl.Visibility = Visibility.Collapsed;
+                ConnectionVUMeterControl.Visibility = Visibility.Collapsed;
                 path.Visibility = Visibility.Collapsed;
                 if (path2 != null) path2.Visibility = Visibility.Collapsed;
             }
@@ -430,6 +550,7 @@ namespace BuzzGUI.MachineView
                 srcPlug.Visibility = ShowSrcPlug ? visibility : Visibility.Collapsed;
                 dstPlug.Visibility = ShowDstPlug ? visibility : Visibility.Collapsed;
                 ConnectionControl.Visibility = visibility;
+                ConnectionVUMeterControl.Visibility = MachineView.StaticSettings.ConnenctionVUMeterLevels ? visibility : Visibility.Collapsed;
                 path.Visibility = visibility;
                 if (path2 != null) path2.Visibility = visibility;
 
@@ -518,6 +639,9 @@ namespace BuzzGUI.MachineView
             Canvas.SetLeft(ConnectionControl, m.X);
             Canvas.SetTop(ConnectionControl, m.Y);
             (ConnectionControl.RenderTransform as RotateTransform).Angle = Vector.AngleBetween(new Vector(-1, 0), (Vector)n);
+
+            Canvas.SetLeft(ConnectionVUMeterControl, m.X);
+            Canvas.SetTop(ConnectionVUMeterControl, m.Y);
 
         }
 

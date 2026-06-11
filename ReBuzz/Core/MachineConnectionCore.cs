@@ -115,10 +115,10 @@ namespace ReBuzz.Core
                     j++;
                 }
 
-                dispatcher.BeginInvoke(() =>
-                {
+                //dispatcher.BeginInvoke(() =>
+                //{
                     Tap?.Invoke(samples, stereo, songTime);
-                });
+                //});
             }
         }
 

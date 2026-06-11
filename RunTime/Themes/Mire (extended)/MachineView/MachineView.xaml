@@ -15,6 +15,7 @@
 
   <Style TargetType="{x:Type local:AmpControl}" BasedOn="{StaticResource ConnectionAmpControlStyleBase}"/>
   <Style x:Key="MachineConnectionTriangleStyle" TargetType="{x:Type Control}" BasedOn="{StaticResource MachineConnectionTriangleStyleBase}"/>
+  <Style x:Key="MachineConnectionVUMeterStyle" TargetType="{x:Type Control}" BasedOn="{StaticResource MachineConnectionVUMeterStyleBase}"/>
   
   <Style x:Key="RectangleGroupStyle" TargetType="{x:Type Rectangle}">
     <Setter Property="RadiusX" Value="9"/>

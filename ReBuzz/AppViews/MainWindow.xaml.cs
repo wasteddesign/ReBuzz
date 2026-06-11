@@ -838,7 +838,14 @@ namespace ReBuzz
                         {
                             if (Buzz.PatternEditorPattern != null)
                             {
-                                Buzz.PatternEditorPattern.IsPlayingSolo ^= true;
+                                if (!Buzz.PatternEditorPattern.IsPlayingSolo && Buzz.Playing)
+                                {
+                                    Buzz.Playing = false;
+                                }
+                                else
+                                {
+                                    Buzz.PatternEditorPattern.IsPlayingSolo ^= true;
+                                }
                             }
                             e.Handled = true;
                         }

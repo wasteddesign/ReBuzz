@@ -37,6 +37,20 @@
 			</Setter>
 		</Style.Setters>
 	</Style>
+	
+		          <SolidColorBrush x:Key="VUMeterBorderBrush" Color="#ffffff"/>
+          <Color x:Key="VUMeterBackgroundColor">#2E2E2E</Color>
+
+          <LinearGradientBrush x:Key="VUMeterBrush" StartPoint="0,0" EndPoint="1,0">
+            <GradientStop Color="#3d6503" Offset="0.0"/>
+            <GradientStop Color="#72a70e" Offset="0.7"/>
+            <GradientStop Color="#dbbe45" Offset="0.8"/>
+            <GradientStop Color="#dbbe45" Offset="0.9"/>
+            <GradientStop Color="#ff6900" Offset="0.91"/>
+            <GradientStop Color="#ff6900" Offset="1.0"/>
+		  </LinearGradientBrush>
+
+		<SolidColorBrush x:Key="VUMeterBackgroundBrush" Color="#90000000" Opacity="0.3"/>
 
 	<DataTemplate x:Key="MachineListItemTemplate">
 		<TextBlock Name="tb" Text="{Binding Path=DisplayName}" Foreground="{Binding Path=DisplayNameBrush}"/>
@@ -104,6 +118,47 @@
             </DataTrigger>
           </ControlTemplate.Triggers>
           -->
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+  
+      <!-- DataContext BuzzGUI.MachineView.Connection -->
+  <Style x:Key="MachineConnectionVUMeterStyleBase" TargetType="{x:Type Control}">
+    <Setter Property="Focusable" Value="False"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="{x:Type Control}">
+		  <Grid Background="{StaticResource VUMeterBackgroundBrush}" Margin="10,-7,0,0" Width="60" Height="18" Visibility="{Binding Path=VUMeterVisibility}">
+					<Border Height="4" BorderBrush="{StaticResource VUMeterBorderBrush}" BorderThickness="0" VerticalAlignment="Top" CornerRadius="0" Margin="4,4,4,0">
+						<Grid Name="grid">
+							<Rectangle Fill="{StaticResource VUMeterBrush}"/>
+							<Rectangle>
+								<Rectangle.Fill>
+									<LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+										<GradientStop Color="Transparent" Offset="0"/>
+										<GradientStop Color="Transparent" Offset="{Binding Path=VUMeterLevel.Item1}"/>
+										<GradientStop Color="{StaticResource VUMeterBackgroundColor}" Offset="{Binding Path=VUMeterLevel.Item1}"/>
+									</LinearGradientBrush>
+								</Rectangle.Fill>
+							</Rectangle>
+						</Grid>
+					</Border>
+					<Border Height="4" BorderBrush="{StaticResource VUMeterBorderBrush}" BorderThickness="0" VerticalAlignment="top" CornerRadius="0" Margin="4,10,4,0">
+						<Grid>
+							<Rectangle Fill="{StaticResource VUMeterBrush}"/>
+							<Rectangle>
+								<Rectangle.Fill>
+									<LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+										<GradientStop Color="Transparent" Offset="0"/>
+										<GradientStop Color="Transparent" Offset="{Binding Path=VUMeterLevel.Item2}"/>
+										<GradientStop Color="{StaticResource VUMeterBackgroundColor}" Offset="{Binding Path=VUMeterLevel.Item2}"/>
+									</LinearGradientBrush>
+								</Rectangle.Fill>
+							</Rectangle>
+						</Grid>
+					</Border>
+			</Grid>					
         </ControlTemplate>
       </Setter.Value>
     </Setter>

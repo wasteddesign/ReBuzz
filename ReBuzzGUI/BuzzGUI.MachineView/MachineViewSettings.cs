@@ -33,6 +33,9 @@ namespace BuzzGUI.MachineView
         [BuzzSetting(false, Description = "Use colors to show the thread that is rendering the audio (Multithreading)")]
         public bool ShowEngineThreads { get; set; }
 
+        [BuzzSetting(false, Description = "Connection VU Meter Levels.")]
+        public bool ConnenctionVUMeterLevels { get; set; }
+
         [BuzzSetting(ZoomMouseGestures.MouseWheel)]
         public ZoomMouseGestures ZoomMouseGesture { get; set; }
 
