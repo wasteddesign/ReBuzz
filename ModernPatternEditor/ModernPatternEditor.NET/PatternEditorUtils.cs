@@ -696,7 +696,7 @@ namespace WDE.ModernPatternEditor
             return false;
         }
 
-        private static MPEPatternColumn? GetColumn(MPEPattern mpePattern, string name, int t)
+        public static MPEPatternColumn? GetColumn(MPEPattern mpePattern, string name, int t)
         {
             foreach (var c in mpePattern.MPEPatternColumns)
             {

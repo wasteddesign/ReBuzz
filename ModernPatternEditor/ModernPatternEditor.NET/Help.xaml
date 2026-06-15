@@ -297,6 +297,14 @@
                             <Paragraph>Shift Values</Paragraph>
                         </TableCell>
                     </TableRow>
+					<TableRow>
+						<TableCell>
+							<Paragraph>Ctrl+Shift+Add/Subtract</Paragraph>
+						</TableCell>
+						<TableCell>
+							<Paragraph>Shift Values by +12/-12</Paragraph>
+						</TableCell>
+					</TableRow>
                     <TableRow>
                         <TableCell>
                             <Paragraph>Ctrl+1,2,3...</Paragraph>

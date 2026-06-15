@@ -46,6 +46,8 @@ namespace WDE.ModernPatternEditor
 
         public bool MidiEdit { get; set; }
 
+        public bool MidiVelocity { get; set; }
+
         int selectedStepsDown = 1;
         public int SelectedStepsDown { get => selectedStepsDown; set { selectedStepsDown = value; PropertyChanged.Raise(this, "SelectedStepsDown"); } }
 
@@ -971,13 +973,41 @@ namespace WDE.ModernPatternEditor
                         int time = cursor.TimeInBeat + cursor.Beat * PatternControl.BUZZ_TICKS_PER_BEAT * PatternEvent.TimeBase;
                         MPEPattern mpePattern = MPEPatternsDB.GetMPEPattern(patternControl.Pattern.Pattern);
                         MPEPatternColumn mpeColumn = mpePattern.GetColumn(cursor.ParameterColumn.PatternColumn);
+                        MPEPatternColumn midiVelocityColumn = MidiVelocity ? GetNoteVelocityColumn(mpePattern, cursor.ParameterColumn.PatternColumn.Track) : null;
+
                         Dispatcher.Invoke(() =>
                         {
                             if (patternControl.IsKeyboardFocused)
                             {
-                                DoAction(new MPESetOrClearEventsAction(patternControl.Pattern.Pattern, mpeColumn, new PatternEvent[] { new PatternEvent() { Time = time, Value = buzzNote } }, true));
+                                using (new ActionGroup(EditContext.ActionStack))
+                                {
+                                    DoAction(
+                                        new MPESetOrClearEventsAction(
+                                            patternControl.Pattern.Pattern,
+                                            mpeColumn,
+                                            new PatternEvent[] { new PatternEvent() { Time = time, Value = buzzNote } },
+                                            true));
+
+                                    if (midiVelocityColumn != null)
+                                    {
+                                        DoAction(
+                                            new MPESetOrClearEventsAction(
+                                                patternControl.Pattern.Pattern,
+                                                midiVelocityColumn,
+                                                new PatternEvent[]
+                                                {
+                                                    new PatternEvent() { Time = time, Value = velocity }
+                                                },
+                                                true));
+                                    }
+                                }
+
                                 patternControl.MoveCursorDelta(SelectedStepsRight, SelectedStepsDown);
-                                playRecordManager.UpdatePlayingNotePattern(mpeColumn.Parameter, mpeColumn.ParamTrack, buzzNote, velocity);
+                                playRecordManager.UpdatePlayingNotePattern(
+                                    mpeColumn.Parameter,
+                                    mpeColumn.ParamTrack,
+                                    buzzNote,
+                                    velocity);
                             }
                         });
                     }
@@ -1212,6 +1242,13 @@ namespace WDE.ModernPatternEditor
         internal void PatternChanged(IPattern pattern)
         {
             changedPatternsSinceLastTick.TryAdd(pattern, true);
+        }
+
+        private static MPEPatternColumn? GetNoteVelocityColumn(MPEPattern mpePattern, int track)
+        {
+            return PatternEditorUtils.GetColumn(mpePattern, "note velocity", track)
+                ?? PatternEditorUtils.GetColumn(mpePattern, "volume", track)
+                ?? PatternEditorUtils.GetColumn(mpePattern, "velocity", track);
         }
 
         #region INotifyPropertyChanged Members
