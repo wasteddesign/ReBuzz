@@ -579,9 +579,9 @@ namespace ReBuzz.Audio
                 m.workDone = false;
 
             // Iterate machine connection graph staring from Master
-            var master = buzzCore.SongCore.MachinesList.FirstOrDefault(m => m.DLL.Info.Type == MachineType.Master);
-            if (master == null)
+            if (buzzCore.SongCore.MachinesList.Count == 0)
                 return workSamplesCount;
+            var master = buzzCore.SongCore.MachinesList[0];
 
             if (!multiThreadingEnabled)
             {
