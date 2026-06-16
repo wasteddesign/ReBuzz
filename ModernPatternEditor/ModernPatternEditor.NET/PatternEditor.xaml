@@ -198,6 +198,9 @@
                                     <CheckBox Name="midiEditBox" Visibility="{Binding KeyboardMappingVisibility}" Height="21" Margin="0,0,4,0" FlowDirection="RightToLeft" IsChecked="{Binding MidiEdit, Mode=TwoWay}" IsEnabled="{Binding SelectedMachine.HasSelectedPattern}">
                                         <Label Visibility="{Binding KeyboardMappingVisibility}" VerticalAlignment="Center" Margin="0,-4,0,0">:Midi Edit</Label>
                                     </CheckBox>
+                                    <CheckBox Name="midiVelocityBox" Visibility="{Binding KeyboardMappingVisibility}" Height="21" Margin="0,0,4,0" FlowDirection="RightToLeft" IsChecked="{Binding MidiVelocity, Mode=TwoWay}" IsEnabled="{Binding SelectedMachine.HasSelectedPattern}">
+                                        <Label Visibility="{Binding KeyboardMappingVisibility}" VerticalAlignment="Center" Margin="0,-4,0,0">:Midi Velocity</Label>
+                                    </CheckBox>
 
                                     <!--
                                     <ToggleButton Width="14" Height="14" VerticalAlignment="Center" Margin="4,4,0,4" Focusable="False" Padding="0" FontSize="9" Content="E" ToolTip="Select Pattern Editor" IsChecked="{Binding IsSelectPatternEditorVisible}"/>

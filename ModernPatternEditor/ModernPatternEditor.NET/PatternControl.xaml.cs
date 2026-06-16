@@ -608,6 +608,16 @@ namespace WDE.ModernPatternEditor
                         if (n == 0) n = 10;
                         SetBeatSubdivision(10 + n);
                     }
+                    else if (e.Key == Key.Add)
+                    {
+                        ShiftValues(12);
+                        e.Handled = true;
+                    }
+                    else if (e.Key == Key.Subtract)
+                    {
+                        ShiftValues(-12);
+                        e.Handled = true;
+                    }
                     else if (e.Key == Key.Delete)
                     {
                         InsertOrDelete(false, true);
