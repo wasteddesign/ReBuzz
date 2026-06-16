@@ -977,10 +977,36 @@ namespace ReBuzz.MachineManagement
 
         internal void UpdateMasterAndSubTickInfoToHost()
         {
+            bool structDirty = ReBuzzCore.masterInfoStructDirty;
+            if (structDirty)
+                ReBuzzCore.masterInfoStructDirty = false;
+
+            var masterInfo = ReBuzzCore.masterInfo;
+            var subTickInfo = ReBuzzCore.subTickInfo;
+
             foreach (var machineHost in managedMachines.Values)
             {
-                if (machineHost != null)
-                    UpdateMasterAndSubTickInfo(machineHost);
+                if (machineHost == null) continue;
+
+                var hostInfo = machineHost.MasterInfo;
+                var hostSubTick = machineHost.SubTickInfo;
+
+                // Position fields - always copy (advance every chunk)
+                hostInfo.PosInTick = masterInfo.PosInTick;
+                hostSubTick.CurrentSubTick = subTickInfo.CurrentSubTick;
+                hostSubTick.PosInSubTick = subTickInfo.PosInSubTick;
+
+                if (structDirty)
+                {
+                    // Structural fields - only when changed
+                    hostInfo.SamplesPerTick = masterInfo.SamplesPerTick;
+                    hostInfo.BeatsPerMin = masterInfo.BeatsPerMin;
+                    hostInfo.TicksPerBeat = masterInfo.TicksPerBeat;
+                    hostInfo.SamplesPerSec = masterInfo.SamplesPerSec;
+                    hostInfo.TicksPerSec = masterInfo.TicksPerSec;
+                    hostSubTick.SubTicksPerTick = subTickInfo.SubTicksPerTick;
+                    hostSubTick.SamplesPerSubTick = subTickInfo.SamplesPerSubTick;
+                }
             }
         }
 

@@ -296,6 +296,7 @@ namespace ReBuzz.Audio
                     subTickInfo.SubTickReminderCounter -= subTickInfo.SubTicksPerTick;
                     subTickInfo.SamplesPerSubTick++;
                 }
+                ReBuzzCore.masterInfoStructDirty = true;
             }
         }
 
