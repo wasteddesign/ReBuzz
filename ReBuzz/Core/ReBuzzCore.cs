@@ -1656,6 +1656,12 @@ namespace ReBuzz.Core
         float maxSampleLeft;
         float maxSampleRight;
 
+        // Ring of buffers for MasterTapSamples — reused across calls to avoid per-chunk allocation.
+        // Subscribers MUST consume the buffer synchronously inside the BeginInvoke callback;
+        // after N=4 further calls the slot will be overwritten by the audio thread.
+        private readonly float[][] tapBuffers = new float[4][];
+        private int tapBufferIndex;
+
         internal Gear Gear { get; }
         internal void MasterTapSamples(float[] resSamples, int offset, int count)
         {
@@ -1672,7 +1678,14 @@ namespace ReBuzz.Core
             if (MasterTap == null) return;
 
             var s = GetSongTime();
-            float[] samples = new float[count];
+            float[] samples = tapBuffers[tapBufferIndex];
+            if (samples == null || samples.Length != count)
+            {
+                samples = new float[count];
+                tapBuffers[tapBufferIndex] = samples;
+            }
+            tapBufferIndex = (tapBufferIndex + 1) & 3;
+
             for (int i = 0; i < count; i++)
             {
                 samples[i] = resSamples[offset + i];
