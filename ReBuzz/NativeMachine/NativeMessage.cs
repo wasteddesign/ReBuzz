@@ -1349,28 +1349,28 @@ namespace ReBuzz.NativeMachine
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe void SetMessageData(Sample[] data, int nSamples, bool stereo)
+        public void SetMessageData(Sample[] data, int nSamples, bool stereo)
         {
-            byte[] array = intArray;
-            fixed (byte* ptr = array)
+            if (stereo)
             {
-                if (stereo)
+                // Sample is { float L; float R; } with no padding, so the array's byte
+                // representation is exactly what the IPC channel expects — bulk-copy in one shot.
+                var srcBytes = MemoryMarshal.AsBytes(data.AsSpan(0, nSamples));
+                int startIndex = sendMessageData.Count;
+                CollectionsMarshal.SetCount(sendMessageData, startIndex + srcBytes.Length);
+                srcBytes.CopyTo(CollectionsMarshal.AsSpan(sendMessageData).Slice(startIndex, srcBytes.Length));
+            }
+            else
+            {
+                // Mono: mix L+R per sample, write directly into a pre-sized destination
+                // span reinterpreted as floats rather than per-sample AddRange.
+                int totalBytes = nSamples * 4;
+                int startIndex = sendMessageData.Count;
+                CollectionsMarshal.SetCount(sendMessageData, startIndex + totalBytes);
+                var dstFloats = MemoryMarshal.Cast<byte, float>(CollectionsMarshal.AsSpan(sendMessageData).Slice(startIndex, totalBytes));
+                for (int i = 0; i < nSamples; i++)
                 {
-                    for (int i = 0; i < nSamples; i++)
-                    {
-                        *(float*)ptr = data[i].L;
-                        sendMessageData.AddRange(array);
-                        *(float*)ptr = data[i].R;
-                        sendMessageData.AddRange(array);
-                    }
-                }
-                else
-                {
-                    for (int i = 0; i < nSamples; i++)
-                    {
-                        *(float*)ptr = (data[i].L + data[i].R);
-                        sendMessageData.AddRange(array);
-                    }
+                    dstFloats[i] = data[i].L + data[i].R;
                 }
             }
         }
