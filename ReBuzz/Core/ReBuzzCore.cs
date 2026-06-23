@@ -1659,7 +1659,6 @@ namespace ReBuzz.Core
         internal Gear Gear { get; }
         internal void MasterTapSamples(float[] resSamples, int offset, int count)
         {
-            var s = GetSongTime();
             float scale = (1.0f / 32768.0f);
             for (int i = 0; i < count; i += 2)
             {
@@ -1670,6 +1669,9 @@ namespace ReBuzz.Core
             maxSampleLeft *= scale;
             maxSampleRight *= scale;
 
+            if (MasterTap == null) return;
+
+            var s = GetSongTime();
             float[] samples = new float[count];
             for (int i = 0; i < count; i++)
             {
