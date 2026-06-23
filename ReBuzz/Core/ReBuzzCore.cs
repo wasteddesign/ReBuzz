@@ -81,6 +81,7 @@ namespace ReBuzz.Core
         public static int buildNumber = int.Parse(Resources.BuildNumber);
         public static MasterInfoExtended masterInfo;
         public static SubTickInfoExtended subTickInfo;
+        internal static volatile bool masterInfoStructDirty = true;
         public static readonly int SubTicsPerTick = 8;
         internal static BuzzGlobalState GlobalState;
         public static string AppDataPath = "ReBuzz";
@@ -584,6 +585,7 @@ namespace ReBuzz.Core
                 subTickInfo.PosInSubTick = 0;
 
                 subTickInfo.SubTickReminderCounter = 0;// masterInfo.SamplesPerTick % subTickInfo.SubTicksPerTick;
+                masterInfoStructDirty = true;
             }
         }
 
