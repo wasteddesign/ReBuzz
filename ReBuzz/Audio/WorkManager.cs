@@ -53,7 +53,7 @@ namespace ReBuzz.Audio
 
         readonly int algorithm;
 
-        readonly Dictionary<MachineCore, bool> workList = new Dictionary<MachineCore, bool>();
+        readonly HashSet<MachineCore> workList = new HashSet<MachineCore>();
         private bool stopped;
         readonly bool SpeedAdjustLinear = false;
 
@@ -424,8 +424,6 @@ namespace ReBuzz.Audio
             }
         }
 
-        readonly List<Task> tickTasks = new List<Task>();
-       
         internal void CallTick()
         {
             // First control, then other?
@@ -628,7 +626,7 @@ namespace ReBuzz.Audio
                 HandleWorkList(workSamplesCount);
                 CollectMachinesThatCanWork(master);
 
-                if (workList.Count == 1 && workList.Keys.First().DLL.Info.Type == MachineType.Master) // Master
+                if (workList.Count == 1 && workList.First().DLL.Info.Type == MachineType.Master) // Master
                 {
                     break;
                 }
@@ -636,7 +634,7 @@ namespace ReBuzz.Audio
                 // If workList.Count == 1 then call work from this thread
                 if (workList.Count == 1)
                 {
-                    var machine = workList.Keys.First();
+                    var machine = workList.First();
 
                     // Call work and update machine activity flag
 
@@ -647,9 +645,9 @@ namespace ReBuzz.Audio
                 }
                 else
                 {
-                    List<Task> workTasks = new List<Task>();
+                    workTasks.Clear();
 
-                    foreach (var machine in workList.Keys.OrderByDescending(m => m.performanceLastCount))
+                    foreach (var machine in workList.OrderByDescending(m => m.performanceLastCount))
                     {
                         var t = AudioEngine.TaskFactoryAudio.StartNew(() =>
                         {
@@ -667,7 +665,7 @@ namespace ReBuzz.Audio
                     }
 
                     // Wait all tasks to complete
-                    Task.WaitAll(workTasks.ToArray());
+                    Task.WaitAll(workTasks);
                 }
             }
         }
@@ -694,7 +692,7 @@ namespace ReBuzz.Audio
         void HandleWorkList(int numRead)
         {
             workTasks.Clear();
-            foreach (var machine in workList.Keys)
+            foreach (var machine in workList)
             {
                 var t = AudioEngine.TaskFactoryAudio.StartNew(() =>
                 {
@@ -784,12 +782,12 @@ namespace ReBuzz.Audio
                 HandleWorkList(workSamplesCount);
                 CollectMachinesThatCanWork(master);
 
-                if ((workList.Count == 1) && (workList.Keys.First().DLL.Info.Type == MachineType.Master)) // Master
+                if ((workList.Count == 1) && (workList.First().DLL.Info.Type == MachineType.Master)) // Master
                 {
                     break;
                 }
 
-                foreach (var machine in workList.Keys.OrderByDescending(m => m.performanceLastCount))
+                foreach (var machine in workList.OrderByDescending(m => m.performanceLastCount))
                 {
                     // Add work instances to be processed
                     var workInstance = buzzCore.MachineManager.GetMachineWorkInstance(machine);
@@ -827,12 +825,12 @@ namespace ReBuzz.Audio
                 CollectControlMachinesThatCanWork();
                 CollectMachinesThatCanWork(master);
 
-                if (workList.Count == 1 && workList.Keys.First().DLL.Info.Type == MachineType.Master) // Master
+                if (workList.Count == 1 && workList.First().DLL.Info.Type == MachineType.Master) // Master
                 {
                     break;
                 }
 
-                foreach (var machine in workList.Keys)
+                foreach (var machine in workList)
                 {
                     var workInstance = buzzCore.MachineManager.GetMachineWorkInstance(machine);
                     workInstance.TickAndWork(workSamplesCount, true);
@@ -858,7 +856,7 @@ namespace ReBuzz.Audio
 
             if (machineCanWork)
             {
-                workList[machine] = true;
+                workList.Add(machine);
             }
         }
         private void CollectEditorMachinesThatCanWork()
@@ -869,7 +867,7 @@ namespace ReBuzz.Audio
                 // Was work called for this editor machine already?
                 if (machine.DLL.Info.Flags.HasFlag(MachineInfoFlags.CONTROL_MACHINE) && machine.Hidden && !machine.workDone && machine.Ready)
                 {
-                    workList[machine] = true;
+                    workList.Add(machine);
                 }
             }
         }
@@ -882,7 +880,7 @@ namespace ReBuzz.Audio
                 // Was work called for this control machine already?
                 if (machine.DLL.Info.Flags.HasFlag(MachineInfoFlags.CONTROL_MACHINE) && !machine.workDone && machine.Ready)
                 {
-                    workList[machine] = true;
+                    workList.Add(machine);
                 }
             }
         }
@@ -892,7 +890,7 @@ namespace ReBuzz.Audio
             foreach (var input in machine.AllInputs)
             {
                 var sourceMachine = input.Source as MachineCore;
-                workList[machine] = true;
+                workList.Add(machine);
             }
         }
 
