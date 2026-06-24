@@ -876,25 +876,28 @@ namespace ReBuzz
 
                 if (Keyboard.Modifiers == ModifierKeys.Control)
                 {
-                    if (e.Key == Key.C)
+                    if (Buzz.ActiveView != BuzzView.SongInfoView)
                     {
-                        Buzz.ExecuteCommand(BuzzCommand.Copy);
-                        e.Handled = true;
-                    }
-                    else if (e.Key == Key.X)
-                    {
-                        Buzz.ExecuteCommand(BuzzCommand.Cut);
-                        e.Handled = true;
-                    }
-                    else if (e.Key == Key.V)
-                    {
-                        Buzz.ExecuteCommand(BuzzCommand.Paste);
-                        e.Handled = true;
-                    }
-                    else if (e.Key == Key.Z)
-                    {
-                        Buzz.ExecuteCommand(BuzzCommand.Undo);
-                        e.Handled = true;
+                        if (e.Key == Key.C)
+                        {
+                            Buzz.ExecuteCommand(BuzzCommand.Copy);
+                            e.Handled = true;
+                        }
+                        else if (e.Key == Key.X)
+                        {
+                            Buzz.ExecuteCommand(BuzzCommand.Cut);
+                            e.Handled = true;
+                        }
+                        else if (e.Key == Key.V)
+                        {
+                            Buzz.ExecuteCommand(BuzzCommand.Paste);
+                            e.Handled = true;
+                        }
+                        else if (e.Key == Key.Z)
+                        {
+                            Buzz.ExecuteCommand(BuzzCommand.Undo);
+                            e.Handled = true;
+                        }
                     }
                     else if (e.Key == Key.Y)
                     {

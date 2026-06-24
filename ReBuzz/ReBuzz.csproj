@@ -141,6 +141,12 @@
     <Reference Include="Box2dNet">
       <HintPath>..\3rdParty\Box2dNet.dll</HintPath>
     </Reference>
+    <Reference Include="MdXaml">
+      <HintPath>..\3rdParty\MdXaml.dll</HintPath>
+    </Reference>
+    <Reference Include="MdXaml.Plugins">
+      <HintPath>..\3rdParty\MdXaml.Plugins.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Windows.Devices.Midi2.NetProjection">
       <HintPath>..\3rdParty\Microsoft.Windows.Devices.Midi2.NetProjection.dll</HintPath>
     </Reference>

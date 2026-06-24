@@ -53,7 +53,7 @@ namespace ReBuzz.Audio
 
         readonly int algorithm;
 
-        readonly HashSet<MachineCore> workList = new HashSet<MachineCore>();
+        readonly List<MachineCore> workList = new List<MachineCore>();
         private bool stopped;
         readonly bool SpeedAdjustLinear = false;
 

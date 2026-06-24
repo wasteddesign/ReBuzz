@@ -926,6 +926,11 @@ namespace ReBuzz.Core
         {
             if (Ready)
             {
+                // MIDI Polyphonic Expression
+                // Not implemented, don't know why the 0x80 bit is set in channel but convert to 0 for now
+                if ((channel & 0x80) != 0)
+                    //channel &= 0x7F;
+                    channel = 0;
                 var buzz = graph.Buzz as ReBuzzCore;
                 buzz.MachineManager.SendMIDINote(this, channel, value, velocity);
             }

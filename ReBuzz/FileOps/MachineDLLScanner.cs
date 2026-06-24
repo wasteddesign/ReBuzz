@@ -45,8 +45,8 @@ namespace ReBuzz.FileOps
                         var effectDllFiles = GetDllList(filepath);
                         filepath = Path.Combine(buzzPath, @"Gear\Generators");
                         var generatorDllFiles = GetDllList(filepath);
-                        if (Global.GeneralSettings.PluginRescanStragety == PluginRescanStrategyType.Always ||
-                            (Global.GeneralSettings.PluginRescanStragety == PluginRescanStrategyType.WhenChanged && (xmlMachines.NumDLLsInEffectsFolder != effectDllFiles.Count || xmlMachines.NumDLLsGeneratorsFolder != generatorDllFiles.Count)))
+                        if (Global.GeneralSettings.PluginRescanStrategy == PluginRescanStrategyType.Always ||
+                            (Global.GeneralSettings.PluginRescanStrategy == PluginRescanStrategyType.WhenChanged && (xmlMachines.NumDLLsInEffectsFolder != effectDllFiles.Count || xmlMachines.NumDLLsGeneratorsFolder != generatorDllFiles.Count)))
                         {
                             xmlMachines = RescanMachineDLLs(buzz, buzzPath, dispatcher, engineSettings);
                         }

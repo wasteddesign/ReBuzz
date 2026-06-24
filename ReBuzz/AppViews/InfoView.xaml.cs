@@ -1,4 +1,5 @@
 ﻿using BuzzGUI.Interfaces;
+using MdXaml;
 using ReBuzz.Core;
 using System.ComponentModel;
 using System.Windows.Controls;
@@ -21,12 +22,22 @@ namespace ReBuzz
             InitializeComponent();
 
             DataContext = this;
-
+            
             tbInfo.SetBinding(TextBox.TextProperty, new Binding("ReBuzz.InfoText") { Source = this, Mode = BindingMode.TwoWay });
+            
+            tbInfo.TextChanged += (sender, e) =>
+            {
+                msv.Markdown = tbInfo.Text;
+            };
 
             Unloaded += (s, e) =>
             {
                 BindingOperations.ClearBinding(tbInfo, TextBox.TextProperty);
+            };
+
+            Loaded += (s, e) =>
+            {
+                msv.Markdown = tbInfo.Text;
             };
 
             tbInfo.PreviewMouseWheel += (sender, e) =>

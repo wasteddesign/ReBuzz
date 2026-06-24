@@ -26,7 +26,7 @@
         public bool WPFSoftwareRendering { get; set; }
 
         [BuzzSetting(PluginRescanStrategyType.WhenChanged, Description = "Plugin rescan strategy: Rescan when DLL count changes, Always, Never.")]
-        public PluginRescanStrategyType PluginRescanStragety { get; set; }
+        public PluginRescanStrategyType PluginRescanStrategy { get; set; }
 
         [BuzzSetting(SequenceEditorType.ModernVertical, Description = "Sequence View Type.")]
         public SequenceEditorType SequenceView { get; set; }
