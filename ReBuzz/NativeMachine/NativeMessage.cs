@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Xml.Linq;
 
@@ -146,10 +147,9 @@ namespace ReBuzz.NativeMachine
 
             if (size > MessageBuffer.MaxSize)
             {
-                for (int i = 0; i < MessageBuffer.MaxSize; i++)
-                {
-                    dataRootPointer[i] = sendMessageData[i + sendMessageDataoffset];
-                }
+                var src = CollectionsMarshal.AsSpan(sendMessageData).Slice(sendMessageDataoffset, MessageBuffer.MaxSize);
+                var dst = new Span<byte>(dataRootPointer, MessageBuffer.MaxSize);
+                src.CopyTo(dst);
 
                 sendMessageDataoffset += MessageBuffer.MaxSize;
                 size = MessageBuffer.MaxSize;
@@ -158,11 +158,10 @@ namespace ReBuzz.NativeMachine
             }
             else
             {
-                for (int i = 0; i < size; i++)
-                {
-                    dataRootPointer[i] = sendMessageData[i + sendMessageDataoffset];
-                }
-                
+                var src = CollectionsMarshal.AsSpan(sendMessageData).Slice(sendMessageDataoffset, size);
+                var dst = new Span<byte>(dataRootPointer, size);
+                src.CopyTo(dst);
+
                 done = true;
                 sendMessageDataoffset = 0;
                 SetChannelState(ChannelState.sendlastbuffer);
@@ -275,10 +274,9 @@ namespace ReBuzz.NativeMachine
 
             if (size > MessageBuffer.MaxSize)
             {
-                for (int i = 0; i < MessageBuffer.MaxSize; i++)
-                {
-                    dataRootPointer[i] = sendMessageData[i + sendMessageDataoffset];
-                }
+                var src = CollectionsMarshal.AsSpan(sendMessageData).Slice(sendMessageDataoffset, MessageBuffer.MaxSize);
+                var dst = new Span<byte>(dataRootPointer, MessageBuffer.MaxSize);
+                src.CopyTo(dst);
 
                 sendMessageDataoffset += MessageBuffer.MaxSize;
                 size = MessageBuffer.MaxSize;
@@ -294,10 +292,9 @@ namespace ReBuzz.NativeMachine
             }
             else
             {
-                for (int i = 0; i < size; i++)
-                {
-                    dataRootPointer[i] = sendMessageData[i + sendMessageDataoffset];
-                }
+                var src = CollectionsMarshal.AsSpan(sendMessageData).Slice(sendMessageDataoffset, size);
+                var dst = new Span<byte>(dataRootPointer, size);
+                src.CopyTo(dst);
 
                 done = true;
                 sendMessageDataoffset = 0;
