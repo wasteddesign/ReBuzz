@@ -11,7 +11,6 @@ using BuzzGUI.Common;
 using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
 using Microsoft.Win32;
-using NAudio.Midi;
 using ReBuzz.Audio;
 using ReBuzz.Common;
 using ReBuzz.Core.Actions.GraphActions;
@@ -27,18 +26,16 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Printing;
 using System.Reflection;
 using System.Runtime;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
-using System.Xml;
 using System.Xml.Linq;
 using Timer = System.Timers.Timer;
 
@@ -172,6 +169,8 @@ namespace ReBuzz.Core
 
         // VU meter level tuple (left,right)
         public Tuple<double, double> VUMeterLevel { get; set; }
+
+        VUMeter meterData = new();
 
         // MIDI and controller assignment management
         internal MidiControllerAssignments MidiControllerAssignments { get; set; }
@@ -747,8 +746,6 @@ namespace ReBuzz.Core
             PerformanceCurrent = new BuzzPerformanceData();
 
             VUMeterLevel = new Tuple<double, double>(0, 0);
-            maxSampleLeft = -1;
-            maxSampleRight = -1;
 
             Gear = Gear.LoadGearFile(buzzPath + "\\Gear\\gear_defaults.xml");
             var moreGear = Gear.LoadGearFile(buzzPath + "\\Gear\\gear.xml");
@@ -994,21 +991,14 @@ namespace ReBuzz.Core
             dtVUMeter.Interval = TimeSpan.FromMilliseconds(1000 / 30);
             dtVUMeter.Tick += (sender, e) =>
             {
-                if (maxSampleLeft >= 0)
+                var lr = meterData.GetLevels();
+                double left = lr.Item1;
+                double right = lr.Item2;
+
+                if ((left >= 0) && (right >= 0) && (left != VUMeterLevel.Item1 || right != VUMeterLevel.Item2))
                 {
-                    var db = Math.Min(Math.Max(Decibel.FromAmplitude(maxSampleLeft), -VUMeterRange), 0.0);
-                    double left = (db + VUMeterRange) / VUMeterRange;
-                    db = Math.Min(Math.Max(Decibel.FromAmplitude(maxSampleRight), -VUMeterRange), 0.0);
-                    double right = (db + VUMeterRange) / VUMeterRange;
-
-                    maxSampleLeft = 0;
-                    maxSampleRight = 0;
-
-                    if ((left >= 0) && (right >= 0) && (left != VUMeterLevel.Item1 || right != VUMeterLevel.Item2))
-                    {
-                        VUMeterLevel = new Tuple<double, double>(left, right);
-                        PropertyChanged.Raise(this, "VUMeterLevel");
-                    }
+                    VUMeterLevel = new Tuple<double, double>(left, right);
+                    PropertyChanged.Raise(this, "VUMeterLevel");
                 }
             };
             dtVUMeter.Start();
@@ -1652,26 +1642,15 @@ namespace ReBuzz.Core
             }
         }
 
-        const double VUMeterRange = 80.0;
-        float maxSampleLeft;
-        float maxSampleRight;
 
         internal Gear Gear { get; }
         internal void MasterTapSamples(float[] resSamples, int offset, int count)
         {
-            float scale = (1.0f / 32768.0f);
-            for (int i = 0; i < count; i += 2)
-            {
-                maxSampleLeft = Math.Max(maxSampleLeft, Math.Abs(resSamples[offset + i]));
-                maxSampleRight = Math.Max(maxSampleRight, Math.Abs(resSamples[offset + i + 1]));
-            }
-
-            maxSampleLeft *= scale;
-            maxSampleRight *= scale;
+            var s = GetSongTime();
+            meterData.UpdateMax(resSamples, true, s);
 
             if (MasterTap == null) return;
 
-            var s = GetSongTime();
             float[] samples = new float[count];
             for (int i = 0; i < count; i++)
             {

@@ -138,9 +138,7 @@ namespace BuzzGUI.MachineView
         // VU meter level tuple (left,right)
         public Tuple<double, double> VUMeterLevel { get; set; }
 
-        const double VUMeterRange = 80.0;
-        float maxSampleLeft;
-        float maxSampleRight;
+        VUMeter meterData = new();
         DispatcherTimer dtVUMeter = new();
 
         Visibility vuMeterVisibility = Visibility.Collapsed;
@@ -165,48 +163,19 @@ namespace BuzzGUI.MachineView
 
         private void MachineConnection_Tap(float[] buf, bool stereo, SongTime s)
         {
-            int count = buf.Length;
-
-            float scale = (1.0f / 32768.0f);
-            if (stereo)
-            {
-                count = count / 2;
-                for (int i = 0; i < count; i += 2)
-                {
-                    maxSampleLeft = Math.Max(maxSampleLeft, Math.Abs(buf[i]));
-                    maxSampleRight = Math.Max(maxSampleRight, Math.Abs(buf[i + 1]));
-                }
-            }
-            else
-            {
-                for (int i = 0; i < count; i += 2)
-                {
-                    maxSampleLeft = Math.Max(maxSampleLeft, Math.Abs(buf[i]));
-                }
-                maxSampleRight = maxSampleLeft;
-            }
-
-            maxSampleLeft *= scale;
-            maxSampleRight *= scale;
+            meterData.UpdateMax(buf, stereo, s);
         }
 
         private void DtVUMeter_Tick(object? sender, EventArgs e)
         {
-            if (maxSampleLeft >= 0)
+            var lr = meterData.GetLevels();
+            double left = lr.Item1;
+            double right = lr.Item2;
+
+            if ((left >= 0) && (right >= 0) && (left != VUMeterLevel.Item1 || right != VUMeterLevel.Item2))
             {
-                var db = Math.Min(Math.Max(Decibel.FromAmplitude(maxSampleLeft), -VUMeterRange), 0.0);
-                double left = (db + VUMeterRange) / VUMeterRange;
-                db = Math.Min(Math.Max(Decibel.FromAmplitude(maxSampleRight), -VUMeterRange), 0.0);
-                double right = (db + VUMeterRange) / VUMeterRange;
-
-                maxSampleLeft = 0;
-                maxSampleRight = 0;
-
-                if ((left >= 0) && (right >= 0) && (left != VUMeterLevel.Item1 || right != VUMeterLevel.Item2))
-                {
-                    VUMeterLevel = new Tuple<double, double>(left, right);
-                    PropertyChanged.Raise(this, "VUMeterLevel");
-                }
+                VUMeterLevel = new Tuple<double, double>(left, right);
+                PropertyChanged.Raise(this, "VUMeterLevel");
             }
         }
 
