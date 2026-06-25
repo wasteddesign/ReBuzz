@@ -61,8 +61,9 @@ namespace ReBuzz.MachineManagement
                     Sample[] samples = Machine.GetStereoSamples(nSamples);
                     Machine.UpdateOutputs(samples, nSamples, false);
 
-                    foreach (var output in Machine.Outputs)
+                    foreach (var output in Machine.AllOutputs)
                     {
+                        if (output.Destination.InputChannelCount == 0 || (output.Destination as MachineCore).Hidden) continue;
                         (output as MachineConnectionCore).DoTap(samples, nSamples, true, buzz.GetSongTime());
                     }
                 }
@@ -108,8 +109,9 @@ namespace ReBuzz.MachineManagement
             {
                 if (Machine.Inputs.Count == 0)
                 {
-                    foreach (var mo in Machine.Outputs)
+                    foreach (var mo in Machine.AllOutputs)
                     {
+                        if (mo.Destination.InputChannelCount == 0 || (mo.Destination as MachineCore).Hidden) continue;
                         (mo as MachineConnectionCore).ClearBuffer(nSamples);
                     }
                     return false;
@@ -128,8 +130,9 @@ namespace ReBuzz.MachineManagement
             if ((flags & MachineInfoFlags.DOES_INPUT_MIXING) == MachineInfoFlags.DOES_INPUT_MIXING)
             {
 
-                foreach (var input in Machine.Inputs)
+                foreach (var input in Machine.AllInputs)
                 {
+                    if (input.Source.OutputChannelCount == 0 || (input.Source as MachineCore).Hidden) continue;
                     var inputCore = input as MachineConnectionCore;
                     samples = inputCore.Buffer;
                     audiom.AudioInput(Machine, samples, nSamples, input.Amp / (float)0x4000, true);
@@ -148,8 +151,9 @@ namespace ReBuzz.MachineManagement
                     multiSamplesOut.Add(null);
                 }
 
-                foreach (var outConnection in Machine.Outputs)
+                foreach (var outConnection in Machine.AllOutputs)
                 {
+                    if (outConnection.Destination.InputChannelCount == 0 || (outConnection.Destination as MachineCore).Hidden) continue;
                     if (multiSamplesOutBuffers[outConnection.SourceChannel] == null)
                         multiSamplesOutBuffers[outConnection.SourceChannel] = new Sample[256];
                     multiSamplesOut[outConnection.SourceChannel] = multiSamplesOutBuffers[outConnection.SourceChannel];
@@ -174,8 +178,9 @@ namespace ReBuzz.MachineManagement
                     Machine.UpdateOutputs(multiSamplesOut, nSamples);
                 }
 
-                foreach (var output in Machine.Outputs)
+                foreach (var output in Machine.AllOutputs)
                 {
+                    if (output.Destination.InputChannelCount == 0 || (output.Destination as MachineCore).Hidden) continue;
                     var outputCore = output as MachineConnectionCore;
                     outputCore.DoTap(outputCore.Buffer, nSamples, true, buzz.GetSongTime());
                 }
@@ -210,8 +215,9 @@ namespace ReBuzz.MachineManagement
                     samples = silentBuffer;
                 }
                 Machine.UpdateOutputs(samples, nSamples);
-                foreach (var output in Machine.Outputs)
+                foreach (var output in Machine.AllOutputs)
                 {
+                    if (output.Destination.InputChannelCount == 0 || (output.Destination as MachineCore).Hidden) continue;
                     (output as MachineConnectionCore).DoTap(samples, nSamples, true, buzz.GetSongTime());
                 }
             }
@@ -245,8 +251,9 @@ namespace ReBuzz.MachineManagement
                     multiSamplesOut.Add(null);
                 }
 
-                foreach (var outConnection in Machine.Outputs)
+                foreach (var outConnection in Machine.AllOutputs)
                 {
+                    if (outConnection.Destination.InputChannelCount == 0 || (outConnection.Destination as MachineCore).Hidden) continue;
                     if (multiSamplesOutBuffers[outConnection.SourceChannel] == null)
                         multiSamplesOutBuffers[outConnection.SourceChannel] = new Sample[256];
                     multiSamplesOut[outConnection.SourceChannel] = multiSamplesOutBuffers[outConnection.SourceChannel];
@@ -266,15 +273,17 @@ namespace ReBuzz.MachineManagement
                     Sample[] samples = new Sample[nSamples];
                     Machine.UpdateOutputs(samples, nSamples);
 
-                    foreach (var output in Machine.Outputs)
+                    foreach (var output in Machine.AllOutputs)
                     {
+                        if (output.Destination.InputChannelCount == 0 || (output.Destination as MachineCore).Hidden) continue;
                         (output as MachineConnectionCore).DoTap(samples, nSamples, true, buzz.GetSongTime());
                     }
                 }
                 else
                 {
-                    foreach (var output in Machine.Outputs)
+                    foreach (var output in Machine.AllOutputs)
                     {
+                        if (output.Destination.InputChannelCount == 0 || (output.Destination as MachineCore).Hidden) continue;
                         var outputConn = output as MachineConnectionCore;
                         if (multiSamplesOut[outputConn.SourceChannel] != null)
                         {
@@ -306,8 +315,9 @@ namespace ReBuzz.MachineManagement
                     samples = new Sample[nSamples];
                     Machine.UpdateOutputs(samples, nSamples);
 
-                    foreach (var output in Machine.Outputs)
+                    foreach (var output in Machine.AllOutputs)
                     {
+                        if (output.Destination.InputChannelCount == 0 || (output.Destination as MachineCore).Hidden) continue;
                         (output as MachineConnectionCore).DoTap(samples, nSamples, true, buzz.GetSongTime());
                     }
                 }
@@ -315,8 +325,9 @@ namespace ReBuzz.MachineManagement
                 {
                     Machine.UpdateOutputs(samples, nSamples);
 
-                    foreach (var output in Machine.Outputs)
+                    foreach (var output in Machine.AllOutputs)
                     {
+                        if (output.Destination.InputChannelCount == 0 || (output.Destination as MachineCore).Hidden) continue;
                         (output as MachineConnectionCore).DoTap(samples, nSamples, true, buzz.GetSongTime());
                     }
                 }
