@@ -36,8 +36,10 @@ namespace ReBuzz
             };
 
             Loaded += (s, e) =>
-            {
-                msv.Markdown = tbInfo.Text;
+            {   
+                // Force draw
+                tbInfo.Text = " ";
+                tbInfo.Text = "";
             };
 
             tbInfo.PreviewMouseWheel += (sender, e) =>

@@ -11,8 +11,9 @@
     <Grid >
         <TabControl>
             <TabItem Header="Info">
-                <mdxam:MarkdownScrollViewer MarkdownStyle="{DynamicResource MarkdownScrollViewerStyle1}" xml:space="preserve" x:Name="msv"/>
-                
+                <Border HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <mdxam:MarkdownScrollViewer MarkdownStyle="{DynamicResource MarkdownScrollViewerStyle1}" xml:space="preserve" x:Name="msv"></mdxam:MarkdownScrollViewer>
+                </Border>
             </TabItem>
             <TabItem Header="Edit">
                 <TextBox Name="tbInfo" Style="{DynamicResource TextBoxStyle1}" AcceptsReturn="True" TextWrapping="Wrap"/>

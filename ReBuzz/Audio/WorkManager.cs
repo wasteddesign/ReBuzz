@@ -53,7 +53,8 @@ namespace ReBuzz.Audio
 
         readonly int algorithm;
 
-        readonly HashSet<MachineCore> workList = new HashSet<MachineCore>();
+        // Use HashSet to ensure do duplicate list items
+        readonly HashSet<MachineCore> workSet = new HashSet<MachineCore>();
         private bool stopped;
         readonly bool SpeedAdjustLinear = false;
 
@@ -617,7 +618,7 @@ namespace ReBuzz.Audio
         {
             while (true)
             {
-                workList.Clear();
+                workSet.Clear();
 
                 // 1. Get machines that can be processed
                 CollectEditorMachinesThatCanWork();
@@ -626,15 +627,15 @@ namespace ReBuzz.Audio
                 HandleWorkList(workSamplesCount);
                 CollectMachinesThatCanWork(master);
 
-                if (workList.Count == 1 && workList.First().DLL.Info.Type == MachineType.Master) // Master
+                if (workSet.Count == 1 && workSet.First().DLL.Info.Type == MachineType.Master) // Master
                 {
                     break;
                 }
 
                 // If workList.Count == 1 then call work from this thread
-                if (workList.Count == 1)
+                if (workSet.Count == 1)
                 {
-                    var machine = workList.First();
+                    var machine = workSet.First();
 
                     // Call work and update machine activity flag
 
@@ -647,7 +648,7 @@ namespace ReBuzz.Audio
                 {
                     workTasks.Clear();
 
-                    foreach (var machine in workList.OrderByDescending(m => m.performanceLastCount))
+                    foreach (var machine in workSet.OrderByDescending(m => m.performanceLastCount))
                     {
                         var t = AudioEngine.TaskFactoryAudio.StartNew(() =>
                         {
@@ -673,7 +674,7 @@ namespace ReBuzz.Audio
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         internal void HandleWorkAlgorithmRecursive(MachineCore master, int numRead)
         {
-            workList.Clear();
+            workSet.Clear();
 
             // 1. Get machines that can be processed
             CollectEditorMachinesThatCanWork();
@@ -692,7 +693,7 @@ namespace ReBuzz.Audio
         void HandleWorkList(int numRead)
         {
             workTasks.Clear();
-            foreach (var machine in workList)
+            foreach (var machine in workSet)
             {
                 var t = AudioEngine.TaskFactoryAudio.StartNew(() =>
                 {
@@ -706,7 +707,7 @@ namespace ReBuzz.Audio
 
             // Wait all tasks to complete
             Task.WaitAll(workTasks);
-            workList.Clear();
+            workSet.Clear();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
@@ -773,7 +774,7 @@ namespace ReBuzz.Audio
             workEngine.PrepareEngine(workSamplesCount);
             while (true)
             {
-                workList.Clear();
+                workSet.Clear();
 
                 // 1. Get machines that can be processed
                 CollectEditorMachinesThatCanWork();
@@ -782,12 +783,12 @@ namespace ReBuzz.Audio
                 HandleWorkList(workSamplesCount);
                 CollectMachinesThatCanWork(master);
 
-                if ((workList.Count == 1) && (workList.First().DLL.Info.Type == MachineType.Master)) // Master
+                if ((workSet.Count == 1) && (workSet.First().DLL.Info.Type == MachineType.Master)) // Master
                 {
                     break;
                 }
 
-                foreach (var machine in workList.OrderByDescending(m => m.performanceLastCount))
+                foreach (var machine in workSet.OrderByDescending(m => m.performanceLastCount))
                 {
                     // Add work instances to be processed
                     var workInstance = buzzCore.MachineManager.GetMachineWorkInstance(machine);
@@ -800,7 +801,7 @@ namespace ReBuzz.Audio
                 workEngine.AllJobsAdded();
 
                 // Wait all tasks to complete
-                if (workList.Count > 0)
+                if (workSet.Count > 0)
                 {
                     var jobs = workEngine.AllDoneEvent();
                     jobs.WaitOne();
@@ -818,19 +819,19 @@ namespace ReBuzz.Audio
         {
             while (true)
             {
-                workList.Clear();
+                workSet.Clear();
 
                 // 1. Get machines that can be processed
                 CollectEditorMachinesThatCanWork();
                 CollectControlMachinesThatCanWork();
                 CollectMachinesThatCanWork(master);
 
-                if (workList.Count == 1 && workList.First().DLL.Info.Type == MachineType.Master) // Master
+                if (workSet.Count == 1 && workSet.First().DLL.Info.Type == MachineType.Master) // Master
                 {
                     break;
                 }
 
-                foreach (var machine in workList)
+                foreach (var machine in workSet)
                 {
                     var workInstance = buzzCore.MachineManager.GetMachineWorkInstance(machine);
                     workInstance.TickAndWork(workSamplesCount, true);
@@ -856,7 +857,7 @@ namespace ReBuzz.Audio
 
             if (machineCanWork)
             {
-                workList.Add(machine);
+                workSet.Add(machine);
             }
         }
         private void CollectEditorMachinesThatCanWork()
@@ -867,7 +868,7 @@ namespace ReBuzz.Audio
                 // Was work called for this editor machine already?
                 if (machine.DLL.Info.Flags.HasFlag(MachineInfoFlags.CONTROL_MACHINE) && machine.Hidden && !machine.workDone && machine.Ready)
                 {
-                    workList.Add(machine);
+                    workSet.Add(machine);
                 }
             }
         }
@@ -880,7 +881,7 @@ namespace ReBuzz.Audio
                 // Was work called for this control machine already?
                 if (machine.DLL.Info.Flags.HasFlag(MachineInfoFlags.CONTROL_MACHINE) && !machine.workDone && machine.Ready)
                 {
-                    workList.Add(machine);
+                    workSet.Add(machine);
                 }
             }
         }
@@ -890,14 +891,14 @@ namespace ReBuzz.Audio
             foreach (var input in machine.AllInputs)
             {
                 var sourceMachine = input.Source as MachineCore;
-                workList.Add(machine);
+                workSet.Add(machine);
             }
         }
 
         internal void Stop()
         {
             stopped = true;
-            workList.Clear();
+            workSet.Clear();
         }
 
         internal int ThreadReadSpeedAdjust(float[] buffer, int offset, int count)

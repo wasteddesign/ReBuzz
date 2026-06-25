@@ -70,7 +70,7 @@
         <Style x:Key="MarkdownScrollViewerStyle1" TargetType="{x:Type FlowDocument}">
             <Setter Property="FontFamily" Value="Segoe UI" />
 			<Setter Property="TextAlignment" Value="Left" />
-			<Setter Property="PagePadding" Value="0" />
+      <Setter Property="PagePadding" Value="4,1,4,1" />
 
 			<Style.Resources>
 				<std:String x:Key="MarkdownStyleName">DocumentStyleStandard</std:String>
