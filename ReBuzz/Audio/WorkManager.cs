@@ -324,11 +324,12 @@ namespace ReBuzz.Audio
         internal void UpdatePatternPositions(int sampleCount)
         {
             // Clear all pattern play positions
-            foreach (var machine in buzzCore.SongCore.Machines)
+            foreach (var machine in buzzCore.SongCore.MachinesList)
             {
-                foreach (var pattern in machine.Patterns)
+                if (machine.Hidden || !machine.Ready) continue;
+                foreach (var pattern in machine.PatternsList)
                 {
-                    (pattern as PatternCore).PlayPosition = int.MinValue;
+                    pattern.PlayPosition = int.MinValue;
                 }
             }
 
