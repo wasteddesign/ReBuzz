@@ -1633,7 +1633,7 @@ namespace ReBuzz.Core
                     pdc.MaxEngineLockTime = 0;
                 }
 
-                long now = DateTime.UtcNow.Ticks;
+                long now = Stopwatch.GetTimestamp();
                 PerformanceCurrent.PerformanceCount += now - performanceCountTime;
                 performanceCountTime = now;
 
