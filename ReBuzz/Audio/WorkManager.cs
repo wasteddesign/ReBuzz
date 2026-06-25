@@ -529,9 +529,8 @@ namespace ReBuzz.Audio
                         continue;
 
                     var ces = column.GetEvents(pattern.PlayPosition, pattern.PlayPosition + nextPos);
-                    for (int j = 0; j < ces.Count(); j++)
+                    foreach (var pe in ces)
                     {
-                        var pe = ces.ElementAt(j);
                         if (column.Type == PatternColumnType.MIDI)
                         {
                             var data = pe.Value;
