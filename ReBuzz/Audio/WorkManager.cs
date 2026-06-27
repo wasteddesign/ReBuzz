@@ -67,6 +67,9 @@ namespace ReBuzz.Audio
             this.algorithm = algorithm;
             engineSettings = settings;
 
+            workOneList = WorkOneList;
+            workOneGroups = WorkOneGroups;
+
             var master = buzzCore.SongCore.MachinesList.FirstOrDefault(m => m.DLL.Info.Type == MachineType.Master);
             var masterGlobalParameters = master.ParameterGroupsList[1].ParametersList;
         }
@@ -647,24 +650,12 @@ namespace ReBuzz.Audio
                 }
                 else
                 {
+                    dispatchSamples = workSamplesCount;
                     workTasks.Clear();
 
-                    foreach (var machine in workSet.OrderByDescending(m => m.performanceLastCount))
-                    {
-                        var t = AudioEngine.TaskFactoryAudio.StartNew(() =>
-                        {
-                            if (machine.workDone)
-                                return;
-
-                            // Call work and update machine activity flag
-                            var workInstance = buzzCore.MachineManager.GetMachineWorkInstance(machine);
-                            workInstance.TickAndWork(workSamplesCount, true);
-
-                            machine.workDone = true;
-                        });
-
-                        workTasks.Add(t);
-                    }
+                    int n = FillAndSortDesc();
+                    for (int s = 0; s < n; s++)
+                        workTasks.Add(AudioEngine.TaskFactoryAudio.StartNew(workOneGroups, sortScratch[s]));
 
                     // Wait all tasks to complete
                     Task.WaitAll(workTasks);
@@ -690,19 +681,68 @@ namespace ReBuzz.Audio
         readonly List<Task> workTasks = new List<Task>(100);
         private readonly EngineSettings engineSettings;
 
+        // Interim §5: reused scratch + cached non-capturing dispatch delegates
+        // (kills per-chunk OrderByDescending alloc and per-task display-class capture).
+        private MachineCore[] sortScratch = new MachineCore[64];
+        private int dispatchSamples;
+        private readonly Action<object> workOneList;
+        private readonly Action<object> workOneGroups;
+
+        // Copy workSet into sortScratch and stable-descending insertion-sort by
+        // performanceLastCount. Only one algorithm path runs per ReadWork (single
+        // audio thread), so a single shared scratch is safe.
+        private int FillAndSortDesc()
+        {
+            int n = workSet.Count;
+            if (sortScratch.Length < n)
+                sortScratch = new MachineCore[Math.Max(n, sortScratch.Length * 2)];
+
+            int i = 0;
+            foreach (var m in workSet)
+                sortScratch[i++] = m;
+
+            for (int a = 1; a < n; a++)
+            {
+                var key = sortScratch[a];
+                long kc = key.performanceLastCount;
+                int b = a - 1;
+                while (b >= 0 && sortScratch[b].performanceLastCount < kc)
+                {
+                    sortScratch[b + 1] = sortScratch[b];
+                    b--;
+                }
+                sortScratch[b + 1] = key;
+            }
+            return n;
+        }
+
+        // HandleWorkList body: work only; caller sets workDone on the dispatch thread.
+        private void WorkOneList(object state)
+        {
+            var machine = (MachineCore)state;
+            var workInstance = buzzCore.MachineManager.GetMachineWorkInstance(machine);
+            workInstance.TickAndWork(dispatchSamples, true);
+        }
+
+        // Groups body: guard + set workDone inside, matching the original lambda.
+        private void WorkOneGroups(object state)
+        {
+            var machine = (MachineCore)state;
+            if (machine.workDone)
+                return;
+            var workInstance = buzzCore.MachineManager.GetMachineWorkInstance(machine);
+            workInstance.TickAndWork(dispatchSamples, true);
+            machine.workDone = true;
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         void HandleWorkList(int numRead)
         {
+            dispatchSamples = numRead;
             workTasks.Clear();
             foreach (var machine in workSet)
             {
-                var t = AudioEngine.TaskFactoryAudio.StartNew(() =>
-                {
-                    // Call work and update machine activity flag
-                    var workInstance = buzzCore.MachineManager.GetMachineWorkInstance(machine);
-                    workInstance.TickAndWork(numRead, true);
-                });
-                workTasks.Add(t);
+                workTasks.Add(AudioEngine.TaskFactoryAudio.StartNew(workOneList, machine));
                 machine.workDone = true;
             }
 
@@ -789,8 +829,10 @@ namespace ReBuzz.Audio
                     break;
                 }
 
-                foreach (var machine in workSet.OrderByDescending(m => m.performanceLastCount))
+                int n = FillAndSortDesc();
+                for (int s = 0; s < n; s++)
                 {
+                    var machine = sortScratch[s];
                     // Add work instances to be processed
                     var workInstance = buzzCore.MachineManager.GetMachineWorkInstance(machine);
                     workEngine.AddWork(workInstance);
