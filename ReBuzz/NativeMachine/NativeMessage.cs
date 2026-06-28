@@ -230,15 +230,13 @@ namespace ReBuzz.NativeMachine
                 if (state == ChannelState.replylastbuffer)
                 {
                     int size = GetMessageSize();
-                    byte[] bytes = ReadMessageBytes(size);
-                    receaveMessageData.AddRange(bytes);
+                    AppendMessageBytes(size, receaveMessageData);
                     break;
                 }
                 else if (state == ChannelState.replybuffer)
                 {
                     int size = GetMessageSize();
-                    byte[] bytes = ReadMessageBytes(size);
-                    receaveMessageData.AddRange(bytes);
+                    AppendMessageBytes(size, receaveMessageData);
 
                     // Request more
                     SetChannelState(ChannelState.sendbuffer);
@@ -249,8 +247,7 @@ namespace ReBuzz.NativeMachine
                 else if (state == ChannelState.sendbuffer)
                 {
                     int size = GetMessageSize();
-                    byte[] bytes = ReadMessageBytes(size);
-                    receaveMessageData.AddRange(bytes);
+                    AppendMessageBytes(size, receaveMessageData);
 
                     // Request more
                     SetChannelState(ChannelState.replybuffer);
@@ -260,8 +257,7 @@ namespace ReBuzz.NativeMachine
                 else if (state == ChannelState.sendlastbuffer)
                 {
                     int size = GetMessageSize();
-                    byte[] bytes = ReadMessageBytes(size);
-                    receaveMessageData.AddRange(bytes);
+                    AppendMessageBytes(size, receaveMessageData);
                     break;
                 }
             }
@@ -363,16 +359,14 @@ namespace ReBuzz.NativeMachine
                 if (state == ChannelState.replylastbuffer)
                 {
                     int size = GetMessageSize();
-                    byte[] bytes = ReadMessageBytes(size);
-                    if (bytes.Length > 0)
-                        receaveMessageData.AddRange(bytes);
+                    if (size > 0)
+                        AppendMessageBytes(size, receaveMessageData);
                     break;
                 }
                 else if (state == ChannelState.replybuffer)
                 {
                     int size = GetMessageSize();
-                    byte[] bytes = ReadMessageBytes(size);
-                    receaveMessageData.AddRange(bytes);
+                    AppendMessageBytes(size, receaveMessageData);
 
                     SetChannelState(ChannelState.sendbuffer);
 
@@ -383,8 +377,7 @@ namespace ReBuzz.NativeMachine
                 else if (state == ChannelState.sendbuffer)
                 {
                     int size = GetMessageSize();
-                    byte[] bytes = ReadMessageBytes(size);
-                    receaveMessageData.AddRange(bytes);
+                    AppendMessageBytes(size, receaveMessageData);
 
                     SetChannelState(ChannelState.replybuffer);
 
@@ -395,8 +388,7 @@ namespace ReBuzz.NativeMachine
                 {
                     // Last buffer sent, so copy last part and exit loop
                     int size = GetMessageSize();
-                    byte[] bytes = ReadMessageBytes(size);
-                    receaveMessageData.AddRange(bytes);
+                    AppendMessageBytes(size, receaveMessageData);
                     break;
                 }
             }
@@ -1247,6 +1239,14 @@ namespace ReBuzz.NativeMachine
         public bool IsCallback()
         {
             return *(int*)callbackPointer == 1;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal unsafe void AppendMessageBytes(int size, List<byte> dst)
+        {
+            int oldCount = dst.Count;
+            CollectionsMarshal.SetCount(dst, oldCount + size);
+            new Span<byte>(dataRootPointer, size).CopyTo(CollectionsMarshal.AsSpan(dst).Slice(oldCount, size));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
