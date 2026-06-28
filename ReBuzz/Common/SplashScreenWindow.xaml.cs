@@ -1,6 +1,10 @@
 ﻿using BuzzGUI.Common;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Windows;
 using System.Windows.Media.Imaging;
@@ -26,22 +30,50 @@ namespace ReBuzz.Common
                 //this.Resources.MergedDictionaries.Add(md.Resources);
             }
 
-            int img = new Random(DateTime.Now.Millisecond).Next(4);
-            Uri uriImg = new Uri("pack://application:,,,/Common/gfx/splashscreen1.jpeg");
-            switch (img)
+            Uri uriImg = null;
+
+            string folderPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "SplashScreen");
+            IEnumerable<string> imgFiles = [];
+            try
             {
-                case 1:
-                    uriImg = new Uri("pack://application:,,,/Common/gfx/fox.jpeg");
-                    break;
-                case 2:
-                    uriImg = new Uri("pack://application:,,,/Common/gfx/bear.jpeg");
-                    break;
-                case 3:
-                    uriImg = new Uri("pack://application:,,,/Common/gfx/squirrel.jpeg");
-                    break;
+                // Get all .png files (case-insensitive)
+                imgFiles = Directory.EnumerateFiles(folderPath, "*.png", SearchOption.TopDirectoryOnly)
+                                        .Concat(Directory.EnumerateFiles(folderPath, "*.jpg", SearchOption.TopDirectoryOnly)
+                                        .Concat(Directory.EnumerateFiles(folderPath, "*.jpeg", SearchOption.TopDirectoryOnly))
+                                        .OrderBy(f => f) // sort alphabetically
+                                        .ToList());
+            }
+            catch (Exception ex)
+            { }
+
+            if (imgFiles.Count() != 0)
+            {
+                int img = new Random(DateTime.Now.Millisecond).Next(imgFiles.Count());
+                uriImg = new Uri(imgFiles.ElementAt(img));
+            }
+            else
+            {
+                int img = new Random(DateTime.Now.Millisecond).Next(4);
+                uriImg = new Uri("pack://application:,,,/Common/gfx/splashscreen1.jpeg");
+                switch (img)
+                {
+                    case 1:
+                        uriImg = new Uri("pack://application:,,,/Common/gfx/fox.jpeg");
+                        break;
+                    case 2:
+                        uriImg = new Uri("pack://application:,,,/Common/gfx/bear.jpeg");
+                        break;
+                    case 3:
+                        uriImg = new Uri("pack://application:,,,/Common/gfx/squirrel.jpeg");
+                        break;
+                }
             }
 
-            bgImage.Source = new BitmapImage(uriImg);
+            try
+            {
+                bgImage.Source = new BitmapImage(uriImg);
+            }
+            catch { }
 
             this.MouseDoubleClick += ((s, e) =>
             {

@@ -44,7 +44,7 @@
             <RowDefinition Height="30"/>
         </Grid.RowDefinitions>
 
-        <Image Name="bgImage" Source="gfx/splashscreen1.jpeg" Stretch="UniformToFill">
+        <Image Name="bgImage" Source="gfx/splashscreen1.jpeg" Stretch="UniformToFill" HorizontalAlignment="Center" VerticalAlignment="Center">
         </Image>
 
         <TextBlock Name="tbLoading" Grid.Row="0" Margin="0, 200" HorizontalAlignment="Center" FontSize="30" Foreground="White" TextWrapping="Wrap" >
