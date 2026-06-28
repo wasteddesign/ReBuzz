@@ -107,7 +107,16 @@ namespace ReBuzz.MachineManagement
 
             if (Machine.DLL.Info.Type == MachineType.Effect)
             {
-                if (Machine.Inputs.Count == 0)
+                bool hasInput = false;
+                foreach (var input in Machine.AllInputs)
+                {
+                    if (input.Source.OutputChannelCount > 0 && !(input.Source as MachineCore).Hidden)
+                    {
+                        hasInput = true;
+                        break;
+                    }
+                }
+                if (!hasInput)
                 {
                     foreach (var mo in Machine.AllOutputs)
                     {
@@ -270,7 +279,7 @@ namespace ReBuzz.MachineManagement
                 // For muted machines, call Work() but send empty buffer
                 if (Machine.IsMuted || Machine.IsSeqMute || (buzz.SongCore.SoloMode && !Machine.IsSoloed && Machine.DLL.Info.Type == MachineType.Generator))
                 {
-                    Sample[] samples = new Sample[nSamples];
+                    Sample[] samples = silentBuffer;
                     Machine.UpdateOutputs(samples, nSamples);
 
                     foreach (var output in Machine.AllOutputs)
@@ -291,7 +300,7 @@ namespace ReBuzz.MachineManagement
                         }
                         else
                         {
-                            outputConn.DoTap(new Sample[nSamples], nSamples, true, buzz.GetSongTime());
+                            outputConn.DoTap(silentBuffer, nSamples, true, buzz.GetSongTime());
                         }
                     }
                 }
@@ -312,7 +321,7 @@ namespace ReBuzz.MachineManagement
                 // For muted machines, call Work() but send empty buffer
                 if (Machine.IsMuted || Machine.IsSeqMute || (buzz.SongCore.SoloMode && !Machine.IsSoloed && Machine.DLL.Info.Type == MachineType.Generator))
                 {
-                    samples = new Sample[nSamples];
+                    samples = silentBuffer;
                     Machine.UpdateOutputs(samples, nSamples);
 
                     foreach (var output in Machine.AllOutputs)
