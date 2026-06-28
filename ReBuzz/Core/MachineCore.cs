@@ -594,7 +594,7 @@ namespace ReBuzz.Core
 
         public void RenamePattern(IPattern p, string newName)
         {
-            if (p != null)
+            if (p != null && !patterns.Any(x => x.Name == newName))
             {
                 (p as PatternCore).Name = newName;
                 PropertyChanged?.Raise(this, "Patterns");
