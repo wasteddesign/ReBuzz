@@ -1288,11 +1288,11 @@ namespace ReBuzz.Core
                 NewSong();
 
                 SkipAudio = true;
-                lock (AudioLock)
-                {   
+                //lock (AudioLock)
+                //{
                     bool playing = Playing;
                     Playing = false;
-                }
+                //}
 
                 IReBuzzFile bmxFile = GetReBuzzFile(filename);
 
@@ -1411,8 +1411,8 @@ namespace ReBuzz.Core
             SkipAudio = true;
             //AudioEngine.Stop();
 
-            lock (AudioLock)
-            {
+            //lock (AudioLock)
+            //{
                 try
                 {
                     file.Save(filename);
@@ -1421,7 +1421,7 @@ namespace ReBuzz.Core
                 {
                     Utils.MessageBox("Error saving file " + filename + "\n\n" + ex, "Error saving file.");
                 }
-            }
+            //}
 
             //AudioEngine.Play();
             SkipAudio = false;
@@ -1981,8 +1981,8 @@ namespace ReBuzz.Core
             MidiControllerAssignments.ClearControllerBindings();
 
             DeleteBackup();
-            lock (AudioLock)
-            {
+            //lock (AudioLock)
+            //{
                 AudioEngine.ClearAudioBuffer();
 
                 // Remove groups
@@ -2049,7 +2049,7 @@ namespace ReBuzz.Core
 
                 Speed = 0;
                 FileEvent?.Invoke(FileEventType.Close, "Done.", null);
-            }
+            //}
 
             // Center Master position
             List<Tuple<IMachine, Tuple<float, float>>> moveList = new List<Tuple<IMachine, Tuple<float, float>>>
