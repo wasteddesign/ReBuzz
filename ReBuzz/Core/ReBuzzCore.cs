@@ -1287,7 +1287,7 @@ namespace ReBuzz.Core
                 DeleteBackup();
                 NewSong();
 
-                SkipAudio = true;
+                //SkipAudio = true;
                 //lock (AudioLock)
                 //{
                     bool playing = Playing;
@@ -1311,7 +1311,7 @@ namespace ReBuzz.Core
                     userMessages.Error(e.InnerException == null ? e.Message : e.InnerException.Message, "Error loading " + filename, e);
                     bmxFile.EndFileOperation(false);
                     NewSong();
-                    SkipAudio = false;
+                    //SkipAudio = false;
                     return;
                 }
 
@@ -1331,7 +1331,7 @@ namespace ReBuzz.Core
                 }
                 SongCore.PlayPosition = 0;
 
-                SkipAudio = false;
+                //SkipAudio = false;
                 //AudioEngine.Play();
 
                 dispatcher.BeginInvoke(() =>
@@ -1408,7 +1408,7 @@ namespace ReBuzz.Core
 
             file.SetSubSections(ss);
 
-            SkipAudio = true;
+            //SkipAudio = true;
             //AudioEngine.Stop();
 
             //lock (AudioLock)
@@ -1424,7 +1424,7 @@ namespace ReBuzz.Core
             //}
 
             //AudioEngine.Play();
-            SkipAudio = false;
+            //SkipAudio = false;
             Modified = false;
         }
 
@@ -1971,7 +1971,7 @@ namespace ReBuzz.Core
         // Clean up song 
         internal void NewSong()
         {
-            SkipAudio = true;
+            //SkipAudio = true;
             Playing = false;
             InfoText = "";
 
@@ -2071,7 +2071,7 @@ namespace ReBuzz.Core
             GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
             GC.Collect();
             GC.WaitForFullGCComplete();
-            SkipAudio = false;
+            //SkipAudio = false;
         }
 
 
