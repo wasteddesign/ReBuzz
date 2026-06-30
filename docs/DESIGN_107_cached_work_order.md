@@ -99,25 +99,24 @@ order** producing the **same output**. Four observations underwrite that:
    add/remove events and bump `TopologyGeneration`, forcing a rebuild on the next
    chunk.
 
-## 5. Known divergence (flagged for merge)
+## 5. Cone parity with the legacy walk
 
-The cone build **descends through control machines** (it pushes every source onto
-the traversal stack and only excludes controls from becoming work nodes). The legacy
-`CollectMachinesThatCanWork` stops recursing at any `workDone` machine, and controls
-are `workDone` from the prefix — so legacy never reaches an audio machine whose
-*only* path to Master is through a control. The cache therefore works a strict
-superset of legacy on graphs that route audio into a control.
+The cone walk **stops at control/editor machines** — when the walk reaches a control
+source it does not descend through it. This matches the legacy
+`CollectMachinesThatCanWork`, which stops recursing at any `workDone` machine, and
+controls are `workDone` from the prefix. So an audio machine whose *only* path to
+Master runs through a control is left unworked by both the cache and the legacy walk;
+the cache works exactly the legacy set, not a superset.
 
-Impact: for graphs where no audio feeds a control (the common case, and the test
-song), the cone is identical to the legacy set. Where audio *does* feed a control,
-the extra machines are wasted work, not wrong output — their only consumer (the
-control) already ran in the prefix with the previous buffer, exactly as in legacy.
-(A control that *forwards* audio to Master is already mis-ordered in the legacy
-prefix and is an unsupported topology either way.)
+This is well-formed, not just matched by luck: any audio machine `A` that feeds a
+cone machine `M` necessarily has its own audio path to Master (through `M`), so `A`
+is still reached by the descent. The only machines excluded are those reachable
+*solely* through a control — precisely the set legacy never worked. The Kahn pass is
+unaffected: in-degree counts only cone-internal sources, and a now-excluded machine
+cannot be an input to a cone machine, so every counted edge still resolves.
 
-Recommendation: for a strict drop-in, do not descend into controls (skip pushing a
-control source during the cone walk). One line, plus a test for the
-audio-feeds-control case.
+(An earlier prototype descended through controls, which worked a harmless superset on
+sane graphs. That was tightened to the strict-parity walk above before this PR.)
 
 ## 6. How it was validated
 
@@ -172,7 +171,6 @@ Findings:
 
 ## 8. Follow-ups (each its own change)
 
-- Make the cone a strict drop-in (§5) + test.
 - A deterministic test song for an absolute bit-exact gate (§6).
 - `WorkThreadEngine` robustness: catch/record/`finally`-`WorkDone` around
   `TickAndWork` (also closes a hang-on-throw hole); independent of the cache.
