@@ -1034,6 +1034,7 @@ namespace ReBuzz.Core
         {
             this.inputs.Add(mcc);
             var buzz = graph.Buzz as ReBuzzCore;
+            buzz.TopologyGeneration++; // #107: invalidate cached work order
             //if (mcc.Source.DLL.Info.Flags.HasFlag(MachineInfoFlags.DOES_INPUT_MIXING))
             buzz.MachineManager.AddInput(this, mcc.Source, true);
         }
@@ -1114,6 +1115,7 @@ namespace ReBuzz.Core
         internal void RemoveInput(IMachineConnection mc)
         {
             var buzz = graph.Buzz as ReBuzzCore;
+            buzz.TopologyGeneration++; // #107: invalidate cached work order
             var group = parameterGroups[0];
             int trackToRemove = Inputs.IndexOf(mc);
 

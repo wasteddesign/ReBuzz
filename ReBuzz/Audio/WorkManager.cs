@@ -588,11 +588,17 @@ namespace ReBuzz.Audio
 
             if (!multiThreadingEnabled)
             {
-                HandleWorkAlgorithmSingleThread(master, workSamplesCount);
+                if (engineSettings.UseCachedWorkOrder)
+                    HandleWorkAlgorithmSingleThreadCached(master, workSamplesCount);
+                else
+                    HandleWorkAlgorithmSingleThread(master, workSamplesCount);
             }
             else if (algorithm == 0)
             {
-                HandleWorkAlgorithmGroups(master, workSamplesCount);
+                if (engineSettings.UseCachedWorkOrder)
+                    HandleWorkAlgorithmGroupsCached(master, workSamplesCount);
+                else
+                    HandleWorkAlgorithmGroups(master, workSamplesCount);
             }
             else if (algorithm == 1)
             {
@@ -601,7 +607,10 @@ namespace ReBuzz.Audio
             }
             else if (algorithm == 2)
             {
-                HandleWorkAlgorithm2(master, workSamplesCount);
+                if (engineSettings.UseCachedWorkOrder)
+                    HandleWorkAlgorithm2Cached(master, workSamplesCount);
+                else
+                    HandleWorkAlgorithm2(master, workSamplesCount);
             }
 
             // Mix all to single L + R signal
@@ -856,6 +865,181 @@ namespace ReBuzz.Audio
                 }
             }
         }
+
+        // ===== #107 prototype: cached topological work order =====
+        // Gated by engineSettings.UseCachedWorkOrder. Shares the cache build
+        // (CachedWorkOrder) across dispatch styles; only consumption differs.
+        // Algorithm 1 (Recursive) is intentionally untouched: it has no per-chunk
+        // re-scan, so the cache does not apply to it.
+
+        private readonly CachedWorkOrder cachedOrder = new CachedWorkOrder();
+
+        // Runs on the audio thread under AudioLock (held for the whole buffer),
+        // so the rebuild can never race a topology mutation. Rebuild is lazy:
+        // at most one rebuild per buffer, and only when the topology changed.
+        private CachedWorkOrder GetOrBuildOrder()
+        {
+            var song = buzzCore.SongCore;
+            long gen = buzzCore.TopologyGeneration;
+            if (cachedOrder.BuiltGeneration != gen ||
+                cachedOrder.BuiltMachineCount != song.MachinesList.Count)
+            {
+                cachedOrder.Rebuild(song);
+                cachedOrder.BuiltGeneration = gen;
+            }
+            return cachedOrder;
+        }
+
+        // Copy a wave into sortScratch and stable-descending insertion-sort by
+        // performanceLastCount (kept per-chunk/dynamic, like FillAndSortDesc).
+        private int FillAndSortDescFrom(MachineCore[] wave)
+        {
+            int n = wave.Length;
+            if (sortScratch.Length < n)
+                sortScratch = new MachineCore[Math.Max(n, sortScratch.Length * 2)];
+
+            for (int i = 0; i < n; i++)
+                sortScratch[i] = wave[i];
+
+            for (int a = 1; a < n; a++)
+            {
+                var key = sortScratch[a];
+                long kc = key.performanceLastCount;
+                int b = a - 1;
+                while (b >= 0 && sortScratch[b].performanceLastCount < kc)
+                {
+                    sortScratch[b + 1] = sortScratch[b];
+                    b--;
+                }
+                sortScratch[b + 1] = key;
+            }
+            return n;
+        }
+
+        // Dispatch a prefix partition (editors or controls) as one parallel
+        // batch + barrier, mirroring CollectEditor/Control + HandleWorkList.
+        // Ready is re-tested here (a native crash can clear it mid-buffer).
+        private void DispatchPrefixCached(MachineCore[] prefix, int numRead)
+        {
+            workSet.Clear();
+            foreach (var m in prefix)
+                if (m.Ready && !m.workDone)
+                    workSet.Add(m);
+
+            if (workSet.Count > 0)
+                HandleWorkList(numRead); // dispatches workSet, sets workDone, clears workSet
+            else
+                workSet.Clear();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+        private void HandleWorkAlgorithm2Cached(MachineCore master, int workSamplesCount)
+        {
+            var order = GetOrBuildOrder();
+            if (order.HasCycle)
+            {
+                // Deterministic fallback: legacy walk (its CanConnect gate keeps
+                // valid songs acyclic; this only fires on a malformed graph).
+                HandleWorkAlgorithm2(master, workSamplesCount);
+                return;
+            }
+
+            workEngine.PrepareEngine(workSamplesCount);
+
+            DispatchPrefixCached(order.EditorPrefix, workSamplesCount);
+            DispatchPrefixCached(order.ControlPrefix, workSamplesCount);
+
+            foreach (var wave in order.AudioWaves)
+            {
+                if (stopped)
+                    break;
+
+                int n = FillAndSortDescFrom(wave);
+                for (int s = 0; s < n; s++)
+                {
+                    var machine = sortScratch[s];
+                    var workInstance = buzzCore.MachineManager.GetMachineWorkInstance(machine);
+                    workEngine.AddWork(workInstance);
+                    machine.workDone = true;
+                }
+
+                workEngine.AllJobsAdded();
+                if (n > 0)
+                    workEngine.AllDoneEvent().WaitOne();
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+        private void HandleWorkAlgorithmGroupsCached(MachineCore master, int workSamplesCount)
+        {
+            var order = GetOrBuildOrder();
+            if (order.HasCycle)
+            {
+                HandleWorkAlgorithmGroups(master, workSamplesCount);
+                return;
+            }
+
+            // Groups uses no workEngine (it is null for algorithm 0); prefix and
+            // waves dispatch via AudioEngine.TaskFactoryAudio + Task.WaitAll,
+            // matching the legacy path. workOneGroups guards/sets workDone.
+            DispatchPrefixCached(order.EditorPrefix, workSamplesCount);
+            DispatchPrefixCached(order.ControlPrefix, workSamplesCount);
+
+            foreach (var wave in order.AudioWaves)
+            {
+                int n = FillAndSortDescFrom(wave);
+                if (n == 1)
+                {
+                    var machine = sortScratch[0];
+                    var workInstance = buzzCore.MachineManager.GetMachineWorkInstance(machine);
+                    workInstance.TickAndWork(workSamplesCount, true);
+                    machine.workDone = true;
+                }
+                else if (n > 1)
+                {
+                    dispatchSamples = workSamplesCount;
+                    workTasks.Clear();
+                    for (int s = 0; s < n; s++)
+                        workTasks.Add(AudioEngine.TaskFactoryAudio.StartNew(workOneGroups, sortScratch[s]));
+                    Task.WaitAll(workTasks);
+                }
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+        private void HandleWorkAlgorithmSingleThreadCached(MachineCore master, int workSamplesCount)
+        {
+            var order = GetOrBuildOrder();
+            if (order.HasCycle)
+            {
+                HandleWorkAlgorithmSingleThread(master, workSamplesCount);
+                return;
+            }
+
+            // Controls-first prefix (Ready-gated), then audio waves in topo order.
+            // This also tightens the legacy single-thread path, which works
+            // editors/controls/audio together in HashSet order with no guaranteed
+            // controls-before-generators ordering.
+            WorkSerialCached(order.EditorPrefix, workSamplesCount, readyGated: true);
+            WorkSerialCached(order.ControlPrefix, workSamplesCount, readyGated: true);
+            foreach (var wave in order.AudioWaves)
+                WorkSerialCached(wave, workSamplesCount, readyGated: false);
+        }
+
+        private void WorkSerialCached(MachineCore[] list, int numRead, bool readyGated)
+        {
+            foreach (var m in list)
+            {
+                if (m.workDone)
+                    continue;
+                if (readyGated && !m.Ready)
+                    continue;
+                var workInstance = buzzCore.MachineManager.GetMachineWorkInstance(m);
+                workInstance.TickAndWork(numRead, true);
+                m.workDone = true;
+            }
+        }
+        // ===== end #107 prototype =====
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         private void HandleWorkAlgorithmSingleThread(MachineCore master, int workSamplesCount)

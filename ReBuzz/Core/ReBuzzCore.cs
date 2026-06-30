@@ -1784,6 +1784,12 @@ namespace ReBuzz.Core
         }
 
         public static Lock AudioLock = new();
+
+        // #107 prototype: bumped on every connection add/remove (see
+        // MachineCore.AddInput/RemoveInput). The cached work order rebuilds when
+        // this (or the machine count) changes. Mutated under AudioLock.
+        internal long TopologyGeneration;
+
         public MachineCore CreateMaster()
         {
             var machine = MachineManager.GetMaster(this);

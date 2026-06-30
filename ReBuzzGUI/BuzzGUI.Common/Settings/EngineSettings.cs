@@ -31,6 +31,9 @@
         [BuzzSetting(false, Description = "Use background thread to fill audio buffer (restart).")]
         public bool AudioBufferFillThread { get; set; }
 
+        [BuzzSetting(false, Description = "Prototype (#107): use a cached topological work order instead of the per-chunk graph re-scan. Affects the single-thread, Groups (algorithm 0) and Threads (algorithm 2) paths.")]
+        public bool UseCachedWorkOrder { get; set; }
+
         [BuzzSetting(PriorityProfileType.NormalAppPriority, Description = "Priority setting for threads and processes (restart).")]
         public PriorityProfileType PriorityProfile { get; set; }
 
