@@ -84,9 +84,13 @@ namespace ReBuzz.Audio
             var master = machines[0];
 
             // --- 1. Master-reachable audio cone (via AllInputs) ---
-            // Descend through everything so audio machines sitting behind a
-            // control machine are still reachable, but only audio machines
-            // become work nodes. Master is never added to the cone.
+            // Walk the audio graph from Master, STOPPING at control/editor
+            // machines. They are worked in the prefix, and the legacy
+            // CollectMachinesThatCanWork stops recursing at any workDone machine
+            // (controls are workDone from the prefix) - so an audio machine
+            // reachable ONLY through a control is left unworked by the legacy
+            // walk. We match that exactly rather than working a superset: descend
+            // through audio machines only. Master is never added to the cone.
             var cone = new HashSet<MachineCore>();
             var seen = new HashSet<MachineCore> { master };
             var stack = new Stack<MachineCore>();
@@ -100,9 +104,10 @@ namespace ReBuzz.Audio
                         continue;
                     if (!seen.Add(src))
                         continue;
+                    if (IsControlOrEditor(src))
+                        continue; // do not descend through controls (prefix-worked)
                     stack.Push(src);
-                    if (!IsControlOrEditor(src))
-                        cone.Add(src);
+                    cone.Add(src);
                 }
             }
 
