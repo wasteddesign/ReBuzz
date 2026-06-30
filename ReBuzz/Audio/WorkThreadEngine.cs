@@ -52,9 +52,27 @@ namespace ReBuzz.Audio
                                 var machine = wi.Machine;
                                 var buzz = Global.Buzz as ReBuzzCore;
 
-                                wi.TickAndWork(nSamples, true);
-
-                                WorkDone();
+                                try
+                                {
+                                    wi.TickAndWork(nSamples, true);
+                                }
+                                catch (System.Exception ex)
+                                {
+                                    // Contain a single machine's failure: an exception thrown
+                                    // from Work() must not tear down the whole audio engine
+                                    // (otherwise it surfaces as an unhandled exception on this
+                                    // worker thread and the process is killed). Record the
+                                    // culprit for diagnosis and carry on - the machine's output
+                                    // is stale for this chunk only.
+                                    RecordFault(machine?.Name, ex);
+                                }
+                                finally
+                                {
+                                    // Always balance the job counter, even on throw: a leaked
+                                    // counter would leave allDoneHandle unset and hang the
+                                    // per-wave barrier.
+                                    WorkDone();
+                                }
                             }
                             else
                             {
@@ -123,6 +141,20 @@ namespace ReBuzz.Audio
         private bool stopped;
         private int workCounter;
         private int nSamples;
+
+        // Diagnostics for contained Work() faults (see the worker loop above).
+        // Written only on the exceptional path, so there is no steady-state cost;
+        // inspect via a debugger or reflection when a fault is suspected.
+        internal static int WorkFaultCount;
+        internal static string LastFaultMachine = "(none)";
+        internal static string LastFaultMessage = "";
+
+        private static void RecordFault(string machineName, System.Exception ex)
+        {
+            Interlocked.Increment(ref WorkFaultCount);
+            LastFaultMachine = machineName ?? "(null)";
+            LastFaultMessage = ex.GetType().Name + ": " + ex.Message;
+        }
 
         public void Stop()
         {
