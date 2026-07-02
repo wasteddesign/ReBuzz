@@ -955,6 +955,20 @@ namespace ReBuzz.Audio
                     break;
 
                 int n = FillAndSortDescFrom(wave);
+
+                // A one-machine wave has no intra-wave parallelism to gain, so the
+                // AddWork/AllJobsAdded/WaitOne barrier round-trip is pure overhead.
+                // Run it inline on the dispatch thread instead (bit-neutral: same
+                // TickAndWork, same workDone). Mirrors HandleWorkAlgorithmGroupsCached.
+                if (n == 1)
+                {
+                    var machine = sortScratch[0];
+                    var workInstance = buzzCore.MachineManager.GetMachineWorkInstance(machine);
+                    workInstance.TickAndWork(workSamplesCount, true);
+                    machine.workDone = true;
+                    continue;
+                }
+
                 for (int s = 0; s < n; s++)
                 {
                     var machine = sortScratch[s];
