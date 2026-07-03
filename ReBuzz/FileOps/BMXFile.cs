@@ -1684,7 +1684,7 @@ namespace ReBuzz.FileOps
 
         public void Save(string path)
         {
-            ReBuzzCore.SkipAudio = true;
+            // ReBuzzCore.SkipAudio = true;
             sections = new Dictionary<SectionType, Section>();
             Open(path, FileMode.Create);
             machines = new List<MachineCore>();
@@ -1736,7 +1736,7 @@ namespace ReBuzz.FileOps
                 fs.Write(section.Data, 0, (int)section.Size);
             }
             EndFileOperation(false);
-            ReBuzzCore.SkipAudio = false;
+            // ReBuzzCore.SkipAudio = false;
         }
 
         private void CreateReBuzzSongSettings()
