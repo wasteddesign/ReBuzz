@@ -882,7 +882,14 @@ namespace ReBuzz.Audio
             var song = buzzCore.SongCore;
             long gen = buzzCore.TopologyGeneration;
             if (cachedOrder.BuiltGeneration != gen ||
-                cachedOrder.BuiltMachineCount != song.MachinesList.Count)
+                cachedOrder.BuiltMachineCount != song.MachinesList.Count ||
+                // Self-heal a stale EMPTY order: if the cache was built mid-load off a
+                // not-yet-wired graph (empty audio cone), it would otherwise stick until
+                // the machine count next changes. Rebuild while AudioWaves is empty but
+                // audio machines exist (count beyond prefix + Master), so it recovers on
+                // the next chunk once connections resolve.
+                (cachedOrder.AudioWaves.Length == 0 &&
+                 song.MachinesList.Count > cachedOrder.EditorPrefix.Length + cachedOrder.ControlPrefix.Length + 1))
             {
                 cachedOrder.Rebuild(song);
                 cachedOrder.BuiltGeneration = gen;
