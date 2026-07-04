@@ -2,7 +2,6 @@
 using ReBuzz.Core;
 using ReBuzz.MachineManagement;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 
 namespace ReBuzz.Audio
@@ -126,8 +125,13 @@ namespace ReBuzz.Audio
             {
                 if (workList.Count > 0 && !stopped)
                 {
-                    var wi = workList.Last();
-                    workList.Remove(wi);
+                    // Pop the tail in O(1). Remove(Last()) linear-scans to find an
+                    // item already at the end; RemoveAt(Count-1) removes the same
+                    // element (each machine is queued once per wave) without the scan,
+                    // shortening the time workLock is held.
+                    int last = workList.Count - 1;
+                    var wi = workList[last];
+                    workList.RemoveAt(last);
                     return wi;
                 }
                 else
