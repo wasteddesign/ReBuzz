@@ -83,6 +83,18 @@ namespace ReBuzz.Core
 
         public List<IMachineConnection> AllOutputs { get => outputs; }
 
+        // Visibility filters matching the public Inputs/Outputs facades exactly
+        // (see the property bodies above). The facades build a fresh List +
+        // ReadOnlyCollection on every get, which is fine for the GUI but not for
+        // the per-chunk engine loops below; hot engine code iterates the raw
+        // lists through these predicates instead. Same elements, same order,
+        // same body - bit-exact with the facade-based loops they replace.
+        internal static bool IsVisibleInput(IMachineConnection input)
+            => input.Source.OutputChannelCount > 0 && !(input.Source as MachineCore).Hidden;
+
+        internal static bool IsVisibleOutput(IMachineConnection output)
+            => output.Destination.InputChannelCount > 0 && !(output.Destination as MachineCore).Hidden;
+
         readonly Dictionary<int, string> inputChannelNames = new Dictionary<int, string>();
         readonly Dictionary<int, string> outputChannelNames = new Dictionary<int, string>();
 
@@ -1252,8 +1264,10 @@ namespace ReBuzz.Core
         {
             Array.Clear(stereoSamples, 0, nSamples);
 
-            foreach (var input in Inputs)
+            foreach (var input in inputs)
             {
+                if (!IsVisibleInput(input))
+                    continue;
                 var inputCore = input as MachineConnectionCore;
 
                 for (int i = 0; i < nSamples; i++)
@@ -1269,8 +1283,10 @@ namespace ReBuzz.Core
 
         internal void UpdateOutputs(Sample[] samples, int nSamples, bool denormal = true)
         {
-            foreach (var output in Outputs)
+            foreach (var output in outputs)
             {
+                if (!IsVisibleOutput(output))
+                    continue;
                 var outputCore = output as MachineConnectionCore;
                 outputCore.UpdateBuffer(samples, nSamples);
             }
@@ -1304,8 +1320,10 @@ namespace ReBuzz.Core
                 }
             }
 
-            foreach (var input in Inputs)
+            foreach (var input in inputs)
             {
+                if (!IsVisibleInput(input))
+                    continue;
                 var inputCore = input as MachineConnectionCore;
 
                 //if (inputCore.Source.IsActive)
@@ -1331,8 +1349,10 @@ namespace ReBuzz.Core
 
         internal void UpdateOutputs(List<Sample[]> multiSamplesOut, int nSamples)
         {
-            foreach (var output in Outputs)
+            foreach (var output in outputs)
             {
+                if (!IsVisibleOutput(output))
+                    continue;
                 var outputCore = output as MachineConnectionCore;
                 if (outputCore.SourceChannel < multiSamplesOut.Count &&
                     multiSamplesOut[outputCore.SourceChannel] != null)
@@ -1350,10 +1370,13 @@ namespace ReBuzz.Core
 
             float maxSample = 0.0f;
 
-            var connections = Name == "Master" ? Inputs : Outputs;
+            bool useInputs = Name == "Master";
+            var connections = useInputs ? inputs : outputs;
 
             foreach (var output in connections)
             {
+                if (useInputs ? !IsVisibleInput(output) : !IsVisibleOutput(output))
+                    continue;
                 var outputCore = output as MachineConnectionCore;
                 Sample[] samples = outputCore.Buffer;
                 for (int i = 0; i < num; i++)
@@ -1414,8 +1437,10 @@ namespace ReBuzz.Core
         internal void UpdateIsActive()
         {
             bool active = false;
-            foreach (var input in Inputs)
+            foreach (var input in inputs)
             {
+                if (!IsVisibleInput(input))
+                    continue;
                 active |= input.Source.IsActive;
             }
 
