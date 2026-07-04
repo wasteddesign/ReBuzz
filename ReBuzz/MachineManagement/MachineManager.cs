@@ -1344,7 +1344,13 @@ namespace ReBuzz.MachineManagement
                     foreach (var p in g.ParametersList)
                     {
                         if (p.Flags.HasFlag(ParameterFlags.State) && p.Type != ParameterType.Note)
+                        {
                             p.SetPValue(track, p.GetValue(track));
+                            // Record so Tick clears this pval. Tick now clears pvals per changed
+                            // parameter instead of sweeping all parameters, so a pval written
+                            // outside SetValue must be tracked here too.
+                            machine.parametersChanged[p] = track;
+                        }
                     }
                     track++;
                 }

@@ -605,23 +605,33 @@ namespace ReBuzz.MachineManagement
                     audiom.AudioTick(Machine);
                 }
 
-                foreach (var paramTrack in Machine.parametersChanged)
+                // Skip the whole param-processing block when nothing changed this tick.
+                // In steady state parametersChanged is empty almost every tick, so this avoids
+                // the lock-taking ConcurrentDictionary.Clear() and the enumerator alloc. TickSent
+                // stays unconditional. Empty invoke/clear/Clear were no-ops, so this is bit-exact.
+                if (!Machine.parametersChanged.IsEmpty)
                 {
-                    var par = paramTrack.Key;
-                    var track = paramTrack.Value;
+                    foreach (var paramTrack in Machine.parametersChanged)
+                    {
+                        var par = paramTrack.Key;
+                        var track = paramTrack.Value;
 
-                    par.InvokeEvents(buzz, track);
+                        par.InvokeEvents(buzz, track);
+                    }
+
+                    // Clear pvals only for parameters that changed this tick (was: a full sweep
+                    // over every parameter). SetValue writes pvalues[track] and records the
+                    // parameter in parametersChanged together under machine.workLock, and
+                    // RefreshMachineParams (the only other pval writer) records into
+                    // parametersChanged too — so the changed set covers every dirty pval.
+                    // ClearPVal fills all tracks of the parameter; must run before Clear().
+                    foreach (var paramTrack in Machine.parametersChanged)
+                        paramTrack.Key.ClearPVal();
+
+                    Machine.parametersChanged.Clear();
                 }
 
-                Machine.parametersChanged.Clear();
                 TickSent = true;
-
-                // Set pvalues to NoValue immediately to avoid sending param value twice
-                for (int i = 0; i < Machine.ParameterGroupsList.Count; i++)
-                {
-                    for (int j = 0; j < Machine.ParameterGroupsList[i].ParametersList.Count; j++)
-                        Machine.ParameterGroupsList[i].ParametersList[j].ClearPVal();
-                }
             }
         }
 
