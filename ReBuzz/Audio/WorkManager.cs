@@ -389,7 +389,7 @@ namespace ReBuzz.Audio
                         }
                     }
 
-                    foreach (var e in seq.Events)
+                    foreach (var e in seq.EventsList)
                     {
                         int eventTime = e.Key;
                         var seqEvent = e.Value;
@@ -492,9 +492,9 @@ namespace ReBuzz.Audio
             }
             else
             {
-                foreach (var seq in buzzCore.SongCore.Sequences)
+                foreach (var seq in buzzCore.SongCore.SequencesList)
                 {
-                    foreach (var se in seq.Events)
+                    foreach (var se in seq.EventsList)
                     {
                         var pattern = se.Value.Pattern as PatternCore;
                         PlayPatternColumnEvents(pattern, sampleCount);
@@ -1123,11 +1123,15 @@ namespace ReBuzz.Audio
 
         private void CollectControlMachinesThatCanWork()
         {
-            foreach (var mac in buzzCore.Song.Machines)
+            // Iterate the backing list directly instead of the Machines facade,
+            // which allocates via Where(...).Cast<IMachine>().ToReadOnlyCollection()
+            // on every access. The facade filters !Hidden && Ready; that predicate
+            // is inlined here (Ready was already re-tested below) so the visible
+            // set is identical to the previous facade-based loop.
+            foreach (var machine in (buzzCore.Song as SongCore).MachinesList)
             {
-                var machine = mac as MachineCore;
                 // Was work called for this control machine already?
-                if (machine.DLL.Info.Flags.HasFlag(MachineInfoFlags.CONTROL_MACHINE) && !machine.workDone && machine.Ready)
+                if (!machine.Hidden && machine.DLL.Info.Flags.HasFlag(MachineInfoFlags.CONTROL_MACHINE) && !machine.workDone && machine.Ready)
                 {
                     workSet.Add(machine);
                 }
