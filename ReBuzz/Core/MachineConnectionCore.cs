@@ -122,6 +122,20 @@ namespace ReBuzz.Core
             }
         }
 
+        // Tap-gated variant: fetches the SongTime only when a tap is actually
+        // registered, so the common no-tap path allocates nothing (SongTime is a
+        // class, and it was previously constructed per output connection per
+        // chunk as the call-site argument - before the Tap null check inside
+        // DoTap could run). Each invocation that does fire still gets its own
+        // fresh SongTime instance, preserving the previous per-call semantics
+        // for tap consumers.
+        internal void DoTap(Sample[] sampleBuffer, int nSamples, bool stereo, ReBuzzCore buzz)
+        {
+            if (Tap == null)
+                return;
+            DoTap(sampleBuffer, nSamples, stereo, buzz.GetSongTime());
+        }
+
         internal void UpdateBuffer(Sample[] samples, int nSamples)
         {
             float ampStart = interpolatorAmp.Value / 0x4000;
