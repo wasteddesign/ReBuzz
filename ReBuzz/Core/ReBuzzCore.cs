@@ -1647,7 +1647,7 @@ namespace ReBuzz.Core
         internal void MasterTapSamples(float[] resSamples, int offset, int count)
         {
             var s = GetSongTime();
-            meterData.UpdateMax(resSamples, true, s);
+            meterData.UpdateMax(resSamples, true, s, offset, count);
 
             if (MasterTap == null) return;
 
