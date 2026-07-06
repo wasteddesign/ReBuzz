@@ -50,27 +50,48 @@ namespace ReBuzz.Core
                 metadata = new Dictionary<string, string>();
         }
 
-        List<PatternEvent> patternEventsList = new List<PatternEvent>(0);
         PatternEvent[] emptyPatternEventList = Array.Empty<PatternEvent>();
         Lock patternEventsLock = new Lock();
         // Returns the events from PatternColumn object. Not from pattern editor machine.
+        // Returns a fresh snapshot array (callers may enumerate it multiple times and
+        // across threads - e.g. the BMX save path Count()s then foreach()es it). All
+        // reads of the shared event list happen under the lock.
         public IEnumerable<PatternEvent> GetEvents(int tbegin, int tend)
         {
-            if (patternEvents.Count == 0)
-                return emptyPatternEventList;
-
-            patternEventsList.Clear();
             lock (patternEventsLock)
             {
+                if (patternEvents.Count == 0)
+                    return emptyPatternEventList;
+
+                var list = new List<PatternEvent>();
                 for (int i = 0; i < patternEvents.Count; i++)
                 {
                     var pe = patternEvents[i];
-
                     if (pe.Time >= tbegin && pe.Time < tend)
-                        patternEventsList.Add(pe);
+                        list.Add(pe);
+                }
+                return list.ToArray();
+            }
+        }
+
+        // Zero-alloc variant for the audio play path: fills a caller-owned buffer
+        // instead of allocating a snapshot array. `dest` MUST be owned exclusively by
+        // the caller (the audio thread passes its own reusable list); the old shared
+        // scratch field this replaces was itself a cross-thread race (its Clear() ran
+        // outside the lock). The lock guards the shared source list only.
+        public void GetEventsInto(int tbegin, int tend, List<PatternEvent> dest)
+        {
+            dest.Clear();
+            lock (patternEventsLock)
+            {
+                int count = patternEvents.Count;
+                for (int i = 0; i < count; i++)
+                {
+                    var pe = patternEvents[i];
+                    if (pe.Time >= tbegin && pe.Time < tend)
+                        dest.Add(pe);
                 }
             }
-            return patternEventsList.ToArray();
         }
 
         public void SetBeatSubdivision(int beatindex, int subdiv)

@@ -59,6 +59,9 @@ namespace ReBuzz.Audio
         readonly bool SpeedAdjustLinear = false;
 
         float[] playWaveBuffer = new float[256 * 2];
+        // Audio-thread-owned reusable buffer for PlayPatternColumnEvents (zero-alloc
+        // GetEventsInto). Single audio thread, fully consumed each column iteration.
+        readonly List<PatternEvent> playColumnEvents = new List<PatternEvent>();
 
         public WorkManager(ReBuzzCore buzzCore, WorkThreadEngine workEngine, int algorithm, EngineSettings settings)
         {
@@ -538,8 +541,8 @@ namespace ReBuzz.Audio
                     if (column.Machine == null)
                         continue;
 
-                    var ces = column.GetEvents(pattern.PlayPosition, pattern.PlayPosition + nextPos);
-                    foreach (var pe in ces)
+                    column.GetEventsInto(pattern.PlayPosition, pattern.PlayPosition + nextPos, playColumnEvents);
+                    foreach (var pe in playColumnEvents)
                     {
                         if (column.Type == PatternColumnType.MIDI)
                         {
