@@ -142,11 +142,36 @@ namespace ReBuzz.Core
             float ampCurrent = interpolatorAmp.Tick() / 0x4000;
             float ampStep = (ampStart - ampCurrent) / nSamples;
 
+            // Zero-latency fast path. When addedLatency == 0 the latency ring's
+            // read position always equals its write position (both start equal
+            // and advance in lockstep), so the ring is a pass-through: the second
+            // loop below would read back exactly what the first loop wrote. Write
+            // the amp/pan-scaled samples straight into buffer instead, skipping
+            // the ring copy and the per-sample modulo. Arithmetic, the amp ramp,
+            // and the interpolatorAmp.Tick() side effect above are all identical
+            // to the ring path, so this is bit-exact. latencyBuffer is read
+            // nowhere else, and every transition back to a latency > 0 state goes
+            // through UpdateLatencyBuffers, which resets both positions - so not
+            // advancing them here is unobservable.
+            if (addedLatency == 0)
+            {
+                for (int i = 0; i < nSamples; i++)
+                {
+                    buffer[i].L = samples[i].L * ampStart * panL;
+                    buffer[i].R = samples[i].R * ampStart * panR;
+                    ampStart += ampStep;
+                }
+                return;
+            }
+
+            // Latency-compensated path. Ring wrap via a branch rather than a
+            // per-sample integer divide (% Length); positions are always
+            // < Length, so ++pos == Length is exactly the wrap case.
             for (int i = 0; i < nSamples; i++)
             {
                 latencyBuffer[latencyBufferWritePos].L = samples[i].L * ampStart * panL;
                 latencyBuffer[latencyBufferWritePos].R = samples[i].R * ampStart * panR;
-                latencyBufferWritePos = (latencyBufferWritePos + 1) % latencyBuffer.Length;
+                if (++latencyBufferWritePos == latencyBuffer.Length) latencyBufferWritePos = 0;
                 ampStart += ampStep;
             }
 
@@ -154,7 +179,7 @@ namespace ReBuzz.Core
             {
                 buffer[i].L = latencyBuffer[latencyBufferReadPos].L;
                 buffer[i].R = latencyBuffer[latencyBufferReadPos].R;
-                latencyBufferReadPos = (latencyBufferReadPos + 1) % latencyBuffer.Length;
+                if (++latencyBufferReadPos == latencyBuffer.Length) latencyBufferReadPos = 0;
             }
         }
 
