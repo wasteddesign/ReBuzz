@@ -476,11 +476,14 @@ namespace ReBuzz.Audio
             {
                 if (playingEvents.Count > 0)
                 {
-                    foreach (var pes in playingEvents.ToArray())
+                    // Iterate in reverse so RemoveAt is safe during iteration (and O(1)
+                    // at the tail); avoids the ToArray() snapshot allocation.
+                    for (int i = playingEvents.Count - 1; i >= 0; i--)
                     {
+                        var pes = playingEvents[i];
                         var machine = pes.Machine;
                         buzzCore.MachineManager.SendMIDINote(machine, pes.Channel, pes.MidiNote, 0);
-                        playingEvents.Remove(pes);
+                        playingEvents.RemoveAt(i);
                     }
                 }
                 return;
@@ -502,8 +505,10 @@ namespace ReBuzz.Audio
                 }
             }
 
-            // Send not offs
-            for (int i = 0; i < playingEvents.Count; i++)
+            // Send note offs. Iterate in reverse: RemoveAt(i) in a forward loop
+            // shifts the next element into slot i and skips it this pass, delaying
+            // a due note-off by a chunk or more.
+            for (int i = playingEvents.Count - 1; i >= 0; i--)
             {
                 var pes = playingEvents[i];
                 var pe = pes.Pe;
