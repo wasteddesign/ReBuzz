@@ -665,6 +665,22 @@ namespace ReBuzz.Core
         public event Action PatternEditorActivated;
         public event Action SequenceEditorActivated;
         public event Action<float[], bool, SongTime> MasterTap;
+
+        // ─── MasterTap double-buffer (avoid a per-sub-chunk alloc) ───────────
+        // The tap copy escapes to the GUI thread via BeginInvoke and is read
+        // there asynchronously, so a reused buffer must NOT be overwritten by
+        // the audio thread while the GUI is still reading it. Two buffers, each
+        // with an in-flight flag (0 = free, 1 = handed to GUI). The audio thread
+        // claims a free buffer via Interlocked.CompareExchange; the GUI callback
+        // clears the flag AFTER MasterTap.Invoke returns. If neither buffer is
+        // free (GUI fell behind) it allocates a fresh one for that sub-chunk —
+        // correctness is unconditional; the alloc-elision is best-effort.
+        // Buffers are audio-thread-owned for sizing; the flags are the only
+        // cross-thread state (Interlocked, so free/claim is atomic + ordered).
+        private float[] masterTapBufferA;
+        private float[] masterTapBufferB;
+        private int masterTapInFlightA;   // 0 free, 1 in flight
+        private int masterTapInFlightB;
         public event PropertyChangedEventHandler PropertyChanged;
 
         public event Action<string> ShowSettings;
@@ -1651,7 +1667,34 @@ namespace ReBuzz.Core
 
             if (MasterTap == null) return;
 
-            float[] samples = new float[count];
+            // Claim a free reuse buffer (correct size), else allocate. A buffer
+            // is claimable only if its in-flight flag flips 0 -> 1 atomically AND
+            // it is already the right length (count can change if the driver
+            // buffer size changes; a stale-size buffer is replaced).
+            float[] samples = null;
+            int claimed = 0;   // 0 = none (allocated), 1 = A, 2 = B
+            if (System.Threading.Interlocked.CompareExchange(ref masterTapInFlightA, 1, 0) == 0)
+            {
+                if (masterTapBufferA == null || masterTapBufferA.Length != count)
+                    masterTapBufferA = new float[count];
+                samples = masterTapBufferA;
+                claimed = 1;
+            }
+            else if (System.Threading.Interlocked.CompareExchange(ref masterTapInFlightB, 1, 0) == 0)
+            {
+                if (masterTapBufferB == null || masterTapBufferB.Length != count)
+                    masterTapBufferB = new float[count];
+                samples = masterTapBufferB;
+                claimed = 2;
+            }
+            else
+            {
+                // Both buffers still in flight (GUI behind) — fall back to a
+                // fresh allocation for this sub-chunk. Never overwrite a buffer
+                // the GUI may still be reading.
+                samples = new float[count];
+            }
+
             for (int i = 0; i < count; i++)
             {
                 samples[i] = resSamples[offset + i];
@@ -1659,9 +1702,21 @@ namespace ReBuzz.Core
 
             dispatcher.BeginInvoke(() =>
             {
-                if (MasterTap != null)
+                try
                 {
-                    MasterTap.Invoke(samples, true, s);
+                    if (MasterTap != null)
+                    {
+                        MasterTap.Invoke(samples, true, s);
+                    }
+                }
+                finally
+                {
+                    // Release the reuse buffer only after the GUI has finished
+                    // reading it. Allocated buffers (claimed == 0) just drop.
+                    if (claimed == 1)
+                        System.Threading.Interlocked.Exchange(ref masterTapInFlightA, 0);
+                    else if (claimed == 2)
+                        System.Threading.Interlocked.Exchange(ref masterTapInFlightB, 0);
                 }
             });
         }
