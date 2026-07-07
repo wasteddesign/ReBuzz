@@ -18,6 +18,14 @@
   <ItemGroup>
     <ProjectReference Include="..\BuzzGUI.Interfaces\BuzzGUI.Interfaces.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Reference Include="MdXaml">
+      <HintPath>..\..\3rdParty\MdXaml.dll</HintPath>
+    </Reference>
+    <Reference Include="MdXaml.Plugins">
+      <HintPath>..\..\3rdParty\MdXaml.Plugins.dll</HintPath>
+    </Reference>
+  </ItemGroup>
   
   <Target Name="ForcePerformRestore" AfterTargets="BeforeBuild">	
     <Exec Command="IF NOT EXIST  $(IntermediateOutputPath)..\project.assets.json  echo restore to $(IntermediateOutputPath)..\project.assets.json &amp;&amp;  dotnet restore $(ProjectName).csproj --no-dependencies &amp;&amp; move build\$(ProjectName)\obj\* $(IntermediateOutputPath)..\ &amp;&amp; rmdir /Q /S build	 " />

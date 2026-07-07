@@ -9,6 +9,7 @@ using System.Security.Cryptography;
 using System.Security.Policy;
 using System.Text.Json.Nodes;
 using System.Windows;
+using MdXaml;
 
 namespace BuzzGUI.BuzzUpdate
 {
@@ -54,9 +55,8 @@ namespace BuzzGUI.BuzzUpdate
 
             verText.Text = "Current Build: " + currentBuild.ToString() + "   Latest Build: " + latestBuild.ToString();
 
-            changelogBox.Text = "Downloading changelog...";
+            msv.Markdown = "Downloading changelog...";
             DownloadChangelog();
-
         }
 
         public static void DownloadBuildCount(IBuzz buzz)
@@ -123,11 +123,7 @@ namespace BuzzGUI.BuzzUpdate
                     JsonNode releasesNode = JsonNode.Parse(jsonString)!;
                     releaseNotes = (releasesNode!["body"]!).ToString();
 
-                    changelogBox.Text = @"Release Notes:
-
-" + releaseNotes + @"
-
-Go to https://github.com/wasteddesign/ReBuzz/releases/latest for more information.";
+                    msv.Markdown = releaseNotes;
                 }
             };
             try

@@ -1,6 +1,7 @@
 ﻿<Window x:Class="BuzzGUI.BuzzUpdate.UpdateWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mdxam="clr-namespace:MdXaml;assembly=MdXaml"
     Title="Buzz Update" Height="600" Width="800" Icon="rebuzzupdate.ico"
 				UseLayoutRounding="True" TextOptions.TextFormattingMode="Ideal"
 				>
@@ -15,8 +16,10 @@
       <Button Name="button" Width="100" Margin="8,4,0,4" Click="Button_Click">Download...</Button>
       <ProgressBar Name="progressBar" Visibility="Collapsed"  Minimum="0" Maximum="100" Width="200" Margin="8,4,0,4"/>
     </StackPanel>
-    
-    <TextBox Grid.Row="1" Name="changelogBox" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Visible" IsReadOnly="True" FontFamily="Consolas, Courier New" FontSize="13"/>
-
-  </Grid>
+   
+        <Border Grid.Row="1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="6">
+            <mdxam:MarkdownScrollViewer MarkdownStyle="{DynamicResource MarkdownScrollViewerStyle1}" xml:space="preserve" x:Name="msv" VerticalAlignment="Stretch"
+                    HorizontalAlignment="Stretch" ClickAction="OpenBrowser"></mdxam:MarkdownScrollViewer>
+        </Border>
+    </Grid>
 </Window>
