@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -243,9 +244,20 @@ namespace ReBuzz.Audio
                 }
 
                 float audioOutMul = 1 / 32768.0f;
-                for (int i = 0; i < count; i++)
+                // Vectorised scale to audio output range. Each lane computes the identical
+                // single-precision (in[i] * audioOutMul); no reduction, no FMA => bit-exact
+                // vs the scalar loop, which the tail below runs verbatim for the remainder.
+                Vector<float> audioOutMulVec = new Vector<float>(audioOutMul);
+                int vw = Vector<float>.Count;
+                int vi = 0;
+                for (; vi <= count - vw; vi += vw)
                 {
-                    buffer[offset + i] = buffer[offset + i] * audioOutMul; // From Buzz to audio output scale
+                    Vector<float> v = new Vector<float>(buffer, offset + vi);
+                    (v * audioOutMulVec).CopyTo(buffer, offset + vi);
+                }
+                for (; vi < count; vi++)
+                {
+                    buffer[offset + vi] = buffer[offset + vi] * audioOutMul; // From Buzz to audio output scale
                 }
 
                 // Update sample counters
