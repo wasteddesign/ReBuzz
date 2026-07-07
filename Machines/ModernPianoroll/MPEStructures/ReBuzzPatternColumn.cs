@@ -52,6 +52,14 @@ namespace WDE.ModernPatternEditor.MPEStructures
             return patternEvents.Where(pe => pe.Time >= tbegin && pe.Time < tend).ToArray();
         }
 
+        public void GetEventsInto(int tbegin, int tend, List<PatternEvent> dest)
+        {
+            dest.Clear();
+            foreach (var pe in patternEvents)
+                if (pe.Time >= tbegin && pe.Time < tend)
+                    dest.Add(pe);
+        }
+
         public void SetBeatSubdivision(int beatindex, int subdiv)
         {
             beatSubdivision[beatindex] = subdiv;

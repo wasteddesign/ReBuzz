@@ -32,6 +32,7 @@ namespace BuzzGUI.Interfaces
         IDictionary<string, string> Metadata { get; }
 
         IEnumerable<PatternEvent> GetEvents(int tbegin, int tend);      // tbegin <= t < tend
+        void GetEventsInto(int tbegin, int tend, List<PatternEvent> dest);  // zero-alloc: fills a caller-owned buffer
         void SetEvents(IEnumerable<PatternEvent> e, bool set);
 
         void SetBeatSubdivision(int beatindex, int subdiv);

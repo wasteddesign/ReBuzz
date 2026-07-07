@@ -243,6 +243,11 @@ namespace WDE.ModernPatternEditor.MPEStructures
             return null;
         }
 
+        public void GetEventsInto(int tbegin, int tend, List<PatternEvent> dest)
+        {
+            dest.Clear();
+        }
+
         public void SetBeatSubdivision(int beatindex, int subdiv)
         {
             mBeatSubdivision[beatindex] = subdiv;
