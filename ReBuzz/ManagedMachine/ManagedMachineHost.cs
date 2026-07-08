@@ -450,10 +450,7 @@ namespace ReBuzz.ManagedMachine
                 bool flag = GeneratorBlockWork(outputBuffer, n, mode);
                 if (flag && (mode & WorkModes.WM_WRITE) != 0)
                 {
-                    for (int i = 0; i < n; i++)
-                    {
-                        samples[i] = outputBuffer[i];
-                    }
+                    Array.Copy(outputBuffer, samples, n);
                 }
                 return flag;
             }
@@ -461,18 +458,12 @@ namespace ReBuzz.ManagedMachine
             {
                 if ((mode & WorkModes.WM_READ) != 0)
                 {
-                    for (int j = 0; j < n; j++)
-                    {
-                        inputBuffer[j] = samples[j];
-                    }
+                    Array.Copy(samples, inputBuffer, n);
                 }
                 bool flag2 = EffectBlockWork(outputBuffer, inputBuffer, n, mode);
                 if (flag2 && (mode & WorkModes.WM_WRITE) != 0)
                 {
-                    for (int k = 0; k < n; k++)
-                    {
-                        samples[k] = outputBuffer[k];
-                    }
+                    Array.Copy(outputBuffer, samples, n);
                 }
                 return flag2;
             }
