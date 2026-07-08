@@ -126,6 +126,9 @@ namespace ReBuzz.Audio
 
         private void AsioOut_DriverResetRequest(object sender, EventArgs e)
         {
+            // True device-reported dropout (PP2 Option 2 v3): the ASIO driver
+            // could not be served in time and requested a reset.
+            ReBuzzCore.RecordDriverReset();
             // Seems to work better if we reset the audio device after call.
             dispatcher.BeginInvoke(() =>
             {
@@ -206,6 +209,9 @@ namespace ReBuzz.Audio
             {
                 if (e.Exception != null)
                 {
+                    // True device-reported dropout (PP2 Option 2 v3): WASAPI
+                    // stopped with an exception = the device faulted / underran.
+                    ReBuzzCore.RecordDriverReset();
                     // Seems to work better if we reset the audio device after call.
                     DispatcherTimer dt = new DispatcherTimer();
                     dt.Interval = TimeSpan.FromSeconds(1);

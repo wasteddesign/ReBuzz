@@ -1790,6 +1790,26 @@ namespace ReBuzz.Core
         // this (or the machine count) changes. Mutated under AudioLock.
         internal long TopologyGeneration;
 
+        // ─── Deadline-referenced audio dropout counter (PP2 Option 2, v3) ────
+        // The ONLY true, device-reported dropout signal observable in-process:
+        // the audio driver's own reset/xrun notification. ASIO raises
+        // AsioOut.DriverResetRequest; WASAPI raises PlaybackStopped with an
+        // exception. Both mean the device could not be served in time and forced
+        // a reset — an actual dropout. Coarse (one event can bundle several lost
+        // buffers, and it triggers a device rebuild) but REAL, unlike the
+        // budget-relative metrics or any wall-clock/ring inference from the
+        // managed side (which don't sit at the hardware deadline). Incremented
+        // by AudioEngine's driver-event handlers. Monotonic since process start;
+        // PP2 delta-samples. v1 (ring-empty) and v2 (Read wall-time) were both
+        // invalid — they instrumented CommonAudioProvider, which is not even the
+        // live path under ASIO (that's AudioWaveProvider).
+        internal static long DriverResets;
+        internal static void RecordDriverReset() =>
+            System.Threading.Interlocked.Increment(ref DriverResets);
+        public long DriverResetCount => DriverResets;
+        public void ResetAudioDropoutCounters() =>
+            System.Threading.Interlocked.Exchange(ref DriverResets, 0);
+
         public MachineCore CreateMaster()
         {
             var machine = MachineManager.GetMaster(this);
