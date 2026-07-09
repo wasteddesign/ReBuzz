@@ -200,7 +200,23 @@ namespace ReBuzz.Audio
                     if (buzzCore.SongCore.WavetableCore.IsPlayingWave())
                     {
                         buzzCore.SongCore.WavetableCore.GetPlayWaveSamples(playWaveBuffer, offset, samplesToProcess);
-                        for (int i = 0; i < samplesToProcess * 2; i++)
+                        // Elementwise multiply-add in single precision with the
+                        // same two per-element roundings as the scalar loop
+                        // (separate * then +, matching operand order; RyuJIT
+                        // performs no FP contraction, so neither form uses FMA;
+                        // no reduction) => bit-exact. ("wvw" to avoid CS0136
+                        // with the output-scale block's "vw" below.)
+                        int n = samplesToProcess * 2;
+                        Vector<float> waveMulVec = new Vector<float>(32768.0f);
+                        int wvw = Vector<float>.Count;
+                        int i = 0;
+                        for (; i <= n - wvw; i += wvw)
+                        {
+                            Vector<float> pv = new Vector<float>(playWaveBuffer, i);
+                            Vector<float> bv = new Vector<float>(buffer, workBufferOffset + i);
+                            (bv + pv * waveMulVec).CopyTo(buffer, workBufferOffset + i);
+                        }
+                        for (; i < n; i++)
                         {
                             buffer[workBufferOffset + i] += playWaveBuffer[i] * 32768.0f;
                         }
