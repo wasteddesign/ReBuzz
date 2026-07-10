@@ -98,7 +98,12 @@ namespace BuzzGUI.Interfaces
         event Action<int> MIDIInput;
         event Action PatternEditorActivated;
 
-        event Action<float[], bool, SongTime> MasterTap;            // fired in the GUI thread
+        // Fired on the audio work path, NOT the GUI thread. The samples array
+        // may be a reused buffer that is recycled as soon as the handler
+        // returns: it is only valid for the duration of the synchronous
+        // callback. Handlers that retain it (queue it, hand it to another
+        // thread) must copy it first ((float[])samples.Clone()). See #122/#125.
+        event Action<float[], bool, SongTime> MasterTap;
 
         // Extensions
         void SetModifiedFlag();
