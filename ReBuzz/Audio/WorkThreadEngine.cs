@@ -8,14 +8,18 @@ namespace ReBuzz.Audio
 {
     internal class WorkThreadEngine
     {
-        private readonly ManualResetEvent workWaitHandle;
+        // Dispatcher-owned wave gate. Workers only READ generation; they never
+        // write the go-signal. (The previous design had workers reset the
+        // go-signal handle in GetWorkItem, giving it two writers and no owner.)
+        // The dispatcher advances generation in AllJobsAdded to open each wave.
+        private readonly object gate = new();
+        private long generation;
         private readonly ManualResetEvent allDoneHandle;
         readonly Thread[] threads;
         readonly List<MachineWorkInstance> workList = new List<MachineWorkInstance>();
 
         public WorkThreadEngine(int numThreads)
         {
-            workWaitHandle = new ManualResetEvent(false);
             allDoneHandle = new ManualResetEvent(false);
             threads = new Thread[numThreads];
         }
@@ -31,13 +35,24 @@ namespace ReBuzz.Audio
             {
                 Thread t = new Thread(() =>
                 {
+                    // Per-thread: last wave generation this worker has observed.
+                    long seen = 0;
                     while (true)
                     {
                         if (stopped)
                             break;
 
-                        // Wait for a job
-                        workWaitHandle.WaitOne();
+                        // Wait for the dispatcher to open the next wave. The gate is
+                        // dispatcher-owned: we only read generation and never write it,
+                        // so a lagging worker can no longer clobber the next wave's open.
+                        // The predicate re-check under the lock makes a missed Pulse - or
+                        // a fully-skipped wave (this worker lagged past one) - safe.
+                        lock (gate)
+                        {
+                            while (!stopped && generation == seen)
+                                Monitor.Wait(gate);
+                            seen = generation;
+                        }
 
                         while (true)
                         {
@@ -104,7 +119,14 @@ namespace ReBuzz.Audio
 
         internal void AllJobsAdded()
         {
-            workWaitHandle.Set();
+            // Open the wave: advance the generation and wake the workers. This is the
+            // ONLY writer of the go-signal, and it is the dispatcher. Workers observe
+            // the new generation under gate and start draining workList.
+            lock (gate)
+            {
+                generation++;
+                Monitor.PulseAll(gate);
+            }
         }
 
         private void WorkDone()
@@ -136,7 +158,9 @@ namespace ReBuzz.Audio
                 }
                 else
                 {
-                    workWaitHandle.Reset(); // Wait until there are work available;
+                    // Empty: just report "no work". Workers no longer reset the
+                    // go-signal here (that shared ownership was the hazard); they fall
+                    // out of the drain loop and re-block on the dispatcher-owned gate.
                     return null;
                 }
             }
@@ -166,7 +190,12 @@ namespace ReBuzz.Audio
             {
                 stopped = true;
             }
-            workWaitHandle.Set();
+            // Wake any workers parked on the gate so they observe stopped and exit.
+            lock (gate)
+            {
+                generation++;
+                Monitor.PulseAll(gate);
+            }
 
             for (int i = 0; i < threads.Length; i++)
             {
