@@ -19,6 +19,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -1264,16 +1265,32 @@ namespace ReBuzz.Core
         {
             Array.Clear(stereoSamples, 0, nSamples);
 
+            // Sample is a struct of two sequential floats {L, R} (8 bytes, no
+            // padding), so Sample[0..nSamples) reinterprets exactly as
+            // float[0..2*nSamples) with interleaved L,R. The accumulation below
+            // is an elementwise single-precision add (dst[j] = dst[j] + src[j]):
+            // identical operations on identical elements, with each slot seeing
+            // its inputs in the same order as the scalar loop - no reduction,
+            // no FMA => bit-exact.
+            var dst = System.Runtime.InteropServices.MemoryMarshal.Cast<Sample, float>(stereoSamples.AsSpan(0, nSamples));
+
             foreach (var input in inputs)
             {
                 if (!IsVisibleInput(input))
                     continue;
                 var inputCore = input as MachineConnectionCore;
+                var src = System.Runtime.InteropServices.MemoryMarshal.Cast<Sample, float>(inputCore.Buffer.AsSpan(0, nSamples));
 
-                for (int i = 0; i < nSamples; i++)
+                int n = dst.Length; // 2 * nSamples
+                int vw = Vector<float>.Count;
+                int j = 0;
+                for (; j <= n - vw; j += vw)
                 {
-                    stereoSamples[i].L += inputCore.Buffer[i].L;
-                    stereoSamples[i].R += inputCore.Buffer[i].R;
+                    (new Vector<float>(dst.Slice(j, vw)) + new Vector<float>(src.Slice(j, vw))).CopyTo(dst.Slice(j, vw));
+                }
+                for (; j < n; j++)
+                {
+                    dst[j] += src[j];
                 }
             }
 
