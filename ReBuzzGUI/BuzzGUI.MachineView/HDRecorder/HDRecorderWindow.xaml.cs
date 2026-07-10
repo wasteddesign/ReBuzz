@@ -385,12 +385,12 @@ namespace BuzzGUI.MachineView.HDRecorder
                     return;
                 }
 
-                bufferQueue.Add(samples);
+                bufferQueue.Add((float[])samples.Clone()); // own a copy: MasterTap reuse buffer is recycled after this returns (#122)
                 progress.Value = songtime.CurrentTick + (songtime.SubTicksPerTick > 0 ? (double)songtime.CurrentSubTick / songtime.SubTicksPerTick : 0);
             }
             else if (state == States.Recording)
             {
-                bufferQueue.Add(samples);
+                bufferQueue.Add((float[])samples.Clone()); // own a copy: MasterTap reuse buffer is recycled after this returns (#122)
             }
 
         }
