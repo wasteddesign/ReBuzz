@@ -643,7 +643,9 @@ namespace ReBuzz.Audio
             }
             else if (algorithm == 2)
             {
-                if (engineSettings.UseCachedWorkOrder)
+                if (engineSettings.UseCachedWorkOrder && b2Enabled)
+                    HandleWorkAlgorithm2Dependency(master, workSamplesCount);
+                else if (engineSettings.UseCachedWorkOrder)
                     HandleWorkAlgorithm2Cached(master, workSamplesCount);
                 else
                     HandleWorkAlgorithm2(master, workSamplesCount);
@@ -973,6 +975,95 @@ namespace ReBuzz.Audio
                 HandleWorkList(numRead); // dispatches workSet, sets workDone, clears workSet
             else
                 workSet.Clear();
+        }
+
+        // ==== Dependency-driven dispatch (#107) ==================================
+        // Replaces the per-DAG-level barrier loop with ONE barrier per buffer. A machine
+        // starts the instant its own inputs are done rather than when its whole level is,
+        // so workers stay fed across what used to be wave boundaries.
+        //
+        // Used only when the cached order is valid AND its self-check passed; anything
+        // unexpected falls back to the wave path, which is unchanged.
+        private bool b2Installed;
+        private long b2InstalledGeneration = long.MinValue;
+        private int b2InstalledCount = -1;
+        private bool b2Enabled = true;
+
+        // The dispatcher's wait is bounded. A correct buffer completes in well under a
+        // millisecond, so 2s is absurdly generous - the point is that a completion bug
+        // degrades into a fallback plus a recorded diagnostic rather than freezing the
+        // audio thread. (The completion invariant is enforced by construction in
+        // WorkThreadEngine and the graph is validated by CachedWorkOrder.SelfCheck, so
+        // this should be unreachable; it is cheap insurance, not a substitute.)
+        private const int B2_WAIT_MS = 2000;
+        internal static int B2StallCount;
+        internal static string B2LastStall = "(none)";
+
+        // Build the engine-side graph once per topology, not per buffer.
+        private bool B2EnsureGraph(CachedWorkOrder order)
+        {
+            if (order.HasCycle || order.SelfCheckFailed || order.Cone.Length == 0)
+                return false;
+
+            if (b2Installed
+                && b2InstalledGeneration == order.BuiltGeneration
+                && b2InstalledCount == order.BuiltMachineCount)
+                return true;
+
+            var items = new MachineWorkInstance[order.Cone.Length];
+            for (int i = 0; i < order.Cone.Length; i++)
+                items[i] = buzzCore.MachineManager.GetMachineWorkInstance(order.Cone[i]);
+
+            workEngine.B2SetGraph(items, order.Indeg, order.Succ);
+            b2Installed = true;
+            b2InstalledGeneration = order.BuiltGeneration;
+            b2InstalledCount = order.BuiltMachineCount;
+            return true;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+        private void HandleWorkAlgorithm2Dependency(MachineCore master, int workSamplesCount)
+        {
+            var order = GetOrBuildOrder();
+            if (!B2EnsureGraph(order))
+            {
+                HandleWorkAlgorithm2Cached(master, workSamplesCount);
+                return;
+            }
+
+            workEngine.PrepareEngine(workSamplesCount);
+
+            // Prefix unchanged: editors, then controls, before the audio cone.
+            DispatchPrefixCached(order.EditorPrefix, workSamplesCount);
+            DispatchPrefixCached(order.ControlPrefix, workSamplesCount);
+
+            // The wave path marks workDone as it dispatches and other code reads it, so we
+            // mark the same set. Every cone machine runs this buffer, so marking up front
+            // is equivalent.
+            var cone = order.Cone;
+            for (int i = 0; i < cone.Length; i++)
+                cone[i].workDone = true;
+
+            if (stopped)
+                return;
+
+            if (!workEngine.B2StartBuffer(order.Seed, workSamplesCount))
+                return;
+
+            workEngine.AllJobsAdded();
+
+            // ONE barrier for the whole buffer (the wave path takes one per level).
+            if (!workEngine.AllDoneEvent().WaitOne(B2_WAIT_MS))
+            {
+                System.Threading.Interlocked.Increment(ref B2StallCount);
+                B2LastStall = workEngine.B2DescribePending();
+
+                // Drop to the wave path for the rest of the session rather than risk
+                // stalling again on the next buffer.
+                workEngine.B2Disable();
+                b2Installed = false;
+                b2Enabled = false;
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]

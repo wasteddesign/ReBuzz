@@ -38,6 +38,33 @@ namespace ReBuzz.Audio
         public MachineCore[] ControlPrefix = Array.Empty<MachineCore>();
         public MachineCore[][] AudioWaves = Array.Empty<MachineCore[]>();
 
+        // --- Dependency graph for the dependency-driven dispatch (#107) -----------
+        // The Kahn layering below already computes in-degrees and walks successors, then
+        // throws that structure away and keeps only the flattened levels. Keeping it lets
+        // the dispatcher start a machine the instant ITS OWN inputs are done, rather than
+        // when its whole level is done: one barrier per buffer instead of one per level.
+        //
+        // Dense cone indices 0..Cone.Length-1. Same membership and edge semantics as
+        // AudioWaves (Master excluded - a pure sink; controls/editors excluded - they are
+        // prefix-worked).
+        //
+        // Indeg counts one per in-cone input EDGE and Succ holds one entry per in-cone
+        // output EDGE, so parallel (multi-channel) connections between the same pair
+        // appear repeatedly in BOTH - exactly as the Kahn drain counts and decrements
+        // them. Any asymmetry would leave a successor's countdown permanently above zero
+        // and hang the buffer, so both are built from the same edge enumeration.
+        //
+        // Populated only when !HasCycle (the cyclic case falls back to the legacy walk).
+        public MachineCore[] Cone = Array.Empty<MachineCore>();
+        public int[] Indeg = Array.Empty<int>();
+        public int[][] Succ = Array.Empty<int[]>();
+        public int[] Seed = Array.Empty<int>();
+
+        // Set if the graph fails to reproduce AudioWaves (see SelfCheck). The dispatcher
+        // refuses the dependency-driven path when this is set and uses the wave path,
+        // which is unchanged.
+        public bool SelfCheckFailed;
+
         // Invalidation keys. BuiltGeneration tracks connection add/remove
         // (ReBuzzCore.TopologyGeneration); BuiltMachineCount catches machine
         // add/remove without hunting every MachinesList.Add site.
@@ -78,6 +105,10 @@ namespace ReBuzz.Audio
             if (machines.Count == 0)
             {
                 AudioWaves = Array.Empty<MachineCore[]>();
+                Cone = Array.Empty<MachineCore>();
+                Indeg = Array.Empty<int>();
+                Succ = Array.Empty<int[]>();
+                Seed = Array.Empty<int>();
                 return;
             }
 
@@ -129,6 +160,10 @@ namespace ReBuzz.Audio
                 indeg[m] = d;
             }
 
+            // Snapshot the initial in-degrees: the Kahn drain below decrements indeg to
+            // zero as it places each layer, destroying them.
+            var indeg0 = new Dictionary<MachineCore, int>(indeg);
+
             var waves = new List<MachineCore[]>();
             var frontier = new List<MachineCore>();
             foreach (var kv in indeg)
@@ -164,6 +199,138 @@ namespace ReBuzz.Audio
                 HasCycle = true;
 
             AudioWaves = waves.ToArray();
+
+            // --- 3. Dependency graph -------------------------------------------
+            // Same cone, same edges, same multiplicity as the layering above - kept as a
+            // graph instead of flattened. Skipped on a cycle (the caller falls back to the
+            // legacy recursive walk; a cyclic graph could never drain anyway).
+            SelfCheckFailed = false;
+            if (HasCycle)
+            {
+                Cone = Array.Empty<MachineCore>();
+                Indeg = Array.Empty<int>();
+                Succ = Array.Empty<int[]>();
+                Seed = Array.Empty<int>();
+                return;
+            }
+
+            // Index order is arbitrary (HashSet enumeration) and does NOT affect output: a
+            // machine sums its inputs in connection-list order, independent of the order
+            // its siblings were dispatched in.
+            var coneArr = new MachineCore[cone.Count];
+            var coneIndex = new Dictionary<MachineCore, int>(cone.Count);
+            int ci = 0;
+            foreach (var cmm in cone)
+            {
+                coneArr[ci] = cmm;
+                coneIndex[cmm] = ci;
+                ci++;
+            }
+
+            var indegArr = new int[coneArr.Length];
+            var succArr = new int[coneArr.Length][];
+            var succTmp = new List<int>();
+            for (int ii = 0; ii < coneArr.Length; ii++)
+            {
+                var cm = coneArr[ii];
+                indegArr[ii] = indeg0[cm];
+
+                // One entry per EDGE (not per distinct destination), mirroring the drain's
+                // `foreach (output in m.AllOutputs) --indeg[dst]`.
+                succTmp.Clear();
+                foreach (var cout in cm.AllOutputs)
+                {
+                    if (!(cout.Destination is MachineCore cdst))
+                        continue;
+                    if (!cone.Contains(cdst))
+                        continue;
+                    succTmp.Add(coneIndex[cdst]);
+                }
+                succArr[ii] = succTmp.ToArray();
+            }
+
+            var seedList = new List<int>();
+            for (int si = 0; si < indegArr.Length; si++)
+            {
+                if (indegArr[si] == 0)
+                    seedList.Add(si);
+            }
+
+            Cone = coneArr;
+            Indeg = indegArr;
+            Succ = succArr;
+            Seed = seedList.ToArray();
+
+            SelfCheck();
+        }
+
+        // Validate the graph against the structure we already trust. Runs once per
+        // TOPOLOGY rebuild - never per buffer - so the cost is irrelevant.
+        //
+        // Drains Indeg/Succ/Seed with the same rule the dispatcher uses and requires the
+        // result to match AudioWaves exactly: same machines, same layer assignment.
+        // AudioWaves already drives the shipping cached dispatch, so it is a sound oracle.
+        //
+        // The failure this guards against is nasty: a wrong Succ (e.g. deduplicating
+        // parallel edges) leaves a successor's countdown permanently above zero, and the
+        // audio thread stalls mid-render. Catching it here turns a silent hang into a
+        // flag, and the dispatcher then simply uses the wave path.
+        private void SelfCheck()
+        {
+            var remaining = (int[])Indeg.Clone();
+            var layerOf = new int[Cone.Length];
+            for (int k = 0; k < layerOf.Length; k++)
+                layerOf[k] = -1;
+
+            var cur = new List<int>(Seed);
+            int layer = 0;
+            int drained = 0;
+            while (cur.Count > 0)
+            {
+                var nxt = new List<int>();
+                foreach (int idx in cur)
+                {
+                    layerOf[idx] = layer;
+                    drained++;
+                    foreach (int s in Succ[idx])
+                    {
+                        if (--remaining[s] == 0)
+                            nxt.Add(s);
+                    }
+                }
+                cur = nxt;
+                layer++;
+            }
+
+            // Everything must drain: a stuck countdown is exactly the hang we fear.
+            if (drained != Cone.Length || layer != AudioWaves.Length)
+            {
+                SelfCheckFailed = true;
+                return;
+            }
+
+            // Every machine must land in the layer AudioWaves put it in.
+            var waveLayer = new Dictionary<MachineCore, int>(Cone.Length);
+            for (int w = 0; w < AudioWaves.Length; w++)
+            {
+                foreach (var wm in AudioWaves[w])
+                    waveLayer[wm] = w;
+            }
+
+            if (waveLayer.Count != Cone.Length)
+            {
+                SelfCheckFailed = true;
+                return;
+            }
+
+            for (int k = 0; k < Cone.Length; k++)
+            {
+                if (!waveLayer.TryGetValue(Cone[k], out int wl) || wl != layerOf[k])
+                {
+                    SelfCheckFailed = true;
+                    return;
+                }
+            }
         }
     }
 }
