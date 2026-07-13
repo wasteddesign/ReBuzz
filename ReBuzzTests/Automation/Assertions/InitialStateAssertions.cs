@@ -146,7 +146,6 @@ namespace ReBuzzTests.Automation.Assertions
             ReBuzzCore.AudioLock.IsHeldByCurrentThread.Should().BeFalse();
             ReBuzzCore.SF_PLAYING.Should().Be(1);
             ReBuzzCore.SF_RECORDING.Should().Be(2);
-            ReBuzzCore.SkipAudio.Should().BeFalse();
             ReBuzzCore.SubTicsPerTick.Should().Be(8);
             AssertMasterInfoInitialState(ReBuzzCore.masterInfo);
             AssertInitialStateOfGlobalState(ReBuzzCore.GlobalState);

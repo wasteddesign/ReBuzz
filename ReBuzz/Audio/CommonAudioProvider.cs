@@ -120,7 +120,7 @@ namespace ReBuzz.Audio
             lock (bufferLock)
             {
                 // Override audio driver and call workManager.ThreadRead outside of Read
-                if (buzz.OverrideAudioDriver || stopped || ReBuzzCore.SkipAudio)
+                if (buzz.OverrideAudioDriver || stopped)
                 {
                     // Array.Clear(buffer, offset, count) is wrongly casted when using ASIO
                     for (int i = 0; i < readSize; i++)
@@ -168,7 +168,7 @@ namespace ReBuzz.Audio
         public unsafe int Read(float[] buffer, int offset, int count)
         {
             // Override audio driver and call workManager.ThreadRead outside of Read
-            if (buzz.OverrideAudioDriver || stopped || ReBuzzCore.SkipAudio)
+            if (buzz.OverrideAudioDriver || stopped)
             {
                 // Array.Clear(buffer, offset, count) is wrongly casted when using ASIO
                 for (int i = 0; i < count; i++)
