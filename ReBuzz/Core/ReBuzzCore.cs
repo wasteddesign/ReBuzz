@@ -1298,17 +1298,12 @@ namespace ReBuzz.Core
             if (CheckSaveSong())
             {
                 masterLoading = true;
-                //AudioEngine.Stop();
 
                 DeleteBackup();
                 NewSong();
 
-                //SkipAudio = true;
-                //lock (AudioLock)
-                //{
-                    bool playing = Playing;
-                    Playing = false;
-                //}
+                bool playing = Playing;
+                Playing = false;
 
                 IReBuzzFile bmxFile = GetReBuzzFile(filename);
 
@@ -1327,7 +1322,6 @@ namespace ReBuzz.Core
                     userMessages.Error(e.InnerException == null ? e.Message : e.InnerException.Message, "Error loading " + filename, e);
                     bmxFile.EndFileOperation(false);
                     NewSong();
-                    //SkipAudio = false;
                     return;
                 }
 
@@ -1347,17 +1341,12 @@ namespace ReBuzz.Core
                 }
                 SongCore.PlayPosition = 0;
 
-                //SkipAudio = false;
-                //AudioEngine.Play();
-
                 dispatcher.BeginInvoke(() =>
                 {
                     masterLoading = false;
                     Modified = false;
                 });
 
-                
-                //Playing = playing;
             }
         }
 
@@ -1424,23 +1413,15 @@ namespace ReBuzz.Core
 
             file.SetSubSections(ss);
 
-            //SkipAudio = true;
-            //AudioEngine.Stop();
+            try
+            {
+                file.Save(filename);
+            }
+            catch (Exception ex)
+            {
+                Utils.MessageBox("Error saving file " + filename + "\n\n" + ex, "Error saving file.");
+            }
 
-            //lock (AudioLock)
-            //{
-                try
-                {
-                    file.Save(filename);
-                }
-                catch (Exception ex)
-                {
-                    Utils.MessageBox("Error saving file " + filename + "\n\n" + ex, "Error saving file.");
-                }
-            //}
-
-            //AudioEngine.Play();
-            //SkipAudio = false;
             Modified = false;
         }
 
@@ -2052,7 +2033,6 @@ namespace ReBuzz.Core
         // Clean up song 
         internal void NewSong()
         {
-            //SkipAudio = true;
             Playing = false;
             InfoText = "";
 
@@ -2062,75 +2042,72 @@ namespace ReBuzz.Core
             MidiControllerAssignments.ClearControllerBindings();
 
             DeleteBackup();
-            //lock (AudioLock)
-            //{
-                AudioEngine.ClearAudioBuffer();
+            AudioEngine.ClearAudioBuffer();
 
-                // Remove groups
-                SongCore.RemoveAllGroups();
+            // Remove groups
+            SongCore.RemoveAllGroups();
 
-                var master = SongCore.MachinesList.First();
+            var master = SongCore.MachinesList.First();
 
-                FileEvent?.Invoke(FileEventType.StatusUpdate, "Remove Connections...", null);
+            FileEvent?.Invoke(FileEventType.StatusUpdate, "Remove Connections...", null);
+            // Remove connections
+            foreach (var machine in SongCore.MachinesList)
+            {
                 // Remove connections
-                foreach (var machine in SongCore.MachinesList)
+                foreach (var input in machine.AllInputs.ToArray())
                 {
-                    // Remove connections
-                    foreach (var input in machine.AllInputs.ToArray())
+                    new DisconnectMachinesAction(this, input, dispatcher, engineSettings).Do();
+                }
+            }
+
+            // Remove machines
+            foreach (var machine in SongCore.MachinesList.ToArray())
+            {
+                machine.CloseWindows();
+                if (machine != master)
+                {
+                    if (!machine.Hidden)
+                        FileEvent?.Invoke(FileEventType.StatusUpdate, "Remove Machine " + machine.Name, null);
+
+                    // Remove machine
+                    RemoveMachine(machine);
+
+                    if (machine == master.EditorMachine)
                     {
-                        new DisconnectMachinesAction(this, input, dispatcher, engineSettings).Do();
+                        master.EditorMachine = null;
                     }
                 }
-
-                // Remove machines
-                foreach (var machine in SongCore.MachinesList.ToArray())
+                else
                 {
-                    machine.CloseWindows();
-                    if (machine != master)
+                    // Master
+                    foreach (var pattern in machine.Patterns.ToArray())
+                        machine.DeletePattern(pattern);
+
+                    foreach (var seq in SongCore.Sequences.Where(s => s.Machine == machine).ToArray())
                     {
-                        if (!machine.Hidden)
-                            FileEvent?.Invoke(FileEventType.StatusUpdate, "Remove Machine " + machine.Name, null);
-
-                        // Remove machine
-                        RemoveMachine(machine);
-
-                        if (machine == master.EditorMachine)
-                        {
-                            master.EditorMachine = null;
-                        }
-                    }
-                    else
-                    {
-                        // Master
-                        foreach (var pattern in machine.Patterns.ToArray())
-                            machine.DeletePattern(pattern);
-
-                        foreach (var seq in SongCore.Sequences.Where(s => s.Machine == machine).ToArray())
-                        {
-                            SongCore.RemoveSequence(seq);
-                        }
+                        SongCore.RemoveSequence(seq);
                     }
                 }
+            }
 
 
-                FileEvent?.Invoke(FileEventType.StatusUpdate, "Clear Wavetable...", null);
-                // Clear Wavetable
-                for (int i = 0; i < songCore.WavetableCore.WavesList.Count; i++)
+            FileEvent?.Invoke(FileEventType.StatusUpdate, "Clear Wavetable...", null);
+            // Clear Wavetable
+            for (int i = 0; i < songCore.WavetableCore.WavesList.Count; i++)
+            {
+                var wave = songCore.WavetableCore.WavesList[i];
+                if (wave != null)
                 {
-                    var wave = songCore.WavetableCore.WavesList[i];
-                    if (wave != null)
-                    {
-                        songCore.WavetableCore.LoadWave(i, null, null, false);
-                    }
+                    songCore.WavetableCore.LoadWave(i, null, null, false);
                 }
+            }
 
-                // Clear pattern and sequece
-                master.PatternsList.Clear();
-                SetPatternEditorPattern(null);
+            // Clear pattern and sequece
+            master.PatternsList.Clear();
+            SetPatternEditorPattern(null);
 
-                Speed = 0;
-                FileEvent?.Invoke(FileEventType.Close, "Done.", null);
-            //}
+            Speed = 0;
+            FileEvent?.Invoke(FileEventType.Close, "Done.", null);
 
             // Center Master position
             List<Tuple<IMachine, Tuple<float, float>>> moveList = new List<Tuple<IMachine, Tuple<float, float>>>
@@ -2152,7 +2129,6 @@ namespace ReBuzz.Core
             GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
             GC.Collect();
             GC.WaitForFullGCComplete();
-            //SkipAudio = false;
         }
 
 
@@ -2181,7 +2157,6 @@ namespace ReBuzz.Core
 
         public AudioEngine AudioEngine { get; internal set; }
         public string DefaultPatternEditor { get; internal set; }
-        public static bool SkipAudio;
         internal IMachine PatternEditorMachine { get; set; }
 
         internal SongTime GetSongTime()

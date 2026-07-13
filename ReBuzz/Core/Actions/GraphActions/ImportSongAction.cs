@@ -50,7 +50,6 @@ namespace ReBuzz.Core.Actions.GraphActions
             machineGroups.Clear();
             waveIndexes.Clear();
 
-            ReBuzzCore.SkipAudio = true;
             lock (ReBuzzCore.AudioLock)
             {   
                 bool playing = buzz.Playing;
@@ -73,8 +72,6 @@ namespace ReBuzz.Core.Actions.GraphActions
                 }
                 buzz.Playing = playing;
             }
-
-            ReBuzzCore.SkipAudio = false;
         }
 
         protected override void UndoAction()

@@ -120,7 +120,7 @@ namespace ReBuzz.Audio
         public int MainAudioFillBuffer(float[] buffer, int offset, int count)
         {
             // Override audio driver and call workManager.ThreadRead outside of Read
-            if (stopped || ReBuzzCore.SkipAudio)
+            if (stopped)
             {
                 // Array.Clear(buffer, offset, count) is wrongly casted when using ASIO
                 for (int i = 0; i < count; i++)

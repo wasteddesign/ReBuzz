@@ -308,8 +308,6 @@ namespace ReBuzz.Audio
         {
             lock (audioEngineLock)
             {
-                ReBuzzCore.SkipAudio = true;
-
                 AudioProvider?.Stop();
                 AudioProvider = null;
 
@@ -327,8 +325,6 @@ namespace ReBuzz.Audio
                 {
                     buzzCore.DCWriteLine(e.Message);
                 }
-
-                ReBuzzCore.SkipAudio = false;
             }
         }
 
