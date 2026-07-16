@@ -1843,8 +1843,31 @@ namespace ReBuzz.Core
         internal static void RecordDriverReset() =>
             System.Threading.Interlocked.Increment(ref DriverResets);
         public long DriverResetCount => DriverResets;
-        public void ResetAudioDropoutCounters() =>
+
+        // Deadline-referenced dropout counter. Unlike DriverResets (the device's own
+        // catastrophic-reset notification, which is blind to ordinary underruns), this
+        // counts audio callbacks whose wall-time exceeded their OWN block period
+        // (frames/sampleRate) — the real, per-callback playback deadline. Read by Pedal
+        // Profiler2 via reflection as DeadlineMissCount / DeadlineWorstOverrunMicros.
+        // Read is single-threaded (one driver-callback thread), so the worst-overrun
+        // max needs no CAS loop.
+        internal static long DeadlineMisses;
+        internal static long DeadlineWorstOverrunUs;
+        internal static void RecordDeadlineMiss(long overrunUs)
+        {
+            System.Threading.Interlocked.Increment(ref DeadlineMisses);
+            if (overrunUs > DeadlineWorstOverrunUs)
+                System.Threading.Interlocked.Exchange(ref DeadlineWorstOverrunUs, overrunUs);
+        }
+        public long DeadlineMissCount => DeadlineMisses;
+        public long DeadlineWorstOverrunMicros => DeadlineWorstOverrunUs;
+
+        public void ResetAudioDropoutCounters()
+        {
             System.Threading.Interlocked.Exchange(ref DriverResets, 0);
+            System.Threading.Interlocked.Exchange(ref DeadlineMisses, 0);
+            System.Threading.Interlocked.Exchange(ref DeadlineWorstOverrunUs, 0);
+        }
 
         public MachineCore CreateMaster()
         {
