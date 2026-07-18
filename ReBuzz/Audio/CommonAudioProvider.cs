@@ -30,6 +30,12 @@ namespace ReBuzz.Audio
         private readonly int threadBufferSize;
         readonly EAudioThreadType threadType;
 
+        // Deadline-miss instrument (read by PP2 via ReBuzzCore accessors).
+        readonly System.Diagnostics.Stopwatch deadlineSw = System.Diagnostics.Stopwatch.StartNew();
+        readonly double deadlineTicksToMs = 1000.0 / System.Diagnostics.Stopwatch.Frequency;
+        readonly int deadlineSampleRate;
+        const double DeadlineWarmupMs = 1000.0;   // ignore startup priming misses
+
         public CommonAudioProvider(
           ReBuzzCore buzzCore,
           EngineSettings engineSettings,
@@ -41,6 +47,7 @@ namespace ReBuzz.Audio
             this.buzz = buzzCore;
             buzzCore.SelectedAudioDriverSampleRate = sampleRate;
             this.channels = channels;
+            deadlineSampleRate = sampleRate;
 
             threadBufferSize = bufferSize < 16 ? 16 : bufferSize * 2; // Stereo
             int size = doubleBuffer ? threadBufferSize * 2 : threadBufferSize; // Double buffer
@@ -179,6 +186,8 @@ namespace ReBuzz.Audio
                 return count;
             }
 
+            long deadlineStartTicks = deadlineSw.ElapsedTicks;
+
             int countRemaining = count / channels * 2;
 
             while (countRemaining > 0 && !stopped)
@@ -221,6 +230,18 @@ namespace ReBuzz.Audio
                     }
                     fillBufferNeed = threadBuffer.Length - threadBufferFillLevel;
                 }
+            }
+
+            // Did this callback overrun its OWN block period? Deadline is derived
+            // per-call from frames/sampleRate (the driver hands blocks far larger
+            // than the nominal buffer size, so the nominal size is the wrong number).
+            if (deadlineSampleRate > 0 && channels > 0)
+            {
+                long nowTicks = deadlineSw.ElapsedTicks;
+                double elapsedMs = (nowTicks - deadlineStartTicks) * deadlineTicksToMs;
+                double deadlineMs = (count / channels) / (double)deadlineSampleRate * 1000.0;
+                if (nowTicks * deadlineTicksToMs > DeadlineWarmupMs && elapsedMs > deadlineMs)
+                    ReBuzzCore.RecordDeadlineMiss((long)((elapsedMs - deadlineMs) * 1000.0));
             }
             return count;
         }
