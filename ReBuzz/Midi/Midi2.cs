@@ -63,7 +63,7 @@ namespace ReBuzz.Midi
                 _watcher.Start();
             }
 
-            StartVirtualDevice();
+            // StartVirtualDevice();
 
             return true;
         }

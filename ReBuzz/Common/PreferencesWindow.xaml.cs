@@ -146,22 +146,23 @@ namespace ReBuzz.Common
 
             cbAudioThreads.SelectedIndex = numThreads - 1;
 
-            int algorithm = registryEx.Read("WorkAlgorithm", 1, "Settings");
+            string[] algorithms = new string[] { "Recursive Task Groups", "Recursive Tasks", "Threads" };
+            int defualtAlgorithm = 2;
+
+            int algorithm = registryEx.Read("WorkAlgorithm", 0, "Settings");
             {
-                ComboBoxItem cbi = new ComboBoxItem();
-                cbi.Content = "Recursive Task Groups";
-                cbi.Tag = 0;
-                cbAlgorithms.Items.Add(cbi);
-
-                cbi = new ComboBoxItem();
-                cbi.Content = "Recursive Tasks";
-                cbi.Tag = 1;
-                cbAlgorithms.Items.Add(cbi);
-
-                cbi = new ComboBoxItem();
-                cbi.Content = "Threads";
-                cbi.Tag = 2;
-                cbAlgorithms.Items.Add(cbi);
+                for (int i = 0; i < algorithms.Length; i++)
+                {
+                    ComboBoxItem cbi = new ComboBoxItem();
+                    cbi.Content = algorithms[i];
+                    cbi.Tag = i;
+                    
+                    cbAlgorithms.Items.Add(cbi);
+                    if (defualtAlgorithm == i)
+                    {
+                        cbi.FontWeight = FontWeights.Bold; //Default selection
+                    }
+                };
             }
 
             cbAlgorithms.SelectedIndex = algorithm;
