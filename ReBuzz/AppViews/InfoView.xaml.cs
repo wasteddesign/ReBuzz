@@ -2,6 +2,7 @@
 using MdXaml;
 using ReBuzz.Core;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
@@ -24,7 +25,14 @@ namespace ReBuzz
             DataContext = this;
             
             tbInfo.SetBinding(TextBox.TextProperty, new Binding("ReBuzz.InfoText") { Source = this, Mode = BindingMode.TwoWay });
-            
+            msv.OnHyperLinkClicked += (link) =>
+            {
+                if (link != null)
+                {
+                    Process.Start(new ProcessStartInfo(link) { UseShellExecute = true });
+                }
+            };
+
             tbInfo.TextChanged += (sender, e) =>
             {
                 msv.Markdown = tbInfo.Text;

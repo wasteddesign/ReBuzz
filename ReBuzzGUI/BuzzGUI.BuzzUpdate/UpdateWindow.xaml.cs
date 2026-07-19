@@ -53,6 +53,13 @@ namespace BuzzGUI.BuzzUpdate
             DataContext = this;
             InitializeComponent();
 
+            msv.OnHyperLinkClicked += (link) =>
+            {
+                if (link != null)
+                {
+                    Process.Start(new System.Diagnostics.ProcessStartInfo(link) { UseShellExecute = true });
+                }
+            };
             verText.Text = "Current Build: " + currentBuild.ToString() + "   Latest Build: " + latestBuild.ToString();
 
             msv.Markdown = "Downloading changelog...";
