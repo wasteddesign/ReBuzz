@@ -149,7 +149,7 @@ namespace ReBuzz.Common
             string[] algorithms = new string[] { "Recursive Task Groups", "Recursive Tasks", "Threads" };
             int defualtAlgorithm = 2;
 
-            int algorithm = registryEx.Read("WorkAlgorithm", 0, "Settings");
+            int algorithm = registryEx.Read("WorkAlgorithm", defualtAlgorithm, "Settings");
             {
                 for (int i = 0; i < algorithms.Length; i++)
                 {
