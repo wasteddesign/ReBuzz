@@ -1,6 +1,7 @@
 ﻿using BuzzGUI.Common;
 using BuzzGUI.Interfaces;
 using System.Collections.Generic;
+using System.Threading.Channels;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -57,6 +58,14 @@ namespace BuzzGUI.PianoKeyboard
             Grid.SetColumn(pianoKeyboard, 2);
             grid.Children.Add(pianoKeyboard);
 
+            for (int i = 0; i < 16; i++)
+            {
+                ComboBoxItem item = new ComboBoxItem();
+                item.Content = i + 1;
+                cbChannel.Items.Add(item);
+            }
+            cbChannel.SelectedIndex = 0;
+
             pianoKeyboard.OnAftertouch += (val) =>
             {
                 channelAftertouchSlider.Value = val;
@@ -64,7 +73,7 @@ namespace BuzzGUI.PianoKeyboard
 
             pianoKeyboard.OnPianoKeyDown += (key) =>
             {
-                buzz.SendMIDIInput(MIDI.Encode(MIDI.NoteOn, key, velocity));
+                buzz.SendMIDIInput(MIDI.Encode(MIDI.NoteOn, cbChannel.SelectedIndex, key, velocity));
             };
 
             pianoKeyboard.OnPitchWheel += (val) =>
@@ -74,7 +83,7 @@ namespace BuzzGUI.PianoKeyboard
 
             pianoKeyboard.OnPianoKeyUp += (key) =>
             {
-                buzz.SendMIDIInput(MIDI.Encode(MIDI.NoteOff, key, velocity));
+                buzz.SendMIDIInput(MIDI.Encode(MIDI.NoteOff, cbChannel.SelectedIndex, key, velocity));
             };
 
             this.PreviewKeyDown += (sender, e) =>
@@ -87,7 +96,7 @@ namespace BuzzGUI.PianoKeyboard
                     {
                         int k = pianoKeyboard.dim.FirstMidiNote + 12 * pianoKeyboard.BaseOctave + i;
 
-                        buzz.SendMIDIInput(MIDI.Encode(MIDI.NoteOn, k, velocity));
+                        buzz.SendMIDIInput(MIDI.Encode(MIDI.NoteOn, cbChannel.SelectedIndex, k, velocity));
 
                         keysDown[i] = k;
                         e.Handled = true;
@@ -115,7 +124,7 @@ namespace BuzzGUI.PianoKeyboard
                             k = pianoKeyboard.dim.FirstMidiNote + 12 * pianoKeyboard.BaseOctave + i;
                         }
 
-                        buzz.SendMIDIInput(MIDI.Encode(MIDI.NoteOff, k, 0));
+                        buzz.SendMIDIInput(MIDI.Encode(MIDI.NoteOff, cbChannel.SelectedIndex, k, 0));
 
                         e.Handled = true;
                     }
@@ -139,7 +148,7 @@ namespace BuzzGUI.PianoKeyboard
             this.LostKeyboardFocus += (sender, e) =>
             {
                 foreach (var k in keysDown)
-                    buzz.SendMIDIInput(MIDI.Encode(MIDI.NoteOff, k.Value, 0));
+                    buzz.SendMIDIInput(MIDI.Encode(MIDI.NoteOff, cbChannel.SelectedIndex, k.Value, 0));
 
                 keysDown.Clear();
             };
@@ -154,7 +163,7 @@ namespace BuzzGUI.PianoKeyboard
                 if (sendPitchWheel)
                 {
                     int v = (int)pitchWheel.Value + 8192;
-                    buzz.SendMIDIInput(MIDI.Encode(MIDI.PitchWheel, v & 127, v >> 7));
+                    buzz.SendMIDIInput(MIDI.Encode(MIDI.PitchWheel, cbChannel.SelectedIndex, v & 127, v >> 7));
                 }
             };
 
@@ -163,7 +172,7 @@ namespace BuzzGUI.PianoKeyboard
                 if (sendModWheel)
                 {
                     int v = (int)modWheel.Value;
-                    buzz.SendMIDIInput(MIDI.Encode(MIDI.ControlChange, MIDI.CCModWheel, v));
+                    buzz.SendMIDIInput(MIDI.Encode(MIDI.ControlChange, cbChannel.SelectedIndex, MIDI.CCModWheel, v));
                 }
             };
 
@@ -178,12 +187,12 @@ namespace BuzzGUI.PianoKeyboard
                 }
             };
 
-            allSoundOff.Click += (sender, e) => { buzz.SendMIDIInput(MIDI.Encode(MIDI.ControlChange, MIDI.CMMAllSoundOff, 0)); };
-            allNotesOff.Click += (sender, e) => { buzz.SendMIDIInput(MIDI.Encode(MIDI.ControlChange, MIDI.CMMAllNotesOff, 0)); };
+            allSoundOff.Click += (sender, e) => { buzz.SendMIDIInput(MIDI.Encode(MIDI.ControlChange, cbChannel.SelectedIndex, MIDI.CMMAllSoundOff, 0)); };
+            allNotesOff.Click += (sender, e) => { buzz.SendMIDIInput(MIDI.Encode(MIDI.ControlChange, cbChannel.SelectedIndex, MIDI.CMMAllNotesOff, 0)); };
 
             sustain.Click += (sender, e) =>
             {
-                buzz.SendMIDIInput(MIDI.Encode(MIDI.ControlChange, MIDI.CCSustain, (bool)sustain.IsChecked ? 127 : 0));
+                buzz.SendMIDIInput(MIDI.Encode(MIDI.ControlChange, cbChannel.SelectedIndex, MIDI.CCSustain, (bool)sustain.IsChecked ? 127 : 0));
             };
 
             pianoKeyboard.BaseOctave = 4;

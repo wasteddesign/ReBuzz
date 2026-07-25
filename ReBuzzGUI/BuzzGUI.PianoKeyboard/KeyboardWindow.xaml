@@ -47,6 +47,8 @@
       <ToggleButton Name="sustain" Focusable="False" ClickMode="Press" Style="{StaticResource SimpleToggleButton}" Margin="4,4,0,0">Sustain</ToggleButton>
       <Button Name="allNotesOff" Focusable="False" ClickMode="Press" Style="{StaticResource SimpleButton}" Margin="4,4,0,0">All Notes Off</Button>
       <Button Name="allSoundOff" Focusable="False" ClickMode="Press" Style="{StaticResource SimpleButton}" Margin="4,4,0,0">All Sound Off</Button>
+        <TextBlock Text="MIDI Channel" Focusable="False" Margin="8,4,4,0" VerticalAlignment="Center"></TextBlock>
+        <ComboBox Name="cbChannel" Focusable="False" Margin="4,4,0,0"></ComboBox>
     </StackPanel>
     
     <Slider Name="pitchWheel" Focusable="False" ToolTip="Pitch Wheel" Grid.Column="0" Grid.Row="1" Margin="4,4,0,4" Orientation="Vertical" Minimum="-8192" Maximum="8191" LargeChange="4096"/>

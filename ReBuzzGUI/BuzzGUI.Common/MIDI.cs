@@ -30,6 +30,8 @@ namespace BuzzGUI.Common
 
         public static int Encode(int status, int data1, int data2) { return status | (data1 << 8) | (data2 << 16); }
 
+        public static int Encode(int status, int channel, int data1, int data2) { return status | channel | (data1 << 8) | (data2 << 16); }
+
         public static int EncodeNoteOn(int note, int velocity) { return Encode(NoteOn, note, velocity); }
         public static int EncodeNoteOff(int note) { return Encode(NoteOff, note, 64); }
 
