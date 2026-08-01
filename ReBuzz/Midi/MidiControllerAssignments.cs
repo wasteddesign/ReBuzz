@@ -56,29 +56,29 @@ namespace ReBuzz.Midi
 
         internal void SendMidi(int data)
         {
-            int b = MIDI.DecodeStatus(data);
+            int status = MIDI.DecodeStatus(data);
             int data1 = MIDI.DecodeData1(data);
             int data2 = MIDI.DecodeData2(data);
             int channel = 0;
             int commandCode = MIDI.ControlChange;
 
-            if ((b & 0xF0) == 0xF0)
+            if ((status & 0xF0) == 0xF0)
             {
                 // both bytes are used for command code in this case
-                commandCode = b;
+                commandCode = status;
             }
             else
             {
-                commandCode = (b & 0xF0);
-                channel = (b & 0x0F);
+                commandCode = (status & 0xF0);
+                channel = (status & 0x0F);
             }
 
-            if (commandCode != MIDI.ControlChange)
-                return;
-
-            foreach (var cb in ContollerBindings)
+            if (commandCode == MIDI.ControlChange)
             {
-                cb.Update(channel, data1, data2);
+                foreach (var cb in ContollerBindings)
+                {
+                    cb.Update(channel, data1, data2);
+                }
             }
 
             bool activate = data2 == 127;
@@ -88,38 +88,49 @@ namespace ReBuzz.Midi
                 {
                     if (cb.Contoller == data1 && cb.Channel == channel)
                     {
-                        switch (cb.ControllerType)
-                        {
-                            case ReBuzzMIDIControllerType.Play:
-                                buzz.Playing = !buzz.Playing;
-                                break;
-                            case ReBuzzMIDIControllerType.Stop:
-                                buzz.Playing = false;
-                                break;
-                            case ReBuzzMIDIControllerType.Record:
-                                buzz.Recording = !buzz.Recording;
-                                break;
-                            case ReBuzzMIDIControllerType.Forward:
-                                buzz.Song.PlayPosition += 4;
-                                break;
-                            case ReBuzzMIDIControllerType.Backward:
-                                buzz.Song.PlayPosition -= 4;
-                                break;
-                            case ReBuzzMIDIControllerType.Loop:
-                                buzz.Looping = !buzz.Looping;
-                                break;
-                            case ReBuzzMIDIControllerType.Beginning:
-                                buzz.Song.PlayPosition = buzz.Song.LoopStart;
-                                break;
-                            case ReBuzzMIDIControllerType.SpeedUp:
-                                buzz.Speed += 1;
-                                break;
-                            case ReBuzzMIDIControllerType.SpeedDown:
-                                buzz.Speed -= 1;
-                                break;
-                        }
+                        HandleDAWAction(cb.ControllerType);
+                    }
+
+                    else if (status == MIDI.NoteOn && cb.NoteMidi == data1 && cb.Channel == channel)
+                    {
+                        // Handle NoteOn event for the specific note
+                        HandleDAWAction(cb.ControllerType);
                     }
                 }
+            }
+        }
+
+        void HandleDAWAction(ReBuzzMIDIControllerType controllerType)
+        {
+            switch (controllerType)
+            {
+                case ReBuzzMIDIControllerType.Play:
+                    buzz.Playing = !buzz.Playing;
+                    break;
+                case ReBuzzMIDIControllerType.Stop:
+                    buzz.Playing = false;
+                    break;
+                case ReBuzzMIDIControllerType.Record:
+                    buzz.Recording = !buzz.Recording;
+                    break;
+                case ReBuzzMIDIControllerType.Forward:
+                    buzz.Song.PlayPosition += 4;
+                    break;
+                case ReBuzzMIDIControllerType.Backward:
+                    buzz.Song.PlayPosition -= 4;
+                    break;
+                case ReBuzzMIDIControllerType.Loop:
+                    buzz.Looping = !buzz.Looping;
+                    break;
+                case ReBuzzMIDIControllerType.Beginning:
+                    buzz.Song.PlayPosition = buzz.Song.LoopStart;
+                    break;
+                case ReBuzzMIDIControllerType.SpeedUp:
+                    buzz.Speed += 1;
+                    break;
+                case ReBuzzMIDIControllerType.SpeedDown:
+                    buzz.Speed -= 1;
+                    break;
             }
         }
 
@@ -196,6 +207,16 @@ namespace ReBuzz.Midi
                 mc.Channel = int.Parse(values[1]);
                 mc.Contoller = int.Parse(values[2]);
 
+                // If NoteMidi is present, parse it; otherwise, default to -1
+                if (values.Length >= 4)
+                {
+                    mc.NoteMidi = int.Parse(values[3]);
+                }
+                else
+                {
+                    mc.NoteMidi = -1;
+                }
+
                 return mc;
             }
         }
@@ -213,31 +234,31 @@ namespace ReBuzz.Midi
         }
 
         public static void RegSetController(
-          IRegistryEx registryEx, string regKey, string name, int channel, int controller)
+          IRegistryEx registryEx, string regKey, string name, int channel, int controller, int note)
         {
-            var values = name + "," + channel + "," + controller;
+            var values = name + "," + channel + "," + controller + "," + note;
             registryEx.Write(regKey, values, "Settings");
         }
 
         public static void RegSetController(
-  IRegistryEx registryEx, string regKey, ReBuzzMIDIControllerType t, int channel, int controller)
+  IRegistryEx registryEx, string regKey, ReBuzzMIDIControllerType t, int channel, int controller, int note)
         {
-            var values = (int)t + "," + channel + "," + controller;
+            var values = (int)t + "," + channel + "," + controller + "," + note;
             registryEx.Write(regKey, values, "Settings");
         }
 
         public static void RegSetControllerById(
-          IRegistryEx registryEx, int id, string name, int channel, int controller)
+          IRegistryEx registryEx, int id, string name, int channel, int controller, int note)
         {
             string regKey = "MidiController" + id;
-            RegSetController(registryEx, regKey, name, channel, controller);
+            RegSetController(registryEx, regKey, name, channel, controller, note);
         }
 
         public static void RegSetDAWControllerById(
-          IRegistryEx registryEx, int id, ReBuzzMIDIControllerType controllerType, int channel, int controller)
+          IRegistryEx registryEx, int id, ReBuzzMIDIControllerType controllerType, int channel, int controller, int note)
         {
             string regKey = "MidiDAWController" + id;
-            RegSetController(registryEx, regKey, controllerType, channel, controller);
+            RegSetController(registryEx, regKey, controllerType, channel, controller, note);
         }
 
         public static int RegGetNumberOfMidiControllers(IRegistryEx registryEx)
@@ -309,7 +330,7 @@ namespace ReBuzz.Midi
             return names;
         }
 
-        internal void Add(string name, int channel, int controller, int value)
+        internal void Add(string name, int channel, int controller, int note, int value)
         {
             int index = predefinedMIDIControllers.Count;
             MidiController midiController = new MidiController();
@@ -317,13 +338,14 @@ namespace ReBuzz.Midi
             midiController.Contoller = controller;
             midiController.Channel = channel;
             midiController.Value = value;
+            midiController.NoteMidi = note;
 
             predefinedMIDIControllers.Add(midiController);
-            RegSetControllerById(registryEx, index, name, channel, controller);
+            RegSetControllerById(registryEx, index, name, channel, controller, note);
             RegSetNumberOfMidiControllers(registryEx, predefinedMIDIControllers.Count);
         }
 
-        internal void AddDAWController(ReBuzzMIDIControllerType controllerType, int channel, int controller, int value)
+        internal void AddDAWController(ReBuzzMIDIControllerType controllerType, int channel, int controller, int note, int value)
         {
             int index = reBuzzMIDIControllers.Count;
             MidiController midiController = new MidiController();
@@ -331,9 +353,10 @@ namespace ReBuzz.Midi
             midiController.Contoller = controller;
             midiController.Channel = channel;
             midiController.Value = value;
+            midiController.NoteMidi = note;
 
             this.reBuzzMIDIControllers.Add(midiController);
-            RegSetDAWControllerById(registryEx, index, controllerType, channel, controller);
+            RegSetDAWControllerById(registryEx, index, controllerType, channel, controller, note);
             RegSetNumberOfMidiDAWControllers(registryEx, reBuzzMIDIControllers.Count);
         }
 

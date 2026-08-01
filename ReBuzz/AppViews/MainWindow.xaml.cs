@@ -682,12 +682,37 @@ namespace ReBuzz
                             Buzz.MidiControllerAssignments.ClearAll();
                             foreach (PreferencesWindow.ControllerVM item in preferencesWindow.lvControllers.Items)
                             {
-                                Buzz.MidiControllerAssignments.Add(item.Name, item.Channel - 1, item.Controller, item.Value);
+                                int controller = -1;
+                                if (int.TryParse(item.Controller, out int c))
+                                {
+                                    controller = c;
+                                }
+
+                                int midiNote = -1;
+                                try
+                                {
+                                    midiNote = BuzzNote.ToMIDINote(BuzzNote.Parse(item.Note));
+                                }
+                                catch { }
+                                Buzz.MidiControllerAssignments.Add(item.Name, item.Channel - 1, controller, midiNote, item.Value);
                             }
 
                             foreach (PreferencesWindow.ControllerVM item in preferencesWindow.lvDAWControllers.Items)
                             {
-                                Buzz.MidiControllerAssignments.AddDAWController(item.DAWControllerType, item.Channel - 1, item.Controller, item.Value);
+                                int controller = -1;
+                                if (int.TryParse(item.Controller, out int c))
+                                {
+                                    controller = c;
+                                }
+
+                                int midiNote = -1;
+                                try
+                                {
+                                    midiNote = BuzzNote.ToMIDINote(BuzzNote.Parse(item.Note));
+                                }
+                                catch { }
+
+                                Buzz.MidiControllerAssignments.AddDAWController(item.DAWControllerType, item.Channel - 1, controller, midiNote, item.Value);
                             }
 
                             Buzz.MIDIControllers = Buzz.MidiControllerAssignments.GetMidiControllerNames().ToReadOnlyCollection();

@@ -16,6 +16,7 @@
             <RowDefinition Height="30"/>
             <RowDefinition Height="30"/>
             <RowDefinition Height="30"/>
+            <RowDefinition Height="0"/>
             <RowDefinition Height="30"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
@@ -26,15 +27,17 @@
         <TextBlock Text="Move MIDI controller to select it" Grid.ColumnSpan="2" Margin="4"/>
         <TextBlock Grid.Row="1" Text="Bind To" Margin="4"/>
         <ComboBox x:Name="cbBindList" Grid.Row="1" Grid.Column="1" ItemsSource="{Binding DropDownSelection}" Margin="4"></ComboBox>
-        <TextBlock Grid.Row="2" Text="Controller" Margin="4"/>
-        <TextBox x:Name="tbController" Grid.Row="2" Grid.Column="1" Text="{Binding MidiController, Mode=TwoWay}" HorizontalAlignment="Left" Width="50" Margin="4"/>
-        <TextBlock Grid.Row="3" Text="Channel" Margin="4"/>
-        <TextBox x:Name="tbChannel" Grid.Row="3" Grid.Column="1" Text="{Binding MidiChannel, Mode=TwoWay}" HorizontalAlignment="Left" Width="50" Margin="4"/>
-        <TextBlock Grid.Row="4" Text="Value" Margin="4"/>
-        <TextBox x:Name="tbValue" Grid.Row="4" Grid.Column="1" Text="{Binding MidiValue, Mode=TwoWay}" HorizontalAlignment="Left" Width="50" Margin="4"/>
-        <TextBlock x:Name="tblName" Grid.Row="5" Text="Name" Margin="4"/>
-        <TextBox x:Name="tbName" Grid.Row="5" Grid.Column="1" Text="{Binding ControllerName, Mode=TwoWay}" HorizontalAlignment="Left" Width="200" Margin="4"/>
-        <StackPanel Grid.Row="6" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+        <TextBlock Grid.Row="2" Text="Channel" Margin="4"/>
+        <TextBox x:Name="tbChannel" Grid.Row="2" Grid.Column="1" Text="{Binding MidiChannel, Mode=TwoWay}" HorizontalAlignment="Left" Width="50" Margin="4"/>        
+        <TextBlock Grid.Row="3" Text="Controller" Margin="4"/>
+        <TextBox x:Name="tbController" Grid.Row="3" Grid.Column="1" Text="{Binding MidiController, Mode=TwoWay}" HorizontalAlignment="Left" Width="50" Margin="4"/>
+        <TextBlock Grid.Row="4" Text="Note" Margin="4"/>
+        <TextBox x:Name="tbNote" Grid.Row="4" Grid.Column="1" Text="{Binding MidiNote, Mode=TwoWay}" HorizontalAlignment="Left" Width="50" Margin="4"/>
+        <TextBlock Grid.Row="5" Text="Value" Margin="4"/>
+        <TextBox x:Name="tbValue" Grid.Row="5" Grid.Column="1" Text="{Binding MidiValue, Mode=TwoWay}" HorizontalAlignment="Left" Width="50" Margin="4"/>
+        <TextBlock x:Name="tblName" Grid.Row="6" Text="Name" Margin="4"/>
+        <TextBox x:Name="tbName" Grid.Row="6" Grid.Column="1" Text="{Binding ControllerName, Mode=TwoWay}" HorizontalAlignment="Left" Width="200" Margin="4"/>
+        <StackPanel Grid.Row="7" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
             <Button Name="btOk" IsDefault="True" Margin ="4" Height ="20" Width="60" VerticalAlignment="Bottom" Content="Ok" IsEnabled="{Binding IsInputValid}"></Button>
             <Button Name="btCance" Margin ="4" Height ="20" Width="60" VerticalAlignment="Bottom" IsCancel="true" Content="Cancel"></Button>
         </StackPanel>
