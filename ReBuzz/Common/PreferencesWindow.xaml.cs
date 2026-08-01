@@ -1,4 +1,5 @@
-﻿using BuzzGUI.Common;
+﻿using Buzz.MachineInterface;
+using BuzzGUI.Common;
 using NAudio.Midi;
 using ReBuzz.Core;
 using ReBuzz.Midi;
@@ -9,6 +10,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using static ReBuzz.Common.PreferencesWindow;
 
 namespace ReBuzz.Common
 {
@@ -23,10 +25,11 @@ namespace ReBuzz.Common
         {
             public string Name { get; set; }
             public int Channel { get; set; }
-            public int Controller { get; set; }
+            public string Controller { get; set; }
             public int Value { get; internal set; }
             public ReBuzzMIDIControllerType DAWControllerType { get; set; }
             public string DAWControllerName { get; internal set; }
+            public string Note { get; internal set; }
 
             public event PropertyChangedEventHandler PropertyChanged;
         }
@@ -169,7 +172,7 @@ namespace ReBuzz.Common
 
             btAddController.Click += (sender, e) =>
             {
-                MidiControllerAssignWindow mcaw = new MidiControllerAssignWindow();
+                MidiControllerAssignWindow mcaw = new MidiControllerAssignWindow(false, true, true);
                 mcaw.ControllerName = "Controller";
                 mcaw.Owner = this;
 
@@ -181,7 +184,24 @@ namespace ReBuzz.Common
                         cVM.Name = mcaw.ControllerName;
                         cVM.Channel = int.Parse(mcaw.MidiChannel);
                         cVM.Value = int.Parse(mcaw.MidiValue);
-                        cVM.Controller = int.Parse(mcaw.MidiController);
+                        if (mcaw.MidiController != null && mcaw.MidiController != "")
+                        {
+                            cVM.Controller = mcaw.MidiController;
+                        }
+                        else
+                        {
+                            cVM.Controller = "";
+                        }
+
+                        if (mcaw.MidiNote != null && mcaw.MidiNote != "")
+                        {
+                            cVM.Note = mcaw.MidiNote;
+                        }
+                        else
+                        {
+                            cVM.Note = "";
+                        }
+
                         lvControllers.Items.Add(cVM);
                     }
                     catch { }
@@ -190,7 +210,7 @@ namespace ReBuzz.Common
 
             btModifyController.Click += (sender, e) =>
             {
-                ModifyController(lvControllers);
+                ModifyController(lvControllers, null, true, true);
             };
 
             btRemoveController.Click += (sender, e) =>
@@ -214,8 +234,9 @@ namespace ReBuzz.Common
                 ControllerVM cVM = new ControllerVM();
                 cVM.Name = controller.Name;
                 cVM.Channel = controller.Channel + 1;
-                cVM.Controller = controller.Contoller;
+                cVM.Controller = controller.Contoller == -1 ? "" : controller.Contoller.ToString();
                 cVM.Value = controller.Value;
+                cVM.Note = controller.NoteStr;
 
                 lvControllers.Items.Add(cVM);
             }
@@ -244,7 +265,24 @@ namespace ReBuzz.Common
                         cVM.Name = mcaw.ControllerName;
                         cVM.Channel = int.Parse(mcaw.MidiChannel);
                         cVM.Value = int.Parse(mcaw.MidiValue);
-                        cVM.Controller = int.Parse(mcaw.MidiController);
+
+                        if (mcaw.MidiController != null && mcaw.MidiController != "")
+                        {
+                            cVM.Controller = mcaw.MidiController;
+                        }
+                        else
+                        {
+                            cVM.Controller = "";
+                        }
+
+                        if (mcaw.MidiNote != null && mcaw.MidiNote != "")
+                        {
+                            cVM.Note = mcaw.MidiNote;
+                        }
+                        else
+                        {
+                            cVM.Note = "";
+                        }
                         lvDAWControllers.Items.Add(cVM);
                     }
                     catch { }
@@ -285,26 +323,28 @@ namespace ReBuzz.Common
                 cVM.DAWControllerName = bindList[(int)controller.ControllerType];
                 cVM.DAWControllerType = controller.ControllerType;
                 cVM.Channel = controller.Channel + 1;
-                cVM.Controller = controller.Contoller;
+                cVM.Controller = controller.Contoller == -1 ? "" : controller.Contoller.ToString();
+                cVM.Note = controller.NoteStr;
                 cVM.Value = controller.Value;
 
                 lvDAWControllers.Items.Add(cVM);
             }
         }
 
-        void ModifyController(ListView lv, List<string> bindList = null)
+        void ModifyController(ListView lv, List<string> bindList = null, bool hideValue = false, bool hideNote = false)
         {
             ControllerVM cVM = (ControllerVM)lv.SelectedItem;
             bool dawBinding = bindList != null;
 
             if (cVM != null)
             {
-                MidiControllerAssignWindow mcaw = new MidiControllerAssignWindow(dawBinding)
+                MidiControllerAssignWindow mcaw = new MidiControllerAssignWindow(dawBinding, hideValue, hideNote)
                 {
                     ControllerName = cVM.Name,
                     MidiController = "" + cVM.Controller,
                     MidiChannel = "" + cVM.Channel,
-                    MidiValue = "" + cVM.Value
+                    MidiValue = "" + cVM.Value,
+                    MidiNote = cVM.Note
                 };
 
                 mcaw.DropDownSelection = bindList;
@@ -323,7 +363,8 @@ namespace ReBuzz.Common
                             cVM.Name = mcaw.ControllerName;
                         cVM.Channel = int.Parse(mcaw.MidiChannel);
                         cVM.Value = int.Parse(mcaw.MidiValue);
-                        cVM.Controller = int.Parse(mcaw.MidiController);
+                        cVM.Controller = mcaw.MidiController;
+                        cVM.Note = mcaw.MidiNote;
                     }
                     catch { }
                     ICollectionView view = CollectionViewSource.GetDefaultView(lv.Items.SourceCollection);

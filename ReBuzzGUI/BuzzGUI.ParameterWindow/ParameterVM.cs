@@ -109,7 +109,7 @@ namespace BuzzGUI.ParameterWindow
                 CanExecuteDelegate = x => true,
                 ExecuteDelegate = x =>
                 {
-                    MidiControllerAssignWindow mcaw = new MidiControllerAssignWindow(true);
+                    MidiControllerAssignWindow mcaw = new MidiControllerAssignWindow(true, true, true);
                     
                     if (mcaw.ShowDialog() == true)
                     {
