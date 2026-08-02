@@ -924,13 +924,13 @@ namespace ReBuzz
                             e.Handled = true;
                         }
                     }
-                    else if (e.Key == Key.Y)
+                    
+                    if (e.Key == Key.Y)
                     {
                         Buzz.ExecuteCommand(BuzzCommand.Redo);
                         e.Handled = true;
                     }
-                    
-                    if (e.Key == Key.S)
+                    else if (e.Key == Key.S)
                     {
                         Buzz.ExecuteCommand(BuzzCommand.SaveFile);
                         e.Handled = true;
