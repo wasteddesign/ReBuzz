@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.Windows;
 using System.Windows.Interop;
@@ -51,7 +52,11 @@ namespace BuzzGUI.Common
             {
                 try
                 {
-                    int.Parse(tbController.Text);
+                    if (tbController.Text != null && tbController.Text != "")
+                        int.Parse(tbController.Text);
+                    if (tbNote.Text != null && tbNote.Text != "")
+                        BuzzNote.Parse(tbNote.Text);
+
                     int.Parse(tbChannel.Text);
                     if (!hideValue)
                     {
@@ -76,7 +81,7 @@ namespace BuzzGUI.Common
             }
         }
 
-        public MidiControllerAssignWindow(bool quickAssign = false, bool hideValue = false)
+        public MidiControllerAssignWindow(bool quickAssign = false, bool hideValue = false, bool hideNote = false)
         {
 
             var md = GetThemeResources();
@@ -90,15 +95,21 @@ namespace BuzzGUI.Common
 
             this.quickAssign = quickAssign;
             this.hideValue = hideValue;
+            this.hideNote = hideNote;
 
             mainGrid.RowDefinitions[1].Height = new GridLength(0);
 
             if (quickAssign)
             {
-                mainGrid.RowDefinitions[5].Height = new GridLength(0);
+                mainGrid.RowDefinitions[6].Height = new GridLength(0);
             }
 
             if (hideValue)
+            {
+                mainGrid.RowDefinitions[5].Height = new GridLength(0);
+            }
+
+            if (hideNote)
             {
                 mainGrid.RowDefinitions[4].Height = new GridLength(0);
             }
@@ -135,33 +146,54 @@ namespace BuzzGUI.Common
 
         private void Buzz_MIDIInput(int data)
         {
-            int b = MIDI.DecodeStatus(data);
+            int status = MIDI.DecodeStatus(data);
             int data1 = MIDI.DecodeData1(data);
             int data2 = MIDI.DecodeData2(data);
             int channel = 0;
             int commandCode = MIDI.ControlChange;
 
-            if ((b & 0xF0) == 0xF0)
+            if (!hideNote && (status == MIDI.NoteOn || status == MIDI.NoteOff))
             {
-                // both bytes are used for command code in this case
-                commandCode = b;
-            }
-            else
-            {
-                commandCode = (b & 0xF0);
-                channel = (b & 0x0F);
-            }
+                if (data2 > 0)
+                    MidiNote = BuzzNote.TryToString(BuzzNote.FromMIDINote(data1));
 
-            if (commandCode == MIDI.ControlChange)
-            {
-                MidiController = "" + data1;
+                MidiController = "";
                 MidiChannel = "" + (channel + 1);
                 MidiValue = "" + data2;
             }
+            else
+            {
+                if ((status & 0xF0) == 0xF0)
+                {
+                    // both bytes are used for command code in this case
+                    commandCode = status;
+                }
+                else
+                {
+                    commandCode = (status & 0xF0);
+                    channel = (status & 0x0F);
+                }
+
+                if (commandCode == MIDI.ControlChange)
+                {
+                    MidiController = "" + data1;
+                    MidiChannel = "" + (channel + 1);
+                    MidiValue = "" + data2;
+                    MidiNote = "";
+                }
+                else
+                {
+                    MidiController = "";
+                    MidiChannel = "";
+                    MidiValue = "";
+                    MidiNote = "";
+                }
+            }
+            
         }
         private bool quickAssign;
         private bool hideValue;
-
+        private bool hideNote;
         string controllerName;
         public string ControllerName { get => controllerName; set { controllerName = value; PropertyChanged.Raise(this, "ControllerName"); } }
         string midiChannel;
@@ -170,6 +202,8 @@ namespace BuzzGUI.Common
         public string MidiController { get => midiController; set { midiController = value; PropertyChanged.Raise(this, "MidiController"); } }
         string midiValue;
         public string MidiValue { get => midiValue; set { midiValue = value; PropertyChanged.Raise(this, "MidiValue"); } }
+        string midiNote;
+        public string MidiNote { get => midiNote; set { midiNote = value; PropertyChanged.Raise(this, "MidiNote"); } }
 
         internal ResourceDictionary GetThemeResources()
         {

@@ -75,7 +75,8 @@
                                         <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="200" />
                                         <GridViewColumn Header="Channel" DisplayMemberBinding="{Binding Channel}" Width="100" />
                                         <GridViewColumn Header="Controller" DisplayMemberBinding="{Binding Controller}" Width="100"/>
-                                        <GridViewColumn Header="Value" DisplayMemberBinding="{Binding Value}" Width="100"/>
+                                        <!-- <GridViewColumn Header="Note" DisplayMemberBinding="{Binding Note}" Width="100"/> -->
+                                        <!-- <GridViewColumn Header="Value" DisplayMemberBinding="{Binding Value}" Width="100"/> -->
                                     </GridView>
                                 </ListView.View>
                             </ListView>
@@ -133,7 +134,8 @@
                                         <GridViewColumn Header="Binding Type" DisplayMemberBinding="{Binding DAWControllerName}" Width="200" />
                                         <GridViewColumn Header="Channel" DisplayMemberBinding="{Binding Channel}" Width="100" />
                                         <GridViewColumn Header="Controller" DisplayMemberBinding="{Binding Controller}" Width="100"/>
-                                        <GridViewColumn Header="Value" DisplayMemberBinding="{Binding Value}" Width="100"/>
+                                        <GridViewColumn Header="Note" DisplayMemberBinding="{Binding Note}" Width="100"/>
+                                        <!-- <GridViewColumn Header="Value" DisplayMemberBinding="{Binding Value}" Width="100"/> -->
                                     </GridView>
                                 </ListView.View>
                             </ListView>
