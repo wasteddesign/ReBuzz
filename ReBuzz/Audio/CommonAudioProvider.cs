@@ -7,13 +7,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
+using ReBuzz.Audio.BurstProtection;
 
 namespace ReBuzz.Audio
 {
     internal class CommonAudioProvider
     {
         readonly WorkManager workManager;
-        private readonly IBuzz buzz;
+        private readonly ReBuzzCore buzz;
 
         WorkThreadEngine workEngine;
         
@@ -35,6 +36,8 @@ namespace ReBuzz.Audio
         readonly double deadlineTicksToMs = 1000.0 / System.Diagnostics.Stopwatch.Frequency;
         readonly int deadlineSampleRate;
         const double DeadlineWarmupMs = 1000.0;   // ignore startup priming misses
+
+        BurstProtectionEngine audioBurstProtection;
 
         public CommonAudioProvider(
           ReBuzzCore buzzCore,
@@ -87,6 +90,8 @@ namespace ReBuzz.Audio
                 workEngine.Start();
             }
 
+            audioBurstProtection = new BurstProtectionEngine(buzz, true);
+
             workManager = new WorkManager(buzzCore, workEngine, algorithm, engineSettings);
 
             threadType = (EAudioThreadType)registryEx.Read("AudioThreadType", 0, "Settings");
@@ -122,21 +127,18 @@ namespace ReBuzz.Audio
         }
 
         private readonly Lock bufferLock = new();
-        int FillTheBuffer(int readSize)
+        private int FillTheBuffer(int readSize)
         {
             lock (bufferLock)
             {
                 // Override audio driver and call workManager.ThreadRead outside of Read
                 if (buzz.OverrideAudioDriver || stopped)
                 {
-                    // Array.Clear(buffer, offset, count) is wrongly casted when using ASIO
-                    for (int i = 0; i < readSize; i++)
-                    {
-                        fillBuffer[i] = 0;
-                    }
+                    Array.Clear(fillBuffer, 0, readSize);
                     return readSize;
                 }
 
+                int totalWritten = 0;
                 int numRead = workManager.ThreadReadSpeedAdjust(fillBuffer, 0, readSize);
 
                 int offset = 0;
@@ -144,10 +146,12 @@ namespace ReBuzz.Audio
                 {
                     int count = numRead;
 
-                    // We shall stay with in the buffer
-                    if (count + threadBufferWriteOffset > threadBuffer.Length)
-                        count = threadBuffer.Length - threadBufferWriteOffset;
+                    // Stay within threadBuffer bounds
+                    int spaceLeft = threadBuffer.Length - threadBufferWriteOffset;
+                    if (count > spaceLeft)
+                        count = spaceLeft;
 
+                    // Copy main stereo buffer
                     Buffer.BlockCopy(fillBuffer, offset << 2, threadBuffer, threadBufferWriteOffset << 2, count << 2);
 
                     // Copy other output channels
@@ -156,6 +160,7 @@ namespace ReBuzz.Audio
                     {
                         var fromBuffer = fillBufferChannel[j];
                         var toBuffer = threadBufferChannel[j];
+
                         Buffer.BlockCopy(fromBuffer, offset << 2, toBuffer, threadBufferWriteOffset << 2, count << 2);
                         Array.Clear(fromBuffer, offset, count);
                     }
@@ -164,11 +169,13 @@ namespace ReBuzz.Audio
                     threadBufferWriteOffset += count;
                     if (threadBufferWriteOffset == threadBuffer.Length)
                         threadBufferWriteOffset = 0;
-                    threadBufferFillLevel += count;
 
+                    threadBufferFillLevel += count;
+                    totalWritten += count;
                     numRead -= count;
                 }
-                return numRead;
+
+                return totalWritten;
             }
         }
 
@@ -177,48 +184,59 @@ namespace ReBuzz.Audio
             // Override audio driver and call workManager.ThreadRead outside of Read
             if (buzz.OverrideAudioDriver || stopped)
             {
-                // Array.Clear(buffer, offset, count) is wrongly casted when using ASIO
-                for (int i = 0; i < count; i++)
-                {
-                    buffer[offset + i] = 0;
-                }
+                Array.Clear(buffer, offset, count);
                 ClearBuffer();
                 return count;
             }
 
-            long deadlineStartTicks = deadlineSw.ElapsedTicks;
+            // count is in floats; convert to stereo frames (L,R) per output channel pair
+            int stereoChannels = channels / 2;
+            int framesRequested = count / channels; // frames per all channels
+            int samplesRequested = framesRequested * 2; // L,R per frame in threadBuffer
 
-            int countRemaining = count / channels * 2;
+            int countRemaining = samplesRequested;
+
+            long deadlineStartTicks = deadlineSw.ElapsedTicks;
 
             while (countRemaining > 0 && !stopped)
             {
                 lock (bufferLock)
                 {
-                    int readCount = countRemaining;
-                    readCount = Math.Min(readCount, threadBufferFillLevel);
+                    int readCount = Math.Min(countRemaining, threadBufferFillLevel);
 
                     if (threadBufferReadOffset + readCount > threadBuffer.Length)
                         readCount = threadBuffer.Length - threadBufferReadOffset;
 
-                    if (readCount != 0)
+                    if (readCount > 0)
                     {
-                        for (int i = 0; i < readCount / 2; i++)
+
+                        audioBurstProtection.Process(threadBuffer, threadBufferReadOffset, readCount, true, false);
+
+                        for (int j = 1; j < stereoChannels; j++)
                         {
+                            audioBurstProtection.Process(threadBufferChannel[j], threadBufferReadOffset, readCount, true, false);
+                        }
+
+                        int framesToCopy = readCount / 2;
+
+                        for (int f = 0; f < framesToCopy; f++)
+                        {
+                            // main stereo pair
                             buffer[offset++] = threadBuffer[threadBufferReadOffset];
                             buffer[offset++] = threadBuffer[threadBufferReadOffset + 1];
 
-                            // Copy other output channels. Skip the first
-                            int stereoChannels = (channels) / 2;
+                            // other output channels
                             for (int j = 1; j < stereoChannels; j++)
                             {
-                                buffer[offset++] = threadBufferChannel[j][threadBufferReadOffset];
-                                buffer[offset++] = threadBufferChannel[j][threadBufferReadOffset + 1];
+                                var chBuf = threadBufferChannel[j];
+                                buffer[offset++] = chBuf[threadBufferReadOffset];
+                                buffer[offset++] = chBuf[threadBufferReadOffset + 1];
                             }
-                            threadBufferReadOffset += 2;
-                        }
 
-                        if (threadBufferReadOffset == threadBuffer.Length)
-                            threadBufferReadOffset = 0;
+                            threadBufferReadOffset += 2;
+                            if (threadBufferReadOffset == threadBuffer.Length)
+                                threadBufferReadOffset = 0;
+                        }
 
                         threadBufferFillLevel -= readCount;
                         countRemaining -= readCount;
@@ -226,8 +244,13 @@ namespace ReBuzz.Audio
                     else
                     {
                         int readSize = Math.Min(countRemaining, threadBuffer.Length);
-                        FillTheBuffer(readSize);
+                        int filled = FillTheBuffer(readSize);
+
+                        // If nothing was filled, avoid tight spin
+                        if (filled == 0)
+                            break;
                     }
+
                     fillBufferNeed = threadBuffer.Length - threadBufferFillLevel;
                 }
             }
@@ -243,7 +266,7 @@ namespace ReBuzz.Audio
                 if (nowTicks * deadlineTicksToMs > DeadlineWarmupMs && elapsedMs > deadlineMs)
                     ReBuzzCore.RecordDeadlineMiss((long)((elapsedMs - deadlineMs) * 1000.0));
             }
-            return count;
+            return count - (countRemaining * channels / 2);
         }
 
         public void Stop()
@@ -267,6 +290,8 @@ namespace ReBuzz.Audio
                 multimediaTimer.Dispose();
                 multimediaTimer = null;
             }
+
+            audioBurstProtection.Release();
         }
 
         internal int ReadOverride(float[] buffer, int offset, int count)
