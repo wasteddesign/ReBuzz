@@ -924,7 +924,8 @@ namespace ReBuzz
                             e.Handled = true;
                         }
                     }
-                    else if (e.Key == Key.Y)
+                    
+                    if (e.Key == Key.Y)
                     {
                         Buzz.ExecuteCommand(BuzzCommand.Redo);
                         e.Handled = true;
