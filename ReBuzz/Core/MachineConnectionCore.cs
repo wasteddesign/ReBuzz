@@ -2,6 +2,7 @@
 using BuzzGUI.Common;
 using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
+using ReBuzz.Audio.BurstProtection;
 using ReBuzz.Common;
 using System;
 using System.ComponentModel;
@@ -20,6 +21,8 @@ namespace ReBuzz.Core
         int sourceChannel = 0;
         float panL = 1.0f;
         float panR = 1.0f;
+
+        BurstProtectionEngine burstProtection;
 
         public int SourceChannel
         {
@@ -161,26 +164,30 @@ namespace ReBuzz.Core
                     buffer[i].R = samples[i].R * ampStart * panR;
                     ampStart += ampStep;
                 }
-                return;
+            }
+            else
+            {
+
+                // Latency-compensated path. Ring wrap via a branch rather than a
+                // per-sample integer divide (% Length); positions are always
+                // < Length, so ++pos == Length is exactly the wrap case.
+                for (int i = 0; i < nSamples; i++)
+                {
+                    latencyBuffer[latencyBufferWritePos].L = samples[i].L * ampStart * panL;
+                    latencyBuffer[latencyBufferWritePos].R = samples[i].R * ampStart * panR;
+                    if (++latencyBufferWritePos == latencyBuffer.Length) latencyBufferWritePos = 0;
+                    ampStart += ampStep;
+                }
+
+                for (int i = 0; i < nSamples; i++)
+                {
+                    buffer[i].L = latencyBuffer[latencyBufferReadPos].L;
+                    buffer[i].R = latencyBuffer[latencyBufferReadPos].R;
+                    if (++latencyBufferReadPos == latencyBuffer.Length) latencyBufferReadPos = 0;
+                }
             }
 
-            // Latency-compensated path. Ring wrap via a branch rather than a
-            // per-sample integer divide (% Length); positions are always
-            // < Length, so ++pos == Length is exactly the wrap case.
-            for (int i = 0; i < nSamples; i++)
-            {
-                latencyBuffer[latencyBufferWritePos].L = samples[i].L * ampStart * panL;
-                latencyBuffer[latencyBufferWritePos].R = samples[i].R * ampStart * panR;
-                if (++latencyBufferWritePos == latencyBuffer.Length) latencyBufferWritePos = 0;
-                ampStart += ampStep;
-            }
-
-            for (int i = 0; i < nSamples; i++)
-            {
-                buffer[i].L = latencyBuffer[latencyBufferReadPos].L;
-                buffer[i].R = latencyBuffer[latencyBufferReadPos].R;
-                if (++latencyBufferReadPos == latencyBuffer.Length) latencyBufferReadPos = 0;
-            }
+            burstProtection.Process(buffer, 0, nSamples, true, true);
         }
 
         internal void ClearBuffer(int num)
@@ -199,6 +206,8 @@ namespace ReBuzz.Core
             this.engineSettings = engineSettings;
             CMachineConnection = connectionHandleCounter++;
             this.dispatcher = dispatcher;
+
+            burstProtection = new BurstProtectionEngine(Global.Buzz as ReBuzzCore, false);
         }
 
         public MachineConnectionCore(MachineCore source, int sourceChannel, MachineCore destination, int destinationChannel, int amp, int pan, IUiDispatcher dispatcher, EngineSettings engineSettings)
@@ -217,6 +226,7 @@ namespace ReBuzz.Core
         {
             Tap = null;
             PropertyChanged = null;
+            burstProtection.Release();
         }
 
         internal void UpdateLatencyBuffers(int latencyDelta)

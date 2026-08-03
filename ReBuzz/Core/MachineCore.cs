@@ -1300,6 +1300,9 @@ namespace ReBuzz.Core
 
         internal void UpdateOutputs(Sample[] samples, int nSamples, bool denormal = true)
         {
+            // No need to update outputs if machine is hidden, because the outputs are not used in the audio graph.
+            if (Hidden) return;
+
             foreach (var output in outputs)
             {
                 if (!IsVisibleOutput(output))
@@ -1366,6 +1369,9 @@ namespace ReBuzz.Core
 
         internal void UpdateOutputs(List<Sample[]> multiSamplesOut, int nSamples)
         {
+            // No need to update outputs if machine is hidden, because the outputs are not used in the audio graph.
+            if (Hidden) return;
+
             foreach (var output in outputs)
             {
                 if (!IsVisibleOutput(output))

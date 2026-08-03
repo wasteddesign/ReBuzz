@@ -1978,6 +1978,7 @@ namespace ReBuzz.Core
                     foreach (var mc in machine.EditorMachine.AllOutputs.ToArray())
                     {
                         (mc.Destination as MachineCore).AllInputs.Remove(mc);
+                        (mc as MachineConnectionCore).ClearEvents();
                     }
                     machine.EditorMachine.AllOutputs.Clear();
                 }
