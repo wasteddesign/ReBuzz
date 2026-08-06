@@ -4,7 +4,7 @@ using System.ComponentModel;
 
 namespace ReBuzz.Midi
 {
-    public enum ReBuzzMIDIControllerType { Play, Stop, Record, Forward, Backward, Beginning, Loop, SpeedUp, SpeedDown }
+    public enum ReBuzzMIDIControllerType { Play, Stop, Record, Forward, Backward, Beginning, Loop, SpeedUp, SpeedDown, PatternView, MachineView, SequenceView, WaveTableView, SongInfoView }
     internal class MidiController : INotifyPropertyChanged
     {
         public string Name { get; set; }
