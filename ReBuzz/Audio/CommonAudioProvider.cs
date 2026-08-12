@@ -179,12 +179,15 @@ namespace ReBuzz.Audio
             }
         }
 
-        public unsafe int Read(float[] buffer, int offset, int count)
+        public unsafe int Read(Span<float> buffer)
         {
+            int count = buffer.Length;
+            int offset = 0;
+
             // Override audio driver and call workManager.ThreadRead outside of Read
             if (buzz.OverrideAudioDriver || stopped)
             {
-                Array.Clear(buffer, offset, count);
+                buffer.Clear();
                 ClearBuffer();
                 return count;
             }

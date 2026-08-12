@@ -88,5 +88,32 @@ namespace BespokeFusion
                 return msg.Result == MessageBoxResult.OK ? MessageBoxResult.Yes : MessageBoxResult.No;
             }
         }
+
+        public static MessageBoxResult ShowOkWindow(string title, string message, bool isRTL = false)
+        {
+            using (MessageBoxWindow msg = new MessageBoxWindow())
+            {   
+                msg.Title = title;
+                msg.TxtTitle.Text = "";
+                msg.TxtMessage.Text = message;
+                msg.BtnOk.Content = "Ok";
+
+                if (isRTL)
+                {
+                    msg.FlowDirection = FlowDirection.RightToLeft;
+                }
+                msg.BtnOk.Focus();
+                msg.BtnCancel.Visibility = Visibility.Collapsed;
+
+                var md = Utils.GetUserControlXAML<ResourceDictionary>("MainWindow.xaml", Global.BuzzPath);
+                if (md != null)
+                {
+                    msg.Resources.MergedDictionaries.Add(md);
+                }
+
+                msg.ShowDialog();
+                return msg.Result == MessageBoxResult.OK ? MessageBoxResult.Yes : MessageBoxResult.No;
+            }
+        }
     }
 }

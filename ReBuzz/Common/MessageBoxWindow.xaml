@@ -8,16 +8,14 @@
     Title="MessageBoxWindow"
     Topmost="True"
     VerticalAlignment="Center"
-    ResizeMode="NoResize"
+    
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d"
                     WindowStyle="ToolWindow"
     TextOptions.TextFormattingMode="{Binding TextFormattingMode}"
     Style="{DynamicResource ThemeWindowStyle}"
-    Width="400"
+    Width="500"
     Height="240">
-
-
 
     <Grid Name="MainContentControl" x:FieldModifier="public">
         <Grid.RowDefinitions>

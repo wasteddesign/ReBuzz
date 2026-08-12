@@ -12,7 +12,6 @@ using BuzzGUI.Interfaces;
 using BuzzGUI.Common;
 using NAudio.Wave;
 using System.Runtime.CompilerServices;
-using NAudio.CoreAudioApi;
 using System.Runtime.InteropServices;
 using BuzzGUI.Common.Templates;
 using NAudio;

@@ -2,6 +2,8 @@
 using BuzzGUI.Common.Settings;
 using NAudio.Wave;
 using ReBuzz.Core;
+using System;
+using System.Runtime.InteropServices;
 
 namespace ReBuzz.Audio
 {
@@ -31,9 +33,9 @@ namespace ReBuzz.Audio
         }
 
         // Can be multi-channel
-        public int Read(float[] buffer, int offset, int count)
+        public int Read(Span<float> buffer)
         {
-            return AudioSampleProvider.Read(buffer, offset, count);
+            return AudioSampleProvider.Read(buffer);
         }
 
         public void Stop()

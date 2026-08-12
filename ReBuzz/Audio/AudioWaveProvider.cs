@@ -1,12 +1,14 @@
-﻿using NAudio.Wave;
-using ReBuzz.Core;
-using System.Runtime.CompilerServices;
-using BuzzGUI.Common;
+﻿using BuzzGUI.Common;
 using BuzzGUI.Common.Settings;
+using NAudio.Wave;
+using ReBuzz.Core;
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace ReBuzz.Audio
 {
-    internal class AudioWaveProvider : IWaveProvider, IReBuzzAudioProvider
+    internal class AudioWaveProvider : IReBuzzAudioProvider
     {
         public WaveFormat WaveFormat { get; }
 
@@ -30,16 +32,11 @@ namespace ReBuzz.Audio
             AudioSampleProvider.ClearBuffer();
         }
 
-        public int Read(byte[] byteBuffer, int byteOffset, int byteCount)
+        public int Read(Span<float> floatBuffer)
         {
-            int offset = byteOffset >> 2;
-            int count = byteCount >> 2;
-            float[] buffer = Unsafe.As<byte[], float[]>(ref byteBuffer);
+            int retCount = AudioSampleProvider.Read(floatBuffer);
 
-            int retCount = AudioSampleProvider.Read(buffer, offset, count);
-
-            // Return byte count
-            return retCount << 2;
+            return retCount;
         }
 
         public void Stop()
