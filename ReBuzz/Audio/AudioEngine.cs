@@ -222,30 +222,38 @@ namespace ReBuzz.Audio
         {
             string wasapiDeviceID = registryEx.Read("DeviceID", "", "WASAPI");
             int wasapiDeviceSamplerate = registryEx.Read("SampleRate", 44100, "WASAPI");
-            int wasapiMode = registryEx.Read("Mode", 0, "WASAPI");
-            int wasapiPoll = registryEx.Read("Poll", 0, "WASAPI");
+            bool wasapiExclusiveMode = registryEx.Read("Mode", 0, "WASAPI") == 1;                          // default: shared mode
+            bool wasapiPollMode = registryEx.Read("Poll", 0, "WASAPI") == 1;                          // default: event sync (vs WithPollingSync)
             int bufferSize = registryEx.Read("BufferSize", 1024, "WASAPI");
             int latency = Math.Max(4, 1000 * 2 * bufferSize / wasapiDeviceSamplerate);
-                
+            bool rawMode = registryEx.Read("RawMode", 0, "WASAPI") == 1;                    // IAudioClient3 shared-mode low latency
+            bool lowLatencyMode = registryEx.Read("LowLatencyMode", 0, "WASAPI") == 1;      // bypass system audio enhancements
+
             var enumerator = new MMDeviceEnumerator();
             MMDevice mMDevice = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active).FirstOrDefault(d => d.ID == wasapiDeviceID);
 
             var builder = new WasapiPlayerBuilder()
                 .WithDevice(mMDevice)        // default: system default render device
                 .WithLatency(latency)                 // default: 200ms
-                .WithLowLatency()                // try IAudioClient3 shared-mode low latency
                 .WithMmcssThreadPriority("Pro Audio")
                 .WithCategory(AudioStreamCategory.Media);
 
-            if (wasapiMode == 1)
+            if (wasapiExclusiveMode)
             {
                 builder = builder.WithExclusiveMode();
             }
 
-            if (wasapiPoll == 1)
+            if (wasapiPollMode)
             {
                 builder = builder.WithPollingSync();
             }
+
+            if (rawMode)
+            {
+                builder = builder.WithRawMode();
+            }
+
+            builder = builder.WithLowLatency(lowLatencyMode);
 
             var wasapiPlayer = builder.Build();
             
@@ -266,6 +274,7 @@ namespace ReBuzz.Audio
             {
                 wasapiPlayer = new WasapiPlayerBuilder()
                     .WithDevice(mMDevice)
+                    .WithLowLatency(false)
                     .Build();
 
                 AudioProvider = new AudioProvider(buzzCore, engineSettings, wasapiDeviceSamplerate, 2, bufferSize, true, registryEx);
@@ -301,12 +310,12 @@ namespace ReBuzz.Audio
                         .WithMmcssThreadPriority("Pro Audio")
                         .WithBufferLength(latency);            // default: 100ms
 
-                    if (wasapiMode == 1)
+                    if (wasapiExclusiveMode)
                     {
                         //recorderBuilder = recorderBuilder.WithExclusiveMode();
                     }
 
-                    if (wasapiPoll == 1)
+                    if (wasapiPollMode)
                     {
                         recorderBuilder = recorderBuilder.WithPollingSync();
                     }
