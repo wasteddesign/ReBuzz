@@ -8,7 +8,7 @@
                 WindowStyle="ToolWindow"
         TextOptions.TextFormattingMode="{Binding TextFormattingMode}"
         Style="{DynamicResource ThemeWindowStyle}" ResizeMode="NoResize"
-        Title="Wasapi Settings" Height="250" Width="400">
+        Title="Wasapi Settings" Height="260" Width="400">
     <Grid Margin="8">
         <Grid.RowDefinitions>
             <RowDefinition Height="24"/>
@@ -16,6 +16,8 @@
             <RowDefinition Height="24"/>
             <RowDefinition Height="24"/>
             <RowDefinition Height="24"/>
+            <RowDefinition Height="24"/>
+            <RowDefinition Height="24"/>            
             <RowDefinition Height="24"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
@@ -33,10 +35,14 @@
         <ComboBox Margin="1" Name="cbMode" Grid.Row="3" Grid.Column="1" HorizontalContentAlignment="Right"></ComboBox>
         <TextBlock Grid.Row="4" Text="Poll"></TextBlock>
         <ComboBox Margin="1" Name="cbPoll" Grid.Row="4" Grid.Column="1" HorizontalContentAlignment="Right"></ComboBox>
-        <TextBlock Grid.Row="5" Text="Buffer Size"></TextBlock>
-        <ComboBox Margin="1" Name="cbBufferSize" Grid.Row="5" Grid.Column="1" HorizontalContentAlignment="Right"></ComboBox>
+        <TextBlock Grid.Row="5" Text="Raw Mode" ToolTip="Bypass system audio enhancements"></TextBlock>
+        <ComboBox Margin="1" Name="cbRawMode" Grid.Row="5" Grid.Column="1" HorizontalContentAlignment="Right"></ComboBox>
+        <TextBlock Grid.Row="6" Text="Low Latency Mode" ToolTip="IAudioClient3 shared-mode low latency"></TextBlock>
+        <ComboBox Margin="1" Name="cbLowLatencyMode" Grid.Row="6" Grid.Column="1" HorizontalContentAlignment="Right"></ComboBox>        
+        <TextBlock Grid.Row="7" Text="Buffer Size"></TextBlock>
+        <ComboBox Margin="1" Name="cbBufferSize" Grid.Row="7" Grid.Column="1" HorizontalContentAlignment="Right"></ComboBox>
 
-        <StackPanel Grid.Row="6" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+        <StackPanel Grid.Row="8" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
             <Button Name="btOk" Margin ="4" Height ="20" Width="60" VerticalAlignment="Bottom" Content="Ok"></Button>
             <Button Name="btCancel" Margin ="4" Height ="20" Width="60" VerticalAlignment="Bottom" Content="Cancel" IsDefault="True" IsCancel="True"></Button>
         </StackPanel>

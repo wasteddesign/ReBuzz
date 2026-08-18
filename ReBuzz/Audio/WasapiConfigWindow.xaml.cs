@@ -113,6 +113,26 @@ namespace BuzzDotNet.Audio
 
             cbPoll.SelectedIndex = wasapiPoll;
 
+            // Raw Mode
+            bool rawMode = registryEx.Read("RawMode", 0, "WASAPI") == 1;                    // IAudioClient3 shared-mode low latency
+
+            ComboBoxItem cbiRawMode = new ComboBoxItem() { Content = "False", Tag = 0 };
+            cbRawMode.Items.Add(cbiRawMode);
+            cbiRawMode = new ComboBoxItem() { Content = "True", Tag = 1 };
+            cbRawMode.Items.Add(cbiRawMode);
+
+            cbRawMode.SelectedIndex = rawMode ? 1 : 0;
+
+            // Low latency mode
+            bool lowLatencyMode = registryEx.Read("LowLatencyMode", 0, "WASAPI") == 1;      // IAudioClient3 shared-mode low latency
+            
+            ComboBoxItem cbiLowLatencyMode = new ComboBoxItem() { Content = "False", Tag = 0 };
+            cbLowLatencyMode.Items.Add(cbiLowLatencyMode);
+            cbiLowLatencyMode = new ComboBoxItem() { Content = "True", Tag = 1 };
+            cbLowLatencyMode.Items.Add(cbiLowLatencyMode);
+
+            cbLowLatencyMode.SelectedIndex = lowLatencyMode ? 1 : 0;
+
             // Latency
             int currentBufferSize = registryEx.Read("BufferSize", 1024, "WASAPI");
             int bufferSize = 16;
@@ -155,6 +175,8 @@ namespace BuzzDotNet.Audio
             registryEx.Write("SampleRate", (int)(cbSampleRate.SelectedItem as ComboBoxItem).Tag, "WASAPI");
             registryEx.Write("Mode", cbMode.SelectedIndex, "WASAPI");
             registryEx.Write("Poll", cbPoll.SelectedIndex, "WASAPI");
+            registryEx.Write("RawMode", cbRawMode.SelectedIndex, "WASAPI");
+            registryEx.Write("LowLatencyMode", cbLowLatencyMode.SelectedIndex, "WASAPI");
 
             int bufferSize = 1024;
             ComboBoxItem bsItem = (ComboBoxItem)cbBufferSize.SelectedItem;
