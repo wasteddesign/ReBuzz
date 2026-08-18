@@ -134,6 +134,8 @@ namespace ReBuzz.Audio
             {
                 long time = Stopwatch.GetTimestamp();
 
+                buzzCore.AudioEngine.ClearChannels();
+
                 multiThreadingEnabled = engineSettings.Multithreading;
 
                 var subTickInfo = ReBuzzCore.subTickInfo;
@@ -144,7 +146,7 @@ namespace ReBuzz.Audio
 
                 while (reminingBuffer > 0)
                 {   
-                    int samplesToProcess = Math.Min(reminingBuffer / 2, 256);
+                    int framesToProcess = Math.Min(reminingBuffer / 2, 256);
 
                     // More accurate samples per tick?
                     //if (engineSettings.AccurateBPM)
@@ -166,26 +168,26 @@ namespace ReBuzz.Audio
                     // HandleParameterRecord();
 
                     // Ensure we don't go over tick
-                    if (masterInfo.PosInTick + samplesToProcess > masterInfo.SamplesPerTick)
+                    if (masterInfo.PosInTick + framesToProcess > masterInfo.SamplesPerTick)
                     {
                         // Make sure tick will be zero
-                        samplesToProcess = masterInfo.SamplesPerTick - masterInfo.PosInTick;
-                        if (samplesToProcess < 0)
+                        framesToProcess = masterInfo.SamplesPerTick - masterInfo.PosInTick;
+                        if (framesToProcess < 0)
                             return 0;
                     }
 
                     // Ensure we don't go over subtick
                     if (engineSettings.SubTickTiming && 
-                        subTickInfo.PosInSubTick + samplesToProcess > subTickInfo.SamplesPerSubTick)
+                        subTickInfo.PosInSubTick + framesToProcess > subTickInfo.SamplesPerSubTick)
                     {
                         // Make sure tick will be zero
-                        samplesToProcess = subTickInfo.SamplesPerSubTick - subTickInfo.PosInSubTick;
-                        if (samplesToProcess < 0)
+                        framesToProcess = subTickInfo.SamplesPerSubTick - subTickInfo.PosInSubTick;
+                        if (framesToProcess < 0)
                             return 0;
                     }
 
                     // Call Pattern Column Events
-                    UpdatePatternColumnEvents(samplesToProcess);
+                    UpdatePatternColumnEvents(framesToProcess);
 
                     // Update Managed Machine host info
                     buzzCore.MachineManager.UpdateMasterAndSubTickInfoToHost();
@@ -194,19 +196,19 @@ namespace ReBuzz.Audio
                     CallTick();
 
                     // Call work
-                    ReadWork(buffer, workBufferOffset, samplesToProcess);
+                    ReadWork(buffer, workBufferOffset, framesToProcess);
 
                     // Mix waves playing from wavetable 
                     if (buzzCore.SongCore.WavetableCore.IsPlayingWave())
                     {
-                        buzzCore.SongCore.WavetableCore.GetPlayWaveSamples(playWaveBuffer, offset, samplesToProcess);
+                        buzzCore.SongCore.WavetableCore.GetPlayWaveSamples(playWaveBuffer, offset, framesToProcess);
                         // Elementwise multiply-add in single precision with the
                         // same two per-element roundings as the scalar loop
                         // (separate * then +, matching operand order; RyuJIT
                         // performs no FP contraction, so neither form uses FMA;
                         // no reduction) => bit-exact. ("wvw" to avoid CS0136
                         // with the output-scale block's "vw" below.)
-                        int n = samplesToProcess * 2;
+                        int n = framesToProcess * 2;
                         Vector<float> waveMulVec = new Vector<float>(32768.0f);
                         int wvw = Vector<float>.Count;
                         int i = 0;
@@ -223,13 +225,14 @@ namespace ReBuzz.Audio
                     }
 
                     // Master Tap
-                    buzzCore.MasterTapSamples(buffer, workBufferOffset, samplesToProcess * 2);
+                    buzzCore.MasterTapSamples(buffer, workBufferOffset, framesToProcess * 2);
+                    buzzCore.MasterTapSamplesMultiChannel(buffer, workBufferOffset, framesToProcess * 2);
 
-                    workBufferOffset += samplesToProcess * 2;
-                    reminingBuffer -= samplesToProcess * 2;
+                    workBufferOffset += framesToProcess * 2;
+                    reminingBuffer -= framesToProcess * 2;
 
-                    subTickInfo.PosInSubTick += samplesToProcess;
-                    masterInfo.PosInTick += samplesToProcess;
+                    subTickInfo.PosInSubTick += framesToProcess;
+                    masterInfo.PosInTick += framesToProcess;
 
                     if (subTickInfo.PosInSubTick >= subTickInfo.SamplesPerSubTick)
                     {
@@ -253,10 +256,10 @@ namespace ReBuzz.Audio
                     }
 
                     // Update position info in patterns
-                    UpdatePatternPositions(samplesToProcess);
+                    UpdatePatternPositions(framesToProcess);
 
                     // Update frame count
-                    unchecked { ReBuzzCore.GlobalState.AudioFrame++; }
+                    unchecked { ReBuzzCore.GlobalState.AudioFrame += framesToProcess; }
                 }
 
                 float audioOutMul = 1 / 32768.0f;

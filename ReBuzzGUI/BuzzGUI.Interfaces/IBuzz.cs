@@ -84,6 +84,7 @@ namespace BuzzGUI.Interfaces
         void ConfigureAudioDriver();
 
         int RenderAudio(float[] buffer, int nsamples, int samplerate);      // can be called when OverrideAudioDriver == true
+        int RenderAudioMultiChannel(float[] buffer, int nsamples, int samplerate); // can be called when OverrideAudioDriver == true
 
         IMachine GetIMachineFromCMachinePtr(IntPtr pmac);
 
@@ -104,6 +105,14 @@ namespace BuzzGUI.Interfaces
         // callback. Handlers that retain it (queue it, hand it to another
         // thread) must copy it first ((float[])samples.Clone()). See #122/#125.
         event Action<float[], bool, SongTime> MasterTap;
+
+        // Samples, channels, SongTime
+        event Action<float[], int, SongTime> MasterTapMultiChannel;
+
+        public int MasterTapChannelCount { get; set; }
+
+        // Audio interface outputs.
+        public int OutputChannels { get; }
 
         // Extensions
         void SetModifiedFlag();

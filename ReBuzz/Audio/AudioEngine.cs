@@ -156,6 +156,10 @@ namespace ReBuzz.Audio
         {
             int frames = b.Frames;
             int channels = b.OutputChannelCount;
+            if (asioBuffer.Length < frames * channels)
+            {
+                asioBuffer = new float[frames * channels];
+            }
             Span<float> interleaved = asioBuffer.AsSpan(0, frames * channels);
 
             AudioWaveProvider.Read(interleaved);
@@ -594,6 +598,14 @@ namespace ReBuzz.Audio
             else if (AudioWaveProvider != null)
                 return AudioWaveProvider;
             else return null;
+        }
+
+        internal void ClearChannels()
+        {
+            if (AudioProvider != null)
+            {
+                (AudioProvider as IReBuzzAudioProvider).ClearChannels();
+            }
         }
     }
 }

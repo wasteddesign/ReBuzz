@@ -1,4 +1,5 @@
-﻿using BuzzGUI.Common;
+﻿using Buzz.MachineInterface;
+using BuzzGUI.Common;
 using BuzzGUI.Common.DSP;
 using BuzzGUI.Interfaces;
 using libsndfile;
@@ -27,6 +28,12 @@ namespace BuzzGUI.MachineView.HDRecorder
 
         IBuzz buzz;
         IMachineGraph machineGraph;
+
+        List<MultiChannelItem> multiChannelItems;
+        public List<MultiChannelItem> MultiChannelItems { get => multiChannelItems; set { multiChannelItems = value; PropertyChanged.Raise(this, "MultiChannelItems"); } }
+
+        int multiChannelListIndex = 0;
+        public int MultiChannelListIndex { get => multiChannelListIndex; set { multiChannelListIndex = value; cbMultiChannel.ToolTip = MultiChannelItems?[multiChannelListIndex].ToString(); PropertyChanged.Raise(this, "MultiChannelListIndex"); } }
 
         public IMachineGraph MachineGraph
         {
@@ -92,6 +99,8 @@ namespace BuzzGUI.MachineView.HDRecorder
                 PropertyChanged.Raise(this, "IsNotRecording");
             }
         }
+
+        int recordingChannelCount = 2;
 
         public bool IsNotRecording { get { return !IsRecording; } }
 
@@ -228,6 +237,16 @@ namespace BuzzGUI.MachineView.HDRecorder
                 Stop();
             };
 
+            MultiChannelItems =
+            [
+                new MultiChannelItem() { ChannelType = MultiChannelType.Stereo, ChannelCount = 2 },
+                new MultiChannelItem() { ChannelType = MultiChannelType.AudioInterfaceOutputCount, ChannelCount = Global.Buzz.OutputChannels },
+            ];
+            for (int i = 4; i <= 32; i += 2)
+            {
+                MultiChannelItems.Add(new MultiChannelItem() { ChannelType = MultiChannelType.Range, ChannelCount = i });
+            }
+            MultiChannelListIndex = 0;
         }
 
         // Remove the runnning digit
@@ -261,7 +280,12 @@ namespace BuzzGUI.MachineView.HDRecorder
         {
             var bitdepths = new[] { Format.SF_FORMAT_PCM_16, Format.SF_FORMAT_PCM_24, Format.SF_FORMAT_PCM_32, Format.SF_FORMAT_FLOAT };
 
-            var soundFile = SoundFile.Create(OutputPath, buzz.SelectedAudioDriverSampleRate, 2, Format | bitdepths[BitDepthIndex]);
+            SoundFile soundFile = null;
+
+            recordingChannelCount = multiChannelItems[MultiChannelListIndex].ChannelCount;
+            Global.Buzz.MasterTapChannelCount = recordingChannelCount;
+            soundFile = SoundFile.Create(OutputPath, buzz.SelectedAudioDriverSampleRate, multiChannelItems[MultiChannelListIndex].ChannelCount, Format | bitdepths[BitDepthIndex]);
+
             soundFile.Clipping = true;
 
             bufferQueue = new BlockingCollection<float[]>();
@@ -273,8 +297,9 @@ namespace BuzzGUI.MachineView.HDRecorder
                     try
                     {
                         var samples = bufferQueue.Take();
+
                         DSP.Scale(samples, 1.0f / 32768.0f);
-                        soundFile.WriteFloat(samples, 0, samples.Length / 2);
+                        soundFile.WriteFloat(samples, 0, samples.Length / recordingChannelCount);
                     }
                     catch (InvalidOperationException) { }
                 }
@@ -302,7 +327,8 @@ namespace BuzzGUI.MachineView.HDRecorder
             prepareCount = 0;
             state = States.Recording;
 
-            buzz.MasterTap += Buzz_MasterTap;
+            buzz.MasterTapMultiChannel += Buzz_MasterTapMultiChannel;
+
             IsRecording = true;
         }
 
@@ -327,7 +353,7 @@ namespace BuzzGUI.MachineView.HDRecorder
             prepareCount = prepcount;
             state = States.WaitingForStart;
 
-            buzz.MasterTap += Buzz_MasterTap;
+            buzz.MasterTapMultiChannel += Buzz_MasterTapMultiChannel;
 
             buzz.Playing = true;
             IsRecording = true;
@@ -338,24 +364,31 @@ namespace BuzzGUI.MachineView.HDRecorder
 
                 driveTask = Task.Factory.StartNew(() =>
                 {
-
                     var buffer = new float[2 * 256];
                     while (!cts.Token.IsCancellationRequested)
                     {
-                        System.Threading.Thread.Sleep(0);
+                        Thread.Sleep(0);
 
                         for (int i = 0; i < 10; i++)
-                            buzz.RenderAudio(buffer, 256, buzz.SelectedAudioDriverSampleRate);
+                        {
+                            buzz.RenderAudioMultiChannel(buffer, 256, buzz.SelectedAudioDriverSampleRate);
+                        }
                     }
 
                     buzz.OverrideAudioDriver = false;
                 });
             }
-
-
         }
 
-        void Buzz_MasterTap(float[] samples, bool stereo, SongTime songtime)
+        private void Buzz_MasterTapMultiChannel(float[] samples, int channels, SongTime songtime)
+        {
+            if (channels != recordingChannelCount)
+                return;
+
+            HandleMasterTapData(samples, songtime);
+        }
+
+        void HandleMasterTapData(float[] samples, SongTime songtime)
         {
             bool juststarted = false;
 
@@ -392,7 +425,6 @@ namespace BuzzGUI.MachineView.HDRecorder
             {
                 bufferQueue.Add((float[])samples.Clone()); // own a copy: MasterTap reuse buffer is recycled after this returns (#122)
             }
-
         }
 
         void Stop()
@@ -400,7 +432,7 @@ namespace BuzzGUI.MachineView.HDRecorder
             if (!IsRecording) return;
 
             IsRecording = false;
-            buzz.MasterTap -= Buzz_MasterTap;
+            buzz.MasterTapMultiChannel -= Buzz_MasterTapMultiChannel;
             if (buzz.Playing) buzz.Playing = false;
             progress.Value = 0;
             progress.IsEnabled = false;
@@ -427,5 +459,32 @@ namespace BuzzGUI.MachineView.HDRecorder
         public event PropertyChangedEventHandler PropertyChanged;
 
         #endregion
+    }
+
+    public enum MultiChannelType
+    {
+        Stereo,
+        AudioInterfaceOutputCount,
+        Range
+    }
+
+    public class MultiChannelItem
+    {
+        public MultiChannelType ChannelType { get; set; }
+        public int ChannelCount { get; set; }
+        public override string ToString()
+        {
+            switch (ChannelType)
+            {
+                case MultiChannelType.Stereo:
+                    return "Stereo";
+                case MultiChannelType.AudioInterfaceOutputCount:
+                    return "Audio Interface Output Channel Count";
+                case MultiChannelType.Range:
+                    return "Channels 0 - " + ChannelCount;
+                default:
+                    return "";
+            }
+        }
     }
 }

@@ -30,6 +30,7 @@ using System.Printing;
 using System.Reflection;
 using System.Runtime;
 using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics.X86;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -37,6 +38,7 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
 using System.Xml.Linq;
+using Windows.Services.Maps.LocalSearch;
 using Timer = System.Timers.Timer;
 
 namespace ReBuzz.Core
@@ -176,6 +178,8 @@ namespace ReBuzz.Core
         internal MidiControllerAssignments MidiControllerAssignments { get; set; }
 
         internal DispatcherTimer dtEngineThread;
+
+        public int OutputChannels { get => AudioEngine.GetAudioProvider().AudioSampleProvider.OutputChannels; }
 
         int speed;
         bool playing;
@@ -665,6 +669,7 @@ namespace ReBuzz.Core
         public event Action PatternEditorActivated;
         public event Action SequenceEditorActivated;
         public event Action<float[], bool, SongTime> MasterTap;
+        public event Action<float[], int, SongTime> MasterTapMultiChannel;
 
         // ─── MasterTap double-buffer (avoid a per-sub-chunk alloc) ───────────
         // The tap copy escapes to the GUI thread via BeginInvoke and is read
@@ -1430,7 +1435,18 @@ namespace ReBuzz.Core
             var ap = AudioEngine.GetAudioProvider();
             if (ap != null)
             {
-                ap.ReadOverride(buffer, 0, nsamples);
+                ap.ReadOverride(buffer, 0, nsamples, false);
+                return nsamples;
+            }
+            return 0;
+        }
+
+        public int RenderAudioMultiChannel(float[] buffer, int nsamples, int samplerate)
+        {
+            var ap = AudioEngine.GetAudioProvider();
+            if (ap != null)
+            {
+                ap.ReadOverride(buffer, 0, nsamples, true);
                 return nsamples;
             }
             return 0;
@@ -1701,6 +1717,29 @@ namespace ReBuzz.Core
                 }
             });
         }
+
+        internal void MasterTapSamplesMultiChannel(float[] samples, int offset, int count)
+        {
+            if (MasterTapMultiChannel != null)
+            {
+                var s = GetSongTime();
+                float[] resSamples = new float[count * MasterTapChannelCount / 2];
+                AudioEngine.GetAudioProvider().AudioSampleProvider.FillBufferForMultiChannelMasterTap(resSamples, samples, offset, count);
+                dispatcher.BeginInvoke(() =>
+                {
+                    try
+                    {
+                        MasterTapMultiChannel?.Invoke(resSamples, MasterTapChannelCount, s);
+                    }
+                    finally
+                    {
+                    }
+                });
+            }
+        }
+
+        int masterTapChannelCount = 2;
+        public int MasterTapChannelCount { get => masterTapChannelCount; set { masterTapChannelCount = Math.Max(2, Math.Min(AudioEngine.GetAudioProvider().AudioSampleProvider.MaxStereoChannelCount * 2, value)); PropertyChanged.Raise(this, "MasterTapChannelCount"); } }
 
         internal MachineCore CloneMachine(MachineCore machineToClone, float x, float y)
         {
@@ -2214,10 +2253,14 @@ namespace ReBuzz.Core
             AudioReceived?.Invoke(samples, n);
         }
 
+        Lock audioOutLock = new();
         public void AudioOut(int channel, Sample[] samples, int n)
         {
-            var AudioProvider = AudioEngine.GetAudioProvider();
-            AudioProvider?.AudioSampleProvider.FillChannel(channel, samples, n);
+            lock (audioOutLock)
+            {
+                var AudioProvider = AudioEngine.GetAudioProvider();
+                AudioProvider?.AudioSampleProvider.FillChannel(channel, samples, n);
+            }
         }
 
         internal bool SetEditorMachineForCurrent(IMachineDLL editorMachine)

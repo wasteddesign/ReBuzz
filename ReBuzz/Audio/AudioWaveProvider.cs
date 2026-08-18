@@ -32,6 +32,11 @@ namespace ReBuzz.Audio
             AudioSampleProvider.ClearBuffer();
         }
 
+        public void ClearChannels()
+        {
+            AudioSampleProvider.ClearChannels();
+        }
+
         public int Read(Span<float> floatBuffer)
         {
             int retCount = AudioSampleProvider.Read(floatBuffer);
@@ -44,9 +49,9 @@ namespace ReBuzz.Audio
             AudioSampleProvider.Stop();
         }
 
-        public int ReadOverride(float[] buffer, int offset, int count)
+        public int ReadOverride(float[] buffer, int offset, int count, bool multiChannel)
         {
-            return AudioSampleProvider.ReadOverride(buffer, offset, count);
+            return AudioSampleProvider.ReadOverride(buffer, offset, count, multiChannel);
         }
     }
 }
