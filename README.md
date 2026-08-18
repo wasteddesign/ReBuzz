@@ -12,6 +12,7 @@ ReBuzz is a modular digital audio workstation (DAW) built upon the foundation of
 * Modern Pattern Editor, Modern Sequence Editor, AudioBlock, EnvelopeBlock, CMC, TrackScript...
 * Multi-process architecture
 * Multi-io for native and managed machines
+* Multi-channel recording
 * Includes [NWaves](https://github.com/ar1st0crat/NWaves) .NET DSP library for audio processing
 * bmx and bmxml file support
 * ...
