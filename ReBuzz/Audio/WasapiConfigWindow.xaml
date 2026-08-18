@@ -8,7 +8,7 @@
                 WindowStyle="ToolWindow"
         TextOptions.TextFormattingMode="{Binding TextFormattingMode}"
         Style="{DynamicResource ThemeWindowStyle}" ResizeMode="NoResize"
-        Title="Wasapi Settings" Height="260" Width="400">
+        Title="Wasapi Settings" Height="280" Width="400">
     <Grid Margin="8">
         <Grid.RowDefinitions>
             <RowDefinition Height="24"/>
