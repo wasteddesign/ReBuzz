@@ -104,7 +104,12 @@ namespace WDE.ReBuzzAudioOut
 					Command = new SimpleCommand()
 					{
 						CanExecuteDelegate = p => true,
-						ExecuteDelegate = p => MessageBox.Show("ReBuzz Audio Out 0.1 (C) 2024 WDE")
+						ExecuteDelegate = p => MessageBox.Show(@"ReBuzz Audio Out 0.1 (C) 2026 WDE
+
+Usage:
+1. Connect ReBuzz Audio Out to Master.
+2. Choose output channel from ReBuzz Audio Out menu.
+3. Connect machine(s) to ReBuzz Audio Out.")
 					}
 				};
 			}

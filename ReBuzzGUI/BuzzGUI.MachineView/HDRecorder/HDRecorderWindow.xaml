@@ -8,6 +8,7 @@
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
 		</Grid.RowDefinitions>
 
@@ -16,6 +17,7 @@
 				<ColumnDefinition Width="Auto"/>
 				<ColumnDefinition Width="*"/>
 				<ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
 			</Grid.ColumnDefinitions>
 		
 			<Button Grid.Column="0" Width="60" Height="22" Command="{Binding SaveAsCommand}" IsEnabled="{Binding SettingsGUIEnabled}">Save As...</Button>
@@ -29,15 +31,21 @@
                     </ContextMenu>
                 </TextBlock.ContextMenu>
             </TextBlock>
-            <ComboBox Grid.Column="2" HorizontalAlignment="Right" Width="70" SelectedIndex="{Binding BitDepthIndex}" ToolTip="Bit Depth">
-				<ComboBoxItem Content="int16"/>
-				<ComboBoxItem Content="int24"/>
-				<ComboBoxItem Content="int32"/>
-				<ComboBoxItem Content="float32"/>
-			</ComboBox>
+
 		</Grid>
-		
-		<StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,8,0,0">
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,8,0,0" HorizontalAlignment="Right">
+            <TextBlock Text="Channel Count: " ToolTip="Multi-Channel" Margin="4,0,0,0"></TextBlock>
+            <ComboBox Name="cbMultiChannel" HorizontalAlignment="Right" Margin="0,0,4,0" Width="100" ItemsSource="{Binding MultiChannelItems}" SelectedIndex="{Binding MultiChannelListIndex}" ToolTip=""></ComboBox>
+            <ComboBox HorizontalAlignment="Right" Width="70" SelectedIndex="{Binding BitDepthIndex}" ToolTip="Bit Depth">
+                <ComboBoxItem Content="int16"/>
+                <ComboBoxItem Content="int24"/>
+                <ComboBoxItem Content="int32"/>
+                <ComboBoxItem Content="float32"/>
+            </ComboBox>
+        </StackPanel>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,8,0,0">
 			<Button Width="100" Height="22" Content="Record"  Command="{Binding RecordCommand}" IsEnabled="{Binding IsNotRecording}"/>
 			<Button Width="100" Height="22" Margin="4,0,0,0" Content="Record Loop" Command="{Binding RecordLoopCommand}" IsEnabled="{Binding IsNotRecording}"/>
 			<Button Width="100" Height="22" Margin="4,0,0,0" Content="Render Loop" Command="{Binding RenderLoopCommand}" IsEnabled="{Binding IsNotRecording}"/>
@@ -45,7 +53,7 @@
 			<Button Width="61.99" Height="22" Margin="4,0,0,0" Content="Stop" Command="{Binding StopCommand}" IsEnabled="{Binding IsRecording}"/>
 		</StackPanel>
 	
-		<ProgressBar Name="progress" Grid.Row="2" Height="22" Margin="0,8,0,0" IsEnabled="False"/>
+		<ProgressBar Name="progress" Grid.Row="3" Height="22" Margin="0,8,0,0" IsEnabled="False"/>
 
 	</Grid>
 </Window>

@@ -1,13 +1,12 @@
 ﻿using Buzz.MachineInterface;
 using BuzzGUI.Common;
+using BuzzGUI.Common.Settings;
+using BuzzGUI.Interfaces;
+using ReBuzz.Audio.BurstProtection;
 using ReBuzz.Common;
 using ReBuzz.Core;
 using System;
 using System.Threading;
-using System.Threading.Tasks;
-using BuzzGUI.Common.Settings;
-using BuzzGUI.Interfaces;
-using ReBuzz.Audio.BurstProtection;
 
 namespace ReBuzz.Audio
 {
@@ -27,7 +26,7 @@ namespace ReBuzz.Audio
         int threadBufferFillLevel = 0;
         int threadBufferReadOffset = 0;
         private int fillBufferNeed;
-        private readonly int channels;
+        private readonly int outputChannels;
         private readonly int threadBufferSize;
         readonly EAudioThreadType threadType;
 
@@ -38,6 +37,8 @@ namespace ReBuzz.Audio
         const double DeadlineWarmupMs = 1000.0;   // ignore startup priming misses
 
         BurstProtectionEngine audioBurstProtection;
+        readonly int maxStereoChannelCount = 32;
+        public int MaxStereoChannelCount => maxStereoChannelCount;
 
         public CommonAudioProvider(
           ReBuzzCore buzzCore,
@@ -49,7 +50,7 @@ namespace ReBuzz.Audio
         {
             this.buzz = buzzCore;
             buzzCore.SelectedAudioDriverSampleRate = sampleRate;
-            this.channels = channels;
+            this.outputChannels = channels;
             deadlineSampleRate = sampleRate;
 
             threadBufferSize = bufferSize < 16 ? 16 : bufferSize * 2; // Stereo
@@ -58,12 +59,12 @@ namespace ReBuzz.Audio
             threadBuffer = new float[size];
             fillBuffer = new float[size];
 
-            fillBufferChannel = new float[64][];
-            for (int i = 0; i < 64; i++)
+            fillBufferChannel = new float[maxStereoChannelCount][];
+            for (int i = 0; i < maxStereoChannelCount; i++)
                 fillBufferChannel[i] = new float[size];
 
-            threadBufferChannel = new float[64][];
-            for (int i = 0; i < 64; i++)
+            threadBufferChannel = new float[maxStereoChannelCount][];
+            for (int i = 0; i < maxStereoChannelCount; i++)
                 threadBufferChannel[i] = new float[size];
 
             long processorAffinityMask = registryEx.Read("ProcessorAffinity", 0xFFFFFFFF, "Settings");
@@ -126,7 +127,18 @@ namespace ReBuzz.Audio
             threadBufferWriteOffset = 0;
         }
 
+        internal void ClearChannels()
+        {
+            for (int i = 1; i < outputChannels / 2; i++)
+            {
+                Array.Clear(fillBufferChannel[i], 0, fillBufferChannel[i].Length);
+            }
+        }
+
         private readonly Lock bufferLock = new();
+
+        public int OutputChannels => outputChannels;
+
         private int FillTheBuffer(int readSize)
         {
             lock (bufferLock)
@@ -155,7 +167,7 @@ namespace ReBuzz.Audio
                     Buffer.BlockCopy(fillBuffer, offset << 2, threadBuffer, threadBufferWriteOffset << 2, count << 2);
 
                     // Copy other output channels
-                    int stereoOutChannels = channels / 2;
+                    int stereoOutChannels = OutputChannels / 2;
                     for (int j = 1; j < stereoOutChannels; j++)
                     {
                         var fromBuffer = fillBufferChannel[j];
@@ -193,8 +205,8 @@ namespace ReBuzz.Audio
             }
 
             // count is in floats; convert to stereo frames (L,R) per output channel pair
-            int stereoChannels = channels / 2;
-            int framesRequested = count / channels; // frames per all channels
+            int stereoChannels = OutputChannels / 2;
+            int framesRequested = count / OutputChannels; // frames per all channels
             int samplesRequested = framesRequested * 2; // L,R per frame in threadBuffer
 
             int countRemaining = samplesRequested;
@@ -206,13 +218,13 @@ namespace ReBuzz.Audio
                 lock (bufferLock)
                 {
                     int readCount = Math.Min(countRemaining, threadBufferFillLevel);
+                    float audioOutMul = 1 / 32768.0f;
 
                     if (threadBufferReadOffset + readCount > threadBuffer.Length)
                         readCount = threadBuffer.Length - threadBufferReadOffset;
 
                     if (readCount > 0)
                     {
-
                         audioBurstProtection.Process(threadBuffer, threadBufferReadOffset, readCount, true, false);
 
                         for (int j = 1; j < stereoChannels; j++)
@@ -232,8 +244,8 @@ namespace ReBuzz.Audio
                             for (int j = 1; j < stereoChannels; j++)
                             {
                                 var chBuf = threadBufferChannel[j];
-                                buffer[offset++] = chBuf[threadBufferReadOffset];
-                                buffer[offset++] = chBuf[threadBufferReadOffset + 1];
+                                buffer[offset++] = chBuf[threadBufferReadOffset] * audioOutMul;         // Scale other channels to match required output
+                                buffer[offset++] = chBuf[threadBufferReadOffset + 1] * audioOutMul;
                             }
 
                             threadBufferReadOffset += 2;
@@ -261,15 +273,16 @@ namespace ReBuzz.Audio
             // Did this callback overrun its OWN block period? Deadline is derived
             // per-call from frames/sampleRate (the driver hands blocks far larger
             // than the nominal buffer size, so the nominal size is the wrong number).
-            if (deadlineSampleRate > 0 && channels > 0)
+            if (deadlineSampleRate > 0 && OutputChannels > 0)
             {
                 long nowTicks = deadlineSw.ElapsedTicks;
                 double elapsedMs = (nowTicks - deadlineStartTicks) * deadlineTicksToMs;
-                double deadlineMs = (count / channels) / (double)deadlineSampleRate * 1000.0;
+                double deadlineMs = (count / OutputChannels) / (double)deadlineSampleRate * 1000.0;
                 if (nowTicks * deadlineTicksToMs > DeadlineWarmupMs && elapsedMs > deadlineMs)
                     ReBuzzCore.RecordDeadlineMiss((long)((elapsedMs - deadlineMs) * 1000.0));
             }
-            return count - (countRemaining * channels / 2);
+
+            return count - (countRemaining * stereoChannels);
         }
 
         public void Stop()
@@ -297,28 +310,77 @@ namespace ReBuzz.Audio
             audioBurstProtection.Release();
         }
 
-        internal int ReadOverride(float[] buffer, int offset, int count)
+        public int FillBufferForMultiChannelMasterTap(
+            float[] buffer,
+            float[] samples,
+            int offset,
+            int count)
         {
-            return workManager.MainAudioFillBuffer(buffer, offset, count);
+            int stereoChannels = buzz.MasterTapChannelCount / 2;    // number of stereo pairs
+            int frames = count / 2;                                 // number of frames to write
+
+            int writeOffset = 0;
+            int frameOffset = offset / 2;                           // convert float offset → frame offset
+
+            for (int f = 0; f < frames; f++)
+            {
+                int sampleIndex = (frameOffset + f) * 2;            // L,R index in samples[]
+
+                // main stereo pair
+                buffer[writeOffset++] = samples[sampleIndex];
+                buffer[writeOffset++] = samples[sampleIndex + 1];
+
+                // additional stereo pairs
+                for (int j = 1; j < stereoChannels; j++)
+                {
+                    var chBuf = fillBufferChannel[j];
+                    buffer[writeOffset++] = chBuf[sampleIndex];
+                    buffer[writeOffset++] = chBuf[sampleIndex + 1];
+                }
+            }
+
+            return count; // number of floats written
+        }
+
+        internal int ReadOverride(float[] buffer, int offset, int count, bool multiChannel = false)
+        {
+            int readCount;
+
+            if (multiChannel)
+            {
+                readCount = count;
+                // count is in floats; convert to stereo frames (L,R) per output channel pair
+                int framesRequested = count / buzz.MasterTapChannelCount; // frames per all channels
+                int mainStereoSamplesRequested = framesRequested * 2; // L,R per frame in 
+
+                workManager.MainAudioFillBuffer(buffer, offset, mainStereoSamplesRequested);
+            }
+            else
+            {
+                readCount = workManager.MainAudioFillBuffer(buffer, offset, count);
+            }
+
+            return readCount;
         }
 
         internal void FillChannel(int channel, Sample[] samples, int n)
         {
             // First channel (0) is the main stereo out
-            if (channel < 1 || channel >= channels / 2 || channel >= 64)
+            if (channel < 1 || channel >= maxStereoChannelCount)
                 return;
 
             var fillChannel = fillBufferChannel[channel];
             var workBufferOffset = workManager.workBufferOffset;    // Ugly, but we need to know where to write
             int j = 0;
-            float audioOutMul = 1 / 32768.0f;
-
+            
             if (buzz.Speed == 0)
             {
                 for (int i = 0; i < n; i++)
                 {
-                    fillChannel[j++ + workBufferOffset] += samples[i].L * audioOutMul;
-                    fillChannel[j++ + workBufferOffset] += samples[i].R * audioOutMul;
+                    fillChannel[workBufferOffset + j] += samples[i].L;
+                    fillChannel[workBufferOffset + j + 1] += samples[i].R;
+
+                    j += 2;
                 }
             }
             else
@@ -342,7 +404,7 @@ namespace ReBuzz.Audio
 
                 for (int i = 0; i < targetCount; i++)
                 {
-                    fillChannel[i + workBufferOffset] += toBuffer[i] * audioOutMul;
+                    fillChannel[i + workBufferOffset] += toBuffer[i];
                 }
             }
         }
