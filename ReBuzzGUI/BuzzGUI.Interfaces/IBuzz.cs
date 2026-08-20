@@ -113,11 +113,13 @@ namespace BuzzGUI.Interfaces
 
         // Audio interface outputs.
         public int OutputChannels { get; }
-
+        public int InputChannels { get; }
         // Extensions
         void SetModifiedFlag();
         // void ControlChange(IMachine machine, int group, int track, int param, int value);
-        event Action<float[], int> AudioReceived;
+
+        // Buffer, frames, channel count
+        event Action<float[], int, int> AudioReceived;
         void AudioOut(int channel, Sample[] samples, int n);
 
         // Device number, device name

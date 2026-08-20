@@ -262,7 +262,7 @@ namespace ReBuzz.Core
                         looptype = looptype,
                         layer = layer
                     };
-                    realTimeResampler.Reset(Global.Buzz.SelectedAudioDriverSampleRate, wave.Layers[layer].SampleRate <= 0 ? 44100 : wave.Layers[layer].SampleRate);
+                    realTimeResampler.Reset(Global.Buzz.SelectedAudioDriverSampleRate, wave.Layers[layer].SampleRate <= 0 ? 44100 : wave.Layers[layer].SampleRate, wave.Layers[layer].ChannelCount);
                 }
                 catch (Exception e)
                 {
@@ -287,7 +287,7 @@ namespace ReBuzz.Core
                         looptype = LoopType.None,
                         sf = sf
                     };
-                    realTimeResampler.Reset(Global.Buzz.SelectedAudioDriverSampleRate, sf.SampleRate);
+                    realTimeResampler.Reset(Global.Buzz.SelectedAudioDriverSampleRate, sf.SampleRate, sf.ChannelCount);
                 }
                 catch (Exception e)
                 {
@@ -323,7 +323,7 @@ namespace ReBuzz.Core
                     if (PlayWaveData.sf != null)
                     {
                         int samplesRead = 0;
-                        while (realTimeResampler.AvailableSamples() < sampleCount)
+                        while (realTimeResampler.AvailableFrames() < sampleCount)
                         {
                             if (!ReadSamplesFromFile(offset, sampleCount))
                                 return false;
@@ -336,7 +336,7 @@ namespace ReBuzz.Core
                     else if (PlayWaveData.wave.Layers.Count > 0)
                     {
                         var layer = PlayWaveData.wave.Layers[PlayWaveData.layer];
-                        while (realTimeResampler.AvailableSamples() < sampleCount)
+                        while (realTimeResampler.AvailableFrames() < sampleCount)
                         {
                             layer.GetDataAsFloat(wavetableAudiobuffer, 0, 2, 0, PlayWaveData.postion, sampleCount);
                             layer.GetDataAsFloat(wavetableAudiobuffer, 0 + 1, 2, 1, PlayWaveData.postion, sampleCount);
