@@ -11,9 +11,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Threading;
 
@@ -133,23 +135,28 @@ namespace ReBuzz.Audio
             SampleRateIn = sampleRate;
         }
 
-        float[] asioBuffer = new float[1024 * 16 * 2];
+        float[] asioBuffer = new float[1024 * 16 * 32]; // supports up to 32 channels
         private void AsioDuplexAudioAvailable(AsioProcessBuffers b)
         {
-            // For now, input only from first two channels, but we can expand this later if needed.
-            if (b.InputChannelCount < 2)
+            int channels = b.InputChannelCount;
+            int frames = b.Frames;
+
+            if (channels <= 0 || frames <= 0)
                 return;
 
-            var inL = b.GetInput(0);
-            var inR = b.GetInput(1);
+            // Interleave all input channels into asioBuffer
             int j = 0;
-            for (int i = 0; i < b.Frames; i++)
+
+            for (int i = 0; i < frames; i++)
             {
-                asioBuffer[j++] = inL[i];
-                asioBuffer[j++] = inR[i];
+                for (int ch = 0; ch < channels; ch++)
+                {
+                    asioBuffer[j++] = b.GetInput(ch)[i];
+                }
             }
 
-            buzzCore.AudioInputAvalable(asioBuffer, j);
+            // Pass interleaved multichannel buffer to Buzz
+            buzzCore.AudioInputAvalable(asioBuffer, frames, channels);
         }
 
         private void AsioDuplexOutput(AsioProcessBuffers b)
@@ -186,36 +193,6 @@ namespace ReBuzz.Audio
 
             CreateAudioOut(SelectedOutDevice.Name);
             Play();
-        }
-
-        readonly float[] audioInBuffer = new float[512];
-        private void WasapiCapture_DataAvailable(object sender, WaveInEventArgs e)
-        {
-            int bytesRemaining = e.BytesRecorded;
-            int srcByteOffset = 0;
-            while (bytesRemaining > 0)
-            {
-                int copyCountBytes = Math.Min(bytesRemaining, audioInBuffer.Length * 4);
-                Buffer.BlockCopy(e.Buffer, srcByteOffset, audioInBuffer, 0, copyCountBytes);
-                int floatBufferSamples = copyCountBytes >> 2;
-
-                if (audioInResampler != null)
-                {
-                    audioInResampler.FillBuffer(audioInBuffer, floatBufferSamples >> 1);    // Number of stereo samples
-                    int availableCount = Math.Min(audioInResampler.AvailableSamples(), audioInBuffer.Length >> 1);              // Available stereo samples
-                    if (availableCount > 0)
-                    {
-                        audioInResampler.GetSamples(audioInBuffer, 0, availableCount);
-                        buzzCore.AudioInputAvalable(audioInBuffer, availableCount << 1);
-                    }
-                }
-                else
-                {
-                    buzzCore.AudioInputAvalable(audioInBuffer, floatBufferSamples);
-                }
-                srcByteOffset += copyCountBytes;
-                bytesRemaining -= copyCountBytes;
-            }
         }
 
         public void CreateWasapiOut(string deviceName)
@@ -321,17 +298,18 @@ namespace ReBuzz.Audio
                     }
 
                     wasapiRecorder = recorderBuilder.Build();
-                    
-                    wasapiRecorder.DataAvailable += WasapiRecorder_DataAvailable;
-                    wasapiRecorder.StartRecording();
+
                     SelectedInDevice = new AudioInDevice() { Name = deviceName, Type = AudioOutType.Wasapi, WaveFormat = wasapiRecorder.WaveFormat };
 
                     // NAudio WASAPI input resampling if different from output
                     if (wasapiDeviceSamplerate != wasapiRecorder.WaveFormat.SampleRate)
                     {
                         audioInResampler = new RealTimeResampler();
-                        audioInResampler.Reset(wasapiDeviceSamplerate, SampleRateIn);
+                        audioInResampler.Reset(wasapiDeviceSamplerate, SampleRateIn, SelectedInDevice.WaveFormat.Channels);
                     }
+
+                    wasapiRecorder.DataAvailable += WasapiRecorder_DataAvailable;
+                    wasapiRecorder.StartRecording();
                 }
             }
             catch (Exception ex)
@@ -344,9 +322,46 @@ namespace ReBuzz.Audio
             SelectedOutDevice = new AudioOutDevice() { Name = deviceName, Type = AudioOutType.Wasapi, WavePlayer = wasapiPlayer };
         }
 
+        readonly float[] audioInBuffer = new float[512];
         private void WasapiRecorder_DataAvailable(ReadOnlySpan<byte> buffer, AudioClientBufferFlags flags, long devicePosition, long qpcPosition)
         {
-            WasapiCapture_DataAvailable(this, new WaveInEventArgs(buffer.ToArray(), buffer.Length));
+            int bytesRemaining = buffer.Length;
+            int srcByteOffset = 0;
+
+            int channels = SelectedInDevice.WaveFormat.Channels;
+
+            // Get a byte-span view over the float buffer
+            Span<byte> audioInBytes = MemoryMarshal.AsBytes(audioInBuffer.AsSpan());
+
+            while (bytesRemaining > 0)
+            {
+                int copyCountBytes = Math.Min(bytesRemaining, audioInBytes.Length);
+                // Copy from ReadOnlySpan<byte> → Span<byte>
+                buffer.Slice(srcByteOffset, copyCountBytes).CopyTo(audioInBytes);
+
+                int floatSamples = copyCountBytes / 4;      // total float samples
+                int frames = floatSamples / channels;       // audio frames
+
+                if (audioInResampler != null)
+                {
+                    audioInResampler.FillBuffer(audioInBuffer, frames);
+
+                    int availableFrames = Math.Min(audioInResampler.AvailableFrames(),
+                                                    audioInBuffer.Length / channels);
+
+                    if (availableFrames > 0)
+                    {
+                        audioInResampler.GetSamples(audioInBuffer, 0, availableFrames);
+                        buzzCore.AudioInputAvalable(audioInBuffer, availableFrames, channels);
+                    }
+                }
+                else
+                {
+                    buzzCore.AudioInputAvalable(audioInBuffer, frames, channels);
+                }
+                srcByteOffset += copyCountBytes;
+                bytesRemaining -= copyCountBytes;
+            }
         }
 
         bool InitWasapiOut(WasapiPlayer wasapiOut)

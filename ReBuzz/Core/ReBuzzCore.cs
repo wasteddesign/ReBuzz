@@ -180,6 +180,7 @@ namespace ReBuzz.Core
         internal DispatcherTimer dtEngineThread;
 
         public int OutputChannels { get => AudioEngine.GetAudioProvider().AudioSampleProvider.OutputChannels; }
+        public int InputChannels { get => AudioEngine.SelectedInDevice != null ? AudioEngine.SelectedInDevice.WaveFormat.Channels : 0; }
 
         int speed;
         bool playing;
@@ -2247,10 +2248,10 @@ namespace ReBuzz.Core
             }
         }
 
-        public event Action<float[], int> AudioReceived;
-        internal void AudioInputAvalable(float[] samples, int n)
+        public event Action<float[], int, int> AudioReceived;
+        internal void AudioInputAvalable(float[] samples, int frames, int channels)
         {
-            AudioReceived?.Invoke(samples, n);
+            AudioReceived?.Invoke(samples, frames, channels);
         }
 
         Lock audioOutLock = new();

@@ -1,21 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.ComponentModel;
-using System.Collections.ObjectModel;
 using Buzz.MachineInterface;
 using BuzzGUI.Interfaces;
 using BuzzGUI.Common;
-using NAudio.Wave;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using BuzzGUI.Common.Templates;
-using NAudio;
-using libsndfile;
 
 namespace WDE.ReBuzzAudioIn
 {
@@ -24,7 +13,7 @@ namespace WDE.ReBuzzAudioIn
 	{
 		IBuzzMachineHost host;
         float[] recordBuffer;
-		int writeBufferPointer;
+		int writeStereoBufferPointer;
 		int readBufferPointer;
 		int bufferFillLevel = 0;
 
@@ -43,7 +32,7 @@ namespace WDE.ReBuzzAudioIn
 				ReleaseCapture();
 
                 bufferFillLevel = 0;
-                writeBufferPointer = 0;
+                writeStereoBufferPointer = 0;
                 readBufferPointer = 0;
 
                 int bufferSize = machineState.BufferSize * 2;
@@ -53,28 +42,54 @@ namespace WDE.ReBuzzAudioIn
             }
         }
 
-        private void Buzz_AudioReceived(float[] buffer, int n)
+        private void Buzz_AudioReceived(float[] buffer, int frames, int channels)
         {
-			lock (bufferLock)
-			{
-				int countRemaining = n;
-				int bufferOffset = 0;
-				while (countRemaining > 0)
-				{
-					int count = countRemaining;
-					if (writeBufferPointer + count > recordBuffer.Length)
-					{
-						count = recordBuffer.Length - writeBufferPointer;
+            lock (bufferLock)
+            {
+                int stereoChannels = channels >> 1;
+                int pairIndex = Math.Min(stereoChannels - 1, Math.Max(machineState.Channel, 0));
+
+                int chL = pairIndex * 2;
+                int chR = chL + 1;
+
+                int framesRemaining = frames;
+                int bufferFrameOffset = 0;
+
+                while (framesRemaining > 0)
+                {
+                    int frameCount = framesRemaining;
+
+                    // How many stereo samples fit before wrap?
+                    int samplesAvailable = recordBuffer.Length - writeStereoBufferPointer;
+                    int framesAvailable = samplesAvailable / 2;
+
+                    if (frameCount > framesAvailable)
+                        frameCount = framesAvailable;
+
+                    // Copy selected stereo pair
+                    int writePos = writeStereoBufferPointer;
+
+                    for (int i = 0; i < frameCount; i++)
+                    {
+                        int srcFrame = bufferFrameOffset + i;
+                        int srcBase = srcFrame * channels;
+
+                        recordBuffer[writePos] = buffer[srcBase + chL];
+                        recordBuffer[writePos + 1] = buffer[srcBase + chR];
+
+                        writePos += 2;
                     }
 
-					Buffer.BlockCopy(buffer, bufferOffset * 4, recordBuffer, writeBufferPointer * 4, count * 4);
-					writeBufferPointer += count;
-					bufferOffset += count;
+                    writeStereoBufferPointer = writePos;
 
-					if (writeBufferPointer == recordBuffer.Length)
-						writeBufferPointer = 0;
-					countRemaining -= count;
-					bufferFillLevel += count;
+                    // Wrap if needed
+                    if (writeStereoBufferPointer >= recordBuffer.Length)
+                        writeStereoBufferPointer = 0;
+
+                    bufferFrameOffset += frameCount;
+                    framesRemaining -= frameCount;
+
+                    bufferFillLevel += frameCount * 2;
                     if (bufferFillLevel > recordBuffer.Length)
                         bufferFillLevel = recordBuffer.Length;
                 }
@@ -104,7 +119,7 @@ namespace WDE.ReBuzzAudioIn
 			{
 				for (int i = 0; i < n; i++)
 				{
-					if (machineState.NumChannels == 1)
+					if (machineState.NumChannels == 0)
 					{
 						output[i].L = output[i].R = recordBuffer[readBufferPointer] * 32768.0f;
                         readBufferPointer++;
@@ -145,19 +160,22 @@ namespace WDE.ReBuzzAudioIn
 	
 		public class State : INotifyPropertyChanged
 		{
-			public State()
+            // Input stereo channel to capture from
+            public int Channel { get; set; }
+            public State()
 			{	
-				numChannels = 1;
+				numChannels = 0;
 				bufferSize = 1024;
-			}	// NOTE: parameterless constructor is required by the xml serializer
+			}   // NOTE: parameterless constructor is required by the xml serializer
 
-			int numChannels;
+            // Mono or stereo input. 1 = mono, 2 = stereo
+            int numChannels;
 			public int NumChannels
 			{
 				get { return numChannels; }
 				set
 				{
-					numChannels = value;
+					numChannels = Math.Min(1, Math.Max(0, value));
                     if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs("NumChannels"));
                 }
 			}
@@ -193,7 +211,28 @@ namespace WDE.ReBuzzAudioIn
 		{
 			get
 			{
-				yield return new MenuItemVM() 
+                var g = new MenuItemVM.Group();
+
+                yield return new MenuItemVM()
+                {
+                    Text = "Channel",
+                    Children = Enumerable.Range(0, 32).Select(i => new MenuItemVM()
+                    {
+                        Text = "" + i,
+                        IsCheckable = true,
+                        CheckGroup = g,
+                        StaysOpenOnClick = true,
+                        IsChecked = i == MachineState.Channel,
+                        CommandParameter = i,
+                        Command = new SimpleCommand()
+                        {
+                            CanExecuteDelegate = p => true,
+                            ExecuteDelegate = p => MachineState.Channel = (int)p
+                        }
+                    })
+                };
+
+                yield return new MenuItemVM() 
 				{ 
 					Text = "About...", 
 					Command = new SimpleCommand()
@@ -238,7 +277,7 @@ namespace WDE.ReBuzzAudioIn
 				if (machine != null)
 				{
 					audioInMachine = (ReBuzzAudioInMachine)machine.ManagedMachine;
-					cbChannles.SetBinding(ComboBox.SelectedItemProperty, new Binding("MachineState.NumChannels") { Source = audioInMachine, Mode = BindingMode.TwoWay, UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged });
+					cbChannles.SetBinding(ComboBox.SelectedIndexProperty, new Binding("MachineState.NumChannels") { Source = audioInMachine, Mode = BindingMode.TwoWay, UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged });
                     cbLatency.SetBinding(ComboBox.SelectedItemProperty, new Binding("MachineState.BufferSize") { Source = audioInMachine, Mode = BindingMode.TwoWay, UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged });
 
                     cbLatency.SelectedItem = audioInMachine.MachineState.BufferSize;
@@ -266,13 +305,13 @@ namespace WDE.ReBuzzAudioIn
 			mainGrid.RowDefinitions.Add(new RowDefinition());
 
 			TextBlock tb;
-            tb = new TextBlock() { Margin = new Thickness(0, 0, 0, 4), AllowDrop = false, Text="Channels" };
+            tb = new TextBlock() { Margin = new Thickness(0, 0, 0, 4), AllowDrop = false, Text="Input Type" };
             Grid.SetRow(tb, 0);
             mainGrid.Children.Add(tb);
 			
             cbChannles = new ComboBox() { Margin = new Thickness(0, 0, 0, 4), AllowDrop = false };
-			cbChannles.Items.Add(1);
-            cbChannles.Items.Add(2);
+			cbChannles.Items.Add("Mono");
+            cbChannles.Items.Add("Stereo");
 			Grid.SetColumn(cbChannles, 1);
             Grid.SetRow(cbChannles, 0);
             mainGrid.Children.Add(cbChannles);
