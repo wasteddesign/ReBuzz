@@ -591,7 +591,7 @@ namespace ReBuzz.MachineManagement
             if (Machine.Ready &&
                 (forceTick || ReBuzzCore.masterInfo.PosInTick == 0 ||
                     (engineSettings.SubTickTiming && ReBuzzCore.subTickInfo.PosInSubTick == 0 && Machine.DLL.Info.Version >= MachineManager.BUZZ_MACHINE_INTERFACE_VERSION_42)))
-            {
+            {                
                 Machine.oversampleFactorOnTick = Machine.OversampleFactor;
                 if (Machine.Ready && manageMachineHost != null)
                 {
@@ -631,7 +631,7 @@ namespace ReBuzz.MachineManagement
                     Machine.parametersChanged.Clear();
                 }
 
-                TickSent = true;
+                TickSent = true;                
             }
         }
 
@@ -659,8 +659,11 @@ namespace ReBuzz.MachineManagement
                 // Tick again if sendControlChangesFlag set
                 if (Machine.sendControlChangesFlag)
                 {
-                    Tick(true, true);
-                    Machine.sendControlChangesFlag = false;
+                    lock (Machine.workLock)
+                    {
+                        Tick(true, true);
+                        Machine.sendControlChangesFlag = false;
+                    }
                 }
 
                 Machine.IsActive = WorkMachine(nSamples);

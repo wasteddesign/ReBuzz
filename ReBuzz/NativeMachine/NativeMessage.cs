@@ -1231,6 +1231,23 @@ namespace ReBuzz.NativeMachine
                             DoReplyMessage();
                         }
                         break;
+                    case HostMessages.HostSetGroovePattern:
+                        {
+                            var buzz = Global.Buzz as ReBuzzCore;
+                            var mi = ReBuzzCore.masterInfo;
+                            mi.GrooveSize = Math.Min(255, GetMessageData<int>());
+                            unsafe
+                            {
+                                float* gptr = (float*)mi.GrooveData.ToPointer();
+                                for (int i = 0; i < mi.GrooveSize; i++)
+                                {
+                                    gptr[i] = GetMessageData<float>();
+                                }
+                            }
+                            Reset();
+                            DoReplyMessage();
+                        }
+                        break;
                 }
             }
         }
@@ -1383,6 +1400,12 @@ namespace ReBuzz.NativeMachine
                 sendMessageData.Add((byte)str[i]);
             }
             sendMessageData.Add(0);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe void SetMessageData(Span<byte> data)
+        {
+            sendMessageData.AddRange(data);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1577,6 +1600,22 @@ namespace ReBuzz.NativeMachine
             {
                 SetMessageData(WorkManager.MasterInfoData);
             }
+
+            // Send groove info
+            SetMessageData(ReBuzzCore.masterInfo.GrooveSize);
+            SetMessageData(ReBuzzCore.masterInfo.PosInGroove);
+
+            // Copy only the groove data that is needed for the current groove size
+            int grooveDataSize = ReBuzzCore.masterInfo.GrooveSize * sizeof(float);
+
+            unsafe
+            {
+                float* p = (float*)ReBuzzCore.masterInfo.GrooveData;
+                Span<byte> span = new Span<byte>(p, grooveDataSize);
+
+                SetMessageData(span);
+            }
+
             return;
         }
 

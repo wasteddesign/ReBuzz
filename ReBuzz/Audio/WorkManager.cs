@@ -233,21 +233,60 @@ namespace ReBuzz.Audio
 
                     subTickInfo.PosInSubTick += framesToProcess;
                     masterInfo.PosInTick += framesToProcess;
+#region Groove
+                    // ------------------------------------------------------------
+                    // GROOVE: Compute effective tick length
+                    // ------------------------------------------------------------
+                    int baseTickSamples = masterInfo.SamplesPerTick;
+                    float grooveMul = 1.0f;
+
+                    if (masterInfo.GrooveSize > 0 && masterInfo.GrooveData != IntPtr.Zero)
+                    {
+                        if (buzzCore.SoloPattern == null)
+                        {
+                            masterInfo.PosInGroove = buzzCore.SongCore.PlayPosition % masterInfo.GrooveSize;
+                        }
+                        else
+                        {
+                            masterInfo.PosInGroove = (buzzCore.SoloPattern.PlayPosition / PatternEvent.TimeBase) % masterInfo.GrooveSize;
+                        }
+                        int gi = masterInfo.PosInGroove;
+
+                        if (gi < 0) gi = 0;
+                        if (gi >= masterInfo.GrooveSize) gi = masterInfo.GrooveSize - 1;
+
+                        unsafe
+                        {
+                            float* gptr = (float*)masterInfo.GrooveData.ToPointer();
+                            grooveMul = gptr[gi];
+                        }
+                    }
+#endregion
+
+                    int effectiveTickSamples = (int)(baseTickSamples * grooveMul);
+                    if (effectiveTickSamples <= 0)
+                        effectiveTickSamples = baseTickSamples; // safety fallback
 
                     if (subTickInfo.PosInSubTick >= subTickInfo.SamplesPerSubTick)
                     {
                         subTickInfo.PosInSubTick = 0;
                         subTickInfo.CurrentSubTick++;
                     }
-                    // Last frame?
-                    if (masterInfo.PosInTick >= masterInfo.SamplesPerTick)
+
+                    // ------------------------------------------------------------
+                    // GROOVE: Tick boundary (Buzz‑accurate)
+                    // ------------------------------------------------------------
+                    if (masterInfo.PosInTick >= effectiveTickSamples)
                     {
+                        //masterInfo.PosInTick -= effectiveTickSamples;
                         masterInfo.PosInTick = 0;
+
+                        // Reset subtick counter at tick boundary
                         subTickInfo.CurrentSubTick = 0;
 
+                        // Advance song position (Buzz behavior)
                         if (!buzzCore.StartPlaying())
                         {
-                            // Update song play position
                             if (buzzCore.Playing && buzzCore.SoloPattern == null)
                             {
                                 buzzCore.SongCore.UpdatePlayPosition(1);
@@ -256,7 +295,7 @@ namespace ReBuzz.Audio
                     }
 
                     // Update position info in patterns
-                    UpdatePatternPositions(framesToProcess);
+                    UpdatePatternPositions((int)(framesToProcess / grooveMul));
 
                     // Update frame count
                     unchecked { ReBuzzCore.GlobalState.AudioFrame += framesToProcess; }

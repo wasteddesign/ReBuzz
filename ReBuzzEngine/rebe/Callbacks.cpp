@@ -987,6 +987,11 @@ int CMICallbacks::GetSequenceColumn(CSequence *s)
 void CMICallbacks::SetGroovePattern(float *data, int size)
 {
 	MICB2(data, size);
+	IPC::Message m(IPC::HostSetGroovePattern);
+	m.Write(size);
+	m.Write(data);
+	IPC::Message reply;
+	DoCallback(m, reply);
 }
 
 int CMICallbacks::GetAttribute(CMachine *pmac, int index)

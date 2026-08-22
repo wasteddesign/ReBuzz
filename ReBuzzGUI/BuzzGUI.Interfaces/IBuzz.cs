@@ -140,5 +140,8 @@ namespace BuzzGUI.Interfaces
 
         string GetInfoText();
         void SetInfoText(string text);
+
+        // null or length == 0 to clear
+        public void SetGroovePattern(float[] grooveData);
     }
 }

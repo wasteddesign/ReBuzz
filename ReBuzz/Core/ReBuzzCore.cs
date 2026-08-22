@@ -26,11 +26,9 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Printing;
 using System.Reflection;
 using System.Runtime;
 using System.Runtime.InteropServices;
-using System.Runtime.Intrinsics.X86;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -38,7 +36,6 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
 using System.Xml.Linq;
-using Windows.Services.Maps.LocalSearch;
 using Timer = System.Timers.Timer;
 
 namespace ReBuzz.Core
@@ -84,6 +81,10 @@ namespace ReBuzz.Core
         public static readonly int SubTicsPerTick = 8;
         internal static BuzzGlobalState GlobalState;
         public static string AppDataPath = "ReBuzz";
+
+        // Groove data
+        float[] grooveData = new float[256];
+        GCHandle grooveHandle;
 
         // Feature flags
         public readonly bool AUTO_CONVERT_WAVES = false;
@@ -604,6 +605,24 @@ namespace ReBuzz.Core
             }
         }
 
+        public void SetGroovePattern(float[] grooveData)
+        {
+            int grooveSize = grooveData == null ? 0 : grooveData.Length;
+            masterInfo.GrooveSize = Math.Min(grooveSize, grooveData.Length);
+
+            if (grooveSize > 0)
+            {
+                unsafe
+                {
+                    float* gptr = (float*)masterInfo.GrooveData.ToPointer();
+                    for (int i = 0; i < grooveSize; i++)
+                    {
+                        gptr[i] = 1.0f / grooveData[i];
+                    }
+                }
+            }
+        }
+
         public IEditContext EditContext { get; set; }
 
         long performanceCountTime;
@@ -618,7 +637,7 @@ namespace ReBuzz.Core
 
         public ReadOnlyCollection<string> Themes { get => themes.ToReadOnlyCollection(); }
 
-        public System.Collections.ObjectModel.ReadOnlyDictionary<string, XElement> ModuleProfiles { get => System.Collections.Generic.CollectionExtensions.AsReadOnly<string, XElement>(profiles); }
+        public System.Collections.ObjectModel.ReadOnlyDictionary<string, XElement> ModuleProfiles { get => CollectionExtensions.AsReadOnly<string, XElement>(profiles); }
 
         public string SelectedTheme
         {
@@ -757,6 +776,11 @@ namespace ReBuzz.Core
                 CurrentSubTick = 0,
                 PosInSubTick = 0
             };
+
+            grooveHandle = GCHandle.Alloc(grooveData, GCHandleType.Pinned);
+
+            // Get pointer to first element
+            masterInfo.GrooveData = grooveHandle.AddrOfPinnedObject();
 
             UpdateMasterInfo();
 
@@ -1228,6 +1252,8 @@ namespace ReBuzz.Core
             MidiInOutEngine.DisposeWatcher();
             AudioEngine.FinalStop();
             DeleteBackup();
+
+            grooveHandle.Free();
         }
 
         private bool CheckSaveSong()

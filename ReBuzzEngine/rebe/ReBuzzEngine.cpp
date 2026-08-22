@@ -36,6 +36,10 @@ HWND g_HostMainWnd = NULL;
 void ReadMasterInfo(IPC::MessageReader &r)
 {
 	r.Read(&g_MasterInfo, 4 * 6);
+	r.Read(&g_MasterInfo.GrooveSize, 4);
+	r.Read(&g_MasterInfo.PosInGroove, 4);
+
+	r.Read(g_MasterInfo.GrooveData, 4 * g_MasterInfo.GrooveSize);
 }
 
 void ReadSubTickInfo(IPC::MessageReader& r)
@@ -1067,6 +1071,9 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	MultiIOInputsBufferWork = new float* [MAX_MULTI_IO_BUFFER_COUNT];
 	MultiIOOutputsBufferWork = new float* [MAX_MULTI_IO_BUFFER_COUNT];
 
+	// Create groove data buffer
+	g_MasterInfo.GrooveData = new float[256];
+
 	for (int i = 0; i < MAX_MULTI_IO_BUFFER_COUNT; i++)
 	{
 		MultiIOOutputsBuffer[i] = (float*)_aligned_malloc((MAX_BUFFER_LENGTH * 2 + 16) * sizeof(float), 64);
@@ -1105,6 +1112,8 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	delete[] MultiIOOutputsBuffer;
 	delete[] MultiIOInputsBufferWork;
 	delete[] MultiIOOutputsBufferWork;
+
+	delete g_MasterInfo.GrooveData;
 
 	return 0;
 }
