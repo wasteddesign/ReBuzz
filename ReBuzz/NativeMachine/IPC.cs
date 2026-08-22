@@ -113,7 +113,8 @@ namespace ReBuzz.NativeMachine
         HostGetConnectionCount,
         HostGetMachineBaseOctave,
         HostSetMachineBaseOctave,
-        HostGetTotalLatency
+        HostGetTotalLatency,
+        HostSetGroovePattern
     };
 
     public enum MIDIMessages

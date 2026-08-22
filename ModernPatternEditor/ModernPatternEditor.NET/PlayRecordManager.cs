@@ -120,17 +120,11 @@ namespace WDE.ModernPatternEditor
                     }
                     int prevPlayPos = playInfo.PreviousPosition;
 
-                    if ((pat.Length * PatternEvent.TimeBase + playPosition - prevPlayPos) % (pat.Length * PatternEvent.TimeBase) > PatternEvent.TimeBase)
-                    {
-                        prevPlayPos = (pat.Length * PatternEvent.TimeBase + playPosition /* - 1 PatternEvent.TimeBase*/) % (pat.Length * PatternEvent.TimeBase);
-                    }
-
                     // This can happen when starting playing from specific position, so ensure to collect events on that row.
                     if (prevPlayPos == playPosition)
                     {
                         var mpep = Editor.MPEPatternsDB.GetMPEPattern(pat);
-                        prevPlayPos = prevPlayPos * mpep.RowsPerBeat / PatternControl.BUZZ_TICKS_PER_BEAT / PatternEvent.TimeBase;
-                        prevPlayPos *= PatternEvent.TimeBase;
+                        prevPlayPos = prevPlayPos * mpep.RowsPerBeat / PatternControl.BUZZ_TICKS_PER_BEAT;
                         PlayPatternEvents(pat, prevPlayPos, playPosition, collectEvents, midiEventsToTriggerLater);
                     }
                     // From end to beginning of the same pattern.

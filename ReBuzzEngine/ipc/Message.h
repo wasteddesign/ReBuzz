@@ -117,7 +117,8 @@ enum HostMessages
 	HostGetConnectionCount,
 	HostGetMachineBaseOctave,
 	HostSetMachineBaseOctave,
-	HostGetTotalLatency
+	HostGetTotalLatency,
+	HostSetGroovePattern
 };
 
 enum MIDIMessages
