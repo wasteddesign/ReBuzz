@@ -103,28 +103,19 @@ namespace ReBuzz.Audio
             int sampleRate = registryEx.Read("SampleRate", 44100, "ASIO");
             AudioWaveProvider = new AudioWaveProvider(buzzCore, sampleRate, device.Capabilities.AllOutputChannels.Length, bufferSize, true, registryEx, engineSettings);
 
-            int[] inputsTable = new int[device.Capabilities.AllInputChannels.Length];
-            for (int i = 0; i < inputsTable.Length; i++)
-                inputsTable[i] = i;
-
-            int[] outputsTable = new int[device.Capabilities.AllOutputChannels.Length];
-            for (int i = 0; i < outputsTable.Length; i++)
-                outputsTable[i] = i;
-
-            int maxSizeOut = bufferSize * device.Capabilities.AllOutputChannels.Length;
-            int maxSizeIn = bufferSize * device.Capabilities.AllInputChannels.Length;
-            asioBuffer = maxSizeOut > maxSizeIn ? new float[maxSizeOut] : new float[maxSizeIn];
+            asioBufferIn = new float[bufferSize * device.Capabilities.AllInputChannels.Length];
+            asioBufferOut = new float[bufferSize * device.Capabilities.AllOutputChannels.Length];
 
             device.InitDuplex(new AsioDuplexOptions
                 {
-                    InputChannels = inputsTable,
-                    OutputChannels = outputsTable,
+                    InputChannels = device.Capabilities.AllInputChannels,
+                    OutputChannels = device.Capabilities.AllOutputChannels,
                     SampleRate = sampleRate,
                     BufferSize = bufferSize,
                     Processor = (in AsioProcessBuffers b) =>
                     {
                         AsioDuplexAudioAvailable(b);
-                        asioBuffer.AsSpan().Clear();
+                        asioBufferOut.AsSpan().Clear();
                         AsioDuplexOutput(b);
                     }
                 });
@@ -135,7 +126,8 @@ namespace ReBuzz.Audio
             SampleRateIn = sampleRate;
         }
 
-        float[] asioBuffer = new float[1024 * 16 * 32]; // supports up to 32 channels
+        float[] asioBufferOut = new float[1024 * 16 * 32]; // supports up to 32 channels
+        float[] asioBufferIn = new float[1024 * 16 * 32]; // supports up to 32 channels
         private void AsioDuplexAudioAvailable(AsioProcessBuffers b)
         {
             int channels = b.InputChannelCount;
@@ -151,23 +143,23 @@ namespace ReBuzz.Audio
             {
                 for (int ch = 0; ch < channels; ch++)
                 {
-                    asioBuffer[j++] = b.GetInput(ch)[i];
+                    asioBufferIn[j++] = b.GetInput(ch)[i];
                 }
             }
 
             // Pass interleaved multichannel buffer to Buzz
-            buzzCore.AudioInputAvalable(asioBuffer, frames, channels);
+            buzzCore.AudioInputAvalable(asioBufferIn, frames, channels);
         }
 
         private void AsioDuplexOutput(AsioProcessBuffers b)
         {
             int frames = b.Frames;
             int channels = b.OutputChannelCount;
-            if (asioBuffer.Length < frames * channels)
+            if (asioBufferOut.Length < frames * channels)
             {
-                asioBuffer = new float[frames * channels];
+                asioBufferOut = new float[frames * channels];
             }
-            Span<float> interleaved = asioBuffer.AsSpan(0, frames * channels);
+            Span<float> interleaved = asioBufferOut.AsSpan(0, frames * channels);
 
             AudioWaveProvider.Read(interleaved);
 
