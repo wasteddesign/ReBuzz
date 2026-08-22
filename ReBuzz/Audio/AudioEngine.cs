@@ -115,7 +115,6 @@ namespace ReBuzz.Audio
                     Processor = (in AsioProcessBuffers b) =>
                     {
                         AsioDuplexAudioAvailable(b);
-                        asioBufferOut.AsSpan().Clear();
                         AsioDuplexOutput(b);
                     }
                 });
