@@ -94,5 +94,7 @@ All the basic functionality is implemented but there many areas to improve. In g
 - [ ] Improve file handling to support older songs
 - [ ] Reduce latency, optimize code
 
+### Join the discussion on Discord:  
+https://discord.gg/vPE4THRBNT
 
 Let's make this a good one.
