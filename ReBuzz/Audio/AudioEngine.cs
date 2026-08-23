@@ -1,6 +1,5 @@
 ﻿using BespokeFusion;
 using BuzzDotNet.Audio;
-using BuzzGUI.Common;
 using BuzzGUI.Common.Settings;
 using Helios.Concurrency;
 using NAudio.CoreAudioApi;
@@ -10,14 +9,10 @@ using ReBuzz.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Documents;
-using System.Windows.Threading;
 
 
 namespace ReBuzz.Audio
@@ -99,14 +94,16 @@ namespace ReBuzz.Audio
             var device = AsioDevice.Open(deviceName);
             SelectedOutDevice = new AudioOutDevice() { Name = deviceName, Type = AudioOutType.ASIO, WavePlayer = device };
 
-            int bufferSize = registryEx.Read("BufferSize", 2048, "ASIO");
+            int bufferSize = registryEx.Read("BufferSize", 1024, "ASIO");
             int sampleRate = registryEx.Read("SampleRate", 44100, "ASIO");
             AudioWaveProvider = new AudioWaveProvider(buzzCore, sampleRate, device.Capabilities.AllOutputChannels.Length, bufferSize, true, registryEx, engineSettings);
 
             asioBufferIn = new float[bufferSize * device.Capabilities.AllInputChannels.Length];
             asioBufferOut = new float[bufferSize * device.Capabilities.AllOutputChannels.Length];
-
-            device.InitDuplex(new AsioDuplexOptions
+            
+            try
+            {
+                device.InitDuplex(new AsioDuplexOptions
                 {
                     InputChannels = device.Capabilities.AllInputChannels,
                     OutputChannels = device.Capabilities.AllOutputChannels,
@@ -118,6 +115,36 @@ namespace ReBuzz.Audio
                         AsioDuplexOutput(b);
                     }
                 });
+            }
+            catch (Exception ex)
+            {
+                buzzCore.DCWriteLine("Error initializing ASIO. Using audio interface preferred buffer size (" + device.Capabilities.BufferPreferredSize + ").\n\n" + ex.Message, BuzzGUI.Interfaces.DCLogLevel.Error);
+            }
+
+            if (device.State == AsioDeviceState.Unconfigured)
+            {
+                try
+                {
+                    device.InitDuplex(new AsioDuplexOptions
+                    {
+                        InputChannels = device.Capabilities.AllInputChannels,
+                        OutputChannels = device.Capabilities.AllOutputChannels,
+                        SampleRate = sampleRate,
+                        BufferSize = null,
+                        Processor = (in AsioProcessBuffers b) =>
+                        {
+                            AsioDuplexAudioAvailable(b);
+                            AsioDuplexOutput(b);
+                        }
+                    });
+                }
+                catch (Exception ex)
+                {
+                    // ASIO initialization error
+                    buzzCore.DCWriteLine("Can't initialize ASIO using preferred buffer size (" + device.Capabilities.BufferPreferredSize + ").\n\n" + ex.Message, BuzzGUI.Interfaces.DCLogLevel.Error);
+                    MessageBoxWindow.ShowOkWindow("ASIO Error", "Can't initialize ASIO using preferred buffer size (" + device.Capabilities.BufferPreferredSize + ").\n\n" + ex.Message, false);
+                }
+            }
 
             device.DriverResetRequest += AsioOut_DriverResetRequest;
 
@@ -184,6 +211,14 @@ namespace ReBuzz.Audio
 
             CreateAudioOut(SelectedOutDevice.Name);
             Play();
+        }
+
+        internal int GetASIOCurrentBufferSize(string deviceName)
+        {
+            var device = AsioDevice.Open(deviceName);
+            int size = device.Capabilities.BufferPreferredSize;
+            device.Dispose();
+            return size;
         }
 
         public void CreateWasapiOut(string deviceName)
@@ -550,7 +585,7 @@ namespace ReBuzz.Audio
                         if (asioConfigWindow == null)
                         {
                             var asio = (SelectedOutDevice.WavePlayer as AsioDevice);
-                            asioConfigWindow = new AsioConfigWindow(asio.DriverName, registryEx);
+                            asioConfigWindow = new AsioConfigWindow(buzzCore, asio.DriverName, registryEx);
 
                             asioConfigWindow.OpenAsioControlPanel += () =>
                             {
