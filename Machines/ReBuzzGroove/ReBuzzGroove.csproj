@@ -8,7 +8,7 @@
     <AssemblyName>ReBuzz Groove.NET</AssemblyName>
     <RootNamespace>WDE.ReBuzzGroove</RootNamespace>
 	<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-	<OutputPath>$(SolutionDir)bin\$(Configuration)\$(Platform)\$(TargetFramework)\Gear\Effects</OutputPath>
+	<OutputPath>$(SolutionDir)bin\$(Configuration)\$(Platform)\$(TargetFramework)\Gear\Generators</OutputPath>
 	<IntermediateOutputPath>$(SolutionDir)build\$(Configuration)\$(Platform)\ReBuzzGroove\obj</IntermediateOutputPath>
 	<Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>

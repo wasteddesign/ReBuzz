@@ -29,7 +29,8 @@
 
         <TextBlock Grid.Row="2" Text="Buffer Size"></TextBlock>
         <ComboBox Margin="1" Name="cbLatency" Grid.Row="2" Grid.Column="1" HorizontalContentAlignment="Right"></ComboBox>
-
+        
+        <TextBlock Grid.Row="3" Text="{Binding PreferredBufferSize}"></TextBlock>
         <!-- <TextBlock Grid.Row="4" Text="Poll"></TextBlock> -->
         <Button Margin="1" Name="btAsioControlPanel" Content="Asio Control Panel" Width="120" Grid.Row="4" Grid.Column="1" HorizontalContentAlignment="CEnter"></Button>
 

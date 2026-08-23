@@ -13,9 +13,15 @@ namespace BuzzDotNet.Audio
     public partial class AsioConfigWindow : Window
     {
         private readonly IRegistryEx registryEx;
+        private ReBuzzCore buzzCore;
+        private string device;
+
         public event Action OpenAsioControlPanel;
-        public AsioConfigWindow(string device, IRegistryEx registryEx)
+        public AsioConfigWindow(ReBuzzCore buzzCore, string device, IRegistryEx registryEx)
         {
+            this.buzzCore = buzzCore;
+            this.device = device;
+
             this.registryEx = registryEx;
             DataContext = this;
             InitializeComponent();
@@ -108,6 +114,15 @@ namespace BuzzDotNet.Audio
                 buffer = (int)latencyItem.Tag;
             }
             registryEx.Write("BufferSize", buffer, "ASIO");
+        }
+
+        public string PreferredBufferSize
+        {
+            get
+            {
+                int size = buzzCore.AudioEngine.GetASIOCurrentBufferSize(device);
+                return "Device Preferred Buffer Size: " + size;
+            }
         }
     }
 }

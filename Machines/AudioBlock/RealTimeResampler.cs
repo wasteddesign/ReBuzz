@@ -6,22 +6,23 @@ using WDE.AudioBlock.r8brain;
 
 namespace WDE.AudioBlock
 {
-    public class RealTimeResampler
+    public class RealTimeResampler : IDisposable
     {
-        public static int RT_BUFFER_SIZE = 1024;
-        public static int DEST_BUFFER_SIZE = 2048;
+        public static int RT_BUFFER_SIZE = 2 * 1024;   // floats, interleaved stereo
+        public static int DEST_BUFFER_SIZE = 2 * 2048; // frames, destData = DEST_BUFFER_SIZE * 2 floats
 
-        R8brain r8bL = new R8brain();
-        R8brain r8bR = new R8brain();
-        float[] sourceData = new float[RT_BUFFER_SIZE];
-        double[] sourceDataDoubleL = new double[RT_BUFFER_SIZE];
-        double[] sourceDataDoubleR = new double[RT_BUFFER_SIZE];
-        int sourceDataFillLevel = 0;
+        private R8brain r8bL = new R8brain();
+        private R8brain r8bR = new R8brain();
 
-        bool inputReady;
+        private readonly float[] sourceData = new float[RT_BUFFER_SIZE];
+        private readonly double[] sourceDataDoubleL = new double[RT_BUFFER_SIZE / 2];
+        private readonly double[] sourceDataDoubleR = new double[RT_BUFFER_SIZE / 2];
+        private int sourceDataFillLevel = 0;
 
-        float[] destData = new float[DEST_BUFFER_SIZE * 2];
-        int destDataOffset = 0;
+        private bool inputReady;
+
+        private readonly float[] destData = new float[DEST_BUFFER_SIZE * 2]; // interleaved stereo
+        private int destDataOffset = 0; // floats used
 
         public int InputRate { get; set; }
         public int OutputRate { get; set; }
@@ -38,138 +39,185 @@ namespace WDE.AudioBlock
         {
             Dispose();
 
-            InputRate = (int)inputRate;
-            OutputRate = (int)outputRate;
+            InputRate = inputRate;
+            OutputRate = outputRate;
 
             inputReady = false;
 
             r8bL = new R8brain();
-            r8bL.Create(inputRate, outputRate, RT_BUFFER_SIZE, 2.0, ER8BResamplerRes.r8brr24);
+            r8bL.Create(inputRate, outputRate, RT_BUFFER_SIZE / 2, 2.0, ER8BResamplerRes.r8brr24);
 
             r8bR = new R8brain();
-            r8bR.Create(inputRate, outputRate, RT_BUFFER_SIZE, 2.0, ER8BResamplerRes.r8brr24);
+            r8bR.Create(inputRate, outputRate, RT_BUFFER_SIZE / 2, 2.0, ER8BResamplerRes.r8brr24);
 
-            // sourceData = new float[RT_BUFFER_SIZE];
             Array.Clear(sourceData, 0, sourceData.Length);
             sourceDataFillLevel = 0;
 
-            //destData = new float[RT_BUFFER_SIZE * 2];
             Array.Clear(destData, 0, destData.Length);
             destDataOffset = 0;
         }
 
         public void FillBuffer(ref float[] buffer)
         {
-            if (buffer == null || buffer.Length > RT_BUFFER_SIZE || buffer.Length == 0) // Nonsense
+            if (buffer == null || buffer.Length == 0)
                 return;
 
-            if (buffer.Length + destDataOffset > DEST_BUFFER_SIZE)
-                destDataOffset = 0;
+            // Must be interleaved stereo
+            if ((buffer.Length & 1) != 0)
+                return;
+
+            // Do not accept more than RT_BUFFER_SIZE floats at once
+            if (buffer.Length > RT_BUFFER_SIZE)
+                return;
+
+            // Ensure we don't overflow sourceData
+            if (sourceDataFillLevel + buffer.Length > RT_BUFFER_SIZE)
+            {
+                sourceDataFillLevel = 0;
+                Array.Clear(sourceData, 0, sourceData.Length);
+            }
 
             Array.Copy(buffer, 0, sourceData, sourceDataFillLevel, buffer.Length);
             sourceDataFillLevel += buffer.Length;
 
-            int inputBufferFillLevel = Math.Min(1000, sourceDataFillLevel);
+            int inputBufferFillLevel = Math.Min(RT_BUFFER_SIZE, sourceDataFillLevel);
+            if (inputBufferFillLevel < 2)
+                return;
 
-            // Handle both channels
-            // First left
-            int outputLengthGeneratedL;
-            double[] outputDataDoubleL;
+            int frames = inputBufferFillLevel / 2;
+            if (frames <= 0)
+                return;
 
-            for (int i = 0; i < inputBufferFillLevel / 2; i++)
+            // Deinterleave to double buffers
+            for (int i = 0; i < frames; i++)
             {
-                sourceDataDoubleL[i] = sourceData[2 * i];
+                int idx = i * 2;
+                sourceDataDoubleL[i] = sourceData[idx];
+                sourceDataDoubleR[i] = sourceData[idx + 1];
             }
 
-            // Right
-            int outputLengthGeneratedR;
-            double[] outputDataDoubleR;
+            int outputLengthGeneratedL = r8bL.Process(sourceDataDoubleL, frames, out double[] outputDataDoubleL);
+            int outputLengthGeneratedR = r8bR.Process(sourceDataDoubleR, frames, out double[] outputDataDoubleR);
 
-            for (int i = 0; i < inputBufferFillLevel / 2; i++)
+            if (outputLengthGeneratedL <= 0 || outputLengthGeneratedR <= 0)
             {
-                sourceDataDoubleR[i] = sourceData[2 * i + 1];
+                sourceDataFillLevel -= inputBufferFillLevel;
+                if (sourceDataFillLevel < 0) sourceDataFillLevel = 0;
+                return;
             }
 
-            outputLengthGeneratedL = r8bL.Process(sourceDataDoubleL, inputBufferFillLevel / 2, out outputDataDoubleL);
-            outputLengthGeneratedR = r8bR.Process(sourceDataDoubleR, inputBufferFillLevel / 2, out outputDataDoubleR);
+            int outLen = Math.Min(outputLengthGeneratedL, outputLengthGeneratedR);
+            int requiredFloats = outLen * 2;
 
-            if (2 * outputLengthGeneratedL + destDataOffset > DEST_BUFFER_SIZE)
+            // Wrap destDataOffset safely if needed
+            if (destDataOffset + requiredFloats > destData.Length)
+            {
                 destDataOffset = 0;
-            if (2 * outputLengthGeneratedR + destDataOffset > DEST_BUFFER_SIZE)
-                destDataOffset = 0;
-
-            for (int i = 0; i < Math.Min(outputLengthGeneratedL, DEST_BUFFER_SIZE); i++)
-            {
-                destData[destDataOffset + 2 * i] = (float)outputDataDoubleL[i];
+                Array.Clear(destData, 0, destData.Length);
             }
 
-            for (int i = 0; i < Math.Min(outputLengthGeneratedR, DEST_BUFFER_SIZE); i++)
+            for (int i = 0; i < outLen; i++)
             {
-                destData[destDataOffset + 2 * i + 1] = (float)outputDataDoubleR[i];
+                int idx = destDataOffset + i * 2;
+                destData[idx] = (float)outputDataDoubleL[i];
+                destData[idx + 1] = (float)outputDataDoubleR[i];
             }
 
-            // Global.Buzz.DCWriteLine("outputLengthGeneratedL: " + outputLengthGeneratedL + ", outputLengthGeneratedR: " + outputLengthGeneratedR);
+            destDataOffset += requiredFloats;
+
             sourceDataFillLevel -= inputBufferFillLevel;
-
-            // Global.Buzz.DCWriteLine("sourceDataFillLevel: " + sourceDataFillLevel + ", destDataOffset: " + destDataOffset);
-
-            // outputLengthGeneratedL == outputLengthGeneratedR so we can do this:
-            destDataOffset += outputLengthGeneratedL * 2;
+            if (sourceDataFillLevel < 0) sourceDataFillLevel = 0;
         }
 
         internal void FillBuffer(ref Sample[] sampleDataTmp)
         {
-            float[] buf = new float[sampleDataTmp.Length * 2];
-            for (int i = 0; i < sampleDataTmp.Length; i++)
+            if (sampleDataTmp == null || sampleDataTmp.Length == 0)
+                return;
+
+            int frames = sampleDataTmp.Length;
+            int floatCount = frames * 2;
+
+            if (floatCount > RT_BUFFER_SIZE)
+                return;
+
+            var buf = new float[floatCount];
+            for (int i = 0; i < frames; i++)
             {
-                buf[i * 2] = sampleDataTmp[i].L;
-                buf[i * 2 + 1] = sampleDataTmp[i].R;
+                int idx = i * 2;
+                buf[idx] = sampleDataTmp[i].L;
+                buf[idx + 1] = sampleDataTmp[i].R;
             }
 
             FillBuffer(ref buf);
         }
 
-
         public void GetSamples(ref Sample[] outbuffer, int num, float gainL, float gainR)
         {
-            if (destDataOffset / 2 >= num)
+            if (outbuffer == null || num <= 0 || outbuffer.Length < num)
+                return;
+
+            int availableFrames = destDataOffset / 2;
+            bool enoughData = availableFrames >= num;
+
+            if (!enoughData)
             {
-                inputReady = true;
-            }
-            else
-            {
-                // Global.Buzz.DCWriteLine("Buffer not ready yet. Requested size: " + num);
+                inputReady = false;
                 for (int i = 0; i < num; i++)
                 {
                     outbuffer[i].L = 0;
                     outbuffer[i].R = 0;
-                } 
+                }
+                return;
             }
 
-            if (inputReady && num <= destDataOffset / 2)
+            inputReady = true;
+
+            int requiredFloats = num * 2;
+            for (int i = 0; i < num; i++)
             {
-                for (int i = 0; i < num; i++)
-                {
-                    outbuffer[i].L += destData[i * 2] * gainL;
-                    outbuffer[i].R += destData[i * 2 + 1] * gainR;
-                }
-                Array.Copy(destData, num * 2, destData, 0, destData.Length - num * 2);
-                destDataOffset -= num * 2;
+                int idx = i * 2;
+                outbuffer[i].L += destData[idx] * gainL;
+                outbuffer[i].R += destData[idx + 1] * gainR;
             }
-            // Global.Buzz.DCWriteLine("RT Resample sourceDataFillLevel: " + sourceDataFillLevel + " | destDataOffset: " + destDataOffset);
+
+            int shift = requiredFloats;
+            if (shift > destDataOffset)
+                shift = destDataOffset;
+
+            int remaining = destDataOffset - shift;
+            if (remaining > 0)
+                Array.Copy(destData, shift, destData, 0, remaining);
+
+            Array.Clear(destData, remaining, destData.Length - remaining);
+
+            destDataOffset = remaining;
         }
 
         public void Dispose()
         {
             if (r8bL != null)
+            {
                 r8bL.Dispose();
+                r8bL = null;
+            }
+
             if (r8bR != null)
+            {
                 r8bR.Dispose();
+                r8bR = null;
+            }
         }
 
         internal void FillSilenceInSamples(int numSamples)
         {
-            float[] buffer = new float[2 * numSamples];
+            if (numSamples <= 0)
+                return;
+
+            int floatCount = numSamples * 2;
+            if (floatCount > RT_BUFFER_SIZE)
+                floatCount = RT_BUFFER_SIZE;
+
+            var buffer = new float[floatCount];
             FillBuffer(ref buffer);
         }
 
@@ -177,13 +225,18 @@ namespace WDE.AudioBlock
         {
             sourceDataFillLevel = 0;
             destDataOffset = 0;
+            inputReady = false;
+
+            Array.Clear(sourceData, 0, sourceData.Length);
+            Array.Clear(destData, 0, destData.Length);
+
             r8bL.Clear();
             r8bR.Clear();
         }
 
         internal bool IsDirty()
         {
-            return (sourceDataFillLevel > 0 || destDataOffset > 0);
+            return sourceDataFillLevel > 0 || destDataOffset > 0;
         }
     }
 
@@ -191,63 +244,82 @@ namespace WDE.AudioBlock
     {
         public IPattern Pattern { get; set; }
         public RealTimeResampler RealTimeResampler { get; set; }
+
         public RTResamplerData(IPattern pat)
         {
             Pattern = pat;
             RealTimeResampler = new RealTimeResampler();
         }
     }
-    
 
     public class RealTimeResamplerManager
     {
-        private Dictionary<ISequence, RTResamplerData> realTimeResamplerTable;
-        private RealTimeResampler playingPatternEditorPatternRealTimeResampler;
+        private readonly Dictionary<ISequence, RTResamplerData> realTimeResamplerTable;
+        private readonly RealTimeResampler playingPatternEditorPatternRealTimeResampler;
         private static readonly object syncLock = new object();
 
         public RealTimeResamplerManager()
         {
             realTimeResamplerTable = new Dictionary<ISequence, RTResamplerData>();
             playingPatternEditorPatternRealTimeResampler = new RealTimeResampler();
-            playingPatternEditorPatternRealTimeResampler.Reset(44100, 44100); // Do this to avoid clicks/pops when activated first time
+            playingPatternEditorPatternRealTimeResampler.Reset(44100, 44100);
         }
 
         public void ResetRealTimeResamplers()
         {
-            foreach (var rtr in realTimeResamplerTable.Values)
+            lock (syncLock)
             {
-                if (rtr != null)
-                    rtr.RealTimeResampler.Clear();
+                foreach (var rtr in realTimeResamplerTable.Values)
+                {
+                    rtr?.RealTimeResampler?.Clear();
+                }
+
+                playingPatternEditorPatternRealTimeResampler.Clear();
             }
         }
 
         internal void Check(ISequence seq, IPattern pat)
         {
-            if (!realTimeResamplerTable.ContainsKey(seq))
+            if (seq == null)
+                return;
+
+            lock (syncLock)
             {
-                realTimeResamplerTable.Add(seq, new RTResamplerData(pat));
-            }
-            else if (realTimeResamplerTable[seq].Pattern != pat)
-            {
-                realTimeResamplerTable[seq].RealTimeResampler.Dispose();
-                realTimeResamplerTable[seq] = new RTResamplerData(pat);
+                if (!realTimeResamplerTable.TryGetValue(seq, out var data))
+                {
+                    realTimeResamplerTable[seq] = new RTResamplerData(pat);
+                }
+                else if (data.Pattern != pat)
+                {
+                    data.RealTimeResampler.Dispose();
+                    realTimeResamplerTable[seq] = new RTResamplerData(pat);
+                }
             }
         }
 
         internal void Clear(ISequence seq)
         {
-            if (realTimeResamplerTable[seq].RealTimeResampler.IsDirty())
-                realTimeResamplerTable[seq].RealTimeResampler.Clear();
+            if (seq == null)
+                return;
+
+            lock (syncLock)
+            {
+                if (realTimeResamplerTable.TryGetValue(seq, out var data))
+                {
+                    if (data.RealTimeResampler.IsDirty())
+                        data.RealTimeResampler.Clear();
+                }
+            }
         }
 
         internal RealTimeResampler GetResampler(ISequence seq)
         {
             lock (syncLock)
             {
-                if (seq != null)
-                    return realTimeResamplerTable[seq].RealTimeResampler;
-                else
-                    return playingPatternEditorPatternRealTimeResampler;
+                if (seq != null && realTimeResamplerTable.TryGetValue(seq, out var data))
+                    return data.RealTimeResampler;
+
+                return playingPatternEditorPatternRealTimeResampler;
             }
         }
 
