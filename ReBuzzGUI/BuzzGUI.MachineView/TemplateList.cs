@@ -15,7 +15,7 @@ namespace BuzzGUI.MachineView
     //	[DoNotNotify]
     public class TemplateList : INotifyPropertyChanged
     {
-        readonly string templateRoot = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Buzz\\Templates");
+        readonly string templateRoot = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "ReBuzz\\Templates");
         string templatePath;
 
         readonly MachineView view;
