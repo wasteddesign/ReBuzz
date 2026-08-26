@@ -116,7 +116,7 @@
           <ul class="nav flex-column">
             <li class="nav-item"><a class="nav-link" href="#idocs_rebuzz_machineview_topic1">Topic 1</a></li>
             <li class="nav-item"><a class="nav-link" href="#idocs_rebuzz_machineview_topic2">Topic 2</a></li>
-            <li class="nav-item"><a class="nav-link" href="#idocs_rebuzz_machineview_topic3">Topic 3</a></li>
+            <li class="nav-item"><a class="nav-link" href="#idocs_rebuzz_machineview_topic3">Multi‑Channel Audio: Input, Output and Recording</a></li>
           </ul>		
 		</li>
 		<li class="nav-item"><a class="nav-link active" href="#idocs_rebuzz_seqed">Sequence Editor</a>
@@ -312,10 +312,98 @@
 			<p>...</p>
 		</section>	        
 		<hr class="divider">
-		<section id="idocs_rebuzz_machineview_topic3">
-		    <h2>Topic 1</h2>
-			<p>...</p>
-		</section>		
+        <section id="idocs_rebuzz_machineview_topic3">
+            <h2>Multi‑Channel Audio: Input, Output and Recording</h2>
+            <p>
+                ReBuzz supports multi‑channel audio workflows across input, output and
+                recording. This enables advanced routing setups such as multi‑mic
+                recording, multi‑instrument ASIO input, external hardware processing and
+                multi‑bus capture for mixing or post‑production.
+            </p>
+
+            <h3>Multi‑Channel Audio Input</h3>
+
+            <p>
+                Multi‑channel input is provided through the <b>ReBuzz Audio In</b> machine.
+                Each instance can capture a specific stereo pair from your audio
+                interface’s multi‑channel input stream.
+            </p>
+
+            <ul>
+                <li>Add a <b>ReBuzz Audio In</b> machine to your project.</li>
+                <li>Select the desired input channel pair from its menu.</li>
+                <li>Use multiple instances to capture multiple stereo pairs.</li>
+            </ul>
+
+            <p>
+                This allows flexible routing of external synthesizers, microphones,
+                hardware processors or any multi‑channel ASIO input source.
+            </p>
+
+            <h3>Multi‑Channel Audio Output</h3>
+
+            <p>
+                Multi‑channel output is provided through the <b>ReBuzz Audio Out</b>
+                machine. Each instance can send audio to a specific output channel pair on
+                your audio interface.
+            </p>
+
+            <ul>
+                <li>Add a <b>ReBuzz Audio Out</b> machine.</li>
+                <li>Select the target output channel pair.</li>
+                <li>Route different machines into different Audio Out instances.</li>
+            </ul>
+
+            <p>
+                This enables setups such as multi‑bus external processing, sending click
+                tracks, routing instruments to separate mixer channels or hardware
+                re‑amping.
+            </p>
+
+            <h3>Multi‑Channel Recording</h3>
+
+            <p>
+                The <b>Hard Disk Recorder</b> supports recording multiple channels
+                independently. Each Audio Out instance can be recorded as its own channel,
+                allowing you to capture stems or multi‑bus mixes directly from ReBuzz.
+            </p>
+
+            <ul>
+                <li>Route machines into separate <b>ReBuzz Audio Out</b> instances.</li>
+                <li>Select the desired output channel pairs.</li>
+                <li>Open the Hard Disk Recorder and choose a multi‑channel configuration.</li>
+                <li>Start recording.</li>
+            </ul>
+
+            <p>
+                Machines routed through different Audio Out instances will appear as
+                separate channels in the resulting audio file.
+            </p>
+
+            <h3>Example Workflow</h3>
+
+            <p><b>Input:</b></p>
+            <ul>
+                <li>Audio In #1 → ASIO In 1/2 (synth)</li>
+                <li>Audio In #2 → ASIO In 3/4 (drum machine)</li>
+            </ul>
+
+            <p><b>Processing:</b></p>
+            <ul>
+                <li>Apply effects, mixing or routing inside ReBuzz.</li>
+            </ul>
+
+            <p><b>Output:</b></p>
+            <ul>
+                <li>Audio Out #1 → ASIO Out 1/2 (main monitors)</li>
+                <li>Audio Out #2 → ASIO Out 3/4 (external compressor)</li>
+            </ul>
+
+            <p><b>Recording:</b></p>
+            <ul>
+                <li>Hard Disk Recorder captures each Audio Out instance as its own channel.</li>
+            </ul>
+        </section>		
 
 		<hr class="divider">		
 		
