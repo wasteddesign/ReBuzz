@@ -565,16 +565,17 @@ namespace ReBuzz.Core
 
         public void CreatePattern(string name, int length)
         {
+            PatternCore pc = new PatternCore(this, name, length, dispatcher);
+
             // Don't call these from "Work()"
             lock (ReBuzzCore.AudioLock)
             {
-                PatternCore pc = new PatternCore(this, name, length, dispatcher);
                 this.patterns.Add(pc);
-                PatternAdded?.Invoke(pc);
-                PropertyChanged.Raise(this, "Patterns");
-                graph.Buzz.SetPatternEditorPattern(pc);
-                graph.Buzz.SetModifiedFlag();
             }
+            PatternAdded?.Invoke(pc);
+            PropertyChanged.Raise(this, "Patterns");
+            graph.Buzz.SetPatternEditorPattern(pc);
+            graph.Buzz.SetModifiedFlag();
         }
 
         public void DeletePattern(IPattern p)

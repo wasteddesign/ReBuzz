@@ -30,6 +30,9 @@ namespace BuzzGUI.Common.Templates
         [XmlAttribute]
         public int MIDIInputChannel;
 
+        [XmlAttribute]
+        public bool IsWireless;
+
         public Preset Preset;
 
         public byte[] CompressedData;
@@ -67,6 +70,7 @@ namespace BuzzGUI.Common.Templates
             MIDIInputChannel = m.MIDIInputChannel;
             Preset = new Preset(m, false, false);
             Data = m.Data;
+            IsWireless = m.IsWireless;
 
             if (includepatterns)
             {

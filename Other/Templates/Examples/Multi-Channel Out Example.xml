@@ -1,7 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Template xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <Machines>
-    <Machine Name="Audio Out Channel 1" PositionX="-0.49218106" PositionY="-0.5993788" TrackCount="0" PatternEditor="Modern Pattern Editor" OversampleFactor="1" MIDIInputChannel="-1">
+    <Machine Name="Master" PositionX="0" PositionY="0" TrackCount="0" PatternEditor="Modern Pattern Editor" OversampleFactor="1" MIDIInputChannel="-1" IsWireless="false">
+      <Preset Machine="Master">
+        <Parameters>
+          <Parameter Name="Volume" Group="1" Index="0" Track="0" Value="0" />
+          <Parameter Name="BPM" Group="1" Index="1" Track="0" Value="126" />
+          <Parameter Name="TPB" Group="1" Index="2" Track="0" Value="4" />
+        </Parameters>
+        <Attributes />
+      </Preset>
+      <Patterns />
+      <CompressedPatternEditorData>XQAAgAAKAAAAAAAAAAB/gD02DbzTgAA=</CompressedPatternEditorData>
+    </Machine>
+    <Machine Name="Audio Out Channel 1" PositionX="-0.39218104" PositionY="-0.4993789" TrackCount="0" PatternEditor="Modern Pattern Editor" OversampleFactor="1" MIDIInputChannel="-1" IsWireless="false">
       <Preset Machine="ReBuzz Audio Out">
         <Parameters>
           <Parameter Name="Dummy" Group="1" Index="0" Track="0" Value="0" />
@@ -16,7 +28,7 @@
       </Patterns>
       <CompressedPatternEditorData>XQAAgAB6AAAAAAAAAAB/gErGDK9LYnx/1F7hLCWzvbZnTix8ejGhgQMMHg0mHfVqn/ozArKKHfPcowAA</CompressedPatternEditorData>
     </Machine>
-    <Machine Name="Audio Out Channel 2" PositionX="-0.18106994" PositionY="-0.47826082" TrackCount="0" PatternEditor="Modern Pattern Editor" OversampleFactor="1" MIDIInputChannel="-1">
+    <Machine Name="Audio Out Channel 2" PositionX="-0.08106993" PositionY="-0.3782608" TrackCount="0" PatternEditor="Modern Pattern Editor" OversampleFactor="1" MIDIInputChannel="-1" IsWireless="false">
       <Preset Machine="ReBuzz Audio Out">
         <Parameters>
           <Parameter Name="Dummy" Group="1" Index="0" Track="0" Value="0" />
@@ -31,7 +43,7 @@
       </Patterns>
       <CompressedPatternEditorData>XQAAgAB6AAAAAAAAAAB/gErGDK9LYnx/1F7hLCWzvbZnTix8ejGhgQMMHg0mHfVqn/o18vVmD/yyj6AA</CompressedPatternEditorData>
     </Machine>
-    <Machine Name="Infector" PositionX="0.33251032" PositionY="-0.7577639" TrackCount="1" PatternEditor="Modern Pattern Editor" OversampleFactor="1" MIDIInputChannel="-1">
+    <Machine Name="Infector" PositionX="0.43251035" PositionY="-0.657764" TrackCount="1" PatternEditor="Modern Pattern Editor" OversampleFactor="1" MIDIInputChannel="-1" IsWireless="false">
       <Preset Machine="FSM Infector">
         <Parameters>
           <Parameter Name="OSC1 Wave" Group="1" Index="0" Track="0" Value="14" />
@@ -93,7 +105,7 @@
       </Patterns>
       <CompressedPatternEditorData>XQAAgAD/BgAAAAAAAAB/gFvXoZtMlOJvElQiRVX+lwXl6WD31TPR2xas9qlHQWKbLvK0ss9U2bRSyx3P94ie/OJccg9oE2B4ooPobG8o3iJIxZ3WW7smLDJjNgr5SDnLOKa4lTlBS97tZ5St/cA5NP3p1IvBH1T+6ZmgpcHcFjaxIjahU2xsB0vyso0H96TepwKyMo+uBlSV71+b/BiMQfCojNtFMiMVAoEuAA==</CompressedPatternEditorData>
     </Machine>
-    <Machine Name="Infector | 2" PositionX="0.5925926" PositionY="-0.4627329" TrackCount="1" PatternEditor="Modern Pattern Editor" OversampleFactor="1" MIDIInputChannel="-1">
+    <Machine Name="Infector | 2" PositionX="0.6925925" PositionY="-0.3627329" TrackCount="1" PatternEditor="Modern Pattern Editor" OversampleFactor="1" MIDIInputChannel="-1" IsWireless="false">
       <Preset Machine="FSM Infector">
         <Parameters>
           <Parameter Name="OSC1 Wave" Group="1" Index="0" Track="0" Value="3" />
@@ -155,7 +167,7 @@
       </Patterns>
       <CompressedPatternEditorData>XQAAgAADCAAAAAAAAAB/gDxdjGTOI2lCdnuDl90aXi5bvUuV2Kfw7BFN05sb5XBUS24YTzWY9SO6givCYwQy5zluadbWNRUkvfr1fsTe5cfpmi0US/Q/JJ/ooe+WDPghCBiSbRWYL7/mtGn0v7xYU/o/RRMgv1OH/94UsXRgU2Yn4lxwFt3KOngn9Zo2RezRay0du7yLIEzw7zFeWTVwjZm5kLGljWV/iQ+6m6kJBZyKODn/nkAfay+DFO6i41gk1LXgduMIH20fJLgmNPJjcmMJIdPUAA==</CompressedPatternEditorData>
     </Machine>
-    <Machine Name="X-Delay" PositionX="0.31769547" PositionY="-0.33695647" TrackCount="1" OversampleFactor="1" MIDIInputChannel="-1">
+    <Machine Name="X-Delay" PositionX="0.4176955" PositionY="-0.23695645" TrackCount="1" PatternEditor="Modern Pattern Editor" OversampleFactor="1" MIDIInputChannel="-1" IsWireless="false">
       <Preset Machine="Jeskola Cross Delay">
         <Parameters>
           <Parameter Name="Dry thru" Group="1" Index="0" Track="0" Value="1" />
@@ -171,18 +183,36 @@
       </Preset>
       <CompressedData>XQAAgAAAAAAAAAAAAAAAAAAA</CompressedData>
       <Patterns />
+      <CompressedPatternEditorData>XQAAgAAKAAAAAAAAAAB/gD02DbzTgAA=</CompressedPatternEditorData>
     </Machine>
-    <Machine Name="do-nothing" PositionX="-0.3506173" PositionY="-0.055900622" TrackCount="0" OversampleFactor="1" MIDIInputChannel="-1">
+    <Machine Name="do-nothing" PositionX="-0.25061727" PositionY="0.04409938" TrackCount="0" PatternEditor="Modern Pattern Editor" OversampleFactor="1" MIDIInputChannel="-1" IsWireless="true">
       <Preset Machine="cheapo do-nothing">
         <Parameters />
         <Attributes />
       </Preset>
       <CompressedData>XQAAgAABAAAAAAAAAAAA//wAAA==</CompressedData>
       <Patterns />
+      <CompressedPatternEditorData>XQAAgAAKAAAAAAAAAAB/gD02DbzTgAA=</CompressedPatternEditorData>
+    </Machine>
+    <Machine Name="Note" PositionX="0.4052469" PositionY="0.16475156" TrackCount="0" PatternEditor="Modern Pattern Editor" OversampleFactor="1" MIDIInputChannel="-1" IsWireless="false">
+      <Preset Machine="QuickNote">
+        <Parameters>
+          <Parameter Name="Dummy" Group="1" Index="0" Track="0" Value="0" />
+        </Parameters>
+        <Attributes />
+      </Preset>
+      <CompressedData>XQAAgADyAwAAAAAAAAABO2JdDcBKZA3cmaKgsNHoejjwpkIpDkI5vRr/+OBKDaAxMWYvq9UxrY8t2R33g+14RGGzi0QVYYO3Nw6GprqYah0fXaCIvfAKTmI1tjPpLQ2nxx5F144CUKieHt5TvzlP4YouuNE4RdXlwhqWuYxbkPA1lEZdEtgqdsLhONKqrS1r1hiLaRMJy/iBZyqu5v9IzihqcvsVj9cq0Bl0baWhop3KpytZTsBGbb+Cj20G40VVdeTBxA5q7D9dk26fYIswUQwnue9IzkiHv0JwHTJ8suevd45Z/9k9zgFrbUtoYLgFnOuUUjR5a3L0hUv3t7bPZJNuwXOBLHG6hSrahl4VFzzccEcNbyVlaFHeJApVH72m2UmmVpUJSMQ/GXw3ukYtDwqozzEFAoSKayoTA6SFsNect7ml9gahGSlFmHSw5mk4KawimXArqBEmsM6aowaeLFp1BPXKdeaGQoC/zBXAUD0vH6M24Hfe+k7jblDLXbsNknIopIP84mudn3oe2+cPi5b183ZvB1qRTN1mzgDhbJ8TN4gxkABCyiX2j+MiR/BO6bfFnPIwwNMMBj32UWv/Z+p73B9nCNmOVFQaGT5qNE6UPGtx1TNwvPv4BY/X2CdwekRqZCjyUOxhQ1MIeAho4cHdRTrxYR71On8JUEDl/MdqNsG0M2vcYfTOLme5wflwi7Ip5pjzJETegb1rb6ZGkJ2Kbq6HEUwyE+LC3tecFHXBWS0RpAq1w80IGKdkFP99Ng==</CompressedData>
+      <Patterns>
+        <Pattern Name="00" Length="64">
+          <Columns />
+        </Pattern>
+      </Patterns>
+      <CompressedPatternEditorData>XQAAgABrAAAAAAAAAAB/gEj1DK9LYnx/1F7hLCWzvkcOG0Ph9crfeTrJAA==</CompressedPatternEditorData>
     </Machine>
   </Machines>
   <MachineGroups />
   <Connections>
+    <Connection Source="do-nothing" Destination="Master" SourceChannel="0" DestinationChannel="0" Amp="16384" Pan="16384" />
     <Connection Source="Infector" Destination="Audio Out Channel 1" SourceChannel="0" DestinationChannel="0" Amp="16384" Pan="16384" />
     <Connection Source="X-Delay" Destination="Audio Out Channel 2" SourceChannel="0" DestinationChannel="0" Amp="16384" Pan="16384" />
     <Connection Source="Infector | 2" Destination="X-Delay" SourceChannel="0" DestinationChannel="0" Amp="16384" Pan="16384" />
@@ -199,6 +229,9 @@
       <Events>
         <Event Time="0" Type="PlayPattern" Pattern="00" />
       </Events>
+    </Sequence>
+    <Sequence Machine="Note">
+      <Events />
     </Sequence>
   </Sequences>
   <Markers LoopStart="0" LoopEnd="16" SongEnd="16" />
