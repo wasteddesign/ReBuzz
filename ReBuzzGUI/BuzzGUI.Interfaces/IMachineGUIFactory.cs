@@ -8,6 +8,8 @@ namespace BuzzGUI.Interfaces
         public bool PreferWindowedGUI;
         public bool IsGUIResizable;
         public bool UseThemeStyles;
+        public double Width;
+        public double Height;
     }
 
     public interface IMachineGUIFactory

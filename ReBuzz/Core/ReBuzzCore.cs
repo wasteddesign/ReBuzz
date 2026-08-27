@@ -2383,7 +2383,7 @@ namespace ReBuzz.Core
                 var sourceMachine = input.Source as MachineCore;
                 int cumulativeInputLatency = HandleLatencyCalcRecursive(sourceMachine);
                 maxLatency = Math.Max(cumulativeInputLatency, maxLatency);
-                inputMachineLatency.Add(sourceMachine, cumulativeInputLatency);
+                inputMachineLatency[sourceMachine] = cumulativeInputLatency;
             }
 
             // All inputs handled (if any). Add latency to inputs that are have lower latency than max.

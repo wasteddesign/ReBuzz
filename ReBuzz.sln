@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.8.12105.206 oobstable
+VisualStudioVersion = 18.8.12105.206
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReBuzz", "ReBuzz\ReBuzz.csproj", "{B30010DA-2DAE-4AB7-B261-A2F64209BA6E}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -114,6 +114,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConnectionMixer", "Machines\ConnectionMixer\ConnectionMixer.csproj", "{98BD065F-2D7F-2217-8844-856F7E99DB2A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReBuzzGroove", "Machines\ReBuzzGroove\ReBuzzGroove.csproj", "{1D1405AE-E3E3-83DC-BB7C-2A4B1EEE6498}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuickNote", "Machines\QuickNote\QuickNote.csproj", "{E54F7579-AA7E-4A7D-1AD4-705277F7D8CB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -281,6 +283,10 @@ Global
 		{1D1405AE-E3E3-83DC-BB7C-2A4B1EEE6498}.Debug|x64.Build.0 = Debug|x64
 		{1D1405AE-E3E3-83DC-BB7C-2A4B1EEE6498}.Release|x64.ActiveCfg = Release|x64
 		{1D1405AE-E3E3-83DC-BB7C-2A4B1EEE6498}.Release|x64.Build.0 = Release|x64
+		{E54F7579-AA7E-4A7D-1AD4-705277F7D8CB}.Debug|x64.ActiveCfg = Debug|x64
+		{E54F7579-AA7E-4A7D-1AD4-705277F7D8CB}.Debug|x64.Build.0 = Debug|x64
+		{E54F7579-AA7E-4A7D-1AD4-705277F7D8CB}.Release|x64.ActiveCfg = Release|x64
+		{E54F7579-AA7E-4A7D-1AD4-705277F7D8CB}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -323,6 +329,7 @@ Global
 		{7B6E2CAB-C6D5-261A-574F-2DED278A0E66} = {47576D10-8B3E-4382-B16D-B9B0A7FE477D}
 		{98BD065F-2D7F-2217-8844-856F7E99DB2A} = {47576D10-8B3E-4382-B16D-B9B0A7FE477D}
 		{1D1405AE-E3E3-83DC-BB7C-2A4B1EEE6498} = {47576D10-8B3E-4382-B16D-B9B0A7FE477D}
+		{E54F7579-AA7E-4A7D-1AD4-705277F7D8CB} = {47576D10-8B3E-4382-B16D-B9B0A7FE477D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A1E0287A-2CF1-4075-82E6-66EF95D320F5}
