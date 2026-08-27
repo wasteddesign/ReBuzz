@@ -286,7 +286,7 @@ namespace BuzzGUI.Common.Templates
                         graph.CreateMachine(m.Preset.Machine, "", rename[m.Name], m.Data, m.PatternEditor != null ? m.PatternEditor : "", m.PatternEditorData,
                             m.TrackCount > 0 ? m.TrackCount : -1, (float)p.X, (float)p.Y);
                         var newm = graph.Machines.Last();
-
+                        newm.IsWireless = m.IsWireless;
                         //var tpg = newm.ParameterGroups.Where(pg => pg.Type == ParameterGroupType.Track).FirstOrDefault();
                         //if (tpg != null && m.TrackCount > 0) tpg.TrackCount = m.TrackCount;
 
