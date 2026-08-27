@@ -69,31 +69,33 @@ namespace ReBuzz.Core.Actions.GraphActions
             {
                 var machine = buzz.SongCore.MachinesList.FirstOrDefault(m => m.Name == sourceName);
                 var mc = machine.AllOutputs.FirstOrDefault(o => o.Destination.Name == destinationName);
-
-                if (machine != null)
+                if (mc != null)
                 {
-                    machine.RemoveOutput(mc);
-                }
-
-                machine = mc.Destination as MachineCore;
-                if (machine != null)
-                {
-                    int track = machine.Inputs.IndexOf(mc);
-                    var group = machine.ParameterGroupsList[0];
-                    foreach (var p in group.ParametersList)
+                    if (machine != null)
                     {
-                        midiBindings.Add(p.GetMIDIBinding(track));
+                        machine.RemoveOutput(mc);
                     }
-                    machine.RemoveInput(mc);
-                }
 
-                if (!(mc.Source as MachineCore).Hidden && !(mc.Destination as MachineCore).Hidden &&
-                    !mc.Source.IsControlMachine)
-                {
-                    buzz.SongCore.InvokeConnectionRemoved(mc as MachineConnectionCore);
-                }
+                    machine = mc.Destination as MachineCore;
+                    if (machine != null)
+                    {
+                        int track = machine.Inputs.IndexOf(mc);
+                        var group = machine.ParameterGroupsList[0];
+                        foreach (var p in group.ParametersList)
+                        {
+                            midiBindings.Add(p.GetMIDIBinding(track));
+                        }
+                        machine.RemoveInput(mc);
+                    }
 
-                ((MachineConnectionCore)mc).ClearEvents();
+                    if (!(mc.Source as MachineCore).Hidden && !(mc.Destination as MachineCore).Hidden &&
+                        !mc.Source.IsControlMachine)
+                    {
+                        buzz.SongCore.InvokeConnectionRemoved(mc as MachineConnectionCore);
+                    }
+
+                    ((MachineConnectionCore)mc).ClearEvents();
+                }
                 buzz.UpdateMachineDelayCompensation();
             }
         }
@@ -129,10 +131,13 @@ namespace ReBuzz.Core.Actions.GraphActions
 
                         for (int i = 0; i < group.ParametersList.Count; i++)
                         {
-                            var b = midiBindings[i];
-                            if (b.Item1 != -1)
+                            if (i < midiBindings.Count)
                             {
-                                buzz.MidiControllerAssignments.BindParameter(group.ParametersList[i], track, b.Item1, b.Item2);
+                                var b = midiBindings[i];
+                                if (b.Item1 != -1)
+                                {
+                                    buzz.MidiControllerAssignments.BindParameter(group.ParametersList[i], track, b.Item1, b.Item2);
+                                }
                             }
                         }
 

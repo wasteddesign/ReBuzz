@@ -723,30 +723,58 @@ namespace ReBuzz.Core
                 return;
             }
 
-            if (!DLL.IsManaged)
+            if (machineGUIWindow == null)
             {
+                machineGUIWindow = new MachineGUIHostWindow();
+
+                if (DLL.GUIFactoryDecl.Width > 0 && DLL.GUIFactoryDecl.Height > 0)
+                {
+                    machineGUIWindow.SizeToContent = SizeToContent.Manual;
+                    machineGUIWindow.Width = DLL.GUIFactoryDecl.Width;
+                    machineGUIWindow.Height = DLL.GUIFactoryDecl.Height;
+                }
+                else
+                {
+                    machineGUIWindow.SizeToContent = SizeToContent.WidthAndHeight;
+                }
+
+                this.gui = DLL.GUIFactory.CreateGUI(machineGUIWindow);
+                gui.Machine = this;
+                var guiUIElement = gui as UserControl;
+
+                machineGUIWindow.Title = Name;
+                machineGUIWindow.ResizeMode = DLL.GUIFactoryDecl.IsGUIResizable ? ResizeMode.CanResize : ResizeMode.NoResize;
+
+                machineGUIWindow.Closing += (s, e) =>
+                {
+                    machineGUIWindow.Hide();
+                    e.Cancel = true;
+                };
+
+                var interop = new WindowInteropHelper(machineGUIWindow);
+                interop.Owner = Graph.Buzz.MachineViewHWND;
+
+                machineGUIWindow.Loaded += (s, e) =>
+                {
+                    if (DLL.GUIFactoryDecl.UseThemeStyles)
+                    {
+                        var r = Utils.GetUserControlXAML<Window>("ParameterWindow.xaml", buzzPath);
+                        machineGUIWindow.Resources.MergedDictionaries.Add(r.Resources);
+                    }
+                };
+
                 try
                 {
-                    if (machineGUIWindow == null)
+                    if (!DLL.IsManaged)
                     {
-                        machineGUIWindow = new MachineGUIHostWindow();
 
-                        machineGUIWindow.SizeToContent = SizeToContent.WidthAndHeight;
-                        this.gui = DLL.GUIFactory.CreateGUI(machineGUIWindow);
-                        var guiUIElement = gui as UserControl;
+                        // Add mouse wheel zoom
                         Viewbox vb = new Viewbox();
                         vb.Stretch = System.Windows.Media.Stretch.Fill;
                         vb.Child = guiUIElement;
-                        //TextOptions.SetTextFormattingMode(window, TextFormattingMode.Ideal);
-                        //window.Content = gui;
                         machineGUIWindow.Content = vb;
-                        machineGUIWindow.Title = Name;
 
                         double scale = 1.0;
-                        var interop = new WindowInteropHelper(machineGUIWindow);
-                        interop.Owner = Graph.Buzz.MachineViewHWND;
-
-                        machineGUIWindow.ResizeMode = DLL.GUIFactoryDecl.IsGUIResizable ? ResizeMode.CanResize : ResizeMode.NoResize;
 
                         guiUIElement.SizeChanged += (sender, e) =>
                         {
@@ -755,15 +783,6 @@ namespace ReBuzz.Core
 
                             machineGUIWindow.Width = vb.Width;
                             machineGUIWindow.Height = vb.Height;
-                        };
-
-                        machineGUIWindow.Loaded += (sender, e) =>
-                        {
-                            if (DLL.GUIFactoryDecl.UseThemeStyles)
-                            {
-                                var r = Utils.GetBuzzThemeResources("ParameterWindow.xaml", buzzPath);
-                                machineGUIWindow.Resources.MergedDictionaries.Add(r);
-                            }
                         };
 
                         machineGUIWindow.SizeChanged += (sender, e) =>
@@ -789,55 +808,10 @@ namespace ReBuzz.Core
                                 e.Handled = true;
                             }
                         };
-
-                        machineGUIWindow.Closing += (s, e) =>
-                        {
-                            machineGUIWindow.Hide();
-                            e.Cancel = true;
-                        };
-
-                        gui.Machine = this;
                     }
-                }
-                catch (Exception ex)
-                {
-                    Utils.MessageBox(ex.ToString());
-                }
-            }
-            else
-            {
-                try
-                {
-                    if (machineGUIWindow == null)
+                    else
                     {
-                        machineGUIWindow = new MachineGUIHostWindow();
-
-                        machineGUIWindow.SizeToContent = SizeToContent.WidthAndHeight;
-                        machineGUIWindow.Title = Name;
-                        var gui = DLL.GUIFactory.CreateGUI(machineGUIWindow);
-                        var guiUIElement = gui as UserControl;
                         machineGUIWindow.Content = guiUIElement;
-                        machineGUIWindow.ResizeMode = DLL.GUIFactoryDecl.IsGUIResizable ? ResizeMode.CanResize : ResizeMode.NoResize;
-
-                        var interop = new WindowInteropHelper(machineGUIWindow);
-                        interop.Owner = Graph.Buzz.MachineViewHWND;
-
-                        gui.Machine = this;
-
-                        machineGUIWindow.Closing += (s, e) =>
-                        {
-                            machineGUIWindow.Hide();
-                            e.Cancel = true;
-                        };
-
-                        machineGUIWindow.Loaded += (s, e) =>
-                        {
-                            if (DLL.GUIFactoryDecl.UseThemeStyles)
-                            {
-                                var r = Utils.GetUserControlXAML<Window>("ParameterWindow.xaml", buzzPath);
-                                machineGUIWindow.Resources.MergedDictionaries.Add(r.Resources);
-                            }
-                        };
                     }
                 }
                 catch (Exception ex)
