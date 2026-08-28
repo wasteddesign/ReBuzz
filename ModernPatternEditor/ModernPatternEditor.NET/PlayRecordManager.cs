@@ -134,8 +134,8 @@ namespace WDE.ModernPatternEditor
                         if (playInfo.PreviousPattern == pat)
                         {
                             PlayPatternEvents(playInfo.PreviousPattern, prevPlayPos, pat.Length * PatternEvent.TimeBase, collectEvents, midiEventsToTriggerLater);
-                            PlayPatternEvents(pat, 0, playPosition, collectEvents, midiEventsToTriggerLater);
                         }
+                        PlayPatternEvents(pat, 0, playPosition, collectEvents, midiEventsToTriggerLater);
                     }
                     // Normal case
                     else
