@@ -131,7 +131,7 @@ namespace WDE.ModernSequenceEditorHorizontal
             }
         }
 
-        static BrushSet[] brushSet = new BrushSet[3];
+        static BrushSet[] brushSet = new BrushSet[4];
         static Brush[] borderBrush = new Brush[1];
         static SolidColorBrush textBrush;
 
@@ -176,13 +176,7 @@ namespace WDE.ModernSequenceEditorHorizontal
                 brushSet[0] = new BrushSet(tc.TryFindResource("PatternBoxBrush") as SolidColorBrush);
                 brushSet[1] = new BrushSet(tc.TryFindResource("BreakBoxBrush") as SolidColorBrush);
                 brushSet[2] = new BrushSet(tc.TryFindResource("MuteBoxBrush") as SolidColorBrush);
-
-                // Don't know why these are not found above.
-                if (brushSet[1].Brush == null || brushSet[1].Brush.Color == Color.FromArgb(0, 0xff, 0xff, 0xff))
-                    brushSet[1] = new BrushSet(new SolidColorBrush(Global.Buzz.ThemeColors["SE Break Box"]));
-
-                if (brushSet[2].Brush == null || brushSet[2].Brush.Color == Color.FromArgb(0, 0xff, 0xff, 0xff))
-                    brushSet[2] = new BrushSet(new SolidColorBrush(Global.Buzz.ThemeColors["SE Mute Box"]));
+                brushSet[3] = new BrushSet(tc.TryFindResource("OffBoxBrush") as SolidColorBrush);
 
                 borderBrush[0] = tc.TryFindResource("PatternBorderBrush") as Brush;
                 textBrush = tc.TryFindResource("PatternTextBrush") as SolidColorBrush;
@@ -219,6 +213,7 @@ namespace WDE.ModernSequenceEditorHorizontal
                 case SequenceEventType.Break: bi = 1; cktext = "<break>"; break;
                 case SequenceEventType.Mute: bi = 2; cktext = "<mute>"; break;
                 case SequenceEventType.Thru: bi = 2; cktext = "<thru>"; break;
+                case SequenceEventType.Off: bi = 3; cktext = "<stop>"; break;
             }
 
             BrushSet bs;
@@ -279,11 +274,32 @@ namespace WDE.ModernSequenceEditorHorizontal
             TextBlock tb = new TextBlock() { Margin = new Thickness(6, 1, 2, 1), Foreground = textBrush, FontFamily = new FontFamily("Segoe UI"), FontSize = 12, Text = cktext, Width = w - 10, FlowDirection = FlowDirection.LeftToRight };
             tb.IsHitTestVisible = false;
 
+            if (bi > 0)
+            {
+                var tbHeight = GetTextWidth(tb);
+                tb.Width = Height;
+                var translate = new TranslateTransform { X = -6, Y = tbHeight + 4 };
+                var rotate = new RotateTransform { Angle = -90 }; // rotate -90 degrees
+                
+                var group = new TransformGroup();
+
+                group.Children.Add(rotate);
+                group.Children.Add(translate);
+                tb.RenderTransform = group;
+            }
+
             if (SequenceEditor.Settings.PatternNameBackground)
             {
                 Rectangle textRect = new Rectangle() { Margin = new Thickness(4, 2, 2, 1), Fill = trFill, Stroke = trStroke, Width = w - 8, Height = 15, IsHitTestVisible = false };
+                if (bi > 0)
+                {
+                    textRect.Width = 16; textRect.Height = h - 4;
+                    textRect.Margin = new Thickness(2, 2, 1, 2);
+                }
                 this.Children.Add(textRect);
             }
+
+            if (bi > 0) this.ToolTip = cktext;
 
             this.Children.Add(tb);
 
@@ -329,53 +345,69 @@ namespace WDE.ModernSequenceEditorHorizontal
                 }
             };
 
-            dragLeft = new Line() { X1 = 4, Y1 = 4, X2 = 4, Y2 = h - 4, Stroke = Brushes.Transparent, StrokeThickness = 8, IsHitTestVisible = false };
-            dragLeft.SetValue(RenderOptions.EdgeModeProperty, EdgeMode.Aliased);
-            this.Children.Add(dragLeft);
-            dragRight = new Line() { X1 = w2 - 4, Y1 = 4, X2 = w2 - 4, Y2 = h - 4, Stroke = Brushes.Transparent, StrokeThickness = 8, IsHitTestVisible = false };
-            dragRight.SetValue(RenderOptions.EdgeModeProperty, EdgeMode.Aliased);
-            this.Children.Add(dragRight);
+            if (bi == 0)
+            {
+                dragLeft = new Line() { X1 = 4, Y1 = 4, X2 = 4, Y2 = h - 4, Stroke = Brushes.Transparent, StrokeThickness = 8, IsHitTestVisible = false };
+                dragLeft.SetValue(RenderOptions.EdgeModeProperty, EdgeMode.Aliased);
+                this.Children.Add(dragLeft);
+                dragRight = new Line() { X1 = w2 - 4, Y1 = 4, X2 = w2 - 4, Y2 = h - 4, Stroke = Brushes.Transparent, StrokeThickness = 8, IsHitTestVisible = false };
+                dragRight.SetValue(RenderOptions.EdgeModeProperty, EdgeMode.Aliased);
+                this.Children.Add(dragRight);
 
-            //SetDragHitTestVisibility(tc.Editor.KbHook.ControlPressed);
-            SetDragHitTestVisibility(Keyboard.Modifiers == ModifierKeys.Control);
+                //SetDragHitTestVisibility(tc.Editor.KbHook.ControlPressed);
+                SetDragHitTestVisibility(Keyboard.Modifiers == ModifierKeys.Control);
 
-            dragRight.MouseEnter += (sender, e) =>
-            {
-                if (Keyboard.Modifiers == ModifierKeys.Control)
-                    Mouse.OverrideCursor = Cursors.SizeWE;
-            };
-            dragRight.MouseLeave += (sender, e) =>
-            {
-                Mouse.OverrideCursor = null;
-            };
-            dragRight.PreviewMouseLeftButtonDown += (sender, e) =>
-            {
-                if (Keyboard.Modifiers == ModifierKeys.Control)
+                dragRight.MouseEnter += (sender, e) =>
                 {
-                    this.PropertyChanged.Raise(this, "DragBottom");
-                    e.Handled = true;
-                }
-            };
-
-
-            dragLeft.MouseEnter += (sender, e) =>
-            {
-                if (Keyboard.Modifiers == ModifierKeys.Control)
-                    Mouse.OverrideCursor = Cursors.SizeWE;
-            };
-            dragLeft.MouseLeave += (sender, e) =>
-            {
-                Mouse.OverrideCursor = null;
-            };
-            dragLeft.PreviewMouseLeftButtonDown += (sender, e) =>
-            {
-                if (Keyboard.Modifiers == ModifierKeys.Control)
+                    if (Keyboard.Modifiers == ModifierKeys.Control)
+                        Mouse.OverrideCursor = Cursors.SizeWE;
+                };
+                dragRight.MouseLeave += (sender, e) =>
                 {
-                    this.PropertyChanged.Raise(this, "DragTop");
-                    e.Handled = true;
-                }
-            };
+                    Mouse.OverrideCursor = null;
+                };
+                dragRight.PreviewMouseLeftButtonDown += (sender, e) =>
+                {
+                    if (Keyboard.Modifiers == ModifierKeys.Control)
+                    {
+                        this.PropertyChanged.Raise(this, "DragBottom");
+                        e.Handled = true;
+                    }
+                };
 
+
+                dragLeft.MouseEnter += (sender, e) =>
+                {
+                    if (Keyboard.Modifiers == ModifierKeys.Control)
+                        Mouse.OverrideCursor = Cursors.SizeWE;
+                };
+                dragLeft.MouseLeave += (sender, e) =>
+                {
+                    Mouse.OverrideCursor = null;
+                };
+                dragLeft.PreviewMouseLeftButtonDown += (sender, e) =>
+                {
+                    if (Keyboard.Modifiers == ModifierKeys.Control)
+                    {
+                        this.PropertyChanged.Raise(this, "DragTop");
+                        e.Handled = true;
+                    }
+                };
+            }
+        }
+
+        double GetTextWidth(TextBlock tb)
+        {
+            var ft = new FormattedText(
+                tb.Text,
+                System.Globalization.CultureInfo.CurrentCulture,
+                tb.FlowDirection,
+                new Typeface(tb.FontFamily, tb.FontStyle, tb.FontWeight, tb.FontStretch),
+                tb.FontSize,
+                Brushes.Black,
+                VisualTreeHelper.GetDpi(tb).PixelsPerDip);
+
+            return ft.Width;
         }
 
         private void DragBottom_MouseEvent(object sender, MouseEventArgs e)

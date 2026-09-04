@@ -567,7 +567,12 @@ namespace BuzzGUI.SequenceEditor
 						song.Buzz.ActiveView = BuzzView.SequenceView;
 						e.Handled = true;
 					}
-				}
+                    else if (e.Key == Key.OemComma)
+                    {
+                        Do(new SetEventAction(SelectedSequence, CursorTime, new SequenceEvent(SequenceEventType.Off)));
+                        MoveCursorDelta(1, 0, int.MaxValue, false);
+                    }
+                }
 				else if (Keyboard.Modifiers == ModifierKeys.Control)
 				{
 					if (e.Key == Key.M)
@@ -596,7 +601,7 @@ namespace BuzzGUI.SequenceEditor
 						if (MoveTrackDownCommand.CanExecute(null)) MoveTrackDownCommand.Execute(null);
 						e.Handled = true;
 					}
-				}
+                }
 			};
 
 			this.PreviewTextInput += (sender, e) =>
@@ -624,7 +629,7 @@ namespace BuzzGUI.SequenceEditor
 						Do(new SetEventAction(SelectedSequence, CursorTime, new SequenceEvent(SequenceEventType.Thru)));
 						MoveCursorDelta(1, 0, int.MaxValue, false);
 					}
-					else if (e.Text[0] == '.')
+                    else if (e.Text[0] == '.')
 					{
 						Do(new ClearAction(SelectedSequence, CursorTime, CursorSpan));
 						MoveCursorDelta(1, 0, int.MaxValue, false);

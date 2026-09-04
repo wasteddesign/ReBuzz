@@ -1180,6 +1180,11 @@ namespace ReBuzz.FileOps
                                 // Thru
                                 sequence.SetEvent((int)pos, new SequenceEvent(SequenceEventType.Thru));
                             }
+                            else if (value == 3)
+                            {
+                                // Off
+                                sequence.SetEvent((int)pos, new SequenceEvent(SequenceEventType.Off));
+                            }
                             else if (value >= 0x10)
                             {
                                 // machine+value -> pattern id
@@ -2184,6 +2189,11 @@ namespace ReBuzz.FileOps
                         {
                             // Thru
                             value = 2;
+                        }
+                        else if (sequenceEvent.Type == SequenceEventType.Off)
+                        {
+                            // Thru
+                            value = 3;
                         }
                         else
                         {

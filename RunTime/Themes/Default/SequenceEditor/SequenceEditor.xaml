@@ -51,6 +51,7 @@
   <SolidColorBrush x:Key="PatternBoxBrush" Color="{Binding Buzz.ThemeColors[SE Pattern Box]}" po:Freeze="True"/>
   <SolidColorBrush x:Key="BreakBoxBrush" Color="{Binding Buzz.ThemeColors[SE Break Box]}" po:Freeze="True"/>
   <SolidColorBrush x:Key="MuteBoxBrush" Color="{Binding Buzz.ThemeColors[SE Mute Box]}" po:Freeze="True"/>
+  <SolidColorBrush x:Key="OffBoxBrush" Color="{Binding Buzz.ThemeColors[SE Off Box]}" po:Freeze="True"/>
 
   <SolidColorBrush x:Key="CursorBrush" Color="#2000" po:Freeze="True"/>
   <SolidColorBrush x:Key="CursorInactiveBrush" Color="#2005" po:Freeze="True"/>

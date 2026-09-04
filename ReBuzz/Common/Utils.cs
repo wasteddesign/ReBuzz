@@ -166,6 +166,7 @@ namespace ReBuzz.Common
             ("SE Sel BG", 0xFFF7F7F4),
             ("SE Song Position", 0xFFFFFF00),
             ("SE Text", 0xFF303021),
+            ("SE Off Box", 0xFF606060),
             ("black", 0xFF000000)
         ];
 
