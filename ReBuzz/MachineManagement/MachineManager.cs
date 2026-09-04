@@ -969,10 +969,25 @@ namespace ReBuzz.MachineManagement
             {
                 nativeMachines[machine].UIMessage.UIStop(machine);
             }
+        }
 
-            //foreach (var pg in machine.ParameterGroupsList)
-            //    foreach (var p in pg.ParametersList)
-            //        p.ClearPVal();
+        // Alternative to Stop() that sends note offs to all note parameters and tracks, but does not call Stop() on the machine.
+        internal void SendNoteOffs(MachineCore machine) 
+        {
+            // Send note offs to parameters and tracks
+            for (int i = 1; i < machine.ParameterGroupsList.Count; i++)
+            {
+                var g = machine.ParameterGroupsList[i];
+                for (int j = 0; j < g.ParametersList.Count; j++)
+                {
+                    var p = g.ParametersList[j];
+                    for (int t = 0; t < g.TrackCount; t++)
+                    {
+                        if (p.Type == ParameterType.Note)
+                            p.SetValue(t, BuzzNote.Off);
+                    }
+                }
+            }
         }
 
         internal void UpdateMasterAndSubTickInfoToHost()

@@ -3,7 +3,7 @@ using System.ComponentModel;
 
 namespace BuzzGUI.Interfaces
 {
-    public enum SequenceEventType { PlayPattern, Break, Mute, Thru };
+    public enum SequenceEventType { PlayPattern, Break, Mute, Thru, Off };
 
     public class SequenceEvent
     {

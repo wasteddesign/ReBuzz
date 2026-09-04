@@ -90,6 +90,10 @@ namespace ReBuzz.Core
                     {
                         seq.MachineCore.IsSeqThru = true;
                     }
+                    else if (se.Type == SequenceEventType.Off)
+                    {
+                        BuzzCore.MachineManager.Stop(seq.MachineCore);
+                    }
                     else
                     {
                         seq.MachineCore.IsSeqMute = seq.MachineCore.IsSeqThru = false;

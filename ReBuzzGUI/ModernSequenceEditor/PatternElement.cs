@@ -118,7 +118,7 @@ namespace WDE.ModernSequenceEditor
             }
         }
 
-        static BrushSet[] brushSet = new BrushSet[3];
+        static BrushSet[] brushSet = new BrushSet[4];
         static Brush[] borderBrush = new Brush[1];
         static SolidColorBrush textBrush;
 
@@ -173,13 +173,7 @@ namespace WDE.ModernSequenceEditor
                 brushSet[0] = new BrushSet(tc.TryFindResource("PatternBoxBrush") as SolidColorBrush);
                 brushSet[1] = new BrushSet(tc.TryFindResource("BreakBoxBrush") as SolidColorBrush);
                 brushSet[2] = new BrushSet(tc.TryFindResource("MuteBoxBrush") as SolidColorBrush);
-
-                // Don't know why these are not found above.
-                if (brushSet[1].Brush == null || brushSet[1].Brush.Color == Color.FromArgb(0, 0xff, 0xff, 0xff))
-                    brushSet[1] = new BrushSet(new SolidColorBrush(Global.Buzz.ThemeColors["SE Break Box"]));
-
-                if (brushSet[2].Brush == null || brushSet[2].Brush.Color == Color.FromArgb(0, 0xff, 0xff, 0xff))
-                    brushSet[2] = new BrushSet(new SolidColorBrush(Global.Buzz.ThemeColors["SE Mute Box"]));
+                brushSet[3] = new BrushSet(tc.TryFindResource("OffBoxBrush") as SolidColorBrush);
 
                 borderBrush[0] = tc.TryFindResource("PatternBorderBrush") as Brush;
                 textBrush = tc.TryFindResource("PatternTextBrush") as SolidColorBrush;
@@ -216,6 +210,7 @@ namespace WDE.ModernSequenceEditor
                 case SequenceEventType.Break: bi = 1; cktext = "<break>"; break;
                 case SequenceEventType.Mute: bi = 2; cktext = "<mute>"; break;
                 case SequenceEventType.Thru: bi = 2; cktext = "<thru>"; break;
+                case SequenceEventType.Off: bi = 3; cktext = "<stop>"; break;
             }
 
             BrushSet bs;
@@ -282,6 +277,8 @@ namespace WDE.ModernSequenceEditor
                 this.Children.Add(textRect);
             }
 
+            if (bi > 0) this.ToolTip = cktext;
+
             this.Children.Add(tb);
 
             this.IsHitTestVisible = true;
@@ -326,51 +323,54 @@ namespace WDE.ModernSequenceEditor
                 }
             };
 
-            dragTop = new Line() { X1 = 4, Y1 = 4, X2 = w - 4, Y2 = 4, Stroke = Brushes.Transparent, StrokeThickness = 8, IsHitTestVisible = false };
-            dragTop.SetValue(RenderOptions.EdgeModeProperty, EdgeMode.Aliased);
-            this.Children.Add(dragTop);
-            dragBottom = new Line() { X1 = 4, Y1 = h2 - 4, X2 = w - 4, Y2 = h2 - 4, Stroke = Brushes.Transparent, StrokeThickness = 8, IsHitTestVisible = false };
-            dragBottom.SetValue(RenderOptions.EdgeModeProperty, EdgeMode.Aliased);
-            this.Children.Add(dragBottom);
+            if (bi == 0)
+            {
+                dragTop = new Line() { X1 = 4, Y1 = 4, X2 = w - 4, Y2 = 4, Stroke = Brushes.Transparent, StrokeThickness = 8, IsHitTestVisible = false };
+                dragTop.SetValue(RenderOptions.EdgeModeProperty, EdgeMode.Aliased);
+                this.Children.Add(dragTop);
+                dragBottom = new Line() { X1 = 4, Y1 = h2 - 4, X2 = w - 4, Y2 = h2 - 4, Stroke = Brushes.Transparent, StrokeThickness = 8, IsHitTestVisible = false };
+                dragBottom.SetValue(RenderOptions.EdgeModeProperty, EdgeMode.Aliased);
+                this.Children.Add(dragBottom);
 
-            SetDragHitTestVisibility(Keyboard.Modifiers == ModifierKeys.Control);
+                SetDragHitTestVisibility(Keyboard.Modifiers == ModifierKeys.Control);
 
-            dragBottom.MouseEnter += (sender, e) =>
-            {
-                if (Keyboard.Modifiers == ModifierKeys.Control)
-                    Mouse.OverrideCursor = Cursors.SizeNS;
-            };
-            dragBottom.MouseLeave += (sender, e) =>
-            {
-                Mouse.OverrideCursor = null;
-            };
-            dragBottom.PreviewMouseLeftButtonDown += (sender, e) =>
-            {
-                if (Keyboard.Modifiers == ModifierKeys.Control)
+                dragBottom.MouseEnter += (sender, e) =>
                 {
-                    this.PropertyChanged.Raise(this, "DragBottom");
-                    e.Handled = true;
-                }
-            };
-
-
-            dragTop.MouseEnter += (sender, e) =>
-            {
-                if (Keyboard.Modifiers == ModifierKeys.Control)
-                    Mouse.OverrideCursor = Cursors.SizeNS;
-            };
-            dragTop.MouseLeave += (sender, e) =>
-            {
-                Mouse.OverrideCursor = null;
-            };
-            dragTop.PreviewMouseLeftButtonDown += (sender, e) =>
-            {
-                if (Keyboard.Modifiers == ModifierKeys.Control)
+                    if (Keyboard.Modifiers == ModifierKeys.Control)
+                        Mouse.OverrideCursor = Cursors.SizeNS;
+                };
+                dragBottom.MouseLeave += (sender, e) =>
                 {
-                    this.PropertyChanged.Raise(this, "DragTop");
-                    e.Handled = true;
-                }
-            };
+                    Mouse.OverrideCursor = null;
+                };
+                dragBottom.PreviewMouseLeftButtonDown += (sender, e) =>
+                {
+                    if (Keyboard.Modifiers == ModifierKeys.Control)
+                    {
+                        this.PropertyChanged.Raise(this, "DragBottom");
+                        e.Handled = true;
+                    }
+                };
+
+
+                dragTop.MouseEnter += (sender, e) =>
+                {
+                    if (Keyboard.Modifiers == ModifierKeys.Control)
+                        Mouse.OverrideCursor = Cursors.SizeNS;
+                };
+                dragTop.MouseLeave += (sender, e) =>
+                {
+                    Mouse.OverrideCursor = null;
+                };
+                dragTop.PreviewMouseLeftButtonDown += (sender, e) =>
+                {
+                    if (Keyboard.Modifiers == ModifierKeys.Control)
+                    {
+                        this.PropertyChanged.Raise(this, "DragTop");
+                        e.Handled = true;
+                    }
+                };
+            }
 
         }
 

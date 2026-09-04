@@ -101,7 +101,7 @@ namespace BuzzGUI.SequenceEditor
             patternEventBorder.Freeze();
         }
 
-		static BrushSet[] brushSet = new BrushSet[3];
+		static BrushSet[] brushSet = new BrushSet[4];
 		static Brush[] borderBrush = new Brush[1];
 		static Brush textBrush;
 
@@ -153,8 +153,9 @@ namespace BuzzGUI.SequenceEditor
 				brushSet[0] = new BrushSet(tc.TryFindResource("PatternBoxBrush") as SolidColorBrush);
 				brushSet[1] = new BrushSet(tc.TryFindResource("BreakBoxBrush") as SolidColorBrush);
 				brushSet[2] = new BrushSet(tc.TryFindResource("MuteBoxBrush") as SolidColorBrush);
+                brushSet[3] = new BrushSet(tc.TryFindResource("OffBoxBrush") as SolidColorBrush);
 
-				borderBrush[0] = tc.TryFindResource("PatternBorderBrush") as Brush;
+                borderBrush[0] = tc.TryFindResource("PatternBorderBrush") as Brush;
 				textBrush = tc.TryFindResource("PatternTextBrush") as Brush;
 				if (textBrush.CanFreeze) textBrush.Freeze();
 				
@@ -187,7 +188,8 @@ namespace BuzzGUI.SequenceEditor
 				case SequenceEventType.Break: bi = 1; cktext = "<break>";  break;
 				case SequenceEventType.Mute: bi = 2; cktext = "<mute>"; break;
 				case SequenceEventType.Thru: bi = 2; cktext = "<thru>"; break;
-			}
+                case SequenceEventType.Off: bi = 3; cktext = "<stop>"; break;
+            }
 
 			BrushSet bs;
 			int ci = -1;
@@ -197,7 +199,6 @@ namespace BuzzGUI.SequenceEditor
 				PatternEx pex = null;
 
 				if (viewSettings.PatternAssociations.TryGetValue(se.Pattern, out pex))
-				//if (viewSettings.PatternAssociationsList.PatternAssociations.TryGetValue(se.Pattern, out pex))
 					ci = pex.ColorIndex % PatternBrushes.Length;
 
 				if (ci < 0 && SequenceEditor.Settings.PatternBoxColors == PatternBoxColorModes.Pattern)
@@ -210,81 +211,66 @@ namespace BuzzGUI.SequenceEditor
 			else
 				bs = brushSet[bi];
 
-			
-			//if (w <= MaxCacheableWidth)
-			//{
-			//	var bcbr = PatternVisualCache.Lookup(cktext, w, ci);
-			//	if (bcbr == null)
-			//	{
-			//		var z = new PatternVisual(w, h, text, font, textBrush, borderBrush[0], bs.Brush, bs.HighlightBrush, bs.ShadowBrush);
-
-			//		bcbr = new BitmapCacheBrush(z)
-			//		{
-			//			BitmapCache = new BitmapCache() { EnableClearType = true, SnapsToDevicePixels = true, RenderAtScale = 1.0 }
-			//		};
-			//		PatternVisualCache.Cache(cktext, w, ci, bcbr);
-			//	}
-
-			//	dc.DrawRectangle(bcbr, null, new Rect(0, 0, w + 1, h + 1));
-			//}
-			//else if (childVisual == null)
-			//{
-			//	childVisual = new PatternVisual(w, h, text, font, textBrush, borderBrush[0], bs.Brush, bs.HighlightBrush, bs.ShadowBrush);
-			//	AddVisualChild(childVisual);
-
-			//}
+            if (bi > 0)
+            {
+                this.ToolTip = cktext;
+                cktext = "";            // This text is not visible in small seq editor anyway
+            }
 
             Children.Clear();
 
             PatternVisual childVisual = new PatternVisual(w, h, cktext, font, textBrush, borderBrush[0], bs.Brush, bs.HighlightBrush, bs.ShadowBrush);
             Children.Add(new VisualHost { Visual = childVisual });
 
-            dragLeft = new Line() { X1 = 4, Y1 = 4, X2 = 4, Y2 = h - 4, Stroke = Brushes.Transparent, StrokeThickness = 8, IsHitTestVisible = false };
-            dragLeft.SetValue(RenderOptions.EdgeModeProperty, EdgeMode.Aliased);
-            this.Children.Add(dragLeft);
-            dragRight = new Line() { X1 = w2 - 4, Y1 = 4, X2 = w2 - 4, Y2 = h - 4, Stroke = Brushes.Transparent, StrokeThickness = 8, IsHitTestVisible = false };
-            dragRight.SetValue(RenderOptions.EdgeModeProperty, EdgeMode.Aliased);
-            this.Children.Add(dragRight);
+            if (bi == 0)
+            {
+                dragLeft = new Line() { X1 = 4, Y1 = 4, X2 = 4, Y2 = h - 4, Stroke = Brushes.Transparent, StrokeThickness = 8, IsHitTestVisible = false };
+                dragLeft.SetValue(RenderOptions.EdgeModeProperty, EdgeMode.Aliased);
+                this.Children.Add(dragLeft);
+                dragRight = new Line() { X1 = w2 - 4, Y1 = 4, X2 = w2 - 4, Y2 = h - 4, Stroke = Brushes.Transparent, StrokeThickness = 8, IsHitTestVisible = false };
+                dragRight.SetValue(RenderOptions.EdgeModeProperty, EdgeMode.Aliased);
+                this.Children.Add(dragRight);
 
-            //SetDragHitTestVisibility(tc.Editor.KbHook.ControlPressed);
-            SetDragHitTestVisibility(Keyboard.Modifiers == ModifierKeys.Control);
+                //SetDragHitTestVisibility(tc.Editor.KbHook.ControlPressed);
+                SetDragHitTestVisibility(Keyboard.Modifiers == ModifierKeys.Control);
 
-            dragRight.MouseEnter += (sender, e) =>
-            {
-                if (Keyboard.Modifiers == ModifierKeys.Control)
-                    Mouse.OverrideCursor = Cursors.SizeWE;
-            };
-            dragRight.MouseLeave += (sender, e) =>
-            {
-                Mouse.OverrideCursor = null;
-            };
-            dragRight.PreviewMouseLeftButtonDown += (sender, e) =>
-            {
-                if (Keyboard.Modifiers == ModifierKeys.Control)
+                dragRight.MouseEnter += (sender, e) =>
                 {
-                    this.PropertyChanged.Raise(this, "DragBottom");
-                    e.Handled = true;
-                }
-            };
-
-
-            dragLeft.MouseEnter += (sender, e) =>
-            {
-                if (Keyboard.Modifiers == ModifierKeys.Control)
-                    Mouse.OverrideCursor = Cursors.SizeWE;
-            };
-            dragLeft.MouseLeave += (sender, e) =>
-            {
-                Mouse.OverrideCursor = null;
-            };
-            dragLeft.PreviewMouseLeftButtonDown += (sender, e) =>
-            {
-                if (Keyboard.Modifiers == ModifierKeys.Control)
+                    if (Keyboard.Modifiers == ModifierKeys.Control)
+                        Mouse.OverrideCursor = Cursors.SizeWE;
+                };
+                dragRight.MouseLeave += (sender, e) =>
                 {
-                    this.PropertyChanged.Raise(this, "DragTop");
-                    e.Handled = true;
-                }
-            };
+                    Mouse.OverrideCursor = null;
+                };
+                dragRight.PreviewMouseLeftButtonDown += (sender, e) =>
+                {
+                    if (Keyboard.Modifiers == ModifierKeys.Control)
+                    {
+                        this.PropertyChanged.Raise(this, "DragBottom");
+                        e.Handled = true;
+                    }
+                };
+
+
+                dragLeft.MouseEnter += (sender, e) =>
+                {
+                    if (Keyboard.Modifiers == ModifierKeys.Control)
+                        Mouse.OverrideCursor = Cursors.SizeWE;
+                };
+                dragLeft.MouseLeave += (sender, e) =>
+                {
+                    Mouse.OverrideCursor = null;
+                };
+                dragLeft.PreviewMouseLeftButtonDown += (sender, e) =>
+                {
+                    if (Keyboard.Modifiers == ModifierKeys.Control)
+                    {
+                        this.PropertyChanged.Raise(this, "DragTop");
+                        e.Handled = true;
+                    }
+                };
+            }
         }
 
         internal void Release()

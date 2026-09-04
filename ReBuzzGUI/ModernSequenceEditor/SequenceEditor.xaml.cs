@@ -834,6 +834,11 @@ namespace WDE.ModernSequenceEditor
                         song.Buzz.ActiveView = BuzzView.SequenceView;
                         e.Handled = true;
                     }
+                    else if (e.Key == Key.OemComma)
+                    {
+                        Do(new SetEventAction(SelectedSequence, CursorTime, new SequenceEvent(SequenceEventType.Off)));
+                        MoveCursorDelta(1, 0, int.MaxValue, false);
+                    }
                 }
                 else if (Keyboard.Modifiers == ModifierKeys.Control)
                 {
@@ -863,7 +868,6 @@ namespace WDE.ModernSequenceEditor
                         if (MoveTrackRightCommand.CanExecute(null)) MoveTrackRightCommand.Execute(null);
                         e.Handled = true;
                     }
-
                 }
             };
 
