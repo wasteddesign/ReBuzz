@@ -154,6 +154,12 @@ namespace ReBuzz.Audio
                     //    UpdateMasterSamplesPerTick();
                     //}
 
+                    if (masterInfo.PosInTick == 0)
+                    {
+                        var grooveMul = GetGrooveMul();
+                        masterInfo.SamplesPerTick = (int)(masterInfo.AverageSamplesPerTick * grooveMul);
+                    }
+
                     UpdateMasterParams();
 
                     // Initiate master info for Audio Messages
@@ -164,8 +170,6 @@ namespace ReBuzz.Audio
 
                     // Initiate master info for Audio Messages
                     CopySubTickInfo();
-
-                    // HandleParameterRecord();
 
                     // Ensure we don't go over tick
                     if (masterInfo.PosInTick + framesToProcess > masterInfo.SamplesPerTick)
@@ -233,39 +237,6 @@ namespace ReBuzz.Audio
 
                     subTickInfo.PosInSubTick += framesToProcess;
                     masterInfo.PosInTick += framesToProcess;
-#region Groove
-                    // ------------------------------------------------------------
-                    // GROOVE: Compute effective tick length
-                    // ------------------------------------------------------------
-                    int baseTickSamples = masterInfo.SamplesPerTick;
-                    float grooveMul = 1.0f;
-
-                    if (masterInfo.GrooveSize > 0 && masterInfo.GrooveData != IntPtr.Zero)
-                    {
-                        if (buzzCore.SoloPattern == null)
-                        {
-                            masterInfo.PosInGroove = buzzCore.SongCore.PlayPosition % masterInfo.GrooveSize;
-                        }
-                        else
-                        {
-                            masterInfo.PosInGroove = (buzzCore.SoloPattern.PlayPosition / PatternEvent.TimeBase) % masterInfo.GrooveSize;
-                        }
-                        int gi = masterInfo.PosInGroove;
-
-                        if (gi < 0) gi = 0;
-                        if (gi >= masterInfo.GrooveSize) gi = masterInfo.GrooveSize - 1;
-
-                        unsafe
-                        {
-                            float* gptr = (float*)masterInfo.GrooveData.ToPointer();
-                            grooveMul = gptr[gi];
-                        }
-                    }
-#endregion
-
-                    int effectiveTickSamples = (int)(baseTickSamples * grooveMul);
-                    if (effectiveTickSamples <= 0)
-                        effectiveTickSamples = baseTickSamples; // safety fallback
 
                     if (subTickInfo.PosInSubTick >= subTickInfo.SamplesPerSubTick)
                     {
@@ -273,12 +244,8 @@ namespace ReBuzz.Audio
                         subTickInfo.CurrentSubTick++;
                     }
 
-                    // ------------------------------------------------------------
-                    // GROOVE: Tick boundary (Buzz‑accurate)
-                    // ------------------------------------------------------------
-                    if (masterInfo.PosInTick >= effectiveTickSamples)
+                    if (masterInfo.PosInTick >= masterInfo.SamplesPerTick)
                     {
-                        //masterInfo.PosInTick -= effectiveTickSamples;
                         masterInfo.PosInTick = 0;
 
                         // Reset subtick counter at tick boundary
@@ -295,7 +262,7 @@ namespace ReBuzz.Audio
                     }
 
                     // Update position info in patterns
-                    UpdatePatternPositions((int)(framesToProcess / grooveMul));
+                    UpdatePatternPositions(framesToProcess);
 
                     // Update frame count
                     unchecked { ReBuzzCore.GlobalState.AudioFrame += framesToProcess; }
@@ -336,6 +303,39 @@ namespace ReBuzz.Audio
 
                 return count;
             }
+        }
+
+        float GetGrooveMul()
+        {
+            // ------------------------------------------------------------
+            // GROOVE: Compute effective tick length
+            // ------------------------------------------------------------
+            float grooveMul = 1.0f;
+            var masterInfo = ReBuzzCore.masterInfo;
+
+            if (masterInfo.GrooveSize > 0 && masterInfo.GrooveData != IntPtr.Zero)
+            {
+                if (buzzCore.SoloPattern == null)
+                {
+                    masterInfo.PosInGroove = buzzCore.SongCore.PlayPosition % masterInfo.GrooveSize;
+                }
+                else
+                {
+                    masterInfo.PosInGroove = (buzzCore.SoloPattern.PlayPosition / PatternEvent.TimeBase) % masterInfo.GrooveSize;
+                }
+                int gi = masterInfo.PosInGroove;
+
+                if (gi < 0) gi = 0;
+                if (gi >= masterInfo.GrooveSize) gi = masterInfo.GrooveSize - 1;
+
+                unsafe
+                {
+                    float* gptr = (float*)masterInfo.GrooveData.ToPointer();
+                    grooveMul = gptr[gi];
+                }
+            }
+
+            return grooveMul;
         }
 
         private void UpdateMasterParams()
