@@ -608,17 +608,29 @@ namespace ReBuzz.Core
         public void SetGroovePattern(float[] grooveData)
         {
             int grooveSize = grooveData == null ? 0 : grooveData.Length;
-            masterInfo.GrooveSize = Math.Min(grooveSize, grooveData.Length);
+            masterInfo.GrooveSize = grooveSize;
 
-            if (grooveSize > 0)
+            if (grooveSize == 0)
+                return;
+
+            // 1. Compute average
+            float sum = 0f;
+            for (int i = 0; i < grooveSize; i++)
             {
-                unsafe
+                // Groove tick length can't be zero, so replace any zero values with 1.0
+                if (grooveData[i] <= 0)
+                    grooveData[i] = 1;
+
+                sum += grooveData[i];
+            }
+
+            unsafe
+            {
+                float* gptr = (float*)masterInfo.GrooveData.ToPointer();
+
+                for (int i = 0; i < grooveSize; i++)
                 {
-                    float* gptr = (float*)masterInfo.GrooveData.ToPointer();
-                    for (int i = 0; i < grooveSize; i++)
-                    {
-                        gptr[i] = 1.0f / grooveData[i];
-                    }
+                    gptr[i] = (grooveData[i] / sum) * grooveSize;
                 }
             }
         }
