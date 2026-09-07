@@ -13,14 +13,12 @@ namespace ReBuzz.Midi
 {
     internal class MidiInDevice
     {
-        private MidiIn midiIn;
+        internal MidiIn midiIn;
         private readonly IBuzz buzz;
         ConcurrentQueue<object> midiMessages;
         private bool stopped;
 
         public string ProductName { get; private set; }
-
-        readonly ManualResetEvent midiMessageReceivedEvent = new ManualResetEvent(false);
 
         public MidiInDevice(IBuzz buzz)
         {
@@ -65,7 +63,6 @@ namespace ReBuzz.Midi
         public void DisposeMidiIn()
         {
             stopped = true;
-            midiMessageReceivedEvent.Set();
             if (midiIn != null)
             {
                 try
