@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ReBuzz.Midi
+namespace SysExTests
 {
     public static class SysExRequests
     {
@@ -185,8 +185,8 @@ namespace ReBuzz.Midi
             if (manufacturer.Contains("nord") ||
                 manufacturer.Contains("clavia")) return NordProgramDumpRequest();
             if (manufacturer.Contains("m-audio") ||
-                manufacturer.Contains("maudio") ||
-                manufacturer.Contains("oxygen")) return MAudioStateDumpRequest();
+                manufacturer.Contains("maudio") /*||
+                manufacturer.Contains("oxygen")*/) return MAudioStateDumpRequest();
 
             // Fallback: universal identity request
             return UniversalIdentityRequest;

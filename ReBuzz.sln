@@ -117,6 +117,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReBuzzGroove", "Machines\Re
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuickNote", "Machines\QuickNote\QuickNote.csproj", "{E54F7579-AA7E-4A7D-1AD4-705277F7D8CB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SysExTests", "SysExTests\SysExTests.csproj", "{9E62AB30-D9E7-437A-800F-B3C0952F06A8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -287,6 +289,10 @@ Global
 		{E54F7579-AA7E-4A7D-1AD4-705277F7D8CB}.Debug|x64.Build.0 = Debug|x64
 		{E54F7579-AA7E-4A7D-1AD4-705277F7D8CB}.Release|x64.ActiveCfg = Release|x64
 		{E54F7579-AA7E-4A7D-1AD4-705277F7D8CB}.Release|x64.Build.0 = Release|x64
+		{9E62AB30-D9E7-437A-800F-B3C0952F06A8}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9E62AB30-D9E7-437A-800F-B3C0952F06A8}.Debug|x64.Build.0 = Debug|Any CPU
+		{9E62AB30-D9E7-437A-800F-B3C0952F06A8}.Release|x64.ActiveCfg = Release|Any CPU
+		{9E62AB30-D9E7-437A-800F-B3C0952F06A8}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
