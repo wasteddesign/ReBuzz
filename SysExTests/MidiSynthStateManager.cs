@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace ReBuzz.Midi
+namespace SysExTests
 {
     public class MidiSynthStateManager
     {
