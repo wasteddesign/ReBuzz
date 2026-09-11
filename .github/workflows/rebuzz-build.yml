@@ -20,6 +20,9 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '10.0.x'
+    
+    - name: Install Windows Desktop workload
+      run: dotnet workload install windowsdesktop        
 
     - name: Restore dependencies
       run: dotnet restore ReBuzz/ReBuzz.csproj
