@@ -216,7 +216,7 @@ namespace WDE.ModernPatternEditor
 
             var parameter = GetParameter(mpeColumn.Machine, paramIndex, paramTrack);
 
-            // If machine is missing, param is null
+            // If machine is missing or parametercount is incorrect, param can be null
             if (parameter != null)
             {
                 mpeColumn.GroupType = parameter.Group.Type;
