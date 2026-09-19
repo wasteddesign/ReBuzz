@@ -215,7 +215,12 @@ namespace WDE.ModernPatternEditor
             mpeColumn.Graphical = graphical;
 
             var parameter = GetParameter(mpeColumn.Machine, paramIndex, paramTrack);
-            mpeColumn.GroupType = parameter.Group.Type;
+
+            // If machine is missing or parametercount is incorrect, param can be null
+            if (parameter != null)
+            {
+                mpeColumn.GroupType = parameter.Group.Type;
+            }
             mpeColumn.Parameter = parameter;
 
             int count = BCReadInt(machinePatternsData, ref index);
@@ -232,7 +237,10 @@ namespace WDE.ModernPatternEditor
                 events.Add(pe);
             }
 
-            mpeColumn.SetEvents(events.ToArray(), true);
+            if (parameter != null)
+            {
+                mpeColumn.SetEvents(events.ToArray(), true);
+            }
 
             List<int> beatRows = new List<int>();
             // Read rows in beat
@@ -241,12 +249,12 @@ namespace WDE.ModernPatternEditor
                 beatRows.Add(BCReadInt(machinePatternsData, ref index));
             }
 
-            mpeColumn.SetBeats(beatRows);
-
-            pat.MPEPatternColumns.Add(mpeColumn);
+            if (parameter != null)
+            {
+                mpeColumn.SetBeats(beatRows);
+                pat.MPEPatternColumns.Add(mpeColumn);
+            }
         }
-
-
 
         #endregion
 
@@ -314,7 +322,6 @@ namespace WDE.ModernPatternEditor
         {
             IParameter ret = null;
 
-
             if (paramIndex == (int)InternalParameter.MidiNote)
             {
                 ret = MPEInternalParameter.GetInternalParameter(machine, InternalParameter.MidiNote);
@@ -341,18 +348,18 @@ namespace WDE.ModernPatternEditor
             }
             else if (paramIndex >= 0)
             {
-                int gourp0ParamsCount = machine.ParameterGroups[0].Parameters.Count;
-                int gourp1ParamsCount = machine.ParameterGroups[1].Parameters.Count;
-                int gourp2ParamsCount = machine.ParameterGroups[2].Parameters.Count;
+                int group0ParamsCount = machine.ParameterGroups[0].Parameters.Count;
+                int group1ParamsCount = machine.ParameterGroups[1].Parameters.Count;
+                int group2ParamsCount = machine.ParameterGroups[2].Parameters.Count;
 
-                if (paramIndex < gourp1ParamsCount && paramTrack == 0)
+                if (paramIndex < group1ParamsCount && paramTrack == 0)
                 {
                     // Global
                     ret = machine.ParameterGroups[1].Parameters[paramIndex];
                 }
                 else
                 {   
-                    int index = paramIndex - gourp1ParamsCount;
+                    int index = paramIndex - group1ParamsCount;
                     if (index < machine.ParameterGroups[2].Parameters.Count)
                     {
                         ret = machine.ParameterGroups[2].Parameters[index];
