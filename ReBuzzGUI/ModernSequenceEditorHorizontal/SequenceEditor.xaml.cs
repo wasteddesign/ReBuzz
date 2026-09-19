@@ -671,8 +671,8 @@ namespace WDE.ModernSequenceEditorHorizontal
 
             trackSV.ScrollChanged += (sender, e) =>
             {
-                timelineSV.ScrollToVerticalOffset(e.VerticalOffset);
-                markerSV.ScrollToVerticalOffset(e.VerticalOffset);
+                timelineSV.ScrollToHorizontalOffset(e.HorizontalOffset);
+                markerSV.ScrollToHorizontalOffset(e.HorizontalOffset);
                 trackHeaderSV.ScrollToVerticalOffset(e.VerticalOffset);
             };
 
