@@ -672,13 +672,15 @@ namespace WDE.ModernSequenceEditor
                 trackHeaderSV.ScrollToHorizontalOffset(e.HorizontalOffset);
             };
 
+            trackHeaderSV.PreviewMouseWheel += (sender, e) =>
+            {
+                trackSV.ScrollToVerticalOffset(trackSV.VerticalOffset + e.Delta / -7.0);
+            };
+
             timelineSV.PreviewMouseWheel += (sender, e) =>
             {
-                if (!(Keyboard.Modifiers == ModifierKeys.Control))
-                {
-                    trackSV.ScrollToVerticalOffset(trackSV.VerticalOffset + e.Delta / -7.0);
-                    e.Handled = true;
-                }
+                trackSV.ScrollToVerticalOffset(trackSV.VerticalOffset + e.Delta / -7.0);
+                e.Handled = true;
             };
 
             this.PreviewMouseWheel += (sender, e) =>
@@ -837,7 +839,7 @@ namespace WDE.ModernSequenceEditor
                     else if (e.Key == Key.OemComma)
                     {
                         Do(new SetEventAction(SelectedSequence, CursorTime, new SequenceEvent(SequenceEventType.Off)));
-                        MoveCursorDelta(1, 0, int.MaxValue, false);
+                        MoveCursorDelta(0, 1, int.MaxValue, false);
                     }
                 }
                 else if (Keyboard.Modifiers == ModifierKeys.Control)

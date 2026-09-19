@@ -671,18 +671,21 @@ namespace WDE.ModernSequenceEditorHorizontal
 
             trackSV.ScrollChanged += (sender, e) =>
             {
-                timelineSV.ScrollToHorizontalOffset(e.HorizontalOffset);
-                markerSV.ScrollToHorizontalOffset(e.HorizontalOffset);
+                timelineSV.ScrollToVerticalOffset(e.VerticalOffset);
+                markerSV.ScrollToVerticalOffset(e.VerticalOffset);
                 trackHeaderSV.ScrollToVerticalOffset(e.VerticalOffset);
+            };
+
+            trackHeaderSV.ScrollChanged += (sender, e) =>
+            {
+                if (e.VerticalOffset != trackSV.VerticalOffset)
+                    trackSV.ScrollToVerticalOffset(e.VerticalOffset);
             };
 
             timelineSV.PreviewMouseWheel += (sender, e) =>
             {
-                if (!(Keyboard.Modifiers == ModifierKeys.Control))
-                {
-                    trackSV.ScrollToVerticalOffset(trackSV.VerticalOffset + e.Delta / -7.0);
-                    e.Handled = true;
-                }
+                trackSV.ScrollToVerticalOffset(trackSV.VerticalOffset + e.Delta / -7.0);
+                e.Handled = true;
             };
 
             this.PreviewMouseWheel += (sender, e) =>
