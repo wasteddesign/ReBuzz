@@ -7,6 +7,8 @@ using BuzzGUI.PianoKeyboard;
 using BuzzGUI.SequenceEditor;
 using BuzzGUI.ToolBar;
 using BuzzGUI.WavetableView;
+using Microsoft.Win32;
+using ReBuzz.AppViews;
 using ReBuzz.Common;
 using ReBuzz.Core;
 using ReBuzz.FileOps;
@@ -22,7 +24,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
-using ReBuzz.AppViews;
 
 namespace ReBuzz
 {
@@ -208,8 +209,6 @@ namespace ReBuzz
                   CreateThemedGUI();
               });
 
-
-
             SizeChanged += (sender, e) =>
             {
                 ResizeModernSequenceEditor();
@@ -225,6 +224,8 @@ namespace ReBuzz
             {
                 splashScreenWindow.UpdateText("Init views");
 
+                Utils.RestoreWindowStateFromRegistry(this, registryEx, "MainWindowWP");
+                Utils.RestoreWindowStateFromRegistry(debugWindow, registryEx, "DebugWindowWP");
 
                 /*
                 MachineView.Loaded += (s, e2) =>
@@ -332,6 +333,8 @@ namespace ReBuzz
                         return;
                     }
                 }
+                Utils.SaveWindowStateToRegistry(this, registryEx, "MainWindowWP");
+                Utils.SaveWindowStateToRegistry(debugWindow, registryEx, "DebugWindowWP");
 
                 reBuzzCoreInitialization.ShutDownReBuzzEngine();
 
@@ -637,6 +640,8 @@ namespace ReBuzz
                     Buzz.Playing = false;
                     Buzz.Release();
 
+                    Utils.SaveWindowStateToRegistry(this, registryEx, "MainWindowWP");
+                    Utils.SaveWindowStateToRegistry(debugWindow, registryEx, "DebugWindowWP");
                     debugWindow.CloseWindow();
 
                     Process.GetCurrentProcess().Kill();
@@ -1345,5 +1350,7 @@ namespace ReBuzz
             else
                 return null;
         }
+
+
     }
 }
