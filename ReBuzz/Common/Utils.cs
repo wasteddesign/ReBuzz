@@ -432,10 +432,53 @@ namespace ReBuzz.Common
         [DllImport("Shcore.dll")]
         private static extern int GetDpiForMonitor(IntPtr hmonitor, int dpiType, out uint dpiX, out uint dpiY);
 
+        [DllImport("user32.dll")]
+        private static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO lpmi);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr MonitorFromRect(ref RECT lprc, uint dwFlags);
+
+        private const uint MONITOR_DEFAULTTONULL = 0;
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct RECT
+        {
+            public int Left;
+            public int Top;
+            public int Right;
+            public int Bottom;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct MONITORINFO
+        {
+            public int cbSize;
+            public RECT rcMonitor;
+            public RECT rcWork;
+            public uint dwFlags;
+        }
+
         private const uint MONITOR_DEFAULTTONEAREST = 2;
+
+        private static bool IsWindowVisibleOnAnyMonitor(double left, double top, double width, double height)
+        {
+            RECT rect = new RECT
+            {
+                Left = (int)left,
+                Top = (int)top,
+                Right = (int)(left + width),
+                Bottom = (int)(top + height)
+            };
+
+            IntPtr monitor = MonitorFromRect(ref rect, MONITOR_DEFAULTTONULL);
+            return monitor != IntPtr.Zero;
+        }
 
         internal static void SaveWindowStateToRegistry(Window window, IRegistryEx registry, string registryKey)
         {
+            if (window == null)
+                return;
+
             window.Dispatcher.Invoke(() =>
             {
                 var hwnd = new WindowInteropHelper(window).Handle;
@@ -448,17 +491,12 @@ namespace ReBuzz.Common
                       double.IsNormal(bounds.Top) && double.IsNormal(bounds.Left)))
                     return;
 
-                // Monitor origin in virtual desktop coordinates
-                var screen = System.Windows.Forms.Screen.FromHandle(hwnd);
-                double monitorLeft = screen.Bounds.Left;
-                double monitorTop = screen.Bounds.Top;
-
                 string regValue = string.Join("|",
                     window.WindowState == WindowState.Minimized ? WindowState.Normal : window.WindowState,
                     bounds.Width * dpiX / 96.0,
                     bounds.Height * dpiY / 96.0,
-                    (bounds.Left) * dpiX / 96.0,
-                    (bounds.Top) * dpiY / 96.0,
+                    bounds.Left * dpiX / 96.0,
+                    bounds.Top * dpiY / 96.0,
                     dpiX,
                     dpiY
                 );
@@ -496,28 +534,31 @@ namespace ReBuzz.Common
                     !double.IsNormal(left) || !double.IsNormal(top))
                     return;
 
-                var dpi = VisualTreeHelper.GetDpi(window);
-                double virtualLeft = SystemParameters.VirtualScreenLeft / dpi.DpiScaleX;
-                double virtualTop = SystemParameters.VirtualScreenTop / dpi.DpiScaleY;
-                double virtualRight = (SystemParameters.VirtualScreenLeft + SystemParameters.VirtualScreenWidth) / dpi.DpiScaleX;
-                double virtualBottom = (SystemParameters.VirtualScreenTop + SystemParameters.VirtualScreenHeight) / dpi.DpiScaleY;
-
-                left = Math.Max(virtualLeft, Math.Min(left, virtualRight - width));
-                top = Math.Max(virtualTop, Math.Min(top, virtualBottom - height));
-
                 window.Width = width;
                 window.Height = height;
                 window.Left = left;
                 window.Top = top;
 
-                // Defer maximization until after positioning
-                window.Dispatcher.BeginInvoke(() =>
+                // If window is off-screen (monitor unplugged), move it to primary monitor center
+                if (!IsWindowVisibleOnAnyMonitor(left, top, width, height))
                 {
-                    if (Enum.TryParse(stateStr, out WindowState restoredState))
-                        window.WindowState = restoredState;
-                    else
-                        window.WindowState = WindowState.Normal;
-                }, DispatcherPriority.ApplicationIdle);
+                    var primary = System.Windows.Forms.Screen.PrimaryScreen.WorkingArea;
+                    var dpi = VisualTreeHelper.GetDpi(window);
+
+                    double primaryLeftDip = primary.Left / dpi.DpiScaleX;
+                    double primaryTopDip = primary.Top / dpi.DpiScaleY;
+                    double primaryWidthDip = primary.Width / dpi.DpiScaleX;
+                    double primaryHeightDip = primary.Height / dpi.DpiScaleY;
+
+                    window.Left = primaryLeftDip + (primaryWidthDip - window.Width) / 2;
+                    window.Top = primaryTopDip + (primaryHeightDip - window.Height) / 2;
+                }
+
+                // Reset state after positioning
+                if (Enum.TryParse(stateStr, out WindowState restoredState))
+                    window.WindowState = restoredState;
+                else
+                    window.WindowState = WindowState.Normal;
             });
         }
     }

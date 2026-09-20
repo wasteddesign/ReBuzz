@@ -7,7 +7,6 @@ using BuzzGUI.PianoKeyboard;
 using BuzzGUI.SequenceEditor;
 using BuzzGUI.ToolBar;
 using BuzzGUI.WavetableView;
-using Microsoft.Win32;
 using ReBuzz.AppViews;
 using ReBuzz.Common;
 using ReBuzz.Core;
@@ -227,15 +226,6 @@ namespace ReBuzz
                 Utils.RestoreWindowStateFromRegistry(this, registryEx, "MainWindowWP");
                 Utils.RestoreWindowStateFromRegistry(debugWindow, registryEx, "DebugWindowWP");
 
-                /*
-                MachineView.Loaded += (s, e2) =>
-                {
-                    // Hack to force MachineView to update
-                    this.Width--;
-                    this.Width++;
-                };
-                */
-
                 Utils.InitUtils(this);
 
                 Buzz.StartTimer();
@@ -335,6 +325,7 @@ namespace ReBuzz
                 }
                 Utils.SaveWindowStateToRegistry(this, registryEx, "MainWindowWP");
                 Utils.SaveWindowStateToRegistry(debugWindow, registryEx, "DebugWindowWP");
+                Utils.SaveWindowStateToRegistry(keyboardWindow, registryEx, "PianoKeyboardWP");
 
                 reBuzzCoreInitialization.ShutDownReBuzzEngine();
 
@@ -410,6 +401,8 @@ namespace ReBuzz
 
                         var interop = new WindowInteropHelper(keyboardWindow);
                         interop.Owner = Buzz.MachineViewHWND;
+
+                        Utils.RestoreWindowStateFromRegistry(keyboardWindow, registryEx, "PianoKeyboardWP");
                     }
 
                     if (Buzz.IsPianoKeyboardVisible == true)
@@ -417,7 +410,7 @@ namespace ReBuzz
                         keyboardWindow.Show();
                     }
                     else
-                    {
+                    {   
                         keyboardWindow.Hide();
                     }
                 }
@@ -642,6 +635,8 @@ namespace ReBuzz
 
                     Utils.SaveWindowStateToRegistry(this, registryEx, "MainWindowWP");
                     Utils.SaveWindowStateToRegistry(debugWindow, registryEx, "DebugWindowWP");
+                    Utils.SaveWindowStateToRegistry(keyboardWindow, registryEx, "PianoKeyboardWP");
+
                     debugWindow.CloseWindow();
 
                     Process.GetCurrentProcess().Kill();
@@ -1350,7 +1345,5 @@ namespace ReBuzz
             else
                 return null;
         }
-
-
     }
 }
