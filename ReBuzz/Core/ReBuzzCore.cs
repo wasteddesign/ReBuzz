@@ -812,20 +812,6 @@ namespace ReBuzz.Core
             Theme = ReBuzzTheme.LoadCurrentTheme(this, buzzPath);
 
             DCWriteLine(BuildString);
-            
-            /*
-            DCWriteLine("\n\rMIDI in devices:", DCLogLevel.Debug);
-            for (int device = 0; device < MidiIn.NumberOfDevices; device++)
-            {
-                DCWriteLine("" + MidiIn.DeviceInfo(device).ProductName, DCLogLevel.Debug);
-            }
-
-            DCWriteLine("\n\rMIDI out devices:", DCLogLevel.Debug);
-            for (int device = 0; device < MidiOut.NumberOfDevices; device++)
-            {
-                DCWriteLine(MidiOut.DeviceInfo(device).ProductName, DCLogLevel.Debug);
-            }
-            */
 
             MidiInOutEngine = new MidiEngine(this, registryEx);
             MidiInOutEngine.Midi2.CreateMidi2Endpoint();
@@ -1265,7 +1251,8 @@ namespace ReBuzz.Core
             AudioEngine.FinalStop();
             DeleteBackup();
 
-            grooveHandle.Free();
+            if (grooveHandle.IsAllocated)
+                grooveHandle.Free();
         }
 
         private bool CheckSaveSong()
