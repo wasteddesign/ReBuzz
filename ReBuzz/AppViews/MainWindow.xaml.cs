@@ -80,6 +80,8 @@ namespace ReBuzz
         private readonly IRegistryEx registryEx = new WindowsRegistry();
         private readonly string buzzPath = Global.BuzzPath;
 
+        private ReBuzzCoreInitialization reBuzzCoreInitialization;
+
         public string StatusBarItem2
         {
             get { return statusBarItem2; }
@@ -121,7 +123,7 @@ namespace ReBuzz
                 new FileNameToSaveChoiceThroughSaveFileDialog(),
                 new UserMessagesViaMessageBox(), new WindowsKeyboard());
 
-            var reBuzzCoreInitialization = new ReBuzzCoreInitialization(Buzz, buzzPath, windowsGuiDispatcher, registryEx, new WindowsKeyboard(), Global.EngineSettings);
+            reBuzzCoreInitialization = new ReBuzzCoreInitialization(Buzz, buzzPath, windowsGuiDispatcher, registryEx, new WindowsKeyboard(), Global.EngineSettings);
             reBuzzCoreInitialization.StartReBuzzEngineStep1(Buzz_PropertyChanged);
 
             if (Keyboard.Modifiers == ModifierKeys.Control)
@@ -310,32 +312,11 @@ namespace ReBuzz
 
             this.Closing += (sender, e) =>
             {
-                if (Buzz.Modified)
-                {
-                    var result = Utils.MessageBox("Save changes to " + (song.SongName == null ? "Untitled" : song.SongName), "ReBuzz", MessageBoxButton.YesNoCancel);
-                    if (result == MessageBoxResult.Yes)
-                    {
-                        Buzz.SaveSongFile(song.SongName);
-                    }
-                    else if (result == MessageBoxResult.Cancel)
-                    {
-                        e.Cancel = true;
-                        return;
-                    }
+                if (!CloseReBuzz())
+                { 
+                    e.Cancel = true;
+                    return;
                 }
-                Utils.SaveWindowStateToRegistry(this, registryEx, "MainWindowWP");
-                Utils.SaveWindowStateToRegistry(debugWindow, registryEx, "DebugWindowWP");
-                Utils.SaveWindowStateToRegistry(keyboardWindow, registryEx, "PianoKeyboardWP");
-
-                reBuzzCoreInitialization.ShutDownReBuzzEngine();
-
-                ShutDownSequenceEditor(seqenceEditor);
-
-                ToolBarVM.Song = null;
-                ToolBarVM.Buzz = null;
-
-                Buzz.PropertyChanged -= Buzz_PropertyChanged;
-                generalSettings.PropertyChanged -= GeneralSettings_PropertyChanged;
             };
 
             this.Closed += (sender, e) =>
@@ -618,26 +599,8 @@ namespace ReBuzz
                 }
                 else if (cmd == BuzzCommand.Exit)
                 {
-                    if (Buzz.Modified)
-                    {
-                        var result = Utils.MessageBox("Save changes to " + (Buzz.SongCore.SongName == null ? "Untitled" : Buzz.SongCore.SongName), "ReBuzz", MessageBoxButton.YesNoCancel);
-                        if (result == MessageBoxResult.Yes)
-                        {
-                            Buzz.SaveSongFile(Buzz.SongCore.SongName);
-                        }
-                        else if (result == MessageBoxResult.Cancel)
-                        {
-                            return;
-                        }
-                    }
-                    Buzz.Playing = false;
-                    Buzz.Release();
-
-                    Utils.SaveWindowStateToRegistry(this, registryEx, "MainWindowWP");
-                    Utils.SaveWindowStateToRegistry(debugWindow, registryEx, "DebugWindowWP");
-                    Utils.SaveWindowStateToRegistry(keyboardWindow, registryEx, "PianoKeyboardWP");
-
-                    debugWindow.CloseWindow();
+                    if (!CloseReBuzz())
+                        return;
 
                     Process.GetCurrentProcess().Kill();
                     //Environment.Exit(0);
@@ -958,6 +921,44 @@ namespace ReBuzz
             };
         }
 
+        private bool CloseReBuzz()
+        {
+            if (Buzz.Modified)
+            {
+                var song = Buzz.Song;
+                var result = Utils.MessageBox("Save changes to " + (song.SongName == null ? "Untitled" : song.SongName), "ReBuzz", MessageBoxButton.YesNoCancel);
+                if (result == MessageBoxResult.Yes)
+                {
+                    Buzz.SaveSongFile(song.SongName);
+                }
+                else if (result == MessageBoxResult.Cancel)
+                {   
+                    return false;
+                }
+            }
+            Utils.SaveWindowStateToRegistry(this, registryEx, "MainWindowWP");
+            Utils.SaveWindowStateToRegistry(debugWindow, registryEx, "DebugWindowWP");
+            Utils.SaveWindowStateToRegistry(keyboardWindow, registryEx, "PianoKeyboardWP");
+
+            debugWindow.CloseWindow();
+
+            Buzz.Playing = false;
+            
+            reBuzzCoreInitialization.ShutDownReBuzzEngine();
+
+            ShutDownSequenceEditor(seqenceEditor);
+
+            ToolBarVM.Song = null;
+            ToolBarVM.Buzz = null;
+
+            Buzz.PropertyChanged -= Buzz_PropertyChanged;
+            Global.GeneralSettings.PropertyChanged -= GeneralSettings_PropertyChanged;
+
+            Buzz.Release();
+
+            return true;
+        }
+
         private static void ShutDownSequenceEditor(SequenceEditor sequenceEditor)
         {
             sequenceEditor.Song = null;
@@ -1055,8 +1056,6 @@ namespace ReBuzz
                 Utils.UpdateDpi(mainGrid);
             }
         }
-
-
 
         private void Buzz_FileEvent(FileEventType type, string text, object o)
         {
@@ -1227,7 +1226,6 @@ namespace ReBuzz
 
             this.Title = (Buzz.SongCore.SongName == null ? "Untitled" : Buzz.SongCore.SongName) + (Buzz.Modified == true ? "*" : "") + " | " + "ReBuzz Digital Audio Workstation | " + currentView;
         }
-
 
         internal void SetStatusBarText(string text, int item)
         {
