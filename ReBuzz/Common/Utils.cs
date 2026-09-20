@@ -2,6 +2,7 @@
 using BuzzGUI.Common;
 using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
+using Microsoft.Win32;
 using ReBuzz.Core;
 using System;
 using System.Collections.Generic;
@@ -10,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics.Arm;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -211,7 +213,7 @@ namespace ReBuzz.Common
             {
                 RegistryEx.Write<string>(profileElement.Name.LocalName, profileElement.ToString(), "Profiles");
             }
-            catch {}
+            catch { }
         }
 
         internal static Dictionary<string, XElement> GetProfiles(string buzzPath)
@@ -226,13 +228,13 @@ namespace ReBuzz.Common
                     try
                     {
                         var elementXml = RegistryEx.Read<string>(k, "", "Profiles");
-                        if(!string.IsNullOrEmpty(elementXml))
+                        if (!string.IsNullOrEmpty(elementXml))
                         {
                             var doc = XDocument.Parse(elementXml);
                             ret.Add(doc.Root.Name.LocalName, doc.Root);
                         }
                     }
-                    catch {  }
+                    catch { }
                 }
             }
 
@@ -422,6 +424,101 @@ namespace ReBuzz.Common
             }
 
             return sb.ToString();
+        }
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint dwFlags);
+
+        [DllImport("Shcore.dll")]
+        private static extern int GetDpiForMonitor(IntPtr hmonitor, int dpiType, out uint dpiX, out uint dpiY);
+
+        private const uint MONITOR_DEFAULTTONEAREST = 2;
+
+        internal static void SaveWindowStateToRegistry(Window window, IRegistryEx registry, string registryKey)
+        {
+            window.Dispatcher.Invoke(() =>
+            {
+                var hwnd = new WindowInteropHelper(window).Handle;
+                var monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+                GetDpiForMonitor(monitor, 0, out uint dpiX, out uint dpiY);
+
+                Rect bounds = window.RestoreBounds;
+
+                if (!(double.IsNormal(bounds.Width) && double.IsNormal(bounds.Height) &&
+                      double.IsNormal(bounds.Top) && double.IsNormal(bounds.Left)))
+                    return;
+
+                // Monitor origin in virtual desktop coordinates
+                var screen = System.Windows.Forms.Screen.FromHandle(hwnd);
+                double monitorLeft = screen.Bounds.Left;
+                double monitorTop = screen.Bounds.Top;
+
+                string regValue = string.Join("|",
+                    window.WindowState == WindowState.Minimized ? WindowState.Normal : window.WindowState,
+                    bounds.Width * dpiX / 96.0,
+                    bounds.Height * dpiY / 96.0,
+                    (bounds.Left) * dpiX / 96.0,
+                    (bounds.Top) * dpiY / 96.0,
+                    dpiX,
+                    dpiY
+                );
+
+                registry.Write(registryKey, regValue, "Settings");
+            });
+        }
+
+        internal static void RestoreWindowStateFromRegistry(Window window, IRegistryEx registry, string registryKey)
+        {
+            window.Dispatcher.Invoke(() =>
+            {
+                string? regValue = registry.Read(registryKey, "", "Settings");
+                if (string.IsNullOrWhiteSpace(regValue))
+                    return;
+
+                string[] parts = regValue.Split('|');
+                if (parts.Length < 7)
+                    return;
+
+                string stateStr = parts[0];
+                double widthPx = double.Parse(parts[1]);
+                double heightPx = double.Parse(parts[2]);
+                double leftPx = double.Parse(parts[3]);
+                double topPx = double.Parse(parts[4]);
+                double savedDpiX = double.Parse(parts[5]);
+                double savedDpiY = double.Parse(parts[6]);
+
+                double width = widthPx * 96.0 / savedDpiX;
+                double height = heightPx * 96.0 / savedDpiY;
+                double left = leftPx * 96.0 / savedDpiX;
+                double top = topPx * 96.0 / savedDpiY;
+
+                if (!double.IsNormal(width) || !double.IsNormal(height) ||
+                    !double.IsNormal(left) || !double.IsNormal(top))
+                    return;
+
+                var dpi = VisualTreeHelper.GetDpi(window);
+                double virtualLeft = SystemParameters.VirtualScreenLeft / dpi.DpiScaleX;
+                double virtualTop = SystemParameters.VirtualScreenTop / dpi.DpiScaleY;
+                double virtualRight = (SystemParameters.VirtualScreenLeft + SystemParameters.VirtualScreenWidth) / dpi.DpiScaleX;
+                double virtualBottom = (SystemParameters.VirtualScreenTop + SystemParameters.VirtualScreenHeight) / dpi.DpiScaleY;
+
+                left = Math.Max(virtualLeft, Math.Min(left, virtualRight - width));
+                top = Math.Max(virtualTop, Math.Min(top, virtualBottom - height));
+
+                window.Width = width;
+                window.Height = height;
+                window.Left = left;
+                window.Top = top;
+
+                // Defer maximization until after positioning
+                window.Dispatcher.BeginInvoke(() =>
+                {
+                    if (Enum.TryParse(stateStr, out WindowState restoredState))
+                        window.WindowState = restoredState;
+                    else
+                        window.WindowState = WindowState.Normal;
+                }, DispatcherPriority.ApplicationIdle);
+            });
         }
     }
 }
