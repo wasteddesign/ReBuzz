@@ -6,6 +6,7 @@ using System.Windows.Interop;
 using BuzzGUI.Common;
 using BuzzGUI.Common.Settings;
 using ReBuzz.Audio;
+using ReBuzz.Audio.Engine;
 using ReBuzz.Core;
 using ReBuzz.FileOps;
 using ReBuzz.MachineManagement;

@@ -2,6 +2,7 @@
 using BuzzGUI.Common;
 using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
+using ReBuzz.Audio.Engine;
 using ReBuzz.Common;
 using ReBuzz.Core;
 using ReBuzz.MachineManagement;
