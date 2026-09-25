@@ -11,7 +11,7 @@ using BuzzGUI.Common;
 using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
 using Microsoft.Win32;
-using ReBuzz.Audio;
+using ReBuzz.Audio.Engine;
 using ReBuzz.Common;
 using ReBuzz.Core.Actions.GraphActions;
 using ReBuzz.FileOps;
