@@ -1,21 +1,22 @@
 ﻿using BuzzGUI.Interfaces;
-using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Http;
-using System.Net.Mime;
 using System.Security.Cryptography;
-using System.Security.Policy;
 using System.Text.Json.Nodes;
 using System.Windows;
-using MdXaml;
 
 namespace BuzzGUI.BuzzUpdate
 {
     public partial class UpdateWindow : Window
     {
-        static string UserAgentString;
+        static readonly HttpClient httpClient = new HttpClient(
+            new HttpClientHandler
+            {
+                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+            });
+
         static string downloadUrl;
         static string releaseNotes;
         static int currentBuild;
@@ -24,7 +25,13 @@ namespace BuzzGUI.BuzzUpdate
         string localSignatureFile;
 
         static string setupUrl { get { return "https://github.com/wasteddesign/ReBuzz/releases/latest"; } }
-        string setupExe { get { return "ReBuzzSetup_2024_Preview_"; } }
+        string setupExe { get { return "ReBuzzSetup_Preview_"; } }
+
+        static UpdateWindow()
+        {
+            // GitHub requires a User-Agent header
+            httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("ReBuzzUpdater/1.0");
+        }
 
         static int ParseBuildNumber(string s)
         {
@@ -57,7 +64,7 @@ namespace BuzzGUI.BuzzUpdate
             {
                 if (link != null)
                 {
-                    Process.Start(new System.Diagnostics.ProcessStartInfo(link) { UseShellExecute = true });
+                    Process.Start(new ProcessStartInfo(link) { UseShellExecute = true });
                 }
             };
             verText.Text = "Current Build: " + currentBuild.ToString() + "   Latest Build: " + latestBuild.ToString();
@@ -69,73 +76,53 @@ namespace BuzzGUI.BuzzUpdate
         public static void DownloadBuildCount(IBuzz buzz)
         {
             currentBuild = buzz.BuildNumber;
-            //UserAgentString = "Buzz Update " + currentBuild.ToString();
-            string urlLatestRelease = "https://api.github.com/repos/wasteddesign/ReBuzz/releases/latest";
-
-            WebClient client = new WebClient();
-            client.Headers.Add("user-agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:25.0) Gecko/20100101 Firefox/25.0"); 
-            client.DownloadStringCompleted += (sender, e) =>
-            {
-                if (!e.Cancelled && e.Error == null)
-                {
-                    var jsonString = e.Result;
-                    JsonNode releasesNode = JsonNode.Parse(jsonString)!;
-                    JsonNode assetsNode = releasesNode!["assets"]!;
-                    JsonNode installerAsset = assetsNode[0]!;
-                    JsonNode urlNode = installerAsset!["browser_download_url"]!;
-                    downloadUrl = urlNode.ToString();
-
-                    latestBuild = ParseBuildNumber(downloadUrl);
-
-                    releaseNotes = (releasesNode!["body"]!).ToString();
-
-                    if (currentBuild >= latestBuild)
-                    {
-                        buzz.DCWriteLine("[BuzzUpdate] No updates available.");
-                    }
-                    else
-                    {
-                        UpdateWindow w = new UpdateWindow(latestBuild);
-                        w.Show();
-                    }
-                }
-                else if (e.Error != null)
-                {
-                    buzz.DCWriteLine("[BuzzUpdate] " + e.Error.ToString());
-                }
-            };
-            try
-            {
-                client.DownloadStringAsync(new Uri(urlLatestRelease));
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message, "ReBuzz Update");
-            }
-
+            _ = DownloadBuildCountAsync(buzz);
         }
 
-
-        void DownloadChangelog()
+        private static async Task DownloadBuildCountAsync(IBuzz buzz)
         {
             string urlLatestRelease = "https://api.github.com/repos/wasteddesign/ReBuzz/releases/latest";
 
-            WebClient client = new WebClient();
-            client.Headers.Add("user-agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:25.0) Gecko/20100101 Firefox/25.0");
-            client.DownloadStringCompleted += (sender, e) =>
-            {
-                if (!e.Cancelled && e.Error == null)
-                {
-                    var jsonString = e.Result;
-                    JsonNode releasesNode = JsonNode.Parse(jsonString)!;
-                    releaseNotes = (releasesNode!["body"]!).ToString();
-
-                    msv.Markdown = releaseNotes;
-                }
-            };
             try
             {
-                client.DownloadStringAsync(new Uri(urlLatestRelease));
+                var jsonString = await httpClient.GetStringAsync(urlLatestRelease);
+                JsonNode releasesNode = JsonNode.Parse(jsonString)!;
+                JsonNode assetsNode = releasesNode!["assets"]!;
+                JsonNode installerAsset = assetsNode[0]!;
+                JsonNode urlNode = installerAsset!["browser_download_url"]!;
+                downloadUrl = urlNode.ToString();
+
+                latestBuild = ParseBuildNumber(downloadUrl);
+
+                releaseNotes = (releasesNode!["body"]!).ToString();
+
+                if (currentBuild >= latestBuild)
+                {
+                    buzz.DCWriteLine("[BuzzUpdate] No updates available.");
+                }
+                else
+                {
+                    UpdateWindow w = new UpdateWindow(latestBuild);
+                    w.Show();
+                }
+            }
+            catch (Exception e)
+            {
+                buzz.DCWriteLine("[BuzzUpdate] " + e.ToString());
+            }
+        }
+
+        async void DownloadChangelog()
+        {
+            string urlLatestRelease = "https://api.github.com/repos/wasteddesign/ReBuzz/releases/latest";
+
+            try
+            {
+                var jsonString = await httpClient.GetStringAsync(urlLatestRelease);
+                JsonNode releasesNode = JsonNode.Parse(jsonString)!;
+                releaseNotes = (releasesNode!["body"]!).ToString();
+
+                msv.Markdown = releaseNotes;
             }
             catch (Exception e)
             {
@@ -155,79 +142,106 @@ namespace BuzzGUI.BuzzUpdate
             }
         }
 
-        void DownloadInstaller()
+        async void DownloadInstaller()
         {
-            WebClient wc = new WebClient();
-            wc.Headers.Add("user-agent", "Other");
-            wc.DownloadFileCompleted += (sender, e) =>
-            {
-                if (!e.Cancelled && e.Error == null)
-                {
-                    progressBar.Value = 0;
-                    progressBar.Visibility = Visibility.Collapsed;
-
-                    button.Content = "Install...";
-                    button.IsEnabled = true;
-                }
-                else if (e.Error != null)
-                {
-                    MessageBox.Show(e.Error.ToString(), "ReBuzz Update");
-                }
-            };
-            wc.DownloadProgressChanged += (sender, e) =>
-            {
-                progressBar.Value = e.ProgressPercentage;
-            };
-
             progressBar.Visibility = Visibility.Visible;
+            button.IsEnabled = false;
 
             try
             {
                 string exename = Path.GetFileName(downloadUrl);
                 localFile = System.IO.Path.GetTempPath() + exename;
 
-                wc.DownloadFileAsync(new Uri(downloadUrl), localFile);
+                using (var response = await httpClient.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead))
+                {
+                    response.EnsureSuccessStatusCode();
+
+                    var total = response.Content.Headers.ContentLength ?? -1L;
+                    bool canReportProgress = total > 0;
+
+                    using (var input = await response.Content.ReadAsStreamAsync())
+                    using (var output = File.Create(localFile))
+                    {
+                        var buffer = new byte[81920];
+                        long totalRead = 0;
+                        int read;
+
+                        while ((read = await input.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                        {
+                            await output.WriteAsync(buffer, 0, read);
+                            totalRead += read;
+
+                            if (canReportProgress)
+                            {
+                                progressBar.Value = (int)((totalRead * 100) / total);
+                            }
+                        }
+                    }
+                }
+
+                progressBar.Value = 0;
+                progressBar.Visibility = Visibility.Collapsed;
+
+                button.Content = "Install...";
+                button.IsEnabled = true;
             }
             catch (Exception e)
             {
                 MessageBox.Show(e.Message, "ReBuzz Update");
+                progressBar.Visibility = Visibility.Collapsed;
+                button.IsEnabled = true;
             }
         }
 
-        void DownloadSignature()
+        async void DownloadSignature()
         {
-            WebClient wc = new WebClient();
-            wc.Headers.Add("user-agent", UserAgentString);
-            wc.DownloadFileCompleted += (sender, e) =>
-            {
-                if (!e.Cancelled && e.Error == null)
-                {
-                    progressBar.Value = 0;
-                    progressBar.Visibility = Visibility.Collapsed;
-                    DownloadInstaller();
-                }
-                else if (e.Error != null)
-                {
-                    MessageBox.Show(e.Error.ToString(), "ReBuzz Update");
-                }
-            };
-            wc.DownloadProgressChanged += (sender, e) =>
-            {
-                progressBar.Value = e.ProgressPercentage;
-            };
-
             progressBar.Visibility = Visibility.Visible;
+            button.IsEnabled = false;
 
             try
             {
                 string signaturename = setupExe + latestBuild.ToString() + ".exe.ecdsa";
                 localSignatureFile = System.IO.Path.GetTempPath() + signaturename;
 
-                wc.DownloadFileAsync(new Uri(setupUrl + "signatures/" + signaturename), localSignatureFile);
+                string url = setupUrl + "signatures/" + signaturename;
+
+                using (var response = await httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead))
+                {
+                    response.EnsureSuccessStatusCode();
+
+                    var total = response.Content.Headers.ContentLength ?? -1L;
+                    bool canReportProgress = total > 0;
+
+                    using (var input = await response.Content.ReadAsStreamAsync())
+                    using (var output = File.Create(localSignatureFile))
+                    {
+                        var buffer = new byte[81920];
+                        long totalRead = 0;
+                        int read;
+
+                        while ((read = await input.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                        {
+                            await output.WriteAsync(buffer, 0, read);
+                            totalRead += read;
+
+                            if (canReportProgress)
+                            {
+                                progressBar.Value = (int)((totalRead * 100) / total);
+                            }
+                        }
+                    }
+                }
+
+                progressBar.Value = 0;
+                progressBar.Visibility = Visibility.Collapsed;
+
+                DownloadInstaller();
             }
             catch (Exception e)
             {
                 MessageBox.Show(e.Message, "ReBuzz Update");
+                progressBar.Visibility = Visibility.Collapsed;
+                button.IsEnabled = true;
             }
         }
 
@@ -241,7 +255,6 @@ namespace BuzzGUI.BuzzUpdate
             }
             else
             {
-
                 Process p = new Process();
                 p.StartInfo.FileName = localFile;
                 p.StartInfo.UseShellExecute = true;
@@ -251,6 +264,5 @@ namespace BuzzGUI.BuzzUpdate
                 Process.GetCurrentProcess().Kill();
             }
         }
-
     }
 }
