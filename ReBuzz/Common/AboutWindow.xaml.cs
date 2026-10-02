@@ -13,7 +13,6 @@ using System.Linq;
 using ReBuzz.Core;
 using BuzzGUI.Interfaces;
 using BuzzGUI.Common.DSP;
-using System.Windows.Forms;
 using System.Windows.Threading;
 
 namespace ReBuzz.Common
@@ -30,14 +29,19 @@ namespace ReBuzz.Common
 
             CreateWorld();
 
+            var timer = new DispatcherTimer(
+                TimeSpan.FromMilliseconds(16),
+                DispatcherPriority.Render,
+                (s, e) => UpdateScene(),
+                Dispatcher.CurrentDispatcher);
+
             Loaded += (sender, e) =>
             {
                 ps = new ParticleSystem(30, 100, 5, 100, 50, this.particleCanvas, this.partileGrid);
                 reBuzz.MasterTap += ReBuzz_MasterTap;
                 CreateWorldLimits();
                 CreateTextBoxes();
-
-                CompositionTarget.Rendering += CompositionTarget_Rendering;
+                timer.Start();
             };
 
             MainGrid.PreviewMouseRightButtonDown += (sender, e) =>
@@ -63,9 +67,9 @@ namespace ReBuzz.Common
 
             this.Closed += (sender, e) =>
             {
+                timer.Stop();
                 dt.Stop();
                 reBuzz.MasterTap -= ReBuzz_MasterTap;
-                CompositionTarget.Rendering -= CompositionTarget_Rendering;
                 ClearAll();
             };
 
@@ -134,28 +138,40 @@ this about text.";
         float maxSample;
         float VUMeterRange = 80f;
 
-        private void ReBuzz_MasterTap(float[] arg1, bool arg2, SongTime arg3)
+        private void ReBuzz_MasterTap(float[] arg1, bool stereo, SongTime arg3)
         {
-            if (!arg2) // Mono
+            float localMax = 0f;
+
+            if (!stereo)
             {
-                maxSample = Math.Max(maxSample, DSP.AbsMax(arg1) * (1.0f / 32768.0f));
+                // Mono: single pass
+                for (int i = 0; i < arg1.Length; i++)
+                {
+                    float v = Math.Abs(arg1[i]);
+                    if (v > localMax)
+                        localMax = v;
+                }
             }
             else
             {
-                float[] L = new float[arg1.Length / 2];
-                float[] R = new float[arg1.Length / 2];
-                for (int i = 0; i < arg1.Length / 2; i++)
+                // Stereo interleaved: also single pass
+                for (int i = 0; i < arg1.Length; i++)
                 {
-                    L[i] = arg1[i * 2];
-                    R[i] = arg1[i * 2 + 1];
+                    float v = Math.Abs(arg1[i]);
+                    if (v > localMax)
+                        localMax = v;
                 }
-
-                maxSample = Math.Max(maxSample, DSP.AbsMax(L) * (1.0f / 32768.0f));
-                maxSample = Math.Max(maxSample, DSP.AbsMax(R) * (1.0f / 32768.0f));
             }
+
+            // Apply scaling once
+            localMax *= 1.0f / 32768.0f;
+
+            // Update global max
+            if (localMax > maxSample)
+                maxSample = localMax;
         }
 
-        private void CompositionTarget_Rendering(object? sender, EventArgs e)
+        private void UpdateScene()
         {
             ps.ParticleRoamUpdate(pMouse);
             ps.AddOrRemoveParticleLine();
@@ -209,9 +225,10 @@ this about text.";
         void CreateWorld()
         {
             // create world
-            var worldDef = B2Api.b2DefaultWorldDef();
+            var worldDef = B2Api.b2DefaultWorldDef_WithDotNetTpl();
             //worldDef.gravity = new(0, -9.81f);
             worldDef.gravity = new(0, 0);
+
             box2WorldId = B2Api.b2CreateWorld(worldDef);
         }
 
