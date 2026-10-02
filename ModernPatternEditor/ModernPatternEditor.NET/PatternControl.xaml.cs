@@ -2,6 +2,7 @@
 using BuzzGUI.Common.Actions;
 using BuzzGUI.Common.Actions.PatternActions;
 using BuzzGUI.Common.InterfaceExtensions;
+using BuzzGUI.Common.Templates;
 using BuzzGUI.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -541,11 +542,25 @@ namespace WDE.ModernPatternEditor
                         else
                         {
                             if (movecursor)
+                            {
+                                int numStepsOverEnd = pattern.CursorPosition.StepsOverEnd(Editor.SelectedStepsDown);
+
                                 MoveCursorDelta(Editor.SelectedStepsRight, Editor.SelectedStepsDown);
+                                if (numStepsOverEnd > 0)
+                                {
+                                    if (PatternEditor.Settings.AutoMoveCursorToTop == AutoMoveCursorToTopMode.FirstRow)
+                                    {
+                                        MoveCursor(pattern.CursorPosition.SetBeat(0).SetRowInBeat(0));
+                                    }
+                                    else if (PatternEditor.Settings.AutoMoveCursorToTop == AutoMoveCursorToTopMode.BasedOnStepLength)
+                                    {
+                                        MoveCursor(pattern.CursorPosition.SetBeat(0).SetRowInBeat(0));
+                                        MoveCursorDelta(0, numStepsOverEnd);
+                                    }
+                                }
+                            }
                         }
-
                     }
-
                 }
                 else if (Keyboard.Modifiers == ModifierKeys.Shift)
                 {
@@ -1543,7 +1558,23 @@ namespace WDE.ModernPatternEditor
                 }
                 else
                 {
-                    Editor.EditContext.ActionStack.Do(new Actions.MoveCursorAction(pattern, pattern.CursorPosition.Offset(Editor.SelectedStepsRight, Editor.SelectedStepsDown, true)));
+
+                    int numStepsOverEnd = pattern.CursorPosition.StepsOverEnd(Editor.SelectedStepsDown);
+                    var pos = pattern.CursorPosition.Offset(Editor.SelectedStepsRight, Editor.SelectedStepsDown, true);
+
+                    if (numStepsOverEnd > 0)
+                    {
+                        if (PatternEditor.Settings.AutoMoveCursorToTop == AutoMoveCursorToTopMode.FirstRow)
+                        {
+                            pos = pos.SetBeat(0).SetRowInBeat(0);
+                        }
+                        else if (PatternEditor.Settings.AutoMoveCursorToTop == AutoMoveCursorToTopMode.BasedOnStepLength)
+                        {
+                            pos = pos.SetBeat(0).SetRowInBeat(0);
+                            pos = pos.Offset(0, numStepsOverEnd - 1);
+                        }
+                    }
+                    Editor.EditContext.ActionStack.Do(new Actions.MoveCursorAction(pattern, pos));
                 }
             }
         }

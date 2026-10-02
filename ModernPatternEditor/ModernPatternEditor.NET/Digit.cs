@@ -238,6 +238,19 @@ namespace WDE.ModernPatternEditor
             return SetRowInBeat(PatternVM.GetBeat(this).Rows.IndexOfMinBy(r => Math.Abs(r.Time - time)));
         }
 
+        public int StepsOverEnd(int dy)
+        {   
+            var d = this;
+
+            while (dy > 0 && !(d.IsLastBeat && d.IsLastRowInBeat))
+            {
+                d = d.Down;
+                dy--;
+            }
+
+            return dy;
+        }
+
         public Digit Offset(int dx, int dy, bool skipdigits = false)
         {
             var d = this;
