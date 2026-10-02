@@ -543,21 +543,8 @@ namespace WDE.ModernPatternEditor
                         {
                             if (movecursor)
                             {
-                                int numStepsOverEnd = pattern.CursorPosition.StepsOverEnd(Editor.SelectedStepsDown);
-
-                                MoveCursorDelta(Editor.SelectedStepsRight, Editor.SelectedStepsDown);
-                                if (numStepsOverEnd > 0)
-                                {
-                                    if (PatternEditor.Settings.AutoMoveCursorToTop == AutoMoveCursorToTopMode.FirstRow)
-                                    {
-                                        MoveCursor(pattern.CursorPosition.SetBeat(0).SetRowInBeat(0));
-                                    }
-                                    else if (PatternEditor.Settings.AutoMoveCursorToTop == AutoMoveCursorToTopMode.BasedOnStepLength)
-                                    {
-                                        MoveCursor(pattern.CursorPosition.SetBeat(0).SetRowInBeat(0));
-                                        MoveCursorDelta(0, numStepsOverEnd);
-                                    }
-                                }
+                                var pos = GetMoveCursorNewPos();
+                                MoveCursor(pos);
                             }
                         }
                     }
@@ -1558,22 +1545,7 @@ namespace WDE.ModernPatternEditor
                 }
                 else
                 {
-
-                    int numStepsOverEnd = pattern.CursorPosition.StepsOverEnd(Editor.SelectedStepsDown);
-                    var pos = pattern.CursorPosition.Offset(Editor.SelectedStepsRight, Editor.SelectedStepsDown, true);
-
-                    if (numStepsOverEnd > 0)
-                    {
-                        if (PatternEditor.Settings.AutoMoveCursorToTop == AutoMoveCursorToTopMode.FirstRow)
-                        {
-                            pos = pos.SetBeat(0).SetRowInBeat(0);
-                        }
-                        else if (PatternEditor.Settings.AutoMoveCursorToTop == AutoMoveCursorToTopMode.BasedOnStepLength)
-                        {
-                            pos = pos.SetBeat(0).SetRowInBeat(0);
-                            pos = pos.Offset(0, numStepsOverEnd - 1);
-                        }
-                    }
+                    var pos = GetMoveCursorNewPos();
                     Editor.EditContext.ActionStack.Do(new Actions.MoveCursorAction(pattern, pos));
                 }
             }
@@ -1647,8 +1619,28 @@ namespace WDE.ModernPatternEditor
 
             foreach (var cs in pattern.ColumnSets)
                 cs.SendCCsAtTime(time);
-
         }
 
+        Digit GetMoveCursorNewPos()
+        {
+            int numStepsOverEnd = pattern.CursorPosition.StepsOverEnd(Editor.SelectedStepsDown);
+
+            var pos = pattern.CursorPosition.Offset(Editor.SelectedStepsRight, Editor.SelectedStepsDown, true);
+
+            if (numStepsOverEnd > 0)
+            {
+                if (PatternEditor.Settings.AutoMoveCursorToTop == AutoMoveCursorToTopMode.FirstRow)
+                {
+                    pos = pos.SetBeat(0).SetRowInBeat(0);
+                }
+                else if (PatternEditor.Settings.AutoMoveCursorToTop == AutoMoveCursorToTopMode.BasedOnStepLength)
+                {
+                    pos = pos.SetBeat(0).SetRowInBeat(0);
+                    pos = pos.Offset(0, numStepsOverEnd - 1);
+                }
+            }
+
+            return pos;
+        }
     }
 }
