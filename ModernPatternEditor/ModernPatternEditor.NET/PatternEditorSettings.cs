@@ -6,6 +6,7 @@ namespace WDE.ModernPatternEditor
     public enum CursorScrollMode { Standard, Center, CenterWithMargins };
     public enum ColorNoteMode { None, Note, NoteAndOctave };
     public enum BeatHighlightMode { Block, FirstRow };
+    public enum AutoMoveCursorToTopMode { None, FirstRow, BasedOnStepLength };
 
     public class PatternEditorSettings : Settings
     {
@@ -92,6 +93,9 @@ namespace WDE.ModernPatternEditor
 
         [BuzzSetting(BeatHighlightMode.Block, Description = "Beat highlight mode.")]
         public BeatHighlightMode BeatHighlight { get; set; }
+
+        [BuzzSetting(AutoMoveCursorToTopMode.None, Description = "Auto-move cursor to top of the pattern.")]
+        public AutoMoveCursorToTopMode AutoMoveCursorToTop { get; set; }
 
         //[BuzzSetting(true, Description = "Use default tracker base octave.")]
         //public bool DefaultBaseOctave { get; set; }
