@@ -371,6 +371,17 @@ namespace ReBuzz.FileOps
                     {
                         machineTo.InputChannelCount = 1;
                     }
+
+                    foreach(var chn in cData.SourceChannels)
+                    {
+                        connection.SetSourceChannel(chn, true);
+                    }
+
+                    foreach (var chn in cData.DestinationChannels)
+                    {
+                        connection.SetDestinationChannel(chn, true);
+                    }
+
                     new ConnectMachinesAction(buzz, connection, dispatcher, engineSettings).Do();
                 }
             }
@@ -1107,12 +1118,12 @@ namespace ReBuzz.FileOps
                 c.Pan = connection.Pan;
                 c.SourceChannel = connection.SourceChannel;
                 c.DestinationChannel = connection.DestinationChannel;
-
+                c.SourceChannels = connection.SourceChannels.ToList();
+                c.DestinationChannels = connection.DestinationChannels.ToList();
                 bMXMLMachineConnections.Add(c);
             }
 
             file.MachineConnections = bMXMLMachineConnections.ToArray();
-
             
             List<BMXMLMachineGroup> bMXMLMachineGroups = new List<BMXMLMachineGroup>();
             // Machine Groups
@@ -1438,6 +1449,9 @@ namespace ReBuzz.FileOps
         public int Pan { get; set; }
         public int SourceChannel { get; set; }
         public int DestinationChannel { get; set; }
+
+        public List<int> SourceChannels { get; set; }
+        public List<int> DestinationChannels { get; set; }
     }
 
     [XmlType(TypeName = "Attribute")]

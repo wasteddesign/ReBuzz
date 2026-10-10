@@ -6,9 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Reflection.PortableExecutable;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Windows;
 using System.Xml;
@@ -239,7 +236,6 @@ namespace BuzzGUI.Common.Templates
 
             try
             {
-
                 using (new ActionGroup(graph))
                 {
                     var map = new Dictionary<Machine, IMachine>();
@@ -296,7 +292,30 @@ namespace BuzzGUI.Common.Templates
                     }
 
                     foreach (var c in Connections)
-                        graph.ConnectMachines(machinesbyoldname[c.Source], machinesbyoldname[c.Destination], c.SourceChannel, c.DestinationChannel, c.Amp, c.Pan);
+                    {
+                        // For backwards comatibility, add single channel connections first
+                        graph.ConnectMachines(machinesbyoldname[c.Source], machinesbyoldname[c.Destination], new List<int> { c.SourceChannel }, new List<int> { c.DestinationChannel }, c.Amp, c.Pan);
+
+                        // Then add multi-channel connections, which will merge with the single channel connections
+                        var connection = machinesbyoldname[c.Source].Outputs.Where(o => o.Destination == machinesbyoldname[c.Destination]).FirstOrDefault();
+                        if (connection != null)
+                        {
+                            if (c.SourceChannels != null)
+                            {
+                                foreach (var ch in c.SourceChannels)
+                                {
+                                    connection.SetSourceChannel(ch, true);
+                                }
+                            }
+                            if (c.DestinationChannels != null)
+                            {
+                                foreach (var ch in c.DestinationChannels)
+                                {
+                                    connection.SetDestinationChannel(ch, true);
+                                }
+                            }
+                        }
+                    }
 
                     foreach (var m in map)
                     {
@@ -563,7 +582,6 @@ namespace BuzzGUI.Common.Templates
                     }
                 }
             }
-
         }
 
         static string cachedValidTemplateString;
@@ -594,6 +612,5 @@ namespace BuzzGUI.Common.Templates
             cachedInvalidTemplateString = s;
             return false;
         }
-
     }
 }

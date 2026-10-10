@@ -89,7 +89,8 @@ namespace ReBuzz.FileOps
             IUGB = 0x49554742, // Ok, SubSections
             RBSG = 0x52425347, // ReBuzz Song Settings
             XQES = 0x58514553, // Sequence properties
-            MGRP = 0x5052474D  // Machine groups
+            MGRP = 0x5052474D,  // Machine groups
+            YNOC = 0x7A7A7543
         }
 
         public BMXFile(ReBuzzCore buzz, string buzzPath, IUiDispatcher dispatcher, IKeyboard keyboard, EngineSettings engineSettings)
@@ -122,6 +123,7 @@ namespace ReBuzz.FileOps
                 LoadMachines(x, y, import);
                 LoadConnections();
                 LoadXNOC();
+                LoadYNOC();
                 LoadXTAP(import);
                 LoadPatterns(import);
                 LoadSequences(import);
@@ -728,6 +730,64 @@ namespace ReBuzz.FileOps
 
                             connection.SourceChannel = sourceChannel;
                             connection.DestinationChannel = destinationChannel;
+                        }
+                    }
+                }
+            }
+        }
+
+        public void LoadYNOC()
+        {
+            Section section;
+            if (sections.TryGetValue(SectionType.YNOC, out section))
+            {
+                FileOpsEvent(FileEventType.StatusUpdate, "Load More MultiIO Connection Info...");
+
+                fs.Position = section.Offset;
+
+                int version = ReadInt(fs); // 
+
+                if (version != 1)
+                {
+                    return;
+                }
+
+                ushort numConnections = ReadUShort(fs);
+                for (int i = 0; i < numConnections; i++)
+                {
+                    ushort fromIndex = ReadUShort(fs);
+                    ushort toIndex = ReadUShort(fs);
+
+                    int numSourceChannels = ReadInt(fs);
+                    List<int> sourceChannels = new List<int>();
+
+                    for (int j = 0; j < numSourceChannels; j++)
+                    {
+                        int sourceChannel = ReadInt(fs);
+                        sourceChannels.Add(sourceChannel);
+                    }
+
+                    int numDestinationChannels = ReadInt(fs);
+                    List<int> destinationChannels = new List<int>();
+                    for (int j = 0; j < numDestinationChannels; j++)
+                    {
+                        int destinationChannel = ReadInt(fs);
+                        destinationChannels.Add(destinationChannel);
+                    }
+
+                    var fromMachine = machines[fromIndex];
+                    var toMachine = machines[toIndex];
+                    var connection = fromMachine.AllOutputs.FirstOrDefault(c => c.Destination == toMachine) as MachineConnectionCore;
+                    if (connection != null)
+                    {
+                        foreach (var sourceChannel in sourceChannels)
+                        {
+                            connection.SetSourceChannel(sourceChannel, true);
+                        }
+
+                        foreach (var destinationChannel in destinationChannels)
+                        {
+                            connection.SetDestinationChannel(destinationChannel, true);
                         }
                     }
                 }
@@ -1700,6 +1760,7 @@ namespace ReBuzz.FileOps
             CreateMachinesSection();
             CreateConnectionsSection();
             CreateXNOC();
+            CreateYNOC();
             CreatePatternsSection();
             CreateXPATSection();
             CreateSequencesSection();
@@ -1968,6 +2029,52 @@ namespace ReBuzz.FileOps
             }
 
             AddSection(ms.ToArray(), SectionType.XNOC);
+        }
+
+        public void CreateYNOC()
+        {
+            MemoryStream ms = new MemoryStream();
+
+            var song = buzz.SongCore;
+            var macs = song.MachinesList.Where(m => m.DLL.Info.Type != MachineType.Master);
+
+            // Version
+            WriteInt(ms, 1);
+
+            List<IMachineConnection> connections = new List<IMachineConnection>();
+            song.MachinesList.Run(m => connections.AddRange(m.AllOutputs));
+            ushort numConnections = 0;
+            macs.Run(m => numConnections += (ushort)m.AllOutputs.Count);
+
+            WriteUShort(ms, numConnections);
+            foreach (var conn in connections)
+            {
+                var source = conn.Source as MachineCore;
+                var destinaltion = conn.Destination as MachineCore;
+                int fromIndex = song.MachinesList.IndexOf(source);
+                WriteUShort(ms, (ushort)fromIndex);
+                int toIndex = song.MachinesList.IndexOf(conn.Destination as MachineCore);
+                WriteUShort(ms, (ushort)toIndex);
+
+                // Write all source channles for the connection
+                int numSrcChannels = conn.SourceChannels.Count();
+                WriteInt(ms, numSrcChannels);
+
+                foreach (var srcChannel in conn.SourceChannels)
+                {
+                    WriteInt(ms, srcChannel);
+                }
+
+                // Write all destination channels for the connection
+                int numDestChannels = conn.DestinationChannels.Count();
+                WriteInt(ms, numDestChannels);
+                foreach (var destChannel in conn.DestinationChannels)
+                {
+                    WriteInt(ms, destChannel);
+                }
+            }
+
+            AddSection(ms.ToArray(), SectionType.YNOC);
         }
 
         void CreatePatternsSection()

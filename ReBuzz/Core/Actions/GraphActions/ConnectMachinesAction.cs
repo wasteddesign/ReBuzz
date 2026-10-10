@@ -2,6 +2,7 @@
 using BuzzGUI.Common.Actions;
 using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace ReBuzz.Core.Actions.GraphActions
@@ -10,8 +11,8 @@ namespace ReBuzz.Core.Actions.GraphActions
     {
         private readonly string src;
         private readonly string dst;
-        private readonly int srcchn;
-        private readonly int dstchn;
+        private readonly IEnumerable<int> srcchn;
+        private readonly IEnumerable<int> dstchn;
         private readonly int amp;
         private readonly int pan;
         private readonly ReBuzzCore buzz;
@@ -22,8 +23,8 @@ namespace ReBuzz.Core.Actions.GraphActions
             ReBuzzCore buzz,
             IMachine src,
             IMachine dst,
-            int srcchn,
-            int dstchn,
+            IEnumerable<int> srcchn,
+            IEnumerable<int> dstchn,
             int amp,
             int pan,
             IUiDispatcher dispatcher, 
@@ -31,8 +32,8 @@ namespace ReBuzz.Core.Actions.GraphActions
         {
             this.src = src.Name;
             this.dst = dst.Name;
-            this.srcchn = srcchn;
-            this.dstchn = dstchn;
+            this.srcchn = srcchn.ToArray();
+            this.dstchn = dstchn.ToArray();
             this.amp = amp;
             this.pan = pan;
             this.dispatcher = dispatcher;
@@ -48,8 +49,8 @@ namespace ReBuzz.Core.Actions.GraphActions
         {
             this.src = mc.Source.Name;
             this.dst = mc.Destination.Name;
-            this.srcchn = mc.SourceChannel;
-            this.dstchn = mc.DestinationChannel;
+            this.srcchn = mc.SourceChannels;
+            this.dstchn = mc.DestinationChannels;
             this.amp = mc.Amp;
             this.pan = mc.Pan;
             this.buzz = buzz;
@@ -63,7 +64,16 @@ namespace ReBuzz.Core.Actions.GraphActions
             {
                 var mcsrc = buzz.SongCore.MachinesList.FirstOrDefault(m => m.Name == src);
                 var mcdst = buzz.SongCore.MachinesList.FirstOrDefault(m => m.Name == dst);
-                MachineConnectionCore mcc = new MachineConnectionCore(dispatcher, engineSettings) { Source = mcsrc, Destination = mcdst, SourceChannel = srcchn, DestinationChannel = dstchn, Amp = amp, Pan = pan, HasPan = mcdst.HasStereoInput };
+                MachineConnectionCore mcc = new MachineConnectionCore(dispatcher, engineSettings) { Source = mcsrc, Destination = mcdst, Amp = amp, Pan = pan, HasPan = mcdst.HasStereoInput };
+                foreach (var item in srcchn)
+                {
+                    mcc.SetSourceChannel(item, true);
+                }
+
+                foreach (var item in dstchn)
+                {
+                    mcc.SetDestinationChannel(item, true);
+                }
 
                 mcsrc.AddOutput(mcc);
                 mcdst.AddInput(mcc);

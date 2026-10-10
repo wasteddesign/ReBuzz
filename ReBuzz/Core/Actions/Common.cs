@@ -142,19 +142,19 @@ namespace ReBuzz.Core.Actions
         public ConnectionInfoRef(IMachineConnection m)
         {
             Source = m.Source.Name;
-            SourceChannel = m.SourceChannel;
+            SourceChannels = m.SourceChannels.ToArray();
             Destination = m.Destination.Name;
-            DestinationChannel = m.DestinationChannel;
+            DestinationChannels = m.DestinationChannels.ToArray();
             Amp = m.Amp;
             Pan = m.Pan;
         }
 
         public string Source { get; internal set; }
-        public int SourceChannel { get; internal set; }
+        public IEnumerable<int> SourceChannels { get; internal set; }
         public string Destination { get; internal set; }
         public int Amp { get; internal set; }
         public int Pan { get; internal set; }
-        public int DestinationChannel { get; internal set; }
+        public IEnumerable<int> DestinationChannels { get; internal set; }
     }
 
 }

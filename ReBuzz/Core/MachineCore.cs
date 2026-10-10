@@ -1,7 +1,6 @@
 ﻿using Buzz.MachineInterface;
 using BuzzGUI.Common;
 using BuzzGUI.Common.Settings;
-using BuzzGUI.Common.Templates;
 using BuzzGUI.Interfaces;
 using BuzzGUI.MachineView;
 using BuzzGUI.ParameterWindow;
@@ -10,7 +9,6 @@ using ReBuzz.Common.Interfaces;
 using ReBuzz.MachineManagement;
 using ReBuzz.ManagedMachine;
 using ReBuzz.NativeMachine;
-using Serilog.Core;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -20,6 +18,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -27,8 +26,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Threading;
-using Windows.ApplicationModel.Activation;
-using Windows.Media.Devices;
 
 namespace ReBuzz.Core
 {
@@ -358,7 +355,6 @@ namespace ReBuzz.Core
             }
         }
 
-        //IMachineDLL patternEditorDLL;
         public IMachineDLL PatternEditorDLL
         {
             get
@@ -1283,53 +1279,72 @@ namespace ReBuzz.Core
                 if (!IsVisibleOutput(output))
                     continue;
                 var outputCore = output as MachineConnectionCore;
+                outputCore.ClearBuffer(nSamples);
+                outputCore.UpdateInterpolatorAmp(nSamples);
                 outputCore.UpdateBuffer(samples, nSamples);
+                outputCore.BurstProtection(nSamples);
             }
         }
 
-        readonly List<Sample[]> channels = new List<Sample[]>();
+        readonly List<Sample[]> activeChannels = new List<Sample[]>(256);
+        readonly Sample[][] multiSamplesInBuffers = new Sample[256][];
         internal List<Sample[]> GetMultiIOSamples(int nSamples)
         {
             // Check if enough channels to mix input destinations
-            if (channels.Count < InputChannelCount)
+            activeChannels.Clear();
+
+            for (int i = 0; i < InputChannelCount; i++)
             {
-                channels.Clear();
-                for (int i = 0; i < InputChannelCount; i++)
-                {
-                    channels.Add(null);
-                }
-            }
-            else
-            {
-                // Clear
-                for (int i = 0; i < InputChannelCount; i++)
-                {
-                    var ci = channels[i];
-                    if (ci != null)
-                    {
-                        for (int j = 0; j < nSamples; j++)
-                        {
-                            ci[j] = 0;
-                        }
-                    }
-                }
+                activeChannels.Add(null);
             }
 
+            // Clear all active channels
             foreach (var input in inputs)
             {
                 if (!IsVisibleInput(input))
                     continue;
                 var inputCore = input as MachineConnectionCore;
+                var targetChannelList = inputCore.DestinationChannels;
 
-                //if (inputCore.Source.IsActive)
-                if (inputCore.DestinationChannel < channels.Count)
+                // Output to multiple channels, so we need to mix the input to all target channels
+                for (int targetChannelIndex = 0; targetChannelIndex < targetChannelList.Count(); targetChannelIndex++)
                 {
-                    if (channels[inputCore.DestinationChannel] == null)
+                    int targetChannel = targetChannelList.ElementAt(targetChannelIndex);
+
+                    if (multiSamplesInBuffers[targetChannel] == null)
                     {
-                        channels[inputCore.DestinationChannel] = new Sample[256];
+                        multiSamplesInBuffers[targetChannel] = new Sample[256];
                     }
 
-                    Sample[] samples = channels[inputCore.DestinationChannel];
+                    if (activeChannels[targetChannel] == null)
+                    {
+                        activeChannels[targetChannel] = multiSamplesInBuffers[targetChannel];
+                    }
+
+                    Sample[] samples = activeChannels[targetChannel];
+
+                    for (int i = 0; i < nSamples; i++)
+                    {
+                        samples[i].L = 0;
+                        samples[i].R = 0;
+                    }
+                }
+            }
+
+            // Mix all inputs to their destination channels
+            foreach (var input in inputs)
+            {
+                if (!IsVisibleInput(input))
+                    continue;
+                var inputCore = input as MachineConnectionCore;
+                var targetChannelList = inputCore.DestinationChannels;
+
+                // Output to multiple channels, so we need to mix the input to all target channels
+                for (int targetChannelIndex = 0; targetChannelIndex < targetChannelList.Count(); targetChannelIndex++)
+                {
+                    int targetChannel = targetChannelList.ElementAt(targetChannelIndex);
+
+                    Sample[] samples = activeChannels[targetChannel];
 
                     for (int i = 0; i < nSamples; i++)
                     {
@@ -1339,7 +1354,7 @@ namespace ReBuzz.Core
                 }
             }
 
-            return channels;
+            return activeChannels;
         }
 
         internal void UpdateOutputs(List<Sample[]> multiSamplesOut, int nSamples)
@@ -1347,17 +1362,30 @@ namespace ReBuzz.Core
             // No need to update outputs if machine is hidden, because the outputs are not used in the audio graph.
             if (Hidden) return;
 
-            foreach (var output in outputs)
+            for (int o = 0; o < outputs.Count; o++)
             {
+                var output = outputs[o];
+
                 if (!IsVisibleOutput(output))
                     continue;
+
                 var outputCore = output as MachineConnectionCore;
-                if (outputCore.SourceChannel < multiSamplesOut.Count &&
-                    multiSamplesOut[outputCore.SourceChannel] != null)
+                outputCore.ClearBuffer(nSamples);
+                outputCore.UpdateInterpolatorAmp(nSamples);
+
+                for (int channelIndex = 0; channelIndex < outputCore.SourceChannels.Count(); channelIndex++)
                 {
-                    Sample[] samples = multiSamplesOut[outputCore.SourceChannel];
-                    outputCore.UpdateBuffer(samples, nSamples);
+                    int channel = outputCore.SourceChannels.ElementAt(channelIndex);
+
+                    if (channel < multiSamplesOut.Count &&
+                        multiSamplesOut[channel] != null)
+                    {
+                        Sample[] samples = multiSamplesOut[channel];
+                        outputCore.UpdateBuffer(samples, nSamples);
+                    }
                 }
+
+                outputCore.BurstProtection(nSamples);
             }
         }
 

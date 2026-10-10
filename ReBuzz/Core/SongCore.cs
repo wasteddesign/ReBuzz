@@ -311,7 +311,7 @@ namespace ReBuzz.Core
             Do(new CloneMachineAction(reBuzzCore, m, x, y));
         }
 
-        public void ConnectMachines(IMachine src, IMachine dst, int srcchn, int dstchn, int amp, int pan)
+        public void ConnectMachines(IMachine src, IMachine dst, IEnumerable<int> srcchn, IEnumerable<int> dstchn, int amp, int pan)
         {
             //if (Importing)
             {
@@ -328,8 +328,8 @@ namespace ReBuzz.Core
                     reBuzzCore,
                     mcc.Source,
                     mcc.Destination,
-                    mcc.SourceChannel,
-                    mcc.DestinationChannel,
+                    mcc.SourceChannels,
+                    mcc.DestinationChannels,
                     mcc.Amp,
                     mcc.Pan,
                     dispatcher,
@@ -478,6 +478,36 @@ namespace ReBuzz.Core
                 else
                 {
                     conn.SourceChannel = channel;
+                }
+            }
+        }
+
+        public void SetConnectionChannelMultiSelect(IMachineConnection mc, bool destination, int channel, bool isChecked)
+        {
+            lock (ReBuzzCore.AudioLock)
+            {
+                var conn = (mc as MachineConnectionCore);
+                if (destination)
+                {
+                    if (isChecked)
+                    {
+                        conn.SetDestinationChannel(channel, true);
+                    }
+                    else
+                    {
+                        conn.SetDestinationChannel(channel, false);
+                    }
+                }
+                else
+                {
+                    if (isChecked)
+                    {
+                        conn.SetSourceChannel(channel, true);
+                    }
+                    else
+                    {
+                        conn.SetSourceChannel(channel, false);
+                    }
                 }
             }
         }

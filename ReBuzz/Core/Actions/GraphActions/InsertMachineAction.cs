@@ -1,7 +1,7 @@
-﻿using BuzzGUI.Common;
-using BuzzGUI.Common.Actions;
+﻿using BuzzGUI.Common.Actions;
 using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace ReBuzz.Core.Actions.GraphActions
@@ -14,6 +14,8 @@ namespace ReBuzz.Core.Actions.GraphActions
         private readonly int id;
         private readonly ReBuzzCore buzz;
         private string name;
+        private List<int> srcChannels;
+        private List<int> dstChannels;
         private readonly string machineLib;
         private readonly string instrument;
         private readonly IUiDispatcher dispatcher;
@@ -78,12 +80,15 @@ namespace ReBuzz.Core.Actions.GraphActions
             {
                 this.name = machine.Name;
                 var mc = source.Outputs.FirstOrDefault(o => o.Destination == destination);
+                srcChannels = mc.SourceChannels.ToList();
+                dstChannels = mc.DestinationChannels.ToList();
                 new DisconnectMachinesAction(buzz, mc, dispatcher, engineSettings).Do();
 
-                MachineConnectionCore c = new MachineConnectionCore(machine, 0, destination, 0, 0x4000, 0x4000, dispatcher, engineSettings);
+                MachineConnectionCore c = new MachineConnectionCore(machine, [0], destination, dstChannels, 0x4000, 0x4000, dispatcher, engineSettings);
+
                 new ConnectMachinesAction(buzz, c, dispatcher, engineSettings).Do();
 
-                c = new MachineConnectionCore(source, 0, machine, 0, oc.Amp, oc.Pan, dispatcher, engineSettings);
+                c = new MachineConnectionCore(source, srcChannels, machine, [0], oc.Amp, oc.Pan, dispatcher, engineSettings);
                 new ConnectMachinesAction(buzz, c, dispatcher, engineSettings).Do();
             }
         }
@@ -107,7 +112,7 @@ namespace ReBuzz.Core.Actions.GraphActions
             }
 
             // Restore original connection
-            MachineConnectionCore mcc = new MachineConnectionCore(source, oc.SourceChannel, destination, oc.DestinationChannel, oc.Amp, oc.Pan, dispatcher, engineSettings);
+            MachineConnectionCore mcc = new MachineConnectionCore(source, oc.SourceChannels, destination, oc.DestinationChannels, oc.Amp, oc.Pan, dispatcher, engineSettings);
             new ConnectMachinesAction(buzz, mcc, dispatcher, engineSettings).Do();
         }
     }

@@ -1865,7 +1865,7 @@ namespace ReBuzz.Core
 
             // Connect editor to master
             var master = SongCore.Machines.FirstOrDefault(m => m.DLL.Info.Type == MachineType.Master);
-            new ConnectMachinesAction(this, peMachine, master, 0, 0, 0x4000, 0x4000, dispatcher, engineSettings).Do();
+            new ConnectMachinesAction(this, peMachine, master, [0], [0], 0x4000, 0x4000, dispatcher, engineSettings).Do();
 
             // Link machine to editor. Maybe specific call?
             MachineManager.SetPatternEditorPattern(peMachine, machineToUseEditor.Patterns.FirstOrDefault());

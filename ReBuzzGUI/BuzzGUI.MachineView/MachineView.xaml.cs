@@ -1271,8 +1271,8 @@ namespace BuzzGUI.MachineView
                 {
                     using (new ActionGroup(machineGraph))
                     {
-                        var oldinputs = m.Inputs.Select(x => new { Source = x.Source, Channel = x.SourceChannel, Amp = (double)x.Amp / 0x4000, Pan = x.Pan }).ToArray();
-                        var oldoutputs = m.Outputs.Select(x => new { Destination = x.Destination, Channel = x.DestinationChannel, Amp = (double)x.Amp / 0x4000, Pan = x.Pan }).ToArray();
+                        var oldinputs = m.Inputs.Select(x => new { Source = x.Source, Channels = x.SourceChannels, Amp = (double)x.Amp / 0x4000, Pan = x.Pan }).ToArray();
+                        var oldoutputs = m.Outputs.Select(x => new { Destination = x.Destination, Channels = x.DestinationChannels, Amp = (double)x.Amp / 0x4000, Pan = x.Pan }).ToArray();
 
                         machineGraph.DeleteMachines(machines);
 
@@ -1284,7 +1284,7 @@ namespace BuzzGUI.MachineView
                                 {
                                     var amp = Math.Min(Math.Max((int)((oi.Amp * oo.Amp) * 0x4000), 0), 0xfffe);
                                     var pan = Math.Min(Math.Max(oi.Pan + oo.Pan - 0x4000, 0), 0x8000);
-                                    machineGraph.ConnectMachines(oi.Source, oo.Destination, oi.Channel, oo.Channel, amp, pan);
+                                    machineGraph.ConnectMachines(oi.Source, oo.Destination, oi.Channels, oo.Channels, amp, pan);
                                 }
                             }
                         }
@@ -1312,12 +1312,11 @@ namespace BuzzGUI.MachineView
         {
             if (m.Inputs.Count == 0 && m.Outputs.Count == 0) return;
 
-
             using (new ActionGroup(machineGraph))
             {
 
-                var oldinputs = m.Inputs.Select(x => new { Source = x.Source, Channel = x.SourceChannel, Amp = (double)x.Amp / 0x4000, Pan = x.Pan }).ToArray();
-                var oldoutputs = m.Outputs.Select(x => new { Destination = x.Destination, Channel = x.DestinationChannel, Amp = (double)x.Amp / 0x4000, Pan = x.Pan }).ToArray();
+                var oldinputs = m.Inputs.Select(x => new { Source = x.Source, Channels = x.SourceChannels, Amp = (double)x.Amp / 0x4000, Pan = x.Pan }).ToArray();
+                var oldoutputs = m.Outputs.Select(x => new { Destination = x.Destination, Channels = x.DestinationChannels, Amp = (double)x.Amp / 0x4000, Pan = x.Pan }).ToArray();
 
                 var connections = m.Outputs.Concat(m.Inputs).ToArray();
 
@@ -1330,11 +1329,10 @@ namespace BuzzGUI.MachineView
                     {
                         var amp = Math.Min(Math.Max((int)((oi.Amp * oo.Amp) * 0x4000), 0), 0xfffe);
                         var pan = Math.Min(Math.Max(oi.Pan + oo.Pan - 0x4000, 0), 0x8000);
-                        machineGraph.ConnectMachines(oi.Source, oo.Destination, oi.Channel, oo.Channel, amp, pan);
+                        machineGraph.ConnectMachines(oi.Source, oo.Destination, oi.Channels, oo.Channels, amp, pan);
                     }
                 }
             }
-
         }
 
         IEnumerable<IMachine> GetSelectedAndAllGroupMachines()
@@ -1456,7 +1454,7 @@ namespace BuzzGUI.MachineView
                     // automatically connect generators to master if there are no effects
                     if (!machine.IsControlMachine && !machineGraph.Machines.Any(m => m.DLL.Info.Type == MachineType.Effect))
                     {
-                        machineGraph.ConnectMachines(machine, machineGraph.Machines.First(m => m.Name == "Master"), 0, 0, 0x4000, 0x4000);
+                        machineGraph.ConnectMachines(machine, machineGraph.Machines.First(m => m.Name == "Master"), new List<int> { 0 }, new List<int> { 0 }, 0x4000, 0x4000);
                     }
 
                     Buzz.Song.AddSequence(machine, Buzz.Song.Sequences.Count);

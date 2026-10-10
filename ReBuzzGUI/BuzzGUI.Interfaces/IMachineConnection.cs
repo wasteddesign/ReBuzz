@@ -14,5 +14,11 @@ namespace BuzzGUI.Interfaces
         bool HasPan { get; }
 
         event Action<float[], bool, SongTime> Tap;          // fired in the GUI thread
+
+        IEnumerable<int> SourceChannels { get; }
+        IEnumerable<int> DestinationChannels { get; }
+
+        void SetSourceChannel(int channel, bool set);
+        void SetDestinationChannel(int channel, bool set);
     }
 }

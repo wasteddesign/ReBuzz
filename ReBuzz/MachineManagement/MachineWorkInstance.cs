@@ -9,6 +9,7 @@ using ReBuzz.NativeMachine;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 
 namespace ReBuzz.MachineManagement
@@ -138,7 +139,6 @@ namespace ReBuzz.MachineManagement
             // If machine wants to do input mixing, first call Input for all inputs
             if ((flags & MachineInfoFlags.DOES_INPUT_MIXING) == MachineInfoFlags.DOES_INPUT_MIXING)
             {
-
                 foreach (var input in Machine.AllInputs)
                 {
                     if (input.Source.OutputChannelCount == 0 || (input.Source as MachineCore).Hidden) continue;
@@ -155,6 +155,7 @@ namespace ReBuzz.MachineManagement
 
                 List<Sample[]> multiSamplesIn = Machine.GetMultiIOSamples(nSamples);
                 multiSamplesOut.Clear();
+                
                 for (int i = 0; i < Machine.OutputChannelCount; i++)
                 {
                     multiSamplesOut.Add(null);
@@ -163,13 +164,27 @@ namespace ReBuzz.MachineManagement
                 foreach (var outConnection in Machine.AllOutputs)
                 {
                     if (outConnection.Destination.InputChannelCount == 0 || (outConnection.Destination as MachineCore).Hidden) continue;
-                    if (multiSamplesOutBuffers[outConnection.SourceChannel] == null)
-                        multiSamplesOutBuffers[outConnection.SourceChannel] = new Sample[256];
-                    multiSamplesOut[outConnection.SourceChannel] = multiSamplesOutBuffers[outConnection.SourceChannel];
-                    for (int i = 0; i < nSamples; i++)
+
+                    var channels = outConnection.SourceChannels;
+                    for (int channelIndex = 0; channelIndex < channels.Count(); channelIndex++)
                     {
-                        multiSamplesOut[outConnection.SourceChannel][i].L = 0;
-                        multiSamplesOut[outConnection.SourceChannel][i].R = 0;
+                        int channel = channels.ElementAt(channelIndex);
+                        if (multiSamplesOutBuffers[channel] == null)
+                            multiSamplesOutBuffers[channel] = new Sample[256];
+
+                        multiSamplesOut[channel] = multiSamplesOutBuffers[channel];
+                    }
+                }
+
+                for (int i = 0; i < multiSamplesOut.Count; i++)
+                {
+                    if (multiSamplesOut[i] != null)
+                    {
+                        for (int j = 0; j < nSamples; j++)
+                        {
+                            multiSamplesOut[i][j].L = 0;
+                            multiSamplesOut[i][j].R = 0;
+                        }
                     }
                 }
 
@@ -263,13 +278,27 @@ namespace ReBuzz.MachineManagement
                 foreach (var outConnection in Machine.AllOutputs)
                 {
                     if (outConnection.Destination.InputChannelCount == 0 || (outConnection.Destination as MachineCore).Hidden) continue;
-                    if (multiSamplesOutBuffers[outConnection.SourceChannel] == null)
-                        multiSamplesOutBuffers[outConnection.SourceChannel] = new Sample[256];
-                    multiSamplesOut[outConnection.SourceChannel] = multiSamplesOutBuffers[outConnection.SourceChannel];
-                    for (int i = 0; i < nSamples; i++)
+
+                    var channels = outConnection.SourceChannels;
+                    for (int channelIndex = 0; channelIndex < channels.Count(); channelIndex++)
                     {
-                        multiSamplesOut[outConnection.SourceChannel][i].L = 0;
-                        multiSamplesOut[outConnection.SourceChannel][i].R = 0;
+                        int channel = channels.ElementAt(channelIndex);
+                        if (multiSamplesOutBuffers[channel] == null)
+                            multiSamplesOutBuffers[channel] = new Sample[256];
+
+                        multiSamplesOut[channel] = multiSamplesOutBuffers[channel];
+                    }
+                }
+
+                for (int i = 0; i < multiSamplesOut.Count; i++)
+                {
+                    if (multiSamplesOut[i] != null)
+                    {
+                        for (int j = 0; j < nSamples; j++)
+                        {
+                            multiSamplesOut[i][j].L = 0;
+                            multiSamplesOut[i][j].R = 0;
+                        }
                     }
                 }
 

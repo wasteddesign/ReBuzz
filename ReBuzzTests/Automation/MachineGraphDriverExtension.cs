@@ -82,7 +82,7 @@ namespace ReBuzzTests.Automation
 
         private void ConnectMachineInstances(IMachine source, IMachine destination)
         {
-            reBuzzCore.SongCore.ConnectMachines(source, destination, 0, 0, defaultAmp, defaultPan);
+            reBuzzCore.SongCore.ConnectMachines(source, destination, [0], [0], defaultAmp, defaultPan);
         }
 
         private void ConnectToMaster(MachineCore instance)
@@ -94,9 +94,9 @@ namespace ReBuzzTests.Automation
         {
             reBuzzCore.SongCore.DisconnectMachines(new MachineConnectionCore(
                 source,
-                0,
+                [0],
                 destination,
-                0,
+                [0],
                 defaultAmp,
                 defaultPan,
                 dispatcher,
