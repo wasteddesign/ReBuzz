@@ -1,6 +1,7 @@
 using BuzzGUI.Common;
 using BuzzGUI.Interfaces;
 using System;
+using System.Linq;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Windows;
@@ -82,10 +83,19 @@ namespace BuzzGUI.MachineView
             public Connection Connection { get; set; }
             public MachineControl Machine { get; set; }
 
-            int channel;
-            public int Channel
+            string channel = "0";
+            public string Channel
             {
-                get { return channel; }
+                get
+                {
+                    if (Connection.MachineConnection != null)
+                    {
+                        var chns = (Machine == Connection.Source) ? Connection.MachineConnection.SourceChannels : Connection.MachineConnection.DestinationChannels;
+                        if (chns.Count() > 1)
+                            return "+";
+                    }
+                    return channel;
+                }
                 set
                 {
                     channel = value;
@@ -94,13 +104,25 @@ namespace BuzzGUI.MachineView
                 }
             }
 
-            public string ChannelName { get { return Machine.Machine.GetChannelName(Machine == Connection.Destination, Channel); } }
+            public string ChannelName { get { return Machine.Machine.GetChannelName(Machine == Connection.Destination, int.Parse(Channel)); } }
 
             public void ChangeChannel()
             {
                 int nch = (Machine == Connection.Source) ? Machine.Machine.OutputChannelCount : Machine.Machine.InputChannelCount;
                 if (nch > 0)
-                    Channel = (Channel + 1) % nch;
+                {
+                    int.TryParse(channel, out int chn);
+                    Channel = "" + ((chn + 1) % nch);
+                }
+            }
+
+            public IEnumerable<int> Channels
+            {
+                get
+                {
+                    int nch = (Machine == Connection.Source) ? Machine.Machine.OutputChannelCount : Machine.Machine.InputChannelCount;
+                    return Enumerable.Range(0, nch);
+                }
             }
 
             #region INotifyPropertyChanged Members
@@ -210,8 +232,8 @@ namespace BuzzGUI.MachineView
 
             if (mc != null)
             {
-                DestinationPlugInfo.Channel = mc.DestinationChannel;
-                SourcePlugInfo.Channel = mc.SourceChannel;
+                DestinationPlugInfo.Channel = mc.DestinationChannel.ToString();
+                SourcePlugInfo.Channel = mc.SourceChannel.ToString();
                 mc.PropertyChanged += new PropertyChangedEventHandler(mc_PropertyChanged);
             }
 
@@ -257,7 +279,6 @@ namespace BuzzGUI.MachineView
                 DataContext = this,
                 Style = canvas.TryFindResource("MachineConnectionVUMeterStyle") as Style
             };
-
 
             if (mc != null)
             {
@@ -315,12 +336,12 @@ namespace BuzzGUI.MachineView
 
             if (mc != null)     // if not temp. connection
             {
-                if (ShowSrcPlug) CreateChannelMenu(srcPlug, false, Source.Machine);
-                if (ShowDstPlug) CreateChannelMenu(dstPlug, true, Destination.Machine);
+                if (ShowSrcPlug) CreateChannelMenuMultiSelect(srcPlug, false, Source.Machine);
+                if (ShowDstPlug) CreateChannelMenuMultiSelect(dstPlug, true, Destination.Machine);
             }
 
             UpdateVisuals();
-
+                
             canvas.Children.Add(path);
             if (path2 != null) canvas.Children.Add(path2);
 
@@ -388,23 +409,40 @@ namespace BuzzGUI.MachineView
             e.Handled = true;
         }
 
-        void CreateChannelMenu(Control plug, bool dst, IMachine m)
+        ContextMenu cm;
+        void CreateChannelMenuMultiSelect(Control plug, bool dst, IMachine m)
         {
             plug.ContextMenu = new ContextMenu();
             plug.ContextMenuOpening += (_s, _e) =>
             {
-                int sel = dst ? MachineConnection.DestinationChannel : MachineConnection.SourceChannel;
+                var sel = dst ? MachineConnection.DestinationChannels : MachineConnection.SourceChannels;
                 int count = dst ? m.InputChannelCount : m.OutputChannelCount;
-                ContextMenu cm = new ContextMenu();
+                cm = new ContextMenu();
                 for (int i = 0; i < count; i++)
                 {
-                    MenuItem mi = new MenuItem() { Header = string.Format("{0}. {1}", i, m.GetChannelName(dst, i)), Tag = i, IsChecked = i == sel };
-                    mi.Click += (sender, e) => { MachineGraph.SetConnectionChannel(MachineConnection, dst, (int)mi.Tag); };
+                    MenuItem mi = new MenuItem() { Header = string.Format("{0}. {1}", i, m.GetChannelName(dst, i)), Tag = i, IsChecked = sel.Contains(i), IsCheckable = true, StaysOpenOnClick = true };
+                    mi.Click += (sender, e) =>
+                    {
+                        MachineGraph.SetConnectionChannelMultiSelect(MachineConnection, dst, (int)mi.Tag, mi.IsChecked);
+                    };
+                    mi.Unchecked += (sender, e) =>
+                    {
+                        var item = (MenuItem)sender;
+
+                        int checkedCount = cm.Items
+                            .OfType<MenuItem>()
+                            .Count(x => x.IsChecked);
+
+                        if (checkedCount == 0)
+                        {
+                            item.IsChecked = true;
+                            e.Handled = true;
+                        }
+                    };
                     cm.Items.Add(mi);
                 }
 
                 plug.ContextMenu = cm;
-
             };
         }
 
@@ -413,10 +451,10 @@ namespace BuzzGUI.MachineView
             switch (e.PropertyName)
             {
                 case "SourceChannel":
-                    SourcePlugInfo.Channel = MachineConnection.SourceChannel;
+                    SourcePlugInfo.Channel = MachineConnection.SourceChannels.Count() > 1 ? "*" : MachineConnection.SourceChannel.ToString();
                     break;
                 case "DestinationChannel":
-                    DestinationPlugInfo.Channel = MachineConnection.DestinationChannel;
+                    DestinationPlugInfo.Channel = MachineConnection.DestinationChannel.ToString();
                     break;
 
             }

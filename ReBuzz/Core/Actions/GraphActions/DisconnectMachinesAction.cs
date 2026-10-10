@@ -1,10 +1,8 @@
-﻿using BuzzGUI.Common;
-using BuzzGUI.Common.Actions;
+﻿using BuzzGUI.Common.Actions;
 using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
-using System.Windows.Input;
 
 namespace ReBuzz.Core.Actions.GraphActions
 {
@@ -12,8 +10,8 @@ namespace ReBuzz.Core.Actions.GraphActions
     {
         private readonly string sourceName;
         private readonly string destinationName;
-        private readonly int sourceChannel;
-        private readonly int destinationChannel;
+        private IEnumerable<int> sourceChannels;
+        private IEnumerable<int> destinationChannels;
         private readonly int amp;
         private readonly int pan;
 
@@ -33,8 +31,8 @@ namespace ReBuzz.Core.Actions.GraphActions
             this.dispatcher = dispatcher;
             this.sourceName = mc.Source.Name;
             this.destinationName = mc.Destination.Name;
-            this.sourceChannel = mc.SourceChannel;
-            this.destinationChannel = mc.DestinationChannel;
+            this.sourceChannels = mc.SourceChannels.ToArray();
+            this.destinationChannels = mc.DestinationChannels.ToArray();
             this.amp = mc.Amp;
             this.pan = mc.Pan;
             this.buzz = buzz;
@@ -45,8 +43,8 @@ namespace ReBuzz.Core.Actions.GraphActions
             ReBuzzCore buzz,
             IMachine src,
             IMachine dst,
-            int sourceChannel,
-            int destinationChannel,
+            IEnumerable<int> sourceChannels,
+            IEnumerable<int> destinationChannels,
             int amp,
             int pan,
             IUiDispatcher dispatcher,
@@ -55,8 +53,8 @@ namespace ReBuzz.Core.Actions.GraphActions
             this.buzz = buzz;
             this.sourceName = src.Name;
             this.destinationName = dst.Name;
-            this.sourceChannel = sourceChannel;
-            this.destinationChannel = destinationChannel;
+            this.sourceChannels = sourceChannels;
+            this.destinationChannels = destinationChannels;
             this.amp = amp;
             this.pan = pan;
             this.dispatcher = dispatcher;
@@ -107,8 +105,15 @@ namespace ReBuzz.Core.Actions.GraphActions
                 MachineConnectionCore mc = new MachineConnectionCore(dispatcher, engineSettings);
                 mc.Source = buzz.SongCore.MachinesList.FirstOrDefault(m => m.Name == sourceName);
                 mc.Destination = buzz.SongCore.MachinesList.FirstOrDefault(m => m.Name == destinationName);
-                mc.SourceChannel = sourceChannel;
-                mc.DestinationChannel = destinationChannel;
+                foreach (var ch in sourceChannels)
+                {
+                    mc.SetSourceChannel(ch, true);
+                }
+                foreach (var ch in destinationChannels)
+                {
+                    mc.SetDestinationChannel(ch, true);
+                }
+
                 mc.Amp = amp;
                 mc.Pan = pan;
 

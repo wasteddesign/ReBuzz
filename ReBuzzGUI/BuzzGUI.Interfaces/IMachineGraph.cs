@@ -19,11 +19,12 @@ namespace BuzzGUI.Interfaces
         void InsertMachine(IMachineConnection m, string machine, string instrument, float x, float y);
         void CloneMachine(IMachine m, float x, float y);
         void MoveMachines(IEnumerable<Tuple<IMachine, Tuple<float, float>>> mm);
-        void ConnectMachines(IMachine src, IMachine dst, int srcchn, int dstchn, int amp, int pan);
+        void ConnectMachines(IMachine src, IMachine dst, IEnumerable<int> srcchn, IEnumerable<int> dstchn, int amp, int pan);
         void DisconnectMachines(IMachineConnection mc);
         void DeleteMachines(IEnumerable<IMachine> m);
         void SetConnectionParameter(IMachineConnection mc, int index, int oldvalue, int newvalue);
         void SetConnectionChannel(IMachineConnection mc, bool destination, int channel);
+        void SetConnectionChannelMultiSelect(IMachineConnection mc, bool destination, int channel, bool isChecked);
 
         bool CanConnectMachines(IMachine src, IMachine dst);
 

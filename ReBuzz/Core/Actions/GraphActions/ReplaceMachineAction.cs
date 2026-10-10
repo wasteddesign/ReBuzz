@@ -1,5 +1,4 @@
-﻿using BuzzGUI.Common;
-using BuzzGUI.Common.Actions;
+﻿using BuzzGUI.Common.Actions;
 using BuzzGUI.Common.Settings;
 using BuzzGUI.Interfaces;
 using System;
@@ -202,14 +201,14 @@ namespace ReBuzz.Core.Actions.GraphActions
                         foreach (var cma in machineInfo.connections.Where(c => c.Destination == machineInfo.Name))
                         {
                             var src = buzz.Song.Machines.FirstOrDefault(m => m.Name == cma.Source);
-                            new ConnectMachinesAction(buzz, src, machine, 0, 0, cma.Amp, cma.Pan, dispatcher, engineSettings).Do();
+                            new ConnectMachinesAction(buzz, src, machine, new List<int> { 0 }, new List<int> { 0 }, cma.Amp, cma.Pan, dispatcher, engineSettings).Do();
                         }
 
                         // reconnect outputs
                         foreach (var cma in machineInfo.connections.Where(c => c.Source == machineInfo.Name))
                         {
                             var dst = buzz.Song.Machines.FirstOrDefault(m => m.Name == cma.Destination);
-                            new ConnectMachinesAction(buzz, machine, dst, 0, 0, cma.Amp, cma.Pan, dispatcher, engineSettings).Do();
+                            new ConnectMachinesAction(buzz, machine, dst, new List<int> { 0 }, new List<int> { 0 }, cma.Amp, cma.Pan, dispatcher, engineSettings).Do();
                         }
 
                         buzz.RenameMachine(newMachine as MachineCore, nameAfterCreation);
@@ -275,14 +274,14 @@ namespace ReBuzz.Core.Actions.GraphActions
                 foreach (var cma in machineInfo.connections.Where(c => c.Destination == machineInfo.Name))
                 {
                     var src = buzz.Song.Machines.FirstOrDefault(m => m.Name == cma.Source);
-                    new ConnectMachinesAction(buzz, src, machine, 0, 0, cma.Amp, cma.Pan, dispatcher, engineSettings).Do();
+                    new ConnectMachinesAction(buzz, src, machine, new List<int> { 0 }, new List<int> { 0 }, cma.Amp, cma.Pan, dispatcher, engineSettings).Do();
                 }
 
                 // reconnect outputs
                 foreach (var cma in machineInfo.connections.Where(c => c.Source == machineInfo.Name))
                 {
                     var dst = buzz.Song.Machines.FirstOrDefault(m => m.Name == cma.Destination);
-                    new ConnectMachinesAction(buzz, machine, dst, 0, 0, cma.Amp, cma.Pan, dispatcher, engineSettings).Do();
+                    new ConnectMachinesAction(buzz, machine, dst, new List<int> { 0 }, new List<int> { 0 }, cma.Amp, cma.Pan, dispatcher, engineSettings).Do();
                 }
             }
         }
@@ -310,14 +309,14 @@ namespace ReBuzz.Core.Actions.GraphActions
                 foreach (var cma in machineInfo.connections.Where(c => c.Destination == machineInfo.Name))
                 {
                     var src = buzz.Song.Machines.FirstOrDefault(m => m.Name == cma.Source);
-                    new DisconnectMachinesAction(buzz, src, machine, cma.SourceChannel, cma.DestinationChannel, cma.Amp, cma.Pan, dispatcher, engineSettings).Do();
+                    new DisconnectMachinesAction(buzz, src, machine, cma.SourceChannels, cma.DestinationChannels, cma.Amp, cma.Pan, dispatcher, engineSettings).Do();
                 }
 
                 // Disconnect outputs
                 foreach (var cma in machineInfo.connections.Where(c => c.Source == machineInfo.Name))
                 {
                     var dst = buzz.Song.Machines.FirstOrDefault(m => m.Name == cma.Destination);
-                    new DisconnectMachinesAction(buzz, machine, dst, cma.SourceChannel, cma.DestinationChannel, cma.Amp, cma.Pan, dispatcher, engineSettings).Do();
+                    new DisconnectMachinesAction(buzz, machine, dst, cma.SourceChannels, cma.DestinationChannels, cma.Amp, cma.Pan, dispatcher, engineSettings).Do();
                 }
                 createMachinesAction.Undo();
                 deleteMachinesAction.Undo();

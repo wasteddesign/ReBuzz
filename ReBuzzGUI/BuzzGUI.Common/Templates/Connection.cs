@@ -1,4 +1,5 @@
 ﻿using BuzzGUI.Interfaces;
+using System.Collections.Generic;
 using System.Xml.Serialization;
 
 namespace BuzzGUI.Common.Templates
@@ -23,6 +24,9 @@ namespace BuzzGUI.Common.Templates
         [XmlAttribute]
         public int Pan;
 
+        public List<int> SourceChannels { get; set; }
+        public List<int> DestinationChannels { get; set; }
+
         public Connection() { }
         public Connection(IMachineConnection c)
         {
@@ -32,6 +36,8 @@ namespace BuzzGUI.Common.Templates
             DestinationChannel = c.DestinationChannel;
             Amp = c.Amp;
             Pan = c.Pan;
+            SourceChannels = [.. c.SourceChannels];
+            DestinationChannels = [.. c.DestinationChannels];
         }
     }
 }

@@ -707,8 +707,8 @@ namespace BuzzGUI.MachineView
                 {
                     if (sourceMachine != null)
                     {
-                        int sc = tempConnection.SourcePlugInfo.Channel;
-                        int dc = tempConnection.DestinationPlugInfo.Channel;
+                        var sc = tempConnection.SourcePlugInfo.Channels;
+                        var dc = tempConnection.DestinationPlugInfo.Channels;
                         tempConnection.RemoveVisuals();
                         tempConnection = null;
 

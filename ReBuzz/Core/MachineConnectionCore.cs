@@ -5,8 +5,9 @@ using BuzzGUI.Interfaces;
 using ReBuzz.Audio.BurstProtection;
 using ReBuzz.Common;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
-using System.Threading;
+using System.Linq;
 
 namespace ReBuzz.Core
 {
@@ -27,11 +28,61 @@ namespace ReBuzz.Core
         public int SourceChannel
         {
             get => sourceChannel;
-            set { sourceChannel = value; PropertyChanged.Raise(this, "SourceChannel"); }
+            set { sourceChannels.Clear(); SetSourceChannel(value, true); }
         }
 
         int destinationChannel = 0;
-        public int DestinationChannel { get => destinationChannel; set { destinationChannel = value; PropertyChanged.Raise(this, "DestinationChannel"); } }
+        public int DestinationChannel { get => destinationChannel; set { destinationChannels.Clear(); SetDestinationChannel(value, true); } }
+
+        HashSet<int> sourceChannels = new HashSet<int>();
+        public IEnumerable<int> SourceChannels => sourceChannels;
+
+        public void SetSourceChannel(int channel, bool set)
+        {
+            if (set)
+            {
+                sourceChannels.Add(channel);
+            }
+            else
+            {
+                if (sourceChannels.Count > 1)
+                {
+                    // Ensure at least one channel is selected
+                    sourceChannels.Remove(channel);
+                }
+            }
+            int lowest = sourceChannels.Count > 0
+                ? SourceChannels.Min()
+                : 0; // Get the lowest channel or default to 0 if none are selected
+            sourceChannel = lowest;
+            PropertyChanged.Raise(this, "SourceChannel");
+            PropertyChanged.Raise(this, "SourceChannels");
+        }
+
+        HashSet<int> destinationChannels = new HashSet<int>();
+        public IEnumerable<int> DestinationChannels => destinationChannels;
+        public void SetDestinationChannel(int channel, bool set)
+        {
+            if (set)
+            {
+                destinationChannels.Add(channel);
+            }
+            else
+            {
+                // Ensure at least one channel is selected
+                if (destinationChannels.Count > 1)
+                {
+                    destinationChannels.Remove(channel);
+                }
+            }
+
+            int lowest = destinationChannels.Count > 0
+                ? DestinationChannels.Min()
+                : 0; // Get the lowest channel or default to 0 if none are selected
+            destinationChannel = lowest;
+            PropertyChanged.Raise(this, "DestinationChannel");
+            PropertyChanged.Raise(this, "DestinationChannels");
+        }
 
         readonly Interpolator interpolatorAmp = new Interpolator();
 
@@ -139,12 +190,18 @@ namespace ReBuzz.Core
             DoTap(sampleBuffer, nSamples, stereo, buzz.GetSongTime());
         }
 
+        float ampStart;
+        float ampCurrent;
+        float ampStep;
+        internal void UpdateInterpolatorAmp(int nSamples)
+        {
+            ampStart = interpolatorAmp.Value / 0x4000;
+            ampCurrent = interpolatorAmp.Tick() / 0x4000;
+            ampStep = (ampStart - ampCurrent) / nSamples;
+        }
+
         internal void UpdateBuffer(Sample[] samples, int nSamples)
         {
-            float ampStart = interpolatorAmp.Value / 0x4000;
-            float ampCurrent = interpolatorAmp.Tick() / 0x4000;
-            float ampStep = (ampStart - ampCurrent) / nSamples;
-
             // Zero-latency fast path. When addedLatency == 0 the latency ring's
             // read position always equals its write position (both start equal
             // and advance in lockstep), so the ring is a pass-through: the second
@@ -160,8 +217,8 @@ namespace ReBuzz.Core
             {
                 for (int i = 0; i < nSamples; i++)
                 {
-                    buffer[i].L = samples[i].L * ampStart * panL;
-                    buffer[i].R = samples[i].R * ampStart * panR;
+                    buffer[i].L += samples[i].L * ampStart * panL;
+                    buffer[i].R += samples[i].R * ampStart * panR;
                     ampStart += ampStep;
                 }
             }
@@ -181,12 +238,15 @@ namespace ReBuzz.Core
 
                 for (int i = 0; i < nSamples; i++)
                 {
-                    buffer[i].L = latencyBuffer[latencyBufferReadPos].L;
-                    buffer[i].R = latencyBuffer[latencyBufferReadPos].R;
+                    buffer[i].L += latencyBuffer[latencyBufferReadPos].L;
+                    buffer[i].R += latencyBuffer[latencyBufferReadPos].R;
                     if (++latencyBufferReadPos == latencyBuffer.Length) latencyBufferReadPos = 0;
                 }
             }
+        }
 
+        internal void BurstProtection(int nSamples)
+        {
             burstProtection.Process(buffer, 0, nSamples, true, true);
         }
 
@@ -210,14 +270,23 @@ namespace ReBuzz.Core
             burstProtection = new BurstProtectionEngine(Global.Buzz as ReBuzzCore, false);
         }
 
-        public MachineConnectionCore(MachineCore source, int sourceChannel, MachineCore destination, int destinationChannel, int amp, int pan, IUiDispatcher dispatcher, EngineSettings engineSettings)
+        public MachineConnectionCore(MachineCore source, IEnumerable<int> sourceChannels, MachineCore destination, IEnumerable<int> destinationChannels, int amp, int pan, IUiDispatcher dispatcher, EngineSettings engineSettings)
         {
             this.engineSettings = engineSettings;
             this.dispatcher = dispatcher;
             Source = source;
-            this.sourceChannel = sourceChannel;
             Destination = destination;
-            this.destinationChannel = destinationChannel;
+
+            foreach (var channel in sourceChannels)
+            {
+                SetSourceChannel(channel, true);
+            }
+
+            foreach (var channel in destinationChannels)
+            {
+                SetDestinationChannel(channel, true);
+            }
+
             Amp = amp;
             Pan = pan;
         }

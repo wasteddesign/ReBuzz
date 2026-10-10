@@ -656,8 +656,8 @@ namespace BuzzGUI.MachineView
                             var dstchn = insertConnection.MachineConnection.DestinationChannel;
                             var amp = insertConnection.MachineConnection.Amp;
                             insertConnection.MachineGraph.DisconnectMachines(insertConnection.MachineConnection);
-                            Machine.Graph.ConnectMachines(src.Machine, this.Machine, srcchn, 0, amp, 0x4000);
-                            Machine.Graph.ConnectMachines(this.Machine, dst.Machine, 0, dstchn, 0x4000, 0x4000);
+                            Machine.Graph.ConnectMachines(src.Machine, this.Machine, [srcchn], [0], amp, 0x4000);
+                            Machine.Graph.ConnectMachines(this.Machine, dst.Machine, [0], [dstchn], 0x4000, 0x4000);
                         }
                     }
                     else
@@ -800,8 +800,10 @@ namespace BuzzGUI.MachineView
                 },
                 EndDrag = _ =>
                 {
-                    int sc = tempConnection.SourcePlugInfo.Channel;
-                    int dc = tempConnection.DestinationPlugInfo.Channel;
+                    if (!int.TryParse(tempConnection.SourcePlugInfo.Channel, out int sc))
+                        sc = 0;
+                    if (!int.TryParse(tempConnection.DestinationPlugInfo.Channel, out int dc))
+                        dc = 0;
                     tempConnection.RemoveVisuals();
                     tempConnection = null;
                     Mouse.OverrideCursor = null;
@@ -809,7 +811,7 @@ namespace BuzzGUI.MachineView
                     if (dstMachine != null)
                     {
                         if (view.MachineGraph.CanConnectMachines(Machine, dstMachine.Machine))
-                            view.MachineGraph.ConnectMachines(Machine, dstMachine.Machine, sc, dc, 0x4000, 0x4000);
+                            view.MachineGraph.ConnectMachines(Machine, dstMachine.Machine, [sc], [dc], 0x4000, 0x4000);
                     }
 
                     if (isGroupedTargetOld && dstGroupMachine != null)
