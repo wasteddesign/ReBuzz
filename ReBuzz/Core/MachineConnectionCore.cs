@@ -193,7 +193,7 @@ namespace ReBuzz.Core
         float ampStart;
         float ampCurrent;
         float ampStep;
-        internal void UpdateInterpolatorAmp(int nSamples)
+        internal void PreUpdateBufferActions(int nSamples)
         {
             ampStart = interpolatorAmp.Value / 0x4000;
             ampCurrent = interpolatorAmp.Tick() / 0x4000;
@@ -224,38 +224,53 @@ namespace ReBuzz.Core
             }
             else
             {
-
                 // Latency-compensated path. Ring wrap via a branch rather than a
                 // per-sample integer divide (% Length); positions are always
                 // < Length, so ++pos == Length is exactly the wrap case.
+                int tmpLatencyBufferWritePos = latencyBufferWritePos;
                 for (int i = 0; i < nSamples; i++)
                 {
-                    latencyBuffer[latencyBufferWritePos].L = samples[i].L * ampStart * panL;
-                    latencyBuffer[latencyBufferWritePos].R = samples[i].R * ampStart * panR;
-                    if (++latencyBufferWritePos == latencyBuffer.Length) latencyBufferWritePos = 0;
+                    latencyBuffer[tmpLatencyBufferWritePos].L += samples[i].L * ampStart * panL;
+                    latencyBuffer[tmpLatencyBufferWritePos].R += samples[i].R * ampStart * panR;
+                    if (++tmpLatencyBufferWritePos == latencyBuffer.Length) tmpLatencyBufferWritePos = 0;
                     ampStart += ampStep;
-                }
-
-                for (int i = 0; i < nSamples; i++)
-                {
-                    buffer[i].L += latencyBuffer[latencyBufferReadPos].L;
-                    buffer[i].R += latencyBuffer[latencyBufferReadPos].R;
-                    if (++latencyBufferReadPos == latencyBuffer.Length) latencyBufferReadPos = 0;
                 }
             }
         }
 
-        internal void BurstProtection(int nSamples)
+        internal void PostUpdateBufferActions(int nSamples)
         {
+            // If there was latency, copy the latency ring's read position into the output buffer. The ring is a pass-through when addedLatency == 0, so skip this copy in that case.
+            if (addedLatency > 0)
+            {   
+                for (int i = 0; i < nSamples; i++)
+                {
+                    buffer[i].L = latencyBuffer[latencyBufferWritePos].L;
+                    buffer[i].R = latencyBuffer[latencyBufferWritePos].R;
+                    if (++latencyBufferWritePos == latencyBuffer.Length) latencyBufferWritePos = 0;
+                }
+            }
+
             burstProtection.Process(buffer, 0, nSamples, true, true);
         }
 
-        internal void ClearBuffer(int num)
+        internal void ClearBuffer(int nSamples)
         {
-            for (int i = 0; i < num; i++)
+            for (int i = 0; i < nSamples; i++)
             {
                 buffer[i].L = 0;
                 buffer[i].R = 0;
+            }
+
+            if (addedLatency > 0)
+            {
+                int tmpLatencyBufferWritePos = latencyBufferWritePos;
+                for (int i = 0; i < nSamples; i++)
+                {   
+                    latencyBuffer[tmpLatencyBufferWritePos].L = 0;
+                    latencyBuffer[tmpLatencyBufferWritePos].R = 0;
+                    if (++tmpLatencyBufferWritePos == latencyBuffer.Length) tmpLatencyBufferWritePos = 0;
+                }
             }
         }
 

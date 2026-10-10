@@ -1280,9 +1280,9 @@ namespace ReBuzz.Core
                     continue;
                 var outputCore = output as MachineConnectionCore;
                 outputCore.ClearBuffer(nSamples);
-                outputCore.UpdateInterpolatorAmp(nSamples);
+                outputCore.PreUpdateBufferActions(nSamples);
                 outputCore.UpdateBuffer(samples, nSamples);
-                outputCore.BurstProtection(nSamples);
+                outputCore.PostUpdateBufferActions(nSamples);
             }
         }
 
@@ -1371,7 +1371,7 @@ namespace ReBuzz.Core
 
                 var outputCore = output as MachineConnectionCore;
                 outputCore.ClearBuffer(nSamples);
-                outputCore.UpdateInterpolatorAmp(nSamples);
+                outputCore.PreUpdateBufferActions(nSamples);
 
                 for (int channelIndex = 0; channelIndex < outputCore.SourceChannels.Count(); channelIndex++)
                 {
@@ -1385,7 +1385,7 @@ namespace ReBuzz.Core
                     }
                 }
 
-                outputCore.BurstProtection(nSamples);
+                outputCore.PostUpdateBufferActions(nSamples);
             }
         }
 
