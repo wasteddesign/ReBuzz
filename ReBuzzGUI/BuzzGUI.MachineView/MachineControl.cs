@@ -194,6 +194,7 @@ namespace BuzzGUI.MachineView
         public ICommand SearchOnlineCommand { get; private set; }
         public ICommand GroupAddCommand { get; private set; }
         public ICommand GroupRemoveCommand { get; private set; }
+        public ICommand GroupAddNewCommand { get; private set; }
 
         void Commands()
         {
@@ -370,7 +371,31 @@ namespace BuzzGUI.MachineView
                 {
                     var d = (GroupControl)x;
                     view.UnGroupSelectedMachines(d);
+                }
+            };
 
+            GroupAddNewCommand = new SimpleCommand
+            {
+                CanExecuteDelegate = x =>
+                {
+                    if (view.SelectedMachines.Count() > 0 && view.SelectedMachines.All(m => m.Machine.DLL.Info.Type != MachineType.Master))
+                        return true;
+                    else
+                        return false;
+                },
+                ExecuteDelegate = x =>
+                {
+                    Point maxPoint = new Point(float.MinValue, float.MinValue);
+
+                    foreach (var m in view.SelectedMachines)
+                    {
+                        var mp = m.machine.Position;
+                        maxPoint.X = Math.Max(maxPoint.X, mp.Item1);
+                        maxPoint.Y = Math.Max(maxPoint.Y, mp.Item2);
+                    }
+                    view.Buzz.Song.CreateMachineGroup("New Group", (float)maxPoint.X + 0.2f, (float)maxPoint.Y + 0.2f);
+                    var d = view.Groups.Last();
+                    view.GroupSelectedMachines(d);
                 }
             };
 
@@ -421,7 +446,8 @@ namespace BuzzGUI.MachineView
                 bool g = machine.DLL.Info.Type == MachineType.Generator;
 
                 var groupsMenu = new MenuItemVM() { Text = "Groups" };
-                var groupsAdd = new MenuItemVM() { Text = "Add To Group" };
+                var groupsAddNew = new MenuItemVM() { Text = "Add To New Group", Command = GroupAddNewCommand };
+                var groupsAdd = new MenuItemVM() { Text = "Add To Group", IsEnabled = view.Buzz.Song.MachineGroups.Count > 0 };
                 var groupsRemove = new MenuItemVM() { Text = "Remove From Group", Command = GroupRemoveCommand };
 
                 List<MenuItemVM> availableGroups = new List<MenuItemVM>();
@@ -430,7 +456,7 @@ namespace BuzzGUI.MachineView
 
                 groupsAdd.Children = availableGroups;
 
-                groupsMenu.Children = [groupsAdd, groupsRemove];
+                groupsMenu.Children = [groupsAddNew, new MenuItemVM() { IsSeparator = true }, groupsAdd, groupsRemove];
 
                 var l = new List<IMenuItem>()
                 {
