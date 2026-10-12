@@ -80,6 +80,25 @@
               </Setter.Value>
             </Setter>
           </Style>
+		  
+          <Style x:Key="MidiGlassButtonStyle" TargetType="{x:Type ToggleButton}">
+            <Setter Property="Template">
+              <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ToggleButton}">
+                  <Border Name="border" Width="24" Height="16" Background="WhiteSmoke" BorderBrush="Black" BorderThickness="1">
+                    <TextBlock HorizontalAlignment="Center">GLS</TextBlock>
+                  </Border>
+
+                  <ControlTemplate.Triggers>
+                    <Trigger Property="IsChecked" Value="True">
+                      <Setter TargetName="border" Property="Background" Value="LightSkyBlue"/>
+                    </Trigger>
+                  </ControlTemplate.Triggers>
+
+                </ControlTemplate>
+              </Setter.Value>
+            </Setter>
+          </Style>		  
 
           <Style x:Key="ConfigButtonStyle" TargetType="{x:Type Button}">
             <Setter Property="Template">
@@ -292,6 +311,9 @@
       <ComboBox IsEditable="False" IsReadOnly="True" Width="200" ItemsSource="{Binding Path=MachineList}" SelectedItem="{Binding Path=MIDIFocusMachine}" DisplayMemberPath="Name"/>
       <ToggleButton Margin="8,0,0,0" ClickMode="Press" IsChecked="{Binding MIDIFocusLocked}" Style="{StaticResource LockButtonStyle}" ToolTip="Lock MIDI Focus"/>
       <ToggleButton Margin="8,0,8,0" ClickMode="Press" IsChecked="{Binding IsPianoKeyboardVisible}" Style="{StaticResource KeyboardButtonStyle}" ToolTip="Show Keyboard"/>      
+	  			
+	  <ToggleButton Margin="8,0,8,0" Style="{StaticResource MidiGlassButtonStyle}" Visibility="{Binding MidiGlassVisibility}" ClickMode="Press" IsChecked="{Binding IsMidiGlassChecked}" Width="63" Height="19" ToolTip="Show MIDI Glass" Command="{Binding MidiGlassCommand}"/>
+			
     </ToolBar>
 
     <!-- Audio Driver -->
