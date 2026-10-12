@@ -134,6 +134,18 @@ namespace BuzzGUI.Common
             return BringWindowToTop(new WindowInteropHelper(wnd).Handle);
         }
 
+        [DllImport("user32.dll")]
+        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+        private const int SW_RESTORE = 9;
+        public static void RestoreAndBringWindowToTop(this IntPtr hWnd)
+        {
+            if (hWnd == IntPtr.Zero)
+                return;
+
+            ShowWindow(hWnd, SW_RESTORE);
+            BringWindowToTop(hWnd);
+        }
+
         public static Size GetTotalNonclientAreaSize(this Window wnd)
         {
             switch (wnd.WindowStyle)

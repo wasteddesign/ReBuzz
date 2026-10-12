@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Media;
@@ -231,6 +232,8 @@ namespace BuzzGUI.ToolBar
         public SimpleCommand HardDiskRecorderCommand { get; private set; }
         public SimpleCommand DebugConsoleCommand { get; private set; }
         public SimpleCommand OpenCommand { get; private set; }
+        public SimpleCommand MidiToolsCommand { get; private set; }
+        public SimpleCommand MidiGlassCommand { get; private set; }
 
         public Tuple<double, double> VUMeterLevel { get { return buzz.VUMeterLevel; } }
         public double MasterVolume { get { return buzz.MasterVolume; } set { buzz.MasterVolume = value; } }
@@ -243,6 +246,9 @@ namespace BuzzGUI.ToolBar
         public bool AudioDeviceDisabled { get { return buzz.AudioDeviceDisabled; } set { buzz.AudioDeviceDisabled = value; } }
         public bool IsFullScreen { get { return buzz.IsFullScreen; } set { buzz.IsFullScreen = value; } }
 
+        Process? processMidiGlass;
+        public bool IsMidiGlassChecked { get { return processMidiGlass != null; } set { PropertyChanged.Raise(this, "IsMidiGlassChecked"); } }
+        public Visibility MidiGlassVisibility { get { return File.Exists(@"C:\Program Files\Windows MIDI Services\Tools\midiglass.exe") ? Visibility.Visible : Visibility.Collapsed; } }
         public class MachineVM : INotifyPropertyChanged
         {
             public IMachine Machine { get; set; }
@@ -468,6 +474,45 @@ namespace BuzzGUI.ToolBar
                 ExecuteDelegate = x => { Buzz.ExecuteCommand(BuzzCommand.DebugConsole); }
             };
 
+            MidiToolsCommand = new SimpleCommand
+            {
+                CanExecuteDelegate = x => { return File.Exists(@"C:\Program Files\Windows MIDI Services\Tools\midisettings.exe"); },
+                ExecuteDelegate = x => { Process.Start(@"C:\Program Files\Windows MIDI Services\Tools\midisettings.exe"); }
+            };
+
+            MidiGlassCommand = new SimpleCommand
+            {
+                CanExecuteDelegate = x => {
+                    return File.Exists(@"C:\Program Files\Windows MIDI Services\Tools\midiglass.exe");
+                },
+                ExecuteDelegate = x =>
+                {
+                    if (processMidiGlass != null)
+                    {
+                        WPFExtensions.RestoreAndBringWindowToTop(processMidiGlass.MainWindowHandle);
+                        PropertyChanged.Raise(this, "IsMidiGlassChecked");
+                        return;
+                    }
+
+                    processMidiGlass = new Process
+                    {
+                        StartInfo = new ProcessStartInfo
+                        {
+                            FileName = @"C:\Program Files\Windows MIDI Services\Tools\midiglass.exe"
+                        },
+                        EnableRaisingEvents = true
+                    };
+
+                    processMidiGlass.Exited += (s, e) =>
+                    {
+                        processMidiGlass = null;
+                        PropertyChanged.Raise(this, "IsMidiGlassChecked");
+                    };
+
+                    processMidiGlass.Start();
+                    PropertyChanged.Raise(this, "IsMidiGlassChecked");
+                }
+            };
         }
 
         public bool ShowPatternView
@@ -573,6 +618,8 @@ namespace BuzzGUI.ToolBar
                         new MenuItemVM() { IsSeparator = true },
                         new MenuItemVM() { Text = "S_ettings...", Command = SettingsCommand },
                         new MenuItemVM() { Text = "_Preferences...", Command = PreferencesCommand },
+                        new MenuItemVM() { IsSeparator = true },
+                        new MenuItemVM() { Text = "_Windows MIDI Tools...", Command = MidiToolsCommand },
                     }
                 };
 

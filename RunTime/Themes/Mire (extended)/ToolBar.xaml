@@ -139,6 +139,22 @@
             </Setter>
           </Style>
 		  
+		  <Style x:Key="MidiGlassButtonStyle" TargetType="{x:Type ToggleButton}">
+            <Setter Property="Template">
+              <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ToggleButton}">
+				    <Image Name="image" Source="gfx/midi_glass_off_text.png" />
+				   <ControlTemplate.Triggers>
+                    <Trigger Property="IsChecked" Value="True">
+                      <Setter TargetName="image" Property="Source" Value="gfx/midi_glass_on_text.png"/>
+                    </Trigger>
+					
+                  </ControlTemplate.Triggers>
+                </ControlTemplate>
+              </Setter.Value>
+            </Setter>
+          </Style>		  
+		  
 		  <Style x:Key="FullscrButtonStyle" TargetType="{x:Type ToggleButton}">
             <Setter Property="Template">
               <Setter.Value>
@@ -480,50 +496,41 @@
 				<TextBlock HorizontalAlignment="Left" Margin="20,6,0,0" FontSize="11" >
 					Current: <TextBlock VerticalAlignment="Center" Margin="0,0,0,0" Foreground="#f0f0f0" Text="{Binding Path=CurrentTime}"/><LineBreak/>
 					Loop: <TextBlock VerticalAlignment="Center" Margin="0,0,0,0" Foreground="#72d2ff" Text="{Binding Path=LoopTime}"/>
-					
 				</TextBlock>
-
 			</StackPanel>
 			
 			
 			<WrapPanel Width="165" Margin="0,0,10,0">
-			<WrapPanel Margin="10,10,0,0" Width="50">
-				<Button Style="{StaticResource BpmButton}" Width="50" Height="22" Cursor="Hand" Command="{Binding TapTempoCommand}" Margin="0" ToolTip="Tap me!" />
-				<bgc:NumericUpDown Value="{Binding Path=BPM, Mode=TwoWay}"  Minimum="16" Maximum="500" Width="50" Height="18" Margin="0" BorderThickness="1" BorderBrush="#333333" Background="#333333" FontSize="11" Foreground="#f0f0f0" />
-			</WrapPanel>	
-			
-			<WrapPanel Margin="0,10,0,0" Width="50">
-				<Image Source="gfx/tpb.png" Margin="0"/>
-				<bgc:NumericUpDown Value="{Binding Path=TPB, Mode=TwoWay}"  Minimum="1" Maximum="32" Width="50" Height="18" Margin="0" BorderThickness="1" BorderBrush="#333333" Background="#333333" FontSize="11" Foreground="#f0f0f0" />
+				<WrapPanel Margin="10,10,0,0" Width="50">
+					<Button Style="{StaticResource BpmButton}" Width="50" Height="22" Cursor="Hand" Command="{Binding TapTempoCommand}" Margin="0" ToolTip="Tap me!" />
+					<bgc:NumericUpDown Value="{Binding Path=BPM, Mode=TwoWay}"  Minimum="16" Maximum="500" Width="50" Height="18" Margin="0" BorderThickness="1" BorderBrush="#333333" Background="#333333" FontSize="11" Foreground="#f0f0f0" />
+				</WrapPanel>	
+				
+				<WrapPanel Margin="0,10,0,0" Width="50">
+					<Image Source="gfx/tpb.png" Margin="0"/>
+					<bgc:NumericUpDown Value="{Binding Path=TPB, Mode=TwoWay}"  Minimum="1" Maximum="32" Width="50" Height="18" Margin="0" BorderThickness="1" BorderBrush="#333333" Background="#333333" FontSize="11" Foreground="#f0f0f0" />
+				</WrapPanel>
+				
+				<WrapPanel Margin="0,10,0,0" Width="50">
+					<Image Source="gfx/speed.png" Margin="0,0,0,0"/>
+					<ComboBox Text="{Binding Path=Speed, Mode=TwoWay}" IsEditable="False" IsReadOnly="True" Width="50" Height="18" Style="{StaticResource {x:Type ComboBox}}" >
+
+							<ComboBoxItem>0</ComboBoxItem>
+							<ComboBoxItem>-1</ComboBoxItem>
+							<ComboBoxItem>-2</ComboBoxItem>
+							<ComboBoxItem>-3</ComboBoxItem>
+							<ComboBoxItem>-4</ComboBoxItem>
+							<ComboBoxItem>-5</ComboBoxItem>
+							<ComboBoxItem>-6</ComboBoxItem>
+							<ComboBoxItem>-7</ComboBoxItem>
+							<ComboBoxItem>-8</ComboBoxItem>
+							<ComboBoxItem>-9</ComboBoxItem>
+							<ComboBoxItem>-10</ComboBoxItem>
+							<ComboBoxItem>-11</ComboBoxItem>
+							<ComboBoxItem>-12</ComboBoxItem>
+						</ComboBox>
+				</WrapPanel>
 			</WrapPanel>
-			
-			<WrapPanel Margin="0,10,0,0" Width="50">
-				<Image Source="gfx/speed.png" Margin="0,0,0,0"/>
-				<ComboBox Text="{Binding Path=Speed, Mode=TwoWay}" IsEditable="False" IsReadOnly="True" Width="50" Height="18" Style="{StaticResource {x:Type ComboBox}}" >
-
-						<ComboBoxItem>0</ComboBoxItem>
-						<ComboBoxItem>-1</ComboBoxItem>
-						<ComboBoxItem>-2</ComboBoxItem>
-						<ComboBoxItem>-3</ComboBoxItem>
-						<ComboBoxItem>-4</ComboBoxItem>
-						<ComboBoxItem>-5</ComboBoxItem>
-						<ComboBoxItem>-6</ComboBoxItem>
-						<ComboBoxItem>-7</ComboBoxItem>
-						<ComboBoxItem>-8</ComboBoxItem>
-						<ComboBoxItem>-9</ComboBoxItem>
-						<ComboBoxItem>-10</ComboBoxItem>
-						<ComboBoxItem>-11</ComboBoxItem>
-						<ComboBoxItem>-12</ComboBoxItem>
-					</ComboBox>
-					
-
-  
- 
-
-			</WrapPanel>
-			</WrapPanel>
-
-
 
 			<StackPanel Style="{StaticResource DarkToolBarStyle}" Margin="10,10,10,5" Height="40">
 				<TextBlock LineHeight="20" FontSize="11" Margin="0,2,0,0" ToolTip="MIDI Focus Machine (Master Keyboard Mode)">
@@ -548,8 +555,12 @@
 			<WrapPanel Margin="10,10,0,5" Width="65">
 				<ToggleButton Cursor="Hand" Width="63" Height="19" Margin="0,0,0,2" ClickMode="Press" IsChecked="{Binding IsPianoKeyboardVisible}" Style="{StaticResource KeyboardButtonStyle}" ToolTip="Show Keyboard"/>
 				<ToggleButton Cursor="Hand" Width="63" Height="19" ClickMode="Press" IsChecked="{Binding Path=IsFullScreen, Mode=TwoWay}" Style="{StaticResource FullscrButtonStyle}" ToolTip="Full Screen Shift+Alt+Enter"/>
-			
 			</WrapPanel>
+			
+			<WrapPanel Margin="0,10,0,5" Width="65">
+				<ToggleButton Style="{StaticResource MidiGlassButtonStyle}" Margin="0" Visibility="{Binding MidiGlassVisibility}" IsChecked="{Binding IsMidiGlassChecked}" Cursor="Hand" Width="63" Height="19" ToolTip="Show MIDI Glass" Command="{Binding MidiGlassCommand}"/>
+			</WrapPanel>
+			
 	</WrapPanel>
 	
 	<WrapPanel Grid.Row="2" Background="#595959" />
