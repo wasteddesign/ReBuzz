@@ -17,6 +17,9 @@ namespace BuzzGUI.ToolBar
         ISong song;
         RegistryMonitor regmon;
 
+        string midiGlassPath = @"C:\Program Files\Windows MIDI Services\Tools\midiglass.exe";
+        string midiSettingsPath = @"C:\Program Files\Windows MIDI Services\Tools\midisettings.exe";
+
         public IBuzz Buzz
         {
             get { return buzz; }
@@ -248,7 +251,7 @@ namespace BuzzGUI.ToolBar
 
         Process? processMidiGlass;
         public bool IsMidiGlassChecked { get { return processMidiGlass != null; } set { PropertyChanged.Raise(this, "IsMidiGlassChecked"); } }
-        public Visibility MidiGlassVisibility { get { return File.Exists(@"C:\Program Files\Windows MIDI Services\Tools\midiglass.exe") ? Visibility.Visible : Visibility.Collapsed; } }
+        public Visibility MidiGlassVisibility { get { return File.Exists(midiGlassPath) ? Visibility.Visible : Visibility.Collapsed; } }
         public class MachineVM : INotifyPropertyChanged
         {
             public IMachine Machine { get; set; }
@@ -476,14 +479,14 @@ namespace BuzzGUI.ToolBar
 
             MidiToolsCommand = new SimpleCommand
             {
-                CanExecuteDelegate = x => { return File.Exists(@"C:\Program Files\Windows MIDI Services\Tools\midisettings.exe"); },
-                ExecuteDelegate = x => { Process.Start(@"C:\Program Files\Windows MIDI Services\Tools\midisettings.exe"); }
+                CanExecuteDelegate = x => { return File.Exists(midiSettingsPath); },
+                ExecuteDelegate = x => { Process.Start(midiSettingsPath); }
             };
 
             MidiGlassCommand = new SimpleCommand
             {
                 CanExecuteDelegate = x => {
-                    return File.Exists(@"C:\Program Files\Windows MIDI Services\Tools\midiglass.exe");
+                    return File.Exists(midiGlassPath);
                 },
                 ExecuteDelegate = x =>
                 {
@@ -498,7 +501,7 @@ namespace BuzzGUI.ToolBar
                     {
                         StartInfo = new ProcessStartInfo
                         {
-                            FileName = @"C:\Program Files\Windows MIDI Services\Tools\midiglass.exe"
+                            FileName = midiGlassPath
                         },
                         EnableRaisingEvents = true
                     };
