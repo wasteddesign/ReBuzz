@@ -179,6 +179,7 @@
         <RowDefinition Height="Auto"/>
         <RowDefinition Height="Auto"/>
         <RowDefinition Height="Auto"/>
+		<RowDefinition Height="Auto"/>
       </Grid.RowDefinitions>
 
       <Button Grid.Row="0" Grid.ColumnSpan="3" Command="{Binding LoadCommand}" CommandParameter="{Binding ElementName=fileBrowser, Path=ListView.SelectedItems}" IsEnabled="{Binding ElementName=fileBrowser, Path=ListView.SelectedItem.IsFile}">&lt;&lt;</Button>
@@ -188,7 +189,8 @@
       <Button Grid.Row="4" Grid.ColumnSpan="3" Margin="0,2,0,0" Command="{Binding ClearCommand}">Clear</Button>
       <Button Grid.Row="5" Grid.ColumnSpan="3" Margin="0,2,0,0" Command="{Binding CopyCommand}">Copy</Button>
       <Button Grid.Row="6" Grid.ColumnSpan="3" Margin="0,2,0,0" Command="{Binding PasteCommand}">Paste</Button>
-      <CheckBox Content="Sticky Focus" Grid.ColumnSpan="3" Grid.Row="7" HorizontalAlignment="Left" Margin="4,4,0,0" VerticalAlignment="Top" IsChecked="{Binding Path=Wavetable.StickyFocus}" />
+	  <Slider Grid.Row="7" MinWidth="40" Grid.ColumnSpan="3" ToolTip="Preview Volume" Minimum="-42" Maximum="0" Value="{Binding Path=Wavetable.Wavetable.Volume, Mode=TwoWay}"/>
+      <CheckBox Content="Sticky Focus" Grid.ColumnSpan="3" Grid.Row="8" HorizontalAlignment="Left" Margin="4,4,0,0" VerticalAlignment="Top" IsChecked="{Binding Path=Wavetable.StickyFocus}" />
         </Grid>
 
 

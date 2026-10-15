@@ -40,6 +40,7 @@ namespace ReBuzz.Core
             public LoopType looptype;
             internal SoundFile sf;
             internal int layer;
+            internal float volume;
         }
 
         public WavetableCore(ReBuzzCore bc)
@@ -260,7 +261,8 @@ namespace ReBuzz.Core
                         start = start,
                         end = end,
                         looptype = looptype,
-                        layer = layer
+                        layer = layer,
+                        volume = (float)Decibel.ToAmplitude(Volume)
                     };
                     realTimeResampler.Reset(Global.Buzz.SelectedAudioDriverSampleRate, wave.Layers[layer].SampleRate <= 0 ? 44100 : wave.Layers[layer].SampleRate, wave.Layers[layer].ChannelCount);
                 }
@@ -285,7 +287,8 @@ namespace ReBuzz.Core
                         start = 0,
                         end = 0,
                         looptype = LoopType.None,
-                        sf = sf
+                        sf = sf,
+                        volume = (float)Decibel.ToAmplitude(Volume)
                     };
                     realTimeResampler.Reset(Global.Buzz.SelectedAudioDriverSampleRate, sf.SampleRate, sf.ChannelCount);
                 }
@@ -332,6 +335,11 @@ namespace ReBuzz.Core
                         }
 
                         realTimeResampler.GetSamples(buffer, offset, sampleCount);
+
+                        for (int i = 0; i < sampleCount * 2; i++)
+                        {
+                            buffer[offset + i] *= PlayWaveData.volume;
+                        }
                     }
                     else if (PlayWaveData.wave.Layers.Count > 0)
                     {
@@ -345,6 +353,12 @@ namespace ReBuzz.Core
                             PlayWaveData.postion += sampleCount;
                         }
                         realTimeResampler.GetSamples(buffer, offset, sampleCount);
+
+                        for (int i = 0; i < sampleCount * 2; i++)
+                        {
+                            buffer[offset + i] *= PlayWaveData.volume;
+                        }
+
                         if (PlayWaveData.end != -1 && PlayWaveData.postion >= PlayWaveData.end)
                             StopPlayingWave();
                         return true;
