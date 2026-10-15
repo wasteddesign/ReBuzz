@@ -64,6 +64,10 @@ namespace ReBuzz.Core
             if (playPosition >= LoopEnd)
             {
                 playPosition = LoopStart;
+                if (!Buzz.Looping)
+                {
+                    Buzz.Playing = false;
+                }
             }
 
             UpdateSpecialSequeceEvents();
