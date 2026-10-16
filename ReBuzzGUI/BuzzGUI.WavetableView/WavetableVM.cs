@@ -170,6 +170,7 @@ namespace BuzzGUI.WavetableView
 
         public ICommand PlayFileCommand { get; private set; }
         public ICommand FileKeyDownCommand { get; private set; }
+        public ICommand FileSelectedCommand { get; private set; }
 
         public WaveformVM WaveformVm
         {
@@ -212,6 +213,16 @@ namespace BuzzGUI.WavetableView
                         if (p.Item1.IsFile)
                             LoadWaves(SelectedWaveIndex, new FSItemVM[] { p.Item1 }, false);
                     }
+                }
+            };
+
+            FileSelectedCommand = new SimpleCommand
+            {
+                CanExecuteDelegate = x => true,
+                ExecuteDelegate = x =>
+                {
+                    var p = x as FSItemVM;
+                    
                 }
             };
 
@@ -266,6 +277,7 @@ namespace BuzzGUI.WavetableView
         }
 
         ObservableCollection<WaveSlotVM> waves;
+        
         public ObservableCollection<WaveSlotVM> Waves
         {
             get
@@ -273,6 +285,14 @@ namespace BuzzGUI.WavetableView
                 return waves;
             }
         }
+
+        private bool metadataChecked;
+        public bool MetadataChecked { get => metadataChecked; set { metadataChecked = value; MetadataVisibility = metadataChecked ? Visibility.Visible : Visibility.Collapsed; } }
+
+        Visibility metadataVisibility = Visibility.Collapsed;
+
+        public Visibility MetadataVisibility { get => metadataVisibility; set { metadataVisibility = value; PropertyChanged?.Raise(this, "MetadataVisibility"); } }
+        
 
         void wavetable_WaveChanged(int i)
         {
@@ -432,6 +452,8 @@ namespace BuzzGUI.WavetableView
         public IList<string> ExtensionFilter { get { return wavetable.GetSupportedFileTypeExtensions(); } }
 
         public TextFormattingMode TextFormattingMode { get { return Global.GeneralSettings.WPFIdealFontMetrics ? TextFormattingMode.Ideal : TextFormattingMode.Display; } }
+
+
 
         public event PropertyChangedEventHandler PropertyChanged;
     }

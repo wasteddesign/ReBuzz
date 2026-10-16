@@ -1,10 +1,7 @@
 ﻿using BuzzGUI.Common;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -38,6 +35,20 @@ namespace BuzzGUI.FileBrowser
 
         public static readonly DependencyProperty ItemKeyDownCommandProperty = DependencyProperty.Register("ItemKeyDownCommand", typeof(ICommand), typeof(FileBrowser), new FrameworkPropertyMetadata(null));
         public ICommand ItemKeyDownCommand { get { return (ICommand)GetValue(FileBrowser.ItemKeyDownCommandProperty); } set { SetValue(FileBrowser.ItemKeyDownCommandProperty, value); } }
+
+        public static readonly DependencyProperty SelectedItemProperty =
+            DependencyProperty.Register(
+                nameof(SelectedItem),
+                typeof(string), // replace with your file type
+                typeof(FileBrowser),
+                new FrameworkPropertyMetadata(null,
+                    FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+
+        public string SelectedItem
+        {
+            get => (string)GetValue(SelectedItemProperty);
+            set => SetValue(SelectedItemProperty, value);
+        }
 
         public ListView ListView { get { return listView; } }
 
@@ -135,11 +146,24 @@ namespace BuzzGUI.FileBrowser
                         var fileItem = (item as FSItemVM);
                         if (!fileItem.IsFile)
                             SetValue(ListViewDragBehavior.IsItemSourceProperty, false);
-
                     }
                     else if (e.ClickCount == 2)
                     {
                         this.OnDoubleClickItem(item, e);
+                    }
+                }
+            };
+
+            listView.SelectionChanged += (sender, e) =>
+            {
+                var item = (sender as ListView).SelectedItem;
+                if (item != null)
+                {
+                    var fileItem = (item as FSItemVM);
+                    if (fileItem.IsFile)
+                    {
+                        SelectedItem = fileItem.FullPath;
+                        PropertyChanged.Raise(this, "SelectedItem");
                     }
                 }
             };
@@ -264,7 +288,6 @@ namespace BuzzGUI.FileBrowser
                     NavigateToParent();
                 }
             };
-
         }
 
         void GeneralSettings_PropertyChanged(object sender, PropertyChangedEventArgs e)

@@ -5,6 +5,7 @@
              xmlns:wc="clr-namespace:BuzzGUI.WaveformControl;assembly=BuzzGUI.WaveformControl"
              xmlns:l="clr-namespace:BuzzGUI.WavetableView;assembly=BuzzGUI.WavetableView"
              xmlns:bgc="clr-namespace:BuzzGUI.Common;assembly=BuzzGUI.Common"
+             xmlns:mdc="clr-namespace:BuzzGUI.MetadataControl;assembly=BuzzGUI.MetadataControl"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 						 FocusManager.FocusedElement="{Binding ElementName=waves}"
              UseLayoutRounding="True" TextOptions.TextFormattingMode="{Binding TextFormattingMode}">
@@ -105,14 +106,26 @@
       <Button Grid.Row="3" Grid.Column="2" Grid.ColumnSpan="1" Margin="0,2,0,0" Command="{Binding PasteCommand}">Paste</Button>
       <Button Grid.Row="4" Grid.ColumnSpan="3" Margin="0,2,0,0" Command="{Binding ClearCommand}">Clear</Button>
 
-      <Slider Grid.Row="6" Grid.ColumnSpan="3" ToolTip="Preview Volume" Minimum="-42" Maximum="0" Value="{Binding Path=Wavetable.Wavetable.Volume, Mode=TwoWay}"/>
-      <CheckBox Content="Sticky Focus" Grid.ColumnSpan="3" Grid.Row="5" HorizontalAlignment="Left" Margin="4,4,0,0" VerticalAlignment="Top" IsChecked="{Binding Path=Wavetable.StickyFocus}" />
+      <Slider Grid.Row="5" Grid.ColumnSpan="3" ToolTip="Preview Volume" Minimum="-42" Maximum="0" Value="{Binding Path=Wavetable.Wavetable.Volume, Mode=TwoWay}"/>
+      <CheckBox Content="Sticky Focus" Grid.ColumnSpan="3" Grid.Row="6" HorizontalAlignment="Left" Margin="4,4,0,0" VerticalAlignment="Top" IsChecked="{Binding Path=Wavetable.StickyFocus}" />
+      <CheckBox Content="Metadata" Grid.ColumnSpan="3" Grid.Row="7" HorizontalAlignment="Left" Margin="4,4,0,0" VerticalAlignment="Top" IsChecked="{Binding Path=Wavetable.MetadataChecked}" />
     </Grid>
 
+    <Grid Grid.Column="2">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="Auto"/>
+        <ColumnDefinition Width="Auto"/>
+      </Grid.ColumnDefinitions>
+      <GridSplitter Grid.Column="1" Grid.RowSpan="3" ResizeBehavior="PreviousAndNext" ShowsPreview="False" Width="4" VerticalAlignment="Stretch" HorizontalAlignment="Center" Background="Transparent"
+                    Visibility="{Binding Path=MetadataVisibility}"/>
 
-    <fb:FileBrowser Grid.Column="2" Name="fileBrowser" ExtensionFilter="{Binding ExtensionFilter}" 
-                    ItemDoubleClickCommand="{Binding PlayFileCommand}" ItemKeyDownCommand="{Binding FileKeyDownCommand}"/>
-
+      <fb:FileBrowser Grid.Column="0" Name="fileBrowser" ExtensionFilter="{Binding ExtensionFilter}"
+              ItemDoubleClickCommand="{Binding PlayFileCommand}" ItemKeyDownCommand="{Binding FileKeyDownCommand}"/>
+      <mdc:MetadataEditorControl Grid.Column="2" Margin="4,0,0,0" SelectedFile="{Binding ElementName=fileBrowser,
+                    Path=SelectedItem}" Visibility="{Binding DataContext.MetadataVisibility,
+                         RelativeSource={RelativeSource AncestorType=Grid}}" />
+    </Grid>
     <!--
     <ListView Grid.Row="2" Grid.ColumnSpan="2" Margin="0,0,4,0" ItemsSource="{Binding ElementName=waves, Path=SelectedItem.Layers}" SelectionMode="Single">
       <ListView.View>

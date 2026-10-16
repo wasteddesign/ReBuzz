@@ -864,7 +864,7 @@ namespace ReBuzz
 
                 if (Keyboard.Modifiers == ModifierKeys.Control)
                 {
-                    if (Buzz.ActiveView != BuzzView.SongInfoView)
+                    if (Buzz.ActiveView != BuzzView.SongInfoView && Buzz.ActiveView != BuzzView.WaveTableView)
                     {
                         if (e.Key == Key.C)
                         {
