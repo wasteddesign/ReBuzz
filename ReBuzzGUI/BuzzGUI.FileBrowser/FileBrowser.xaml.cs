@@ -1,6 +1,7 @@
 ﻿using BuzzGUI.Common;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -417,7 +418,11 @@ namespace BuzzGUI.FileBrowser
         {
             if (currentPath != "")
             {
-                System.Diagnostics.Process.Start(currentPath);
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = currentPath,
+                    UseShellExecute = true
+                });
             }
         }
 
