@@ -119,6 +119,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuickNote", "Machines\Quick
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SysExTests", "SysExTests\SysExTests.csproj", "{9E62AB30-D9E7-437A-800F-B3C0952F06A8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuzzGUI.MetadataControl", "ReBuzzGUI\BuzzGUI.MetadataControl\BuzzGUI.MetadataControl.csproj", "{7EC5B6F9-0515-40CF-BAC3-91A873607098}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -293,6 +295,10 @@ Global
 		{9E62AB30-D9E7-437A-800F-B3C0952F06A8}.Debug|x64.Build.0 = Debug|Any CPU
 		{9E62AB30-D9E7-437A-800F-B3C0952F06A8}.Release|x64.ActiveCfg = Release|Any CPU
 		{9E62AB30-D9E7-437A-800F-B3C0952F06A8}.Release|x64.Build.0 = Release|Any CPU
+		{7EC5B6F9-0515-40CF-BAC3-91A873607098}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{7EC5B6F9-0515-40CF-BAC3-91A873607098}.Debug|x64.Build.0 = Debug|Any CPU
+		{7EC5B6F9-0515-40CF-BAC3-91A873607098}.Release|x64.ActiveCfg = Release|Any CPU
+		{7EC5B6F9-0515-40CF-BAC3-91A873607098}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -336,6 +342,7 @@ Global
 		{98BD065F-2D7F-2217-8844-856F7E99DB2A} = {47576D10-8B3E-4382-B16D-B9B0A7FE477D}
 		{1D1405AE-E3E3-83DC-BB7C-2A4B1EEE6498} = {47576D10-8B3E-4382-B16D-B9B0A7FE477D}
 		{E54F7579-AA7E-4A7D-1AD4-705277F7D8CB} = {47576D10-8B3E-4382-B16D-B9B0A7FE477D}
+		{7EC5B6F9-0515-40CF-BAC3-91A873607098} = {B94F61CC-F76C-4E3C-A94F-BB9CDF0393D3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A1E0287A-2CF1-4075-82E6-66EF95D320F5}
