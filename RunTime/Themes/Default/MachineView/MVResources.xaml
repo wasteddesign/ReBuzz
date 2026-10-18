@@ -129,7 +129,7 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="{x:Type Control}">
-		  <Grid Background="{StaticResource VUMeterBackgroundBrush}" Margin="10,-7,0,0" Width="60" Height="18" Visibility="{Binding Path=VUMeterVisibility}">
+		  <Grid SnapsToDevicePixels="True" Background="{StaticResource VUMeterBackgroundBrush}" Margin="10,-7,0,0" Width="60" Height="18" Visibility="{Binding Path=VUMeterVisibility}">
 					<Border Height="4" BorderBrush="{StaticResource VUMeterBorderBrush}" BorderThickness="0" VerticalAlignment="Top" CornerRadius="0" Margin="4,4,4,0">
 						<Grid Name="grid">
 							<Rectangle Fill="{StaticResource VUMeterBrush}"/>
