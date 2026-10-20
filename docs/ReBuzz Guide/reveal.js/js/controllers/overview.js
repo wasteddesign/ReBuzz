@@ -1,5 +1,5 @@
-import { SLIDES_SELECTOR } from '../utils/constants.js'
-import { extend, queryAll, transformElement } from '../utils/util.js'
+import { SLIDES_SELECTOR } from '../utils/constants'
+import { extend, queryAll, transformElement } from '../utils/util'
 
 /**
  * Handles all logic related to the overview mode
@@ -24,7 +24,7 @@ export default class Overview {
 	activate() {
 
 		// Only proceed if enabled in config
-		if( this.Reveal.getConfig().overview && !this.isActive() ) {
+		if( this.Reveal.getConfig().overview && !this.Reveal.isScrollView() && !this.isActive() ) {
 
 			this.active = true;
 
