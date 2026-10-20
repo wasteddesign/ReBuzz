@@ -1,5 +1,5 @@
-import { queryAll } from '../utils/util.js'
-import { colorToRgb, colorBrightness } from '../utils/color.js'
+import { queryAll } from '../utils/util'
+import { colorToRgb, colorBrightness } from '../utils/color'
 
 /**
  * Creates and updates slide backgrounds.
@@ -141,6 +141,7 @@ export default class Backgrounds {
 		element.removeAttribute( 'data-background-size' );
 		element.removeAttribute( 'data-background-transition' );
 		element.style.backgroundColor = '';
+		element.style.backgroundImage = '';
 
 		contentElement.style.backgroundSize = '';
 		contentElement.style.backgroundRepeat = '';
@@ -190,10 +191,30 @@ export default class Backgrounds {
 		if( data.backgroundPosition ) contentElement.style.backgroundPosition = data.backgroundPosition;
 		if( data.backgroundOpacity ) contentElement.style.opacity = data.backgroundOpacity;
 
+		const contrastClass = this.getContrastClass( slide );
+
+		if( typeof contrastClass === 'string' ) {
+			slide.classList.add( contrastClass );
+		}
+
+	}
+
+	/**
+	 * Returns a class name that can be applied to a slide to indicate
+	 * if it has a light or dark background.
+	 *
+	 * @param {*} slide
+	 *
+	 * @returns {string|null}
+	 */
+	getContrastClass( slide ) {
+
+		const element = slide.slideBackgroundElement;
+
 		// If this slide has a background color, we add a class that
 		// signals if it is light or dark. If the slide has no background
 		// color, no class will be added
-		let contrastColor = data.backgroundColor;
+		let contrastColor = slide.getAttribute( 'data-background-color' );
 
 		// If no bg color was found, or it cannot be converted by colorToRgb, check the computed background
 		if( !contrastColor || !colorToRgb( contrastColor ) ) {
@@ -211,13 +232,31 @@ export default class Backgrounds {
 			// an element with no background
 			if( rgb && rgb.a !== 0 ) {
 				if( colorBrightness( contrastColor ) < 128 ) {
-					slide.classList.add( 'has-dark-background' );
+					return 'has-dark-background';
 				}
 				else {
-					slide.classList.add( 'has-light-background' );
+					return 'has-light-background';
 				}
 			}
 		}
+
+		return null;
+
+	}
+
+	/**
+	 * Bubble the 'has-light-background'/'has-dark-background' classes.
+	 */
+	bubbleSlideContrastClassToElement( slide, target ) {
+
+		[ 'has-light-background', 'has-dark-background' ].forEach( classToBubble => {
+			if( slide.classList.contains( classToBubble ) ) {
+				target.classList.add( classToBubble );
+			}
+			else {
+				target.classList.remove( classToBubble );
+			}
+		}, this );
 
 	}
 
@@ -230,14 +269,15 @@ export default class Backgrounds {
 	 */
 	update( includeAll = false ) {
 
+		let config = this.Reveal.getConfig();
 		let currentSlide = this.Reveal.getCurrentSlide();
 		let indices = this.Reveal.getIndices();
 
 		let currentBackground = null;
 
 		// Reverse past/future classes when in RTL mode
-		let horizontalPast = this.Reveal.getConfig().rtl ? 'future' : 'past',
-			horizontalFuture = this.Reveal.getConfig().rtl ? 'past' : 'future';
+		let horizontalPast = config.rtl ? 'future' : 'past',
+			horizontalFuture = config.rtl ? 'past' : 'future';
 
 		// Update the classes of all backgrounds to match the
 		// states of their slides (past/present/future)
@@ -263,10 +303,12 @@ export default class Backgrounds {
 
 					backgroundv.classList.remove( 'past', 'present', 'future' );
 
-					if( v < indices.v ) {
+					const indexv = typeof indices.v === 'number' ? indices.v : 0;
+
+					if( v < indexv ) {
 						backgroundv.classList.add( 'past' );
 					}
-					else if ( v > indices.v ) {
+					else if ( v > indexv ) {
 						backgroundv.classList.add( 'future' );
 					}
 					else {
@@ -281,15 +323,53 @@ export default class Backgrounds {
 
 		} );
 
+		// The previous background may refer to a DOM element that has
+		// been removed after a presentation is synced & bgs are recreated
+		if( this.previousBackground && !this.previousBackground.closest( 'body' ) ) {
+			this.previousBackground = null;
+		}
+
+		if( currentBackground && this.previousBackground ) {
+
+			// Don't transition between identical backgrounds. This
+			// prevents unwanted flicker.
+			let previousBackgroundHash = this.previousBackground.getAttribute( 'data-background-hash' );
+			let currentBackgroundHash = currentBackground.getAttribute( 'data-background-hash' );
+
+			if( currentBackgroundHash && currentBackgroundHash === previousBackgroundHash && currentBackground !== this.previousBackground ) {
+				this.element.classList.add( 'no-transition' );
+
+				// If multiple slides have the same background video, carry
+				// the <video> element forward so that it plays continuously
+				// across multiple slides
+				const currentVideo = currentBackground.querySelector( 'video' );
+				const previousVideo = this.previousBackground.querySelector( 'video' );
+
+				if( currentVideo && previousVideo ) {
+
+					const currentVideoParent = currentVideo.parentNode;
+					const previousVideoParent = previousVideo.parentNode;
+
+					// Swap the two videos
+					previousVideoParent.appendChild( currentVideo );
+					currentVideoParent.appendChild( previousVideo );
+
+				}
+			}
+
+		}
+
+		const backgroundChanged = currentBackground !== this.previousBackground;
+
 		// Stop content inside of previous backgrounds
-		if( this.previousBackground ) {
+		if( backgroundChanged && this.previousBackground ) {
 
 			this.Reveal.slideContent.stopEmbeddedContent( this.previousBackground, { unloadIframes: !this.Reveal.slideContent.shouldPreload( this.previousBackground ) } );
 
 		}
 
 		// Start content in the current background
-		if( currentBackground ) {
+		if( backgroundChanged && currentBackground ) {
 
 			this.Reveal.slideContent.startEmbeddedContent( currentBackground );
 
@@ -307,14 +387,6 @@ export default class Backgrounds {
 
 			}
 
-			// Don't transition between identical backgrounds. This
-			// prevents unwanted flicker.
-			let previousBackgroundHash = this.previousBackground ? this.previousBackground.getAttribute( 'data-background-hash' ) : null;
-			let currentBackgroundHash = currentBackground.getAttribute( 'data-background-hash' );
-			if( currentBackgroundHash && currentBackgroundHash === previousBackgroundHash && currentBackground !== this.previousBackground ) {
-				this.element.classList.add( 'no-transition' );
-			}
-
 			this.previousBackground = currentBackground;
 
 		}
@@ -322,20 +394,13 @@ export default class Backgrounds {
 		// If there's a background brightness flag for this slide,
 		// bubble it to the .reveal container
 		if( currentSlide ) {
-			[ 'has-light-background', 'has-dark-background' ].forEach( classToBubble => {
-				if( currentSlide.classList.contains( classToBubble ) ) {
-					this.Reveal.getRevealElement().classList.add( classToBubble );
-				}
-				else {
-					this.Reveal.getRevealElement().classList.remove( classToBubble );
-				}
-			}, this );
+			this.bubbleSlideContrastClassToElement( currentSlide, this.Reveal.getRevealElement() );
 		}
 
 		// Allow the first background to apply without transition
 		setTimeout( () => {
 			this.element.classList.remove( 'no-transition' );
-		}, 1 );
+		}, 10 );
 
 	}
 

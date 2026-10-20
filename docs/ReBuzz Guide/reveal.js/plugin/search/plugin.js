@@ -1,6 +1,6 @@
 /*!
  * Handles finding a text string anywhere in the slides and showing the next occurrence to the user
- * by navigatating to that slide and highlighting it.
+ * by navigating to that slide and highlighting it.
  *
  * @author Jon Snyder <snyder.jon@gmail.com>, February 2013
  */
@@ -137,7 +137,7 @@ const Plugin = () => {
 
 		this.setRegex = function(input)
 		{
-			input = input.replace(/^[^\w]+|[^\w]+$/g, "").replace(/[^\w'-]+/g, "|");
+			input = input.trim();
 			matchRegex = new RegExp("(" + input + ")","i");
 		}
 
@@ -235,7 +235,9 @@ const Plugin = () => {
 
 		},
 
-		open: openSearch
+		open: openSearch,
+		close: closeSearch,
+		toggle: toggleSearch
 
 	}
 };
