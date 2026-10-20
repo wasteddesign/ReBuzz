@@ -85,13 +85,16 @@ namespace ReBuzz.Audio
 
             SampleRate = wasapiPlayer.OutputWaveFormat.SampleRate;
 
-            var format = wasapiPlayer.GetSupportedExclusiveFormat(wasapiPlayer.OutputWaveFormat);
-            if (format == null)
+            if (wasapiExclusiveMode)
             {
-                MessageBoxWindow.ShowOkWindow(
-                    "WASAPI Error",
-                    "No supported exclusive format found for this device.",
-                    false);
+                var format = wasapiPlayer.GetSupportedExclusiveFormat(wasapiPlayer.OutputWaveFormat);
+                if (format == null)
+                {
+                    MessageBoxWindow.ShowOkWindow(
+                        "WASAPI Error",
+                        "No supported exclusive format found for this device.",
+                        false);
+                }
             }
 
             audioProvider = new AudioProvider(
