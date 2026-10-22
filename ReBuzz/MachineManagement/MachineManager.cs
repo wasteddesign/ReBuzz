@@ -131,6 +131,7 @@ namespace ReBuzz.MachineManagement
 
                 machine.OversampleFactor = buzz.Gear.OversampleFactor(machine.DLL.Name);
                 machine.updateWaveInfo = true;
+                machine.IsSoloed = false;
                 return machine;
             }
         }
