@@ -40,7 +40,7 @@
                                 <GridViewColumn>
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
-                                            <Border BorderBrush="Black" BorderThickness="1" Margin="4">
+                                            <Border BorderBrush="#222" BorderThickness="1" Margin="4">
                                                 <Image Source="{Binding ImageSourceData}" Stretch="Fill" Margin="0" Width="140" Height="140" />
                                             </Border>
                                         </DataTemplate>
