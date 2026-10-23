@@ -32,6 +32,13 @@ namespace ReBuzz.FileOps
         [XmlElement(ElementName = "InfoView")]
         public ThemeInfoView InfoView { get; set; }
 
+        public static string GetCurrentTheme(IBuzz buzz, string buzzPath)
+        {
+            string selectedTheme = buzz.SelectedTheme == "<default>" ? "Default" : buzz.SelectedTheme;
+            string skinPath = buzzPath + "\\Themes\\" + selectedTheme + "\\theme.xml";
+            return skinPath;
+        }
+
         public static ReBuzzTheme LoadCurrentTheme(IBuzz buzz, string buzzPath)
         {
             string selectedTheme = buzz.SelectedTheme == "<default>" ? "Default" : buzz.SelectedTheme;

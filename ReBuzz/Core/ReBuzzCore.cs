@@ -96,6 +96,9 @@ namespace ReBuzz.Core
         public static readonly int SF_PLAYING = 1;
         public static readonly int SF_RECORDING = 2;
 
+        // Safe mode uses defaults when initializing
+        public static bool SafeMode { get; set; }
+
         // Song core and interface
         SongCore songCore;
         public ISong Song { get => songCore; }
@@ -653,14 +656,21 @@ namespace ReBuzz.Core
 
         public string SelectedTheme
         {
-            get => registryEx.Read("Theme", "<default>", "Settings");
+            get
+            {
+                if (SafeMode)
+                {
+                    return "<default>";
+                }
+                else
+                {
+                    return registryEx.Read("Theme", "<default>", "Settings");
+                }
+            }
             set
             {
                 registryEx.Write("Theme", value, "Settings");
-                if (ThemeChanged != null)
-                {
-                    ThemeChanged.Invoke(value);
-                }
+                ThemeChanged?.Invoke(value);
             }
         }
         public IntPtr MainWindowHandle { get; internal set; }
@@ -808,8 +818,17 @@ namespace ReBuzz.Core
             Gear = Gear.LoadGearFile(buzzPath + "\\Gear\\gear_defaults.xml");
             var moreGear = Gear.LoadGearFile(buzzPath + "\\Gear\\gear.xml");
             Gear.Merge(moreGear);
-            
-            Theme = ReBuzzTheme.LoadCurrentTheme(this, buzzPath);
+
+            try
+            {
+                Theme = ReBuzzTheme.LoadCurrentTheme(this, buzzPath);
+            }
+            catch (Exception e)
+            {
+                DCWriteLine(e.Message + "\n\nInner Exception: " + e.InnerException, DCLogLevel.Error);
+                string skinPath = buzzPath + "\\Themes\\Default\\theme.xml";
+                Theme = ReBuzzTheme.LoadCurrentTheme(this, buzzPath);
+            }
 
             DCWriteLine(BuildString);
 

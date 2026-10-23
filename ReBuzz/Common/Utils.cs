@@ -49,17 +49,18 @@ namespace ReBuzz.Common
         {
             T rootObject;
 
+            string selectedTheme = Global.Buzz.SelectedTheme == "<default>" ? "Default" : Global.Buzz.SelectedTheme;
+            string skinPath = buzzPath + "\\Themes\\" + selectedTheme + "\\" + xaml;
+
             try
             {
-                string selectedTheme = Global.Buzz.SelectedTheme == "<default>" ? "Default" : Global.Buzz.SelectedTheme;
-                string skinPath = buzzPath + "\\Themes\\" + selectedTheme + "\\" + xaml;
-
                 rootObject = (T)XamlReaderEx.LoadHack(skinPath);
 
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                string skinPath = buzzPath + "\\Themes\\Default\\" + xaml;
+                Global.Buzz.DCWriteLine("XAML Error in " + skinPath + ":\n\n" + e.Message + "\n\nInner Exception: " + e.InnerException + "\n", DCLogLevel.Error);
+                skinPath = buzzPath + "\\Themes\\Default\\" + xaml;
                 StreamReader mysr = new StreamReader(skinPath);
                 rootObject = (T)XamlReaderEx.LoadHack(skinPath);
             }
