@@ -111,6 +111,11 @@ namespace ReBuzz
 
             InitializeComponent();
 
+            if (Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                ReBuzzCore.SafeMode = true;
+            }
+
             Buzz = new ReBuzzCore(
                 generalSettings,
                 engineSettings,
@@ -126,7 +131,7 @@ namespace ReBuzz
             reBuzzCoreInitialization = new ReBuzzCoreInitialization(Buzz, buzzPath, windowsGuiDispatcher, registryEx, new WindowsKeyboard(), Global.EngineSettings);
             reBuzzCoreInitialization.StartReBuzzEngineStep1(Buzz_PropertyChanged);
 
-            if (Keyboard.Modifiers == ModifierKeys.Control)
+            if (ReBuzzCore.SafeMode)
             {
                 debugWindow.Show();
             }
