@@ -8,9 +8,8 @@
 #include "Machine.h"
 #include "../dsplib/dsplib.h"
 
-#include <avrt.h>
-
-#pragma comment(lib, "Avrt.lib")
+//#include <avrt.h>
+//#pragma comment(lib, "Avrt.lib")
 
 #pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 
@@ -949,22 +948,22 @@ public:
 
 		HANDLE mmcssHandle = NULL;
 
-		if (priority == THREAD_PRIORITY_TIME_CRITICAL)
-		{
-			DWORD taskIndex = 0;
+		//if (priority == THREAD_PRIORITY_TIME_CRITICAL)
+		//{
+		//	DWORD taskIndex = 0;
 
-			mmcssHandle =
-				AvSetMmThreadCharacteristicsA(
-					"Pro Audio",
-					&taskIndex);
+		//	mmcssHandle =
+		//		AvSetMmThreadCharacteristicsA(
+		//			"Pro Audio",
+		//			&taskIndex);
 
-			if (mmcssHandle)
-			{
-				AvSetMmThreadPriority(
-					mmcssHandle,
-					AVRT_PRIORITY_CRITICAL);
-			}
-		}
+		//	if (mmcssHandle)
+		//	{
+		//		AvSetMmThreadPriority(
+		//			mmcssHandle,
+		//			AVRT_PRIORITY_CRITICAL);
+		//	}
+		//}
 
 		::SetThreadPriority(::GetCurrentThread(), priority);
 

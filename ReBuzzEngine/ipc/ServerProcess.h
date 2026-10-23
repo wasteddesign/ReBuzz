@@ -150,7 +150,7 @@ public:
 		this->receiveCallback = receiveCb;
 
 		MSG msg;
-		while (true) 
+		for (;;)
 		{
 			DWORD res = MsgWaitForMultipleObjects(1, &ping, FALSE, INFINITE, QS_ALLINPUT);
 			DWORD error = ::GetLastError();
@@ -161,13 +161,18 @@ public:
 					break;
 				
 				case WAIT_OBJECT_0 + 1:
-				
-					while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) 
+				{
+					int messageCount = 0;
+
+					// Give IPC a chance during a UI storm (messageCount)
+					while (messageCount < 3 && PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 					{
 						TranslateMessage(&msg);
-						//if (msg.message != 275)
-							DispatchMessage(&msg);
+						DispatchMessage(&msg);
+
+						++messageCount;
 					}
+				}
 					break;
 				
 				default:
