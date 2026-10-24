@@ -8,9 +8,6 @@
 #include "Machine.h"
 #include "../dsplib/dsplib.h"
 
-//#include <avrt.h>
-//#pragma comment(lib, "Avrt.lib")
-
 #pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 
 //char const *BuildCount =
@@ -58,7 +55,7 @@ string GetLastErrorMessage()
 
     LPVOID lpMsgBuf;
 
-    FormatMessage(
+    DWORD len = FormatMessage(
         FORMAT_MESSAGE_ALLOCATE_BUFFER | 
         FORMAT_MESSAGE_FROM_SYSTEM |
         FORMAT_MESSAGE_IGNORE_INSERTS,
@@ -68,8 +65,10 @@ string GetLastErrorMessage()
        (LPTSTR) &lpMsgBuf,
         0, NULL );
 
-	string s = (char const *)lpMsgBuf;
-    LocalFree(lpMsgBuf);
+	std::string s = len ? (char const *)lpMsgBuf : "Unknown error";
+
+	if (lpMsgBuf)
+		LocalFree(lpMsgBuf);
 
 	return s;
 }
@@ -564,7 +563,7 @@ void UIReceive(IPC::Message const &msg, IPC::Message &reply)
 	break;
 	case IPC::UIPlayPattern:
 	{
-		DCWrite("[Engine32] SetPatternLength");
+		DCWrite("[Engine32] UIPlayPattern");
 		CMachine* pmac = (CMachine*)r.ReadPtr();
 		CPattern* pat = (CPattern*)r.ReadPtr();
 		CSequence* seq = (CSequence*)r.ReadPtr();
@@ -948,23 +947,6 @@ public:
 
 		HANDLE mmcssHandle = NULL;
 
-		//if (priority == THREAD_PRIORITY_TIME_CRITICAL)
-		//{
-		//	DWORD taskIndex = 0;
-
-		//	mmcssHandle =
-		//		AvSetMmThreadCharacteristicsA(
-		//			"Pro Audio",
-		//			&taskIndex);
-
-		//	if (mmcssHandle)
-		//	{
-		//		AvSetMmThreadPriority(
-		//			mmcssHandle,
-		//			AVRT_PRIORITY_CRITICAL);
-		//	}
-		//}
-
 		::SetThreadPriority(::GetCurrentThread(), priority);
 
 		channel.Listen(callback);
@@ -974,7 +956,7 @@ public:
 
 	void Start()
 	{
-		std::thread *mythread = new thread(&ListenThread::Main, this);
+		mythread = new thread(&ListenThread::Main, this);
 	}
 
 	~ListenThread()
@@ -1136,7 +1118,13 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	delete[] MultiIOInputsBufferWork;
 	delete[] MultiIOOutputsBufferWork;
 
-	delete g_MasterInfo.GrooveData;
+	delete[] g_MasterInfo.GrooveData;
+
+	for (auto& kv : dlls)
+	{
+		delete kv.second;
+	}
+	dlls.clear();
 
 	return 0;
 }
@@ -1145,9 +1133,9 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 char szTitle[] = " - Buzz -";
 
 #ifdef _WIN64
-char szWindowClass[] = "ReBuzzEngine32Class";
-#else
 char szWindowClass[] = "ReBuzzEngine64Class";
+#else
+char szWindowClass[] = "ReBuzzEngine32Class";
 #endif
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
