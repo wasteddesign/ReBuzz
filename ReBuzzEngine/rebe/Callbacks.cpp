@@ -274,7 +274,7 @@ void CMICallbacks::ClearAuxBuffer()
 {
 	MICB0;
 
-	memset(AuxBuffer, 0, MAX_BUFFER_LENGTH * 4);
+	memset(AuxBuffer, 0, sizeof(AuxBuffer));
 	return;
 }
 
