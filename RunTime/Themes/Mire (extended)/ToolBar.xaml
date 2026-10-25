@@ -376,28 +376,6 @@
 			
 		<WrapPanel Margin="10,10,5,0" Width="179" >
 			<Menu FontSize="11" Height="20" ItemsSource="{Binding MainMenu}" ItemContainerStyle="{StaticResource ContextMenuItemStyle}" Margin="0,0,0,2" />
-
-			<!-- TEST: submenu alignment (remove when done) -->
-			<Menu FontSize="11" Height="20" Margin="0,0,0,2">
-				<MenuItem Header="Test">
-					<MenuItem Header="Hello normal thing" InputGestureText="Ctrl+1"/>
-					<MenuItem Header="I Haz children">
-						<MenuItem Header="Child 1"/>
-						<MenuItem Header="Child 2"/>
-						<MenuItem Header="Child 3 haz children">
-							<MenuItem Header="Grandchild 1"/>
-							<MenuItem Header="Grandchild 2"/>
-						</MenuItem>
-					</MenuItem>
-					<MenuItem Header="Checkable thing" IsCheckable="True" IsChecked="True"/>
-					<Separator/>
-					<MenuItem Header="Another normal thing"/>
-					<MenuItem Header="Another with children">
-						<MenuItem Header="A"/>
-						<MenuItem Header="B"/>
-					</MenuItem>
-				</MenuItem>
-			</Menu>
 			
 				<Button Style="{StaticResource TransparentStyle}" Margin="0,0,2,0" VerticalAlignment="Top" HorizontalAlignment="Right"  Width="20" Height="20" Command="{Binding NewFileCommand}">
 					<Button.Content >
