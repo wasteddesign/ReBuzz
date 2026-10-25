@@ -464,22 +464,21 @@
             BorderThickness="1,1,1,0">
 			<Grid>
 				<Grid.ColumnDefinitions>
-					<ColumnDefinition Width="Auto"
-                            SharedSizeGroup="Icon" />
+					<ColumnDefinition Width="25" />	<!-- gutter: same on every row (icon, check or none) -->
 					<ColumnDefinition Width="*" />
 					<ColumnDefinition Width="Auto"
                             SharedSizeGroup="Shortcut" />
 					<ColumnDefinition Width="13" />
 				</Grid.ColumnDefinitions>
 				<ContentPresenter x:Name="Icon"
-                          Margin="6,0,6,0"
+                          HorizontalAlignment="Center"
                           VerticalAlignment="Center"
                           ContentSource="Icon" />
 				<Border x:Name="Check"
                 Width="13"
                 Height="13"
                 Visibility="Hidden"
-                Margin="6,0,6,0"
+                HorizontalAlignment="Center"
                 BorderThickness="1">
 
 					<Border.BorderBrush>
@@ -595,15 +594,14 @@
             BorderThickness="1,1,1,0">
 			<Grid>
 				<Grid.ColumnDefinitions>
-					<ColumnDefinition Width="Auto"
-                            SharedSizeGroup="Icon" />
+					<ColumnDefinition Width="25" />	<!-- gutter: same on every row (icon, check or none) -->
 					<ColumnDefinition Width="*" />
 					<ColumnDefinition Width="Auto"
                             SharedSizeGroup="Shortcut" />
 					<ColumnDefinition Width="13" />
 				</Grid.ColumnDefinitions>
 				<ContentPresenter x:Name="Icon"
-                          Margin="6,0,6,0"
+                          HorizontalAlignment="Center"
                           VerticalAlignment="Center"
                           ContentSource="Icon" />
 				<ContentPresenter x:Name="HeaderHost"

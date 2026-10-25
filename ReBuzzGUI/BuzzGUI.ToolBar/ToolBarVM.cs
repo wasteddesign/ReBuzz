@@ -633,8 +633,11 @@ namespace BuzzGUI.ToolBar
                     Text = "_Theme",
                     Children = ThemeMenuItems
                     .Concat(LinqExtensions.Return(new MenuItemVM() { IsSeparator = true }))
-                    .Concat(LinqExtensions.Return(new MenuItemVM() { Text = "Windows Default", IsCheckable = true, IsChecked = wpfTheme == "", Command = SetWPFThemeCommand, CommandParameter = "" }))
+                    .Concat(LinqExtensions.Return(new MenuItemVM() { Text = "WPF Theme", Children =
+                    LinqExtensions.Return(new MenuItemVM() { Text = "Windows Default", IsCheckable = true, IsChecked = wpfTheme == "", Command = SetWPFThemeCommand, CommandParameter = "" })
                     .Concat(WPFThemes.Select(s => new MenuItemVM() { Text = s, IsCheckable = true, IsChecked = wpfTheme == s, Command = SetWPFThemeCommand, CommandParameter = s }))
+                    }))
+                    
                 };
 
                 yield return new MenuItemVM()
