@@ -18,75 +18,79 @@
         <DataTemplate x:Key="MachineListItemDetailTemplate">
             <ScrollViewer HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Auto">
             <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
 
-                <BulletDecorator Grid.Row="0">
+                    <BulletDecorator Grid.Row="0">
+                        <CheckBox Margin="4,2,4,2" VerticalContentAlignment="Center" VerticalAlignment="Center" IsChecked="{Binding Path=IsFavourite}" Focusable="False">Favourite</CheckBox>
+                    </BulletDecorator>
+
+                    <BulletDecorator Grid.Row="1">
                     <BulletDecorator.Bullet>
                         <Label Padding="4,2,4,2">Machine:</Label>
                     </BulletDecorator.Bullet>
                     <TextBox Background="Transparent" BorderThickness="0" IsReadOnly="True" VerticalAlignment="Center" Text="{Binding Path=MachineName, Mode=OneWay}"/>
                 </BulletDecorator>
 
-                <BulletDecorator Grid.Row="1">
+                <BulletDecorator Grid.Row="2">
                     <BulletDecorator.Bullet>
                         <Label Padding="4,2,4,2">Path:</Label>
                     </BulletDecorator.Bullet>
                     <TextBox Background="Transparent" BorderThickness="0" IsReadOnly="True" VerticalAlignment="Center" Text="{Binding Path=MachinePath, Mode=OneWay}"/>
                 </BulletDecorator>
 
-                <BulletDecorator Grid.Row="2">
+                <BulletDecorator Grid.Row="3">
                     <BulletDecorator.Bullet>
                         <Label Padding="4,2,4,2">SHA-1:</Label>
                     </BulletDecorator.Bullet>
                     <TextBox Background="Transparent" BorderThickness="0" IsReadOnly="True" VerticalAlignment="Center" Text="{Binding Path=MachineDLL.SHA1Hash, Mode=OneWay}"/>
                 </BulletDecorator>
 
-                <BulletDecorator Grid.Row="3">
+                <BulletDecorator Grid.Row="4">
                     <BulletDecorator.Bullet>
                         <Label Padding="4,2,4,2">Instrument:</Label>
                     </BulletDecorator.Bullet>
                     <TextBox Background="Transparent" BorderThickness="0" IsReadOnly="True" VerticalAlignment="Center" Text="{Binding Path=InstrumentName, Mode=OneWay}"/>
                 </BulletDecorator>
 
-                <BulletDecorator Grid.Row="4">
+                <BulletDecorator Grid.Row="5">
                     <BulletDecorator.Bullet>
                         <Label Padding="4,2,4,2">Path:</Label>
                     </BulletDecorator.Bullet>
                     <TextBox Background="Transparent" BorderThickness="0" IsReadOnly="True" VerticalAlignment="Center" Text="{Binding Path=InstrumentPath, Mode=OneWay}"/>
                 </BulletDecorator>
 
-                <BulletDecorator Grid.Row="5">
+                <BulletDecorator Grid.Row="6">
                     <BulletDecorator.Bullet>
                         <Label Padding="4,2,4,2">Author:</Label>
                     </BulletDecorator.Bullet>
                     <TextBox Background="Transparent" BorderThickness="0" IsReadOnly="True" VerticalAlignment="Center" Text="{Binding Path=MachineDLL.Info.Author, Mode=OneWay}"/>
                 </BulletDecorator>
 
-                <BulletDecorator Grid.Row="6">
+                <BulletDecorator Grid.Row="7">
                     <BulletDecorator.Bullet>
                         <Label Padding="4,2,4,2">MI Version:</Label>
                     </BulletDecorator.Bullet>
                     <TextBox Background="Transparent" BorderThickness="0" IsReadOnly="True" VerticalAlignment="Center" Text="{Binding Path=MachineDLL.Info.Version, Mode=OneWay}"/>
                 </BulletDecorator>
 
-                <BulletDecorator Grid.Row="7">
+                <BulletDecorator Grid.Row="8">
                     <BulletDecorator.Bullet>
                         <Label Padding="4,2,4,2">Flags:</Label>
                     </BulletDecorator.Bullet>
                     <TextBox Background="Transparent" BorderThickness="0" IsReadOnly="True" VerticalAlignment="Center" Text="{Binding Path=MachineDLL.Info.Flags, Mode=OneWay}"/>
-                </BulletDecorator>
-
-            </Grid>
+                    </BulletDecorator>
+                </Grid>
             </ScrollViewer>
         </DataTemplate>
 
@@ -208,7 +212,11 @@
                                 <RadioButton Margin="0,4,8,4" VerticalAlignment="Center" IsChecked="{Binding Path=MachineList.VisibleMachines, Converter={StaticResource enumBooleanConverter}, ConverterParameter=Generator}">Generator</RadioButton>
                                 <RadioButton Margin="0,4,8,4" VerticalAlignment="Center" IsChecked="{Binding Path=MachineList.VisibleMachines, Converter={StaticResource enumBooleanConverter}, ConverterParameter=Effect}">Effect</RadioButton>
                                 <RadioButton Margin="0,4,8,4" VerticalAlignment="Center" IsChecked="{Binding Path=MachineList.VisibleMachines, Converter={StaticResource enumBooleanConverter}, ConverterParameter=Control}">Control</RadioButton>
-
+                                
+                                <CheckBox Margin="0,4,04,4" VerticalAlignment="Center" IsChecked="{Binding Path=MachineList.FilterVst2}" ToolTip="VST2 Instruments">VST2</CheckBox>
+                                <CheckBox Margin="0,4,4,4" VerticalAlignment="Center" IsChecked="{Binding Path=MachineList.FilterVst3}" ToolTip="VST3 Instruments">VST3</CheckBox>
+                                <CheckBox Margin="0,4,4,4" VerticalAlignment="Center" IsChecked="{Binding Path=MachineList.FilterBM}" ToolTip="(Re)Buzz Machines">BM</CheckBox>
+                                <CheckBox Margin="0,4,4,4" VerticalAlignment="Center" IsChecked="{Binding Path=MachineList.FilterFavourites}" ToolTip="Favourites">Favs</CheckBox>
                                 <bgc:SearchTextBox Name="machineListSearchTextBox" Width="100" Height="21" SearchEventTimeDelay="0"/>
 
                             </WrapPanel>
@@ -219,7 +227,20 @@
                   Height="3" Foreground="Transparent" Background="Transparent"
                   VerticalAlignment="Bottom" 
                   HorizontalAlignment="Stretch" />
-                            <ContentControl Grid.Row="2" Name="machineListDetail" ContentTemplate="{StaticResource MachineListItemDetailTemplate}" Content="{Binding ElementName=machineListBox, Path=SelectedItem}"/>
+                            <ContentControl Grid.Row="2" Name="machineListDetail" ContentTemplate="{StaticResource MachineListItemDetailTemplate}" Content="{Binding ElementName=machineListBox, Path=SelectedItem}">
+                                <ContentControl.Style>
+                                    <Style TargetType="ContentControl">
+                                        <Setter Property="IsEnabled" Value="True"/>
+
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ElementName=machineListBox, Path=SelectedItem}"
+                             Value="{x:Null}">
+                                                <Setter Property="IsEnabled" Value="False"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ContentControl.Style>
+                            </ContentControl>
 
                         </Grid>
                     </TabItem>

@@ -1,4 +1,6 @@
-﻿using BuzzGUI.Interfaces;
+﻿using BuzzGUI.Common;
+using BuzzGUI.Interfaces;
+using Microsoft.Win32;
 using System;
 using System.Windows.Media;
 
@@ -68,12 +70,54 @@ namespace BuzzGUI.MachineView
         public IMachineDLL MachineDLL { get { return Instrument.MachineDLL; } }
         public string InstrumentName { get { return Instrument.Name; } }
         public string InstrumentPath { get { return Instrument.Path; } }
+        public bool IsFavourite
+        {
+            get
+            {
+                if (favourites == null)
+                    ReadFauvouritesList();
+
+                if (favourites?.IndexOf(GetFavouriteInstrumentName(instrument)) != -1)
+                    return true;
+
+                return false;
+            }
+            set
+            {
+                if (favourites == null)
+                    ReadFauvouritesList();
+
+                var name = GetFavouriteInstrumentName(instrument);
+
+                if (value == false)
+                    favourites?.Remove(name);
+                else
+                    favourites?.Add(name);
+
+                UpdateFauvouritesList();
+            }
+        }
+
+        internal static string GetFavouriteInstrumentName(IInstrument i)
+        {
+            return i.MachineDLL.Name + i.Name;
+        }
+
+        static List<string>? favourites;
+        void ReadFauvouritesList()
+        {
+            favourites = RegistryEx.ReadNumberedList<string>("Favourite", "Favourite Machines").ToList();
+        }
+
+        public void UpdateFauvouritesList()
+        {
+            favourites?.RemoveAll(f => string.IsNullOrEmpty(f));
+            RegistryEx.WriteNumberedList<string>(favourites, "Favourite", "Favourite Machines");
+        }
 
         public int CompareTo(MachineListItemVM other)
         {
             return StringComparer.OrdinalIgnoreCase.Compare(DisplayName, other.DisplayName);
         }
-
     }
-
 }
