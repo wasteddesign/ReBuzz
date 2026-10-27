@@ -1503,6 +1503,10 @@ namespace ReBuzz.FileOps
                     {
                         buzz.Speed = val;
                     }
+                    else if (itemName == "Looping")
+                    {
+                        buzz.Looping = val == 1;
+                    }
                 }
             }
         }
@@ -1807,13 +1811,17 @@ namespace ReBuzz.FileOps
         {
             MemoryStream ms = new MemoryStream();
 
-            int numberOfItems = 1;
+            int numberOfItems = 2;
             WriteInt(ms, numberOfItems);
 
             WriteString(ms, "Speed"); // Name
             WriteInt(ms, 4); // Size
             WriteInt(ms, buzz.Speed); // Value
 
+            WriteString(ms, "Looping"); // Name
+            WriteInt(ms, 1); // Size
+            WriteByte(ms, buzz.Looping ? (byte)1 : (byte)10); // Value
+             
             AddSection(ms.ToArray(), SectionType.RBSG);
         }
 
