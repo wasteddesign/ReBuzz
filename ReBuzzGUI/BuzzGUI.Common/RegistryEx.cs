@@ -1,6 +1,8 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Security.RightsManagement;
 
 namespace BuzzGUI.Common
@@ -72,6 +74,38 @@ namespace BuzzGUI.Common
                     yield return (T)TypeDescriptor.GetConverter(typeof(T)).ConvertFromString(o.ToString());
                 }
             }
+            finally
+            {
+                if (regkey != null)
+                {
+                    regkey.Close();
+                    regkey.Dispose();
+                }
+            }
+        }
+
+        public static void WriteNumberedList<T>(IEnumerable<T> vals, string key_, string path = "BuzzGUI")
+        {
+            RegistryKey? regkey = null;
+            string subkey = regpath + "\\" + path;
+            try
+            {
+                using (regkey = Registry.CurrentUser.OpenSubKey(subkey, true))
+                {
+                    // Check if the key exists
+                    if (regkey != null)
+                    {
+                        Registry.CurrentUser.DeleteSubKey(subkey);
+                    }
+                }
+
+                regkey = Registry.CurrentUser.CreateSubKey(subkey);
+                for (int i = 0; i < vals.Count(); i++)
+                {
+                    regkey.SetValue(key_ + (i + 1), vals.ElementAt(i).ToString());
+                }
+            }
+            catch { }
             finally
             {
                 if (regkey != null)
