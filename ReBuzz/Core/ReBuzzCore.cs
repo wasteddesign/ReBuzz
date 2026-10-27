@@ -810,6 +810,8 @@ namespace ReBuzz.Core
             GlobalState.LoopEnd = 16;
             GlobalState.SongEnd = 16;
 
+            Looping = true;
+
             PerformanceData = new BuzzPerformanceData();
             PerformanceCurrent = new BuzzPerformanceData();
 

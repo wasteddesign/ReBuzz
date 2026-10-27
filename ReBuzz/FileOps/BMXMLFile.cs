@@ -105,7 +105,6 @@ namespace ReBuzz.FileOps
             // Build info
             FileOpsEvent(FileEventType.StatusUpdate, "Load File Info...");
             buzz.DCWriteLine(songData.BuildString);
-            buzz.Speed = songData.Speed;
 
             // SubSections
             FileOpsEvent(FileEventType.StatusUpdate, "Load SubSections...");
@@ -470,6 +469,9 @@ namespace ReBuzz.FileOps
                 buzz.Song.LoopStart = songData.LoopStart;
                 buzz.Song.LoopEnd = songData.LoopEnd;
                 buzz.Song.SongEnd = songData.SongEnd;
+
+                buzz.Speed = songData.Speed;
+                buzz.Looping = songData.Looping;
             }
             int seqIndex = 0;
             foreach (var seq in songData.Sequences)
@@ -845,6 +847,7 @@ namespace ReBuzz.FileOps
             file.LoopEnd = buzz.Song.LoopEnd;
             file.SongEnd = buzz.Song.SongEnd;
             file.Speed = buzz.Speed;
+            file.Looping = buzz.Looping;
 
             // Machines
             List<BMXMLMachine> machines = new List<BMXMLMachine>();
@@ -1264,6 +1267,7 @@ namespace ReBuzz.FileOps
         public int LoopEnd { get; set; }
         public int SongEnd { get; set; }
         public int Speed { get; set; }
+        public bool Looping { get; set; }
 
         public BMXMLParameterMidiBinding[] ParameterMidiBindings { get; set; }
 
