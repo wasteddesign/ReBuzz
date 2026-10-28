@@ -9,9 +9,11 @@ namespace ReBuzzTests.Automation
     public static class ExpectedSampleValue
     {
         /// <summary>
-        /// Taken from the production code
+        /// The production code used to add a DC offset to every sample to prevent denormals.
+        /// It was removed in the May 2026 "Optimizations" commits (cf3df5e, 6a64352, 9e70598),
+        /// so expected samples no longer carry it.
         /// </summary>
-        private const float DenormalizationPrevention = -1e-15f;
+        private const float DenormalizationPrevention = 0f;
 
         /// <summary>
         /// Taken from the production code
@@ -41,7 +43,7 @@ namespace ReBuzzTests.Automation
 
         public static Sample Zero()
         {
-            return new Sample(-1.0000305E-15F, -1.0000305E-15F);
+            return From(new Sample(0f, 0f));
         }
     }
 }
