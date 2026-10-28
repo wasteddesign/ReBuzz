@@ -94,6 +94,9 @@ namespace ReBuzz.MachineManagement
         readonly Sample[] silentBuffer = new Sample[256];
         private readonly EngineSettings engineSettings;
 
+        // Reused across ticks so clearing pvals once per distinct parameter stays allocation-free.
+        readonly HashSet<ParameterCore> pvalsToClear = new HashSet<ParameterCore>();
+
         private bool WorkMachineNative(int nSamples)
         {
             bool isActive;
@@ -640,22 +643,26 @@ namespace ReBuzz.MachineManagement
                 // stays unconditional. Empty invoke/clear/Clear were no-ops, so this is bit-exact.
                 if (!Machine.parametersChanged.IsEmpty)
                 {
-                    foreach (var paramTrack in Machine.parametersChanged)
+                    // One entry per (parameter, track), so every track changed this tick gets
+                    // its UI event, not just the last one written.
+                    foreach (var entry in Machine.parametersChanged)
                     {
-                        var par = paramTrack.Key;
-                        var track = paramTrack.Value;
-
+                        var (par, track) = entry.Key;
                         par.InvokeEvents(buzz, track);
                     }
 
                     // Clear pvals only for parameters that changed this tick (was: a full sweep
-                    // over every parameter). SetValue writes pvalues[track] and records the
-                    // parameter in parametersChanged together under machine.workLock, and
+                    // over every parameter). SetValue writes pvalues[track] and records
+                    // (parameter, track) in parametersChanged together under machine.workLock, and
                     // RefreshMachineParams (the only other pval writer) records into
                     // parametersChanged too — so the changed set covers every dirty pval.
-                    // ClearPVal fills all tracks of the parameter; must run before Clear().
-                    foreach (var paramTrack in Machine.parametersChanged)
-                        paramTrack.Key.ClearPVal();
+                    // ClearPVal fills all tracks of the parameter, so it runs once per distinct
+                    // parameter; must run before Clear().
+                    foreach (var entry in Machine.parametersChanged)
+                        pvalsToClear.Add(entry.Key.par);
+                    foreach (var par in pvalsToClear)
+                        par.ClearPVal();
+                    pvalsToClear.Clear();
 
                     Machine.parametersChanged.Clear();
                 }

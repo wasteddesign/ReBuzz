@@ -71,34 +71,30 @@ namespace ReBuzzTests.Automation.Assertions
             machineCore.workLock.IsHeldByCurrentThread.Should().BeFalse();
             machineCore.Graph.Should().Be(reBuzzCore.SongCore);
             machineCore.parametersChanged.Should().HaveCount(5);
-            KeyValuePair<ParameterCore, int> ampParam =
-                machineCore.parametersChanged.ToList().Single(p => p.Key.Name == "Amp");
-            KeyValuePair<ParameterCore, int> panParam =
-                machineCore.parametersChanged.ToList().Single(p => p.Key.Name == "Pan");
-            KeyValuePair<ParameterCore, int> gainParam =
-                machineCore.parametersChanged.ToList().Single(p => p.Key.Name == "Gain");
-            KeyValuePair<ParameterCore, int> bypassParam =
-                machineCore.parametersChanged.ToList().Single(p => p.Key.Name == "Bypass");
-            KeyValuePair<ParameterCore, int> aTrackParam =
-                machineCore.parametersChanged.ToList().Single(p => p.Key.Name == "ATrackParam");
+            var changed = machineCore.parametersChanged.Keys.ToList();
+            (ParameterCore par, int track) ampParam = changed.Single(k => k.par.Name == "Amp");
+            (ParameterCore par, int track) panParam = changed.Single(k => k.par.Name == "Pan");
+            (ParameterCore par, int track) gainParam = changed.Single(k => k.par.Name == "Gain");
+            (ParameterCore par, int track) bypassParam = changed.Single(k => k.par.Name == "Bypass");
+            (ParameterCore par, int track) aTrackParam = changed.Single(k => k.par.Name == "ATrackParam");
 
             InitialStateAssertions.AssertMasterParameters(
                 ((IMachine)machineCore).ParameterGroups[0],
-                ampParam.Key,
-                panParam.Key);
-            ampParam.Value.Should().Be(0);
-            panParam.Value.Should().Be(0);
+                ampParam.par,
+                panParam.par);
+            ampParam.track.Should().Be(0);
+            panParam.track.Should().Be(0);
 
-            InitialStateAssertions.AssertGlobalParameters(gainParam.Key, bypassParam.Key,
+            InitialStateAssertions.AssertGlobalParameters(gainParam.par, bypassParam.par,
                 ((IMachine)machineCore).ParameterGroups[1]);
-            gainParam.Value.Should().Be(0);
-            bypassParam.Value.Should().Be(0);
+            gainParam.track.Should().Be(0);
+            bypassParam.track.Should().Be(0);
             InitialStateAssertions.AssertParameter(
-                aTrackParam.Key,
+                aTrackParam.par,
                 ExpectedMachineParameter.ATrackParam(),
                 ((IMachine)machineCore).ParameterGroups[2],
                 0);
-            aTrackParam.Value.Should().Be(0);
+            aTrackParam.track.Should().Be(0);
 
             machineCore.Inputs.Should().BeEmpty();
             machineCore.AllInputs.Should().BeEmpty();

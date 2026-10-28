@@ -734,12 +734,11 @@ namespace ReBuzz.ManagedMachine
 
         internal unsafe void Tick(MachineCore machine)
         {
-            foreach (var paramTrack in machine.parametersChanged)
+            foreach (var entry in machine.parametersChanged)
             {
-                var par = paramTrack.Key;
+                var (par, track) = entry.Key;
                 if (par.Group.Type != ParameterGroupType.Input)
                 {
-                    var track = paramTrack.Value;
                     int index = par.Group.Type == ParameterGroupType.Global ? par.IndexInGroup : par.IndexInGroup + machine.ParameterGroups[1].Parameters.Count;
                     var val = par.GetPValue(track);
 
