@@ -240,15 +240,22 @@ namespace ReBuzz.Core
 
         internal void PostUpdateBufferActions(int nSamples)
         {
-            // If there was latency, copy the latency ring's read position into the output buffer. The ring is a pass-through when addedLatency == 0, so skip this copy in that case.
+            // If there was latency, copy the delayed samples into the output buffer. They are read
+            // from latencyBufferReadPos, which trails latencyBufferWritePos by addedLatency, so
+            // what was written this chunk comes out addedLatency samples later. Both positions then
+            // advance by one chunk. The ring is a pass-through when addedLatency == 0, so skip this
+            // in that case.
             if (addedLatency > 0)
-            {   
+            {
                 for (int i = 0; i < nSamples; i++)
                 {
-                    buffer[i].L = latencyBuffer[latencyBufferWritePos].L;
-                    buffer[i].R = latencyBuffer[latencyBufferWritePos].R;
-                    if (++latencyBufferWritePos == latencyBuffer.Length) latencyBufferWritePos = 0;
+                    buffer[i] = latencyBuffer[latencyBufferReadPos];
+                    if (++latencyBufferReadPos == latencyBuffer.Length) latencyBufferReadPos = 0;
                 }
+
+                // nSamples <= 256 < latencyBuffer.Length, so one wrap is enough.
+                latencyBufferWritePos += nSamples;
+                if (latencyBufferWritePos >= latencyBuffer.Length) latencyBufferWritePos -= latencyBuffer.Length;
             }
 
             burstProtection.Process(buffer, 0, nSamples, true, true);
