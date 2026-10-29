@@ -40,7 +40,9 @@ namespace ReBuzz.Core
         MachineDLL machineDLL;
         public IMachineDLL DLL { get => machineDLL; }
 
-        internal ConcurrentDictionary<ParameterCore, int> parametersChanged = new ConcurrentDictionary<ParameterCore, int>();
+        // Keyed by (parameter, track) so several tracks of one parameter changed in the
+        // same tick are all delivered; the value is unused.
+        internal ConcurrentDictionary<(ParameterCore par, int track), byte> parametersChanged = new();
         internal ConcurrentBag<int> wavesEventsPending = new ConcurrentBag<int>();
 
         internal MachineDLL MachineDLL { get => machineDLL; set => machineDLL = value; }

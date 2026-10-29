@@ -1365,7 +1365,7 @@ namespace ReBuzz.MachineManagement
                             // Record so Tick clears this pval. Tick now clears pvals per changed
                             // parameter instead of sweeping all parameters, so a pval written
                             // outside SetValue must be tracked here too.
-                            machine.parametersChanged[p] = track;
+                            machine.parametersChanged[(p, track)] = 0;
                         }
                     }
                     track++;

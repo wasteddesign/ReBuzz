@@ -344,7 +344,7 @@ namespace ReBuzz.Core
 
 
                 // Save changes to be sent to managed machines and as events to listeners.
-                machine.parametersChanged[this] = track;
+                machine.parametersChanged[(this, track)] = 0;
             }
         }
 

@@ -91,7 +91,7 @@ namespace ReBuzzTests.Automation.Assertions
             reBuzzCore.Speed.Should().Be(0);
             reBuzzCore.Playing.Should().BeFalse();
             reBuzzCore.Recording.Should().BeFalse();
-            reBuzzCore.Looping.Should().BeFalse();
+            reBuzzCore.Looping.Should().BeTrue();
             reBuzzCore.AudioDeviceDisabled.Should().BeFalse();
             reBuzzCore.VUMeterLevel.Item1.Should().Be(0.0);
             reBuzzCore.VUMeterLevel.Item2.Should().Be(0.0);
@@ -153,7 +153,7 @@ namespace ReBuzzTests.Automation.Assertions
 
         private static void AssertMasterInfoInitialState(MasterInfoExtended masterInfoExtended)
         {
-            AssertMasterInfoInitialState((MasterInfo)ReBuzzCore.masterInfo);
+            AssertMasterInfoInitialState((MasterInfo)ReBuzzCore.masterInfo, expectGrooveBuffer: true);
             masterInfoExtended.AverageSamplesPerTick.Should().Be(5250);
         }
 
@@ -415,10 +415,19 @@ namespace ReBuzzTests.Automation.Assertions
             managedMachine.Should().BeEquivalentTo(new FakeModernPatternEditor(managedMachineHost));
         }
 
-        internal static void AssertMasterInfoInitialState(MasterInfo masterInfo)
+        internal static void AssertMasterInfoInitialState(MasterInfo masterInfo, bool expectGrooveBuffer = false)
         {
             masterInfo.BeatsPerMin.Should().Be(126);
-            masterInfo.GrooveData.Should().Be(0);
+            // ReBuzzCore pins a groove buffer at startup (a30a8b9), so the global masterInfo
+            // points at it. Machine hosts' own MasterInfo copies don't receive groove fields.
+            if (expectGrooveBuffer)
+            {
+                masterInfo.GrooveData.Should().NotBe(0);
+            }
+            else
+            {
+                masterInfo.GrooveData.Should().Be(0);
+            }
             masterInfo.GrooveSize.Should().Be(0);
             masterInfo.PosInGroove.Should().Be(0);
             masterInfo.PosInTick.Should().Be(0);
