@@ -1,18 +1,17 @@
 ﻿using Box2dNet.Interop;
-using System.Collections.Generic;
-using System.Numerics;
+using BuzzGUI.Common;
+using BuzzGUI.Interfaces;
+using ReBuzz.Core;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
-using BuzzGUI.Common;
-using System.Linq;
-using ReBuzz.Core;
-using BuzzGUI.Interfaces;
-using BuzzGUI.Common.DSP;
 using System.Windows.Threading;
 
 namespace ReBuzz.Common
@@ -42,6 +41,8 @@ namespace ReBuzz.Common
                 CreateWorldLimits();
                 CreateTextBoxes();
                 timer.Start();
+
+                SetBackground();
             };
 
             MainGrid.PreviewMouseRightButtonDown += (sender, e) =>
@@ -50,6 +51,8 @@ namespace ReBuzz.Common
                 CreateWorld();
                 CreateWorldLimits();
                 CreateTextBoxes();
+
+                SetBackground();
             };
 
             DispatcherTimer dt = new DispatcherTimer();
@@ -133,6 +136,8 @@ this about text.";
             var sb = FindResource("StoryboardText") as Storyboard;
             ((ThicknessAnimationUsingKeyFrames)sb.Children[0]).KeyFrames[0].Value = new Thickness(0, this.Height - 50, 0, 0);
             ((ThicknessAnimationUsingKeyFrames)sb.Children[0]).KeyFrames[1].Value = new Thickness(0, -textEndPos, 0, 0);
+
+            SetColors();
         }
 
         float maxSample;
@@ -173,14 +178,15 @@ this about text.";
 
         private void UpdateScene()
         {
+            if (bgEnabled)
+                UpdateBackground();
+
             ps.ParticleRoamUpdate(pMouse);
             ps.AddOrRemoveParticleLine();
             ps.MoveParticleLine();
 
             UpdateWorld();
         }
-
-        #region Box2d
 
         public struct BoxInfo
         {
@@ -189,9 +195,201 @@ this about text.";
             public Rectangle rectangle;
         }
 
+        #region Seasons
+
+        enum ESeasons { None, Winter, Autumn }
+
+        ESeasons GetSeason()
+        {
+            DateTime now = DateTime.Now;
+
+            if (now.Month == 9 || now.Month == 10)
+            {
+                return ESeasons.Autumn;
+            }
+            else if (now.Month == 12 || now.Month == 1)
+            {
+                return ESeasons.Winter;
+            }
+
+            return ESeasons.None;
+        }
+
+        void SetColors()
+        {
+            var season = GetSeason();
+
+            if (season == ESeasons.Autumn)
+            {
+                rectColors = new HSPAColorProvider(80 + 20, 0, 0.2, 0.7, 1.0, 0.6, 1.0).Colors;
+                ParticleBaseColor = Color.FromArgb(255, 206, 125, 29);
+            }
+            else if (season == ESeasons.Winter)
+            {
+                rectColors = new HSPAColorProvider(80 + 20, 0.65, 0.66, 0.3, 1.0, 1.0, 1.0).Colors;
+                ParticleBaseColor = Color.FromArgb(255, 140, 140, 255);
+            }
+        }
+
+        bool bgEnabled = false;
+
+        class BgIcon
+        {
+            public Point pos;
+            public double speed;
+            public TextBlock gfx;
+            public double sinPos;
+            public double sinSpeed;
+            public double sinWidth;
+            public double rotation;
+            public double rotationSpeed;
+            public double opacityPos;
+            public double opacitySpeed;
+        }
+
+        string[] flakes =
+        {
+            "❄️",
+            "❅",
+            "❆",
+            "✦",
+            "•"
+        };
+
+        string[] autumn =
+        {
+            "🎃",   // Jack-O-Lantern (pumpkin)
+            "🍂",   // Fallen leaf
+            "🍁",   // Maple leaf
+            "🍃",   // Leaf fluttering in wind
+            "🦇",   // Bat
+            "👻"   // Ghost
+        };
+
+        Brush bgAnumBrush;
+
+        string[] bgStrings;
+        readonly List<BgIcon> bgIcons = new();
+        readonly Random random = new();
+        void SetBackground()
+        {
+            var season = GetSeason();
+
+            if (season == ESeasons.Autumn)
+            {
+                bgStrings = autumn;
+                bgAnumBrush = Brushes.Brown;
+                bgAnumBrush.Freeze();
+            }
+            else if (season == ESeasons.Winter)
+            {
+                bgStrings = flakes;
+                bgAnumBrush = Brushes.White;
+                bgAnumBrush.Freeze();
+            }
+            else
+            {
+                bgEnabled = false;
+                return;
+            }
+
+            bgEnabled = true;
+            bgIcons.Clear();
+
+            for (int i = 0; i < 20; i++)
+            {   
+                TextBlock tb = new TextBlock() { Focusable = false, IsHitTestVisible = false };
+
+                var icon = new BgIcon() { gfx = tb };
+                ResetGFX(icon);
+                bgIcons.Add(icon);
+                mainCanvas.Children.Insert(0, tb);
+            }
+        }
+
+        void ResetGFX(BgIcon bgi)
+        {
+            double newX = random.NextSingle() * mainCanvas.ActualWidth;
+            double newY = random.NextSingle() * -50.0 - 50.0;
+            bgi.pos = new Point(newX, newY);
+
+            bgi.speed = 1 + random.NextDouble() * 3;
+            bgi.sinPos = random.NextDouble() * 100;
+            bgi.sinWidth = 5 + random.NextDouble() + 5;
+            bgi.sinSpeed = 0.1 + 0.1 * random.NextDouble();
+
+            bgi.rotation = random.NextDouble() * 360;
+            bgi.rotationSpeed = -2 + random.NextDouble() * 4;
+
+            bgi.opacityPos = random.NextDouble() * 300;
+            bgi.opacitySpeed = 0.01 + 0.01 * random.NextDouble();
+
+            var tb = bgi.gfx;
+            int pos = random.Next(0, bgStrings.Count() - 1);
+            tb.Text = bgStrings[pos];
+            tb.FontSize = 30 + random.NextDouble() * 10;
+            tb.Foreground = bgAnumBrush;
+            tb.Opacity = 0.5;
+        }
+        
+        void UpdateBackground()
+        {
+            for (int i = 0; i < bgIcons.Count; i++)
+            {
+                BgIcon bgi = bgIcons[i];
+
+                double newX = bgi.pos.X;
+                double newY = bgi.pos.Y + bgi.speed;
+                bgi.pos = new Point(newX, newY);
+
+                if (newY > mainCanvas.ActualHeight)
+                    ResetGFX(bgi);
+
+                double w = bgi.sinWidth;
+                double newXMotion = newX + Math.Sin(bgi.sinPos) * w - w / 2;
+                Canvas.SetTop(bgi.gfx, bgi.pos.Y);
+                Canvas.SetLeft(bgi.gfx, newXMotion);
+                bgi.gfx.Opacity = Math.Sin(bgi.opacityPos) * 0.5;
+                bgi.sinPos += bgi.sinSpeed;
+
+                bgi.rotation += bgi.rotationSpeed;
+
+                bgi.gfx.RenderTransform =
+                    new RotateTransform(bgi.rotation);
+
+                bgi.opacityPos += bgi.opacitySpeed;
+            }
+        }
+
+        public static Color GetNextColor(byte a, Random random, float min, bool even)
+        {
+            if (even)
+            {
+                float mulEven = min + random.NextSingle() * (1.0f - min);
+                Color c = ParticleBaseColor * mulEven;
+                c.A = a;
+                return c;
+            }
+            else
+            {
+                byte r = (randomizeFlag & (int)RandomizeFlags.Red) != 0 ? (byte)random.Next(0, ParticleBaseColor.R) : ParticleBaseColor.R;
+                byte g = (randomizeFlag & (int)RandomizeFlags.Green) != 0 ? (byte)random.Next(0, ParticleBaseColor.G) : ParticleBaseColor.G;
+                byte b = (randomizeFlag & (int)RandomizeFlags.Blue) != 0 ? (byte)random.Next(0, ParticleBaseColor.B) : ParticleBaseColor.B;
+
+                return Color.FromArgb(a, r, g, b);
+            }
+        }
+
+        #endregion
+
+        #region Box2d
+
         List<BoxInfo> rectangles = new List<BoxInfo>(1000);
         b2WorldId box2WorldId;
         IEnumerable<Color> rectColors = new HSPAColorProvider(80 + 20, 0, 0.916667,0.7, 0.7, 0.6, 0.6).Colors;
+        internal static Color ParticleBaseColor = Color.FromArgb(255, 100, 205, 205);
+        internal enum RandomizeFlags { Red = 1, Green = 1 << 1, Blue = 1 << 2 }
+        internal static byte randomizeFlag = (byte)RandomizeFlags.Red;
         bool rotateBoxes;
         float angleInRadians = 65 * (float)Math.PI / 180f;
 
@@ -397,6 +595,7 @@ this about text.";
             Storyboard.SetTargetProperty(myDoubleAnimation, new PropertyPath(Rectangle.OpacityProperty));
             myStoryboard.Begin(rect);
         }
+
         #endregion
 
         #region ParticleBackground
@@ -596,7 +795,7 @@ this about text.";
                                     Y1 = y1,
                                     X2 = x2,
                                     Y2 = y2,
-                                    Stroke = new SolidColorBrush(Color.FromArgb(50, (byte)random.Next(255), 255, 255)),
+                                    Stroke = new SolidColorBrush(AboutWindow.GetNextColor(70, random, 0.3f, true)),
                                 };
                                 p1.ParticleLines.Add(p2, line);
                                 containerLine.Children.Add(line);
@@ -636,3 +835,4 @@ this about text.";
         #endregion
     }
 }
+
