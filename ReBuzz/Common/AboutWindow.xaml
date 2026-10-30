@@ -33,7 +33,7 @@
         <Canvas x:Name="mainCanvas" Background="Transparent"></Canvas>        
         <TextBox Name="AboutText" xml:space="preserve" FontFamily="Segoe UI" FontSize="30" HorizontalAlignment="Stretch" TextWrapping="Wrap" HorizontalContentAlignment="Center"
                  Background="Transparent" Foreground="GhostWhite" BorderBrush="Transparent" BorderThickness="0" IsReadOnly="True"
-                 VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Hidden">
+                 VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Hidden" Focusable="False" IsHitTestVisible="False">
             <TextBox.Effect>
                 <DropShadowEffect ShadowDepth="4"
                       Direction="330"
