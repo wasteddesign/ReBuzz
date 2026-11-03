@@ -15,6 +15,7 @@ namespace ReBuzzTests
     /// A .bmx song stores each machine's parameter layout (PARA section) as it was when the song
     /// was saved. When the installed version of the machine has a different layout, the saved
     /// values have to be mapped onto the current parameters instead of being read by index.
+    /// Pattern data (PATT section) is stored in the saved layout too, so the song includes a pattern.
     /// </summary>
     public class LoadingSongWithChangedParametersTests
     {
@@ -22,6 +23,7 @@ namespace ReBuzzTests
         private const string BypassDecl = "public bool Bypass { get; set; }";
         private const string ExtraDecl = "[ParameterDecl(MaxValue = 127, DefValue = 64)] public int Extra { get; set; }";
         private const int ExtraDefault = 64;
+        private const string PatternName = "00";
 
         [Test]
         public void LoadsSongSavedBeforeTheMachineAppendedAParameter()
@@ -39,6 +41,7 @@ namespace ReBuzzTests
             driver.AssertNoErrorsReportedToUser();
             GlobalParameterValue(driver, "Bypass").Should().Be(1);
             GlobalParameterValue(driver, "Extra").Should().Be(ExtraDefault);
+            PatternNames(driver).Should().Equal(PatternName);
         }
 
         [Test]
@@ -57,6 +60,7 @@ namespace ReBuzzTests
             driver.AssertNoErrorsReportedToUser();
             GlobalParameterValue(driver, "Bypass").Should().Be(1);
             GlobalParameterValue(driver, "Extra").Should().Be(ExtraDefault);
+            PatternNames(driver).Should().Equal(PatternName);
         }
 
         /// <summary>
@@ -72,6 +76,8 @@ namespace ReBuzzTests
 
             driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(controller);
             driver.MachineGraph.ExecuteMachineCommand(new SetGlobalParameterCommand(controller, "Bypass", 1));
+            driver.MachineGraph.ExecuteMachineCommand(new MachineCoreCommand(controller.InstanceName,
+                machine => machine.CreatePattern(PatternName, 16)));
 
             var songPath = driver.RandomSongPath();
             driver.DawCommands.SaveCurrentSongForTheFirstTime(DialogChoices.Select(songPath));
@@ -82,20 +88,29 @@ namespace ReBuzzTests
 
         private static int GlobalParameterValue(Driver driver, string parameterName)
         {
-            var read = new ReadGlobalParameterCommand(EffectController.NewInstance().InstanceName, parameterName);
-            driver.MachineGraph.ExecuteMachineCommand(read);
-            return read.Value;
+            int value = 0;
+            driver.MachineGraph.ExecuteMachineCommand(new MachineCoreCommand(EffectController.NewInstance().InstanceName,
+                machine => value = machine.ParameterGroups.Single(g => g.Type == ParameterGroupType.Global)
+                    .Parameters.Single(p => p.Name == parameterName).GetValue(0)));
+            return value;
         }
 
-        private class ReadGlobalParameterCommand(string instanceName, string parameterName) : ITestMachineInstanceCommand
+        private static string[] PatternNames(Driver driver)
         {
-            public int Value { get; private set; }
+            string[] names = [];
+            driver.MachineGraph.ExecuteMachineCommand(new MachineCoreCommand(EffectController.NewInstance().InstanceName,
+                machine => names = machine.Patterns.Select(p => p.Name).ToArray()));
+            return names;
+        }
 
+        /// <summary>
+        /// Runs an action on the song's machine instance with the given name.
+        /// </summary>
+        private class MachineCoreCommand(string instanceName, Action<MachineCore> action) : ITestMachineInstanceCommand
+        {
             public void Execute(ReBuzzCore buzzCore, ReBuzzMachines machineCores)
             {
-                var machine = machineCores.GetSongCoreMachineInstance(instanceName);
-                var globals = machine.ParameterGroups.Single(g => g.Type == ParameterGroupType.Global);
-                Value = globals.Parameters.Single(p => p.Name == parameterName).GetValue(0);
+                action(machineCores.GetSongCoreMachineInstance(instanceName));
             }
         }
 

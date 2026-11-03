@@ -57,6 +57,9 @@ namespace ReBuzz.FileOps
 
         private readonly ReBuzzCore buzz;
         List<MachineCore> machines;
+
+        // Machine created while loading -> prototype holding the parameter layout saved in the song (PARA)
+        readonly Dictionary<MachineCore, MachineCore> savedParameterLayouts = new Dictionary<MachineCore, MachineCore>();
         private ImportSongAction importAction;
         private int masterInputCount;
         private Dictionary<int, int> remappedWaveReferences;
@@ -507,6 +510,10 @@ namespace ReBuzz.FileOps
                         machineNew.MachineDLL.MachineInfo.Type = (MachineType)type;
                     }
                     machines[j] = machineNew;
+                    if (machineProto.ParameterGroupsList.Count > 2)
+                    {
+                        savedParameterLayouts[machineNew] = machineProto;
+                    }
 
                     if (import)
                     {
@@ -655,40 +662,12 @@ namespace ReBuzz.FileOps
             var paramtersFrom = machineFrom.ParameterGroupsList[group].ParametersList;
 
             // The saved parameters (PARA section) can differ from the machine's current ones, e.g. when a
-            // newer version of the machine appends parameters; indexing the saved list by the current
-            // index then threw ArgumentOutOfRangeException and the song failed to load. Match by name,
-            // and by occurrence for names that repeat, so an unchanged layout maps index to index as
-            // before. A parameter renamed in place still gets its value by position. Parameters the
-            // song doesn't have keep their defaults.
-            var fromByName = new Dictionary<string, List<ParameterCore>>();
-            foreach (var p in paramtersFrom)
-            {
-                string key = p.Name ?? "";
-                if (!fromByName.TryGetValue(key, out var list))
-                {
-                    list = new List<ParameterCore>();
-                    fromByName[key] = list;
-                }
-                list.Add(p);
-            }
-            var used = new Dictionary<string, int>();
-            var toNames = new HashSet<string>(paramtersTo.Select(p => p.Name ?? ""));
+            // newer version of the machine appends parameters, so match them by name.
+            var savedIndex = MatchSavedParameters(paramtersTo, paramtersFrom);
 
             for (int i = 0; i < paramtersTo.Count; i++)
             {
-                string key = paramtersTo[i].Name ?? "";
-                used.TryGetValue(key, out int n);
-                used[key] = n + 1;
-                ParameterCore from = null;
-                if (fromByName.TryGetValue(key, out var candidates) && n < candidates.Count)
-                {
-                    from = candidates[n];
-                }
-                else if (i < paramtersFrom.Count && !toNames.Contains(paramtersFrom[i].Name ?? ""))
-                {
-                    // Renamed in place: same position, and the saved name no longer exists
-                    from = paramtersFrom[i];
-                }
+                ParameterCore from = savedIndex[i] >= 0 ? paramtersFrom[savedIndex[i]] : null;
 
                 // Set the defaul/saved state of parameters. Skip non-state, notes and input group
                 if (from != null && paramtersTo[i].Flags.HasFlag(ParameterFlags.State) && paramtersTo[i].Type != ParameterType.Note && group != 0)
@@ -696,6 +675,52 @@ namespace ReBuzz.FileOps
                     paramtersTo[i].SetValue(track, from.GetValue(track));
                 }
             }
+        }
+
+        /// <summary>
+        /// For each current parameter, the index of the saved parameter (PARA section) it takes its value
+        /// and pattern data from, or -1 if the song doesn't have it. Matched by name, and by occurrence
+        /// for names that repeat, so an unchanged layout maps index to index. A saved name that no
+        /// longer exists maps to the current parameter at the same position (a rename in place).
+        /// </summary>
+        internal static int[] MatchSavedParameters(IList<ParameterCore> current, IList<ParameterCore> saved)
+        {
+            var savedByName = new Dictionary<string, List<int>>();
+            for (int i = 0; i < saved.Count; i++)
+            {
+                string key = saved[i].Name ?? "";
+                if (!savedByName.TryGetValue(key, out var list))
+                {
+                    list = new List<int>();
+                    savedByName[key] = list;
+                }
+                list.Add(i);
+            }
+            var currentNames = new HashSet<string>(current.Select(p => p.Name ?? ""));
+            var used = new Dictionary<string, int>();
+            var map = new int[current.Count];
+
+            for (int i = 0; i < current.Count; i++)
+            {
+                string key = current[i].Name ?? "";
+                used.TryGetValue(key, out int n);
+                used[key] = n + 1;
+
+                if (savedByName.TryGetValue(key, out var candidates) && n < candidates.Count)
+                {
+                    map[i] = candidates[n];
+                }
+                else if (i < saved.Count && !currentNames.Contains(saved[i].Name ?? ""))
+                {
+                    map[i] = i;
+                }
+                else
+                {
+                    map[i] = -1;
+                }
+            }
+
+            return map;
         }
 
         internal static void AddGroup(MachineCore machineFrom, MachineCore machineTo, int group)
@@ -969,13 +994,16 @@ namespace ReBuzz.FileOps
                         int numberOfColumns = machine.ParameterGroups[1].Parameters.Count + machine.ParameterGroups[2].Parameters.Count * tracks;
                         WriteInt(msConvertToPXP, numberOfColumns);              // Write number of columns (global + tracks)
 
+                        // Pattern data is stored in the parameter layout saved in the song
+                        var savedLayout = savedParameterLayouts.TryGetValue(machine, out var proto) ? proto : machine;
+
                         // Global
-                        ReadTrack(machine, 1, 0, rows, msConvertToPXP);
+                        ReadTrack(machine, savedLayout, 1, 0, rows, msConvertToPXP);
 
                         // Tracks
                         for (int l = 0; l < tracks; l++)
                         {
-                            ReadTrack(machine, 2, l, rows, msConvertToPXP);
+                            ReadTrack(machine, savedLayout, 2, l, rows, msConvertToPXP);
                         }
                     }
 
@@ -1007,22 +1035,21 @@ namespace ReBuzz.FileOps
             return true;
         }
 
-        private bool ReadTrack(MachineCore machine, int group, int track, int rows, MemoryStream msConvertToPXP)
+        private bool ReadTrack(MachineCore machine, MachineCore savedLayout, int group, int track, int rows, MemoryStream msConvertToPXP)
         {
-            Dictionary<int, List<PatternEvent>> columnEventsDictionary = new Dictionary<int, List<PatternEvent>>();
-            int columnCount = machine.ParameterGroups[group].Parameters.Count;
+            var savedParameters = savedLayout.ParameterGroupsList[group].ParametersList;
+            var savedColumns = new List<PatternEvent>[savedParameters.Count];
 
-            for (int i = 0; i < columnCount; i++)
+            for (int i = 0; i < savedColumns.Length; i++)
             {
-                columnEventsDictionary[i] = new List<PatternEvent>();
+                savedColumns[i] = new List<PatternEvent>();
             }
 
             for (int i = 0; i < rows; i++)
             {
-                for (int j = 0; j < machine.ParameterGroups[group].Parameters.Count; j++)
+                for (int j = 0; j < savedParameters.Count; j++)
                 {
-                    List<PatternEvent> events = columnEventsDictionary[j];
-                    ParameterCore param = machine.ParameterGroupsList[group].ParametersList[j];
+                    ParameterCore param = savedParameters[j];
 
                     int value = 0;
                     int typeSize = param.GetTypeSize();
@@ -1032,8 +1059,20 @@ namespace ReBuzz.FileOps
                         value = ReadUShort(fs);
 
                     if (value != param.NoValue)
-                        events.Add(new PatternEvent(i * PatternEvent.TimeBase, value));
+                        savedColumns[j].Add(new PatternEvent(i * PatternEvent.TimeBase, value));
                 }
+            }
+
+            // Map the saved columns onto the machine's current parameters
+            var currentParameters = machine.ParameterGroupsList[group].ParametersList;
+            var savedIndex = savedLayout == machine
+                ? Enumerable.Range(0, currentParameters.Count).ToArray()
+                : MatchSavedParameters(currentParameters, savedParameters);
+            int columnCount = currentParameters.Count;
+            var columnEventsDictionary = new Dictionary<int, List<PatternEvent>>();
+            for (int i = 0; i < columnCount; i++)
+            {
+                columnEventsDictionary[i] = savedIndex[i] >= 0 ? savedColumns[savedIndex[i]] : new List<PatternEvent>();
             }
 
             // Convert to PXP data
