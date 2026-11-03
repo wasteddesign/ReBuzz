@@ -653,12 +653,47 @@ namespace ReBuzz.FileOps
         {
             var paramtersTo = machineTo.ParameterGroupsList[group].ParametersList;
             var paramtersFrom = machineFrom.ParameterGroupsList[group].ParametersList;
+
+            // The saved parameters (PARA section) can differ from the machine's current ones, e.g. when a
+            // newer version of the machine appends parameters; indexing the saved list by the current
+            // index then threw ArgumentOutOfRangeException and the song failed to load. Match by name,
+            // and by occurrence for names that repeat, so an unchanged layout maps index to index as
+            // before. A parameter renamed in place still gets its value by position. Parameters the
+            // song doesn't have keep their defaults.
+            var fromByName = new Dictionary<string, List<ParameterCore>>();
+            foreach (var p in paramtersFrom)
+            {
+                string key = p.Name ?? "";
+                if (!fromByName.TryGetValue(key, out var list))
+                {
+                    list = new List<ParameterCore>();
+                    fromByName[key] = list;
+                }
+                list.Add(p);
+            }
+            var used = new Dictionary<string, int>();
+            var toNames = new HashSet<string>(paramtersTo.Select(p => p.Name ?? ""));
+
             for (int i = 0; i < paramtersTo.Count; i++)
             {
-                // Set the defaul/saved state of parameters. Skip non-state, notes and input group
-                if (paramtersTo[i].Flags.HasFlag(ParameterFlags.State) && paramtersTo[i].Type != ParameterType.Note && group != 0)
+                string key = paramtersTo[i].Name ?? "";
+                used.TryGetValue(key, out int n);
+                used[key] = n + 1;
+                ParameterCore from = null;
+                if (fromByName.TryGetValue(key, out var candidates) && n < candidates.Count)
                 {
-                    paramtersTo[i].SetValue(track, paramtersFrom[i].GetValue(track));
+                    from = candidates[n];
+                }
+                else if (i < paramtersFrom.Count && !toNames.Contains(paramtersFrom[i].Name ?? ""))
+                {
+                    // Renamed in place: same position, and the saved name no longer exists
+                    from = paramtersFrom[i];
+                }
+
+                // Set the defaul/saved state of parameters. Skip non-state, notes and input group
+                if (from != null && paramtersTo[i].Flags.HasFlag(ParameterFlags.State) && paramtersTo[i].Type != ParameterType.Note && group != 0)
+                {
+                    paramtersTo[i].SetValue(track, from.GetValue(track));
                 }
             }
         }
