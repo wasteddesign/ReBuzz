@@ -2259,6 +2259,14 @@ namespace ReBuzz.Core
 
         string infoText;
         private bool masterLoading;
+
+        /// <summary>
+        /// While set, the audio thread outputs silence instead of processing machines, and doesn't
+        /// take AudioLock. Set while a song file loads, so that the many short AudioLock sections of
+        /// the load don't each wait for the audio thread to finish processing a buffer.
+        /// </summary>
+        internal volatile bool AudioProcessingSuspended;
+
         internal readonly string registryRoot;
         private readonly GeneralSettings generalSettings;
         private readonly EngineSettings engineSettings;
