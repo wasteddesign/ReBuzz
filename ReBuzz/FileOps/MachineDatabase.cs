@@ -56,6 +56,8 @@ namespace ReBuzz.FileOps
 
         public void CreateDB()
         {
+            DictLibRef.Clear();
+            
             string filepath = Path.Combine(buzzPath, @"gear\index.txt");
             try
             {
@@ -224,7 +226,7 @@ namespace ReBuzz.FileOps
         {
             if (buzz.MachineDLLs.TryGetValue(loaderLib, out IMachineDLL machineDll))
             {
-                DatabaseEvent.Invoke(machineDll.Name);
+                DatabaseEvent?.Invoke(machineDll.Name);
                 var mInfo = machineDll.Info;
                 if (mInfo.Flags.HasFlag(MachineInfoFlags.USES_INSTRUMENTS))
                 {

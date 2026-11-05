@@ -12,7 +12,7 @@ namespace BuzzGUI.Interfaces
     public enum DCLogLevel { Verbose, Debug, Information, Warning, Error, Fatal }
 
     public enum BuzzView { PatternView, MachineView, SequenceView, WaveTableView, SongInfoView };
-    public enum BuzzCommand { NewFile, OpenFile, SaveFile, SaveFileAs, Cut, Copy, Paste, Undo, Redo, Stop, Exit, About, Preferences, DebugConsole };
+    public enum BuzzCommand { NewFile, OpenFile, SaveFile, SaveFileAs, Cut, Copy, Paste, Undo, Redo, Stop, Exit, About, Preferences, DebugConsole, RescanMachinesAndInstruments };
 
     public interface IBuzz : INotifyPropertyChanged
     {

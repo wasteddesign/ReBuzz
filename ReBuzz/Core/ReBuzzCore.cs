@@ -702,6 +702,17 @@ namespace ReBuzz.Core
                   PropertyChanged.Raise(this, "Modified"));
             }
         }
+
+        internal void RescanMachinesAndInstruments()
+        {
+            InstrumentList.Clear();
+            ScanDlls();
+            machineDB.CreateDB();
+            MachineDB = machineDB;
+
+            PropertyChanged.Raise(this, "Instruments");
+        }
+
         public IPattern PatternEditorPattern { get; private set; }
         internal PatternCore SoloPattern { get; set; }
 
@@ -1235,6 +1246,10 @@ namespace ReBuzz.Core
             else if (cmd == BuzzCommand.Undo || cmd == BuzzCommand.Redo || cmd == BuzzCommand.Copy || cmd == BuzzCommand.Cut || cmd == BuzzCommand.Paste)
             {
                 BuzzCommandRaised?.Invoke(cmd);
+            }
+            else if (cmd == BuzzCommand.RescanMachinesAndInstruments)
+            {
+                RescanMachinesAndInstruments();
             }
             /*
             else if (cmd == BuzzCommand.Redo)
