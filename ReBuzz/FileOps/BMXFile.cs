@@ -8,6 +8,7 @@ using ReBuzz.Core;
 using ReBuzz.Core.Actions.GraphActions;
 using ReBuzz.MachineManagement;
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
@@ -181,7 +182,15 @@ namespace ReBuzz.FileOps
 
         public void Open(string path, FileMode mode)
         {
-            fs = new FileStream(path, mode, mode == FileMode.Create ? FileAccess.Write : FileAccess.Read, mode == FileMode.Create ? FileShare.Write : FileShare.Read);
+            if (mode == FileMode.Create)
+            {
+                fs = new FileStream(path, mode, FileAccess.Write, FileShare.Write);
+            }
+            else
+            {
+                // Song files are mostly read front to back in small pieces
+                fs = new FileStream(path, mode, FileAccess.Read, FileShare.Read, 64 * 1024, FileOptions.SequentialScan);
+            }
             FileOpsEvent(FileEventType.Open, path);
         }
 
@@ -2760,50 +2769,52 @@ namespace ReBuzz.FileOps
 
         public static int ReadInt(FileStream fs)
         {
-            byte[] buffer = new byte[sizeof(int)];
+            Span<byte> buffer = stackalloc byte[sizeof(int)];
 
             fs.ReadExactly(buffer);
-            return BitConverter.ToInt32(buffer, 0);
+            return BinaryPrimitives.ReadInt32LittleEndian(buffer);
         }
 
         public static uint ReadUInt(FileStream fs)
         {
-            byte[] buffer = new byte[sizeof(int)];
+            Span<byte> buffer = stackalloc byte[sizeof(uint)];
 
             fs.ReadExactly(buffer);
-            return BitConverter.ToUInt32(buffer, 0);
+            return BinaryPrimitives.ReadUInt32LittleEndian(buffer);
         }
 
         public static ushort ReadUShort(FileStream fs)
         {
-            byte[] buffer = new byte[sizeof(ushort)];
+            Span<byte> buffer = stackalloc byte[sizeof(ushort)];
 
             fs.ReadExactly(buffer);
-            return BitConverter.ToUInt16(buffer, 0);
+            return BinaryPrimitives.ReadUInt16LittleEndian(buffer);
         }
 
         public static float ReadFloat(FileStream fs)
         {
-            byte[] buffer = new byte[sizeof(float)];
+            Span<byte> buffer = stackalloc byte[sizeof(float)];
 
             fs.ReadExactly(buffer);
-            return BitConverter.ToSingle(buffer, 0);
+            return BinaryPrimitives.ReadSingleLittleEndian(buffer);
         }
 
         public static byte ReadByte(FileStream fs)
         {
-            byte[] buffer = new byte[sizeof(byte)];
-
-            fs.ReadExactly(buffer);
-            return buffer[0];
+            int value = fs.ReadByte();
+            if (value == -1)
+            {
+                throw new EndOfStreamException();
+            }
+            return (byte)value;
         }
 
         public static ulong ReadULong(FileStream fs)
         {
-            byte[] buffer = new byte[sizeof(ulong)];
+            Span<byte> buffer = stackalloc byte[sizeof(ulong)];
 
             fs.ReadExactly(buffer);
-            return BitConverter.ToUInt64(buffer, 0);
+            return BinaryPrimitives.ReadUInt64LittleEndian(buffer);
         }
 
         public static ulong ReadVal(FileStream fs, int size)
@@ -2823,25 +2834,22 @@ namespace ReBuzz.FileOps
             }
         }
 
+        /// <summary>
+        /// Reads a zero terminated string, one byte per character. Returns null at the end of the stream.
+        /// </summary>
         public static string ReadString(FileStream fs)
         {
-            string ret = "";
+            StringBuilder sb = new StringBuilder();
 
-            do
+            while (true)
             {
-                char c = (char)fs.ReadByte();
+                int c = fs.ReadByte();
                 if (c == 0)
-                    break;
+                    return sb.ToString();
                 else if (c == -1)
-                {
-                    ret = null;
-                    break;
-                }
-                else
-                    ret += c;
-            } while (true);
-
-            return ret;
+                    return null;
+                sb.Append((char)c);
+            }
         }
 
         public static byte[] ReadBytes(FileStream fs, int length)
