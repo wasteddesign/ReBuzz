@@ -921,6 +921,13 @@ namespace ReBuzz.FileOps
                     ushort patterns = ReadUShort(fs);
                     ushort tracks = ReadUShort(fs);
 
+                    // Pattern data is only used to convert patterns of the built in editor. Machines whose
+                    // patterns belong to a pattern editor machine only need the pattern names and rows.
+                    bool usesBuiltInEditor = builtInPeDictionary.ContainsKey(machine.Name);
+
+                    // Pattern data is stored in the parameter layout saved in the song
+                    var savedLayout = savedParameterLayouts.TryGetValue(machine, out var proto) ? proto : machine;
+
                     // Use this to convert built in pattern editor data to PXP
                     MemoryStream msConvertToPXP = new MemoryStream();
                     WriteByte(msConvertToPXP, 3);                               // Write PXP Version
@@ -934,8 +941,11 @@ namespace ReBuzz.FileOps
                         // We only use name and rows for non-built in editors. Read other stuff from the file to convert to PXP
                         patternsAndRows.Add(new Tuple<string, int>(name, rows));
 
-                        WriteString(msConvertToPXP, name);                      // Write pattern name
-                        WriteInt(msConvertToPXP, 4);                            // Write rows per beat
+                        if (usesBuiltInEditor)
+                        {
+                            WriteString(msConvertToPXP, name);                  // Write pattern name
+                            WriteInt(msConvertToPXP, 4);                        // Write rows per beat
+                        }
 
                         // ----
                         // Rest of the code used by built in buzz PE. We convert the data to PXP format
@@ -991,11 +1001,15 @@ namespace ReBuzz.FileOps
                             }
                         }
 
-                        int numberOfColumns = machine.ParameterGroups[1].Parameters.Count + machine.ParameterGroups[2].Parameters.Count * tracks;
-                        WriteInt(msConvertToPXP, numberOfColumns);              // Write number of columns (global + tracks)
+                        if (!usesBuiltInEditor)
+                        {
+                            // Skip the global and track data without decoding it
+                            fs.Seek(GetPatternDataSize(savedLayout, tracks, rows), SeekOrigin.Current);
+                            continue;
+                        }
 
-                        // Pattern data is stored in the parameter layout saved in the song
-                        var savedLayout = savedParameterLayouts.TryGetValue(machine, out var proto) ? proto : machine;
+                        int numberOfColumns = machine.ParameterGroupsList[1].ParametersList.Count + machine.ParameterGroupsList[2].ParametersList.Count * tracks;
+                        WriteInt(msConvertToPXP, numberOfColumns);              // Write number of columns (global + tracks)
 
                         // Global
                         ReadTrack(machine, savedLayout, 1, 0, rows, msConvertToPXP);
@@ -1023,7 +1037,7 @@ namespace ReBuzz.FileOps
                     }
 
                     // Does machine use built in editor?
-                    if (builtInPeDictionary.ContainsKey(machine.Name) && patterns > 0)
+                    if (usesBuiltInEditor && patterns > 0)
                     {
                         byte[] data = msConvertToPXP.ToArray();
                         // Create PXP compatible editor and input converted data
@@ -1033,6 +1047,16 @@ namespace ReBuzz.FileOps
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Size in bytes of the global and track data of one pattern, as read by ReadTrack.
+        /// </summary>
+        private static long GetPatternDataSize(MachineCore savedLayout, int tracks, int rows)
+        {
+            int globalRowSize = savedLayout.ParameterGroupsList[1].ParametersList.Sum(p => p.GetTypeSize());
+            int trackRowSize = savedLayout.ParameterGroupsList[2].ParametersList.Sum(p => p.GetTypeSize());
+            return (long)rows * (globalRowSize + (long)tracks * trackRowSize);
         }
 
         private bool ReadTrack(MachineCore machine, MachineCore savedLayout, int group, int track, int rows, MemoryStream msConvertToPXP)
@@ -1076,7 +1100,7 @@ namespace ReBuzz.FileOps
             }
 
             // Convert to PXP data
-            int index = group == 1 ? 0 : machine.ParameterGroups[1].Parameters.Count;
+            int index = group == 1 ? 0 : machine.ParameterGroupsList[1].ParametersList.Count;
             for (int i = 0; i < columnCount; i++)
             {
                 WriteString(msConvertToPXP, machine.Name);              // Name
