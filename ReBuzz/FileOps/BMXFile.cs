@@ -115,7 +115,10 @@ namespace ReBuzz.FileOps
             bool import = importAction != null;
             this.importAction = importAction;
             masterInputCount = 0;
-            //lock (ReBuzzCore.AudioLock)
+            // Machine properties, connections and other steps of the load each change the
+            // machine delay compensation. Calculate it once, after the whole song is loaded.
+            buzz.SuspendDelayCompensationUpdates();
+            try
             {
                 Open(path, FileMode.Open);
 
@@ -171,6 +174,10 @@ namespace ReBuzz.FileOps
                 }
 
                 EndFileOperation(import);
+            }
+            finally
+            {
+                buzz.ResumeDelayCompensationUpdates();
             }
         }
 

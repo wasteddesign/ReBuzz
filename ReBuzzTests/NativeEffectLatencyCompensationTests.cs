@@ -1,4 +1,6 @@
+using AwesomeAssertions;
 using Buzz.MachineInterface;
+using ReBuzz.Core;
 using ReBuzzTests.Automation;
 using ReBuzzTests.Automation.TestMachines;
 using ReBuzzTests.Automation.TestMachinesControllers;
@@ -49,6 +51,30 @@ namespace ReBuzzTests
                 ExpectedSampleValue.From(sampleFromGenerator3) + ExpectedSampleValue.From(sampleFromGenerator2) + ExpectedSampleValue.From(sampleFromGenerator1),
                 ExpectedSampleValue.From(sampleFromGenerator3) + ExpectedSampleValue.From(sampleFromGenerator2) + ExpectedSampleValue.From(sampleFromGenerator1)
             ]);
+        }
+
+        [Test]
+        public void CompensatesLatencyAfterLoadingASong()
+        {
+            using var driver = new Driver();
+            var nativeEffect1 = FakeNativeEffectController.NewInstance("e1");
+            var nativeEffect2 = FakeNativeEffectController.NewInstance("e2");
+            driver.Gear.AddPrecompiledEffect(FakeNativeEffectInfo.Instance);
+            driver.Start();
+
+            driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(nativeEffect1);
+            driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(nativeEffect2);
+            driver.MachineGraph.ExecuteMachineCommand(new SetOverrideLatencyCommand(nativeEffect2.InstanceName, 1));
+            TotalLatency(driver).Should().Be(1);
+
+            // The override is saved with the machine's properties. Delay compensation is
+            // calculated once, after the whole song is loaded.
+            var songPath = driver.RandomSongPath();
+            driver.DawCommands.SaveCurrentSongForTheFirstTime(DialogChoices.Select(songPath));
+            driver.DawCommands.LoadSong(DialogChoices.Select(songPath));
+
+            driver.AssertNoErrorsReportedToUser();
+            TotalLatency(driver).Should().Be(1);
         }
 
         [Test]
@@ -117,6 +143,31 @@ namespace ReBuzzTests
                 ExpectedSampleValue.From(sampleFromGenerator1),
                 ExpectedSampleValue.From(sampleFromGenerator1) + ExpectedSampleValue.From(sampleFromGenerator2)
             ]);
+        }
+
+        private static int TotalLatency(Driver driver)
+        {
+            var command = new ReadTotalLatencyCommand();
+            driver.MachineGraph.ExecuteMachineCommand(command);
+            return command.TotalLatency;
+        }
+
+        private class SetOverrideLatencyCommand(string instanceName, int latency) : ITestMachineInstanceCommand
+        {
+            public void Execute(ReBuzzCore buzzCore, ReBuzzMachines machineCores)
+            {
+                machineCores.GetSongCoreMachineInstance(instanceName).OverrideLatency = latency;
+            }
+        }
+
+        private class ReadTotalLatencyCommand : ITestMachineInstanceCommand
+        {
+            public int TotalLatency { get; private set; }
+
+            public void Execute(ReBuzzCore buzzCore, ReBuzzMachines machineCores)
+            {
+                TotalLatency = buzzCore.totalLatency;
+            }
         }
     }
 }
