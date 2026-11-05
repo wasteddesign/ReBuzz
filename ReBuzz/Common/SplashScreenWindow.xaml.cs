@@ -118,8 +118,7 @@ namespace ReBuzz.Common
                 //window.Top = pos.Y + pHeight / 2 - window.Height / 2;
 #if !DEBUG
                 window.Show();
-#endif
-                window.Closed += window.OnWindowClosed;
+#endif          
                 Dispatcher.Run();
             });
             windowThread.SetApartmentState(ApartmentState.STA);
@@ -132,14 +131,9 @@ namespace ReBuzz.Common
             return window;
         }
 
-        private void OnWindowClosed(object sender, EventArgs args)
-        {
-            IsClosed = true;
-            Dispatcher.InvokeShutdown();
-        }
-
         internal void CloseWindow()
         {
+            IsClosed = true;
             FadeOut = true;
             PropertyChanged.Raise(this, "FadeOut");
             DispatcherTimer dt = new DispatcherTimer();

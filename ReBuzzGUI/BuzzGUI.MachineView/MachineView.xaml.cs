@@ -298,6 +298,7 @@ namespace BuzzGUI.MachineView
         public ICommand TemplateListParentCommand { get; private set; }
         public ICommand ArrangeCommand { get; private set; }
         public ICommand GroupNewCommand { get; private set; }
+        public ICommand RescanMachinesAndInstrumentsCommand { get; private set; }
 
         void Commands()
         {
@@ -449,6 +450,17 @@ namespace BuzzGUI.MachineView
                 }
             };
 
+            RescanMachinesAndInstrumentsCommand = new SimpleCommand
+            {
+                CanExecuteDelegate = x => true,
+                ExecuteDelegate = x =>
+                {
+                    Buzz.ExecuteCommand(BuzzCommand.RescanMachinesAndInstruments);
+                    MachineList?.Update();
+                    MDBTabVM?.Update();
+                }
+            };
+
             this.InputBindings.Add(new InputBinding(SettingsCommand, new KeyGesture(Key.E, ModifierKeys.Control)));
             this.InputBindings.Add(new InputBinding(SelectAllCommand, new KeyGesture(Key.A, ModifierKeys.Control)));
             this.InputBindings.Add(new InputBinding(DeselectCommand, new KeyGesture(Key.D, ModifierKeys.Control)));
@@ -490,6 +502,7 @@ namespace BuzzGUI.MachineView
             Settings.PropertyChanged += Settings_PropertyChanged;
             SettingsWindow.AddSettings("Machine View", Settings);
             Buzz = buzz;
+
             this.DataContext = this;
             if (rd != null) this.Resources.MergedDictionaries.Add(rd);
             Commands();
