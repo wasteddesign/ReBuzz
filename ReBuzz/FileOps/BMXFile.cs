@@ -2259,29 +2259,30 @@ namespace ReBuzz.FileOps
         private bool WriteTrack(MemoryStream ms, MachineCore machine, PatternCore Pattern, int group, int track, int rows)
         {
             // We don't use these so write no values
+            byte[] noValueRow = GetNoValueRow(machine.ParameterGroupsList[group].ParametersList);
             for (int i = 0; i < rows; i++)
             {
-                List<PatternEvent> events = new List<PatternEvent>();
-                for (int j = 0; j < machine.ParameterGroups[group].Parameters.Count; j++)
-                {
-                    ParameterCore param = machine.ParameterGroupsList[group].ParametersList[j];
-
-                    //int value = 0;
-                    int typeSize = param.GetTypeSize();
-                    if (typeSize == 1)
-                        WriteByte(ms, (byte)param.NoValue);
-                    else if (typeSize == 2)
-                        WriteUShort(ms, (ushort)param.NoValue);
-
-                    //if (value != param.NoValue)
-                    //    events.Add(new PatternEvent(i * PatternEvent.TimeBase, value));
-                    //if (result != 0 && value != zzub_parameter_get_value_none(param))
-                    //    insert_pattern_value(result, plugin.plugin, group, track, j, i, value);
-
-                }
+                ms.Write(noValueRow, 0, noValueRow.Length);
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// One pattern row of the given parameters with every value set to NoValue, as stored in the PATT section.
+        /// </summary>
+        private static byte[] GetNoValueRow(List<ParameterCore> parameters)
+        {
+            MemoryStream row = new MemoryStream();
+            foreach (ParameterCore param in parameters)
+            {
+                int typeSize = param.GetTypeSize();
+                if (typeSize == 1)
+                    WriteByte(row, (byte)param.NoValue);
+                else if (typeSize == 2)
+                    WriteUShort(row, (ushort)param.NoValue);
+            }
+            return row.ToArray();
         }
 
         public void CreateXPATSection()
