@@ -75,7 +75,7 @@ namespace ReBuzzTests
         {
             var song = SaveSongWithBypassedEffect(".bmxml");
 
-            using var driver = LoadBmxmlSongWith(new ModifiedEffectInfo(BypassDecl, BypassDecl + Environment.NewLine + ExtraDecl), song);
+            using var driver = LoadSongWith(new ModifiedEffectInfo(BypassDecl, BypassDecl + Environment.NewLine + ExtraDecl), song, ".bmxml");
 
             AssertBypassStateWasRestored(driver);
         }
@@ -86,18 +86,68 @@ namespace ReBuzzTests
         {
             var song = SaveSongWithBypassedEffect(".bmxml");
 
-            using var driver = LoadBmxmlSongWith(new ModifiedEffectInfo(BypassAttribute, ExtraDecl + Environment.NewLine + BypassAttribute), song);
+            using var driver = LoadSongWith(new ModifiedEffectInfo(BypassAttribute, ExtraDecl + Environment.NewLine + BypassAttribute), song, ".bmxml");
 
             AssertBypassStateWasRestored(driver);
         }
 
-        private static Driver LoadBmxmlSongWith(ModifiedEffectInfo effect, byte[] song)
+        /// <summary>
+        /// Pattern editor data refers to parameters by their index in the layout the song was saved
+        /// with, so a loaded machine tells pattern editors that layout (ISavedParameterLayout).
+        /// </summary>
+        [TestCase(".bmx")]
+        [TestCase(".bmxml")]
+        [Apartment(ApartmentState.STA)]
+        public void LoadedMachineMapsParametersOfTheSavedLayoutToItsCurrentOnes(string extension)
+        {
+            var song = SaveSongWithBypassedEffect(extension);
+
+            using var driver = LoadSongWith(new ModifiedEffectInfo(BypassAttribute, ExtraDecl + Environment.NewLine + BypassAttribute), song, extension);
+
+            driver.AssertNoErrorsReportedToUser();
+            var layout = SavedLayout(driver);
+            layout.SavedGlobalCount.Should().Be(1);
+            layout.SavedGlobal0.Should().Be("Bypass");
+            layout.SavedGlobal1.Should().BeNull();
+        }
+
+        [Test]
+        public void MachineNotLoadedFromASongHasNoSavedParameterLayout()
+        {
+            using var driver = new Driver();
+            driver.Gear.AddDynamicEffect(EffectController.Info);
+            driver.Start();
+            driver.MachineGraph.InsertMachineInstanceConnectedToMasterFor(EffectController.NewInstance());
+
+            var layout = SavedLayout(driver);
+            layout.SavedGlobalCount.Should().Be(-1);
+            layout.SavedGlobal0.Should().Be("Bypass");
+        }
+
+        /// <summary>
+        /// The Effect's saved global parameter count, and the names of the current parameters for saved
+        /// globals 0 and 1, as a pattern editor would see them.
+        /// </summary>
+        private static (int SavedGlobalCount, string? SavedGlobal0, string? SavedGlobal1) SavedLayout(Driver driver)
+        {
+            (int, string?, string?) result = default;
+            driver.MachineGraph.ExecuteMachineCommand(new MachineCoreCommand(EffectController.NewInstance().InstanceName, machine =>
+            {
+                ISavedParameterLayout layout = machine;
+                result = (layout.SavedGlobalParameterCount,
+                    layout.GetCurrentParameter(1, 0)?.Name,
+                    layout.GetCurrentParameter(1, 1)?.Name);
+            }));
+            return result;
+        }
+
+        private static Driver LoadSongWith(ModifiedEffectInfo effect, byte[] song, string extension)
         {
             var driver = new Driver();
             driver.Gear.AddDynamicEffect(effect);
             driver.Start();
 
-            var songPath = driver.RandomSongPath(".bmxml");
+            var songPath = driver.RandomSongPath(extension);
             File.WriteAllBytes(songPath.ToString(), song);
             driver.DawCommands.LoadSong(DialogChoices.Select(songPath));
             return driver;

@@ -30,8 +30,6 @@ namespace ReBuzz.FileOps
         private readonly string fileName;
         private Dictionary<string, SubSection> subSections = new Dictionary<string, SubSection>();
         readonly Dictionary<string, string> importDictionaryAll = new Dictionary<string, string>();
-        // The parameter layout saved in the song for each loaded machine whose parameter values were copied
-        readonly Dictionary<MachineCore, SavedParameterLayout> savedParameterLayouts = new Dictionary<MachineCore, SavedParameterLayout>();
         readonly Dictionary<string, string> importDictionaryNonHidden = new Dictionary<string, string>();
         public event Action<FileEventType, string, object> FileEvent;
         private Dictionary<int, int> remappedWaveReferences = new Dictionary<int, int>();
@@ -180,7 +178,6 @@ namespace ReBuzz.FileOps
 
             // Load Machines
             Dictionary<MachineCore, MachineInitData> dictInitData = new Dictionary<MachineCore, MachineInitData>();
-            savedParameterLayouts.Clear();
             foreach (var machineData in songData.Machines)
             {
                 FileOpsEvent(FileEventType.StatusUpdate, "Load Machines...");
@@ -270,9 +267,6 @@ namespace ReBuzz.FileOps
                     // Don't call Init for native machines yet. Wait until all machines are loaded and then call init. Control machines might need machine info.
                     var machineNew = buzz.MachineManager.CreateMachine(machineDLL.Name, machineDLL.Path, null, data, tracks, x, y, machineProto.Hidden, name, false);
 
-                    // Saved machine parameter count/indexes might be a different from the machine that is currently available for ReBuzz. Create parameter mappings
-                    RemapLoadedMachineParameterIndex(machineNew, machineProto);
-
                     if (!machineNew.DLL.IsManaged)
                     {
                         dictInitData[machineNew] = new MachineInitData() { data = data, tracks = tracks };
@@ -299,8 +293,8 @@ namespace ReBuzz.FileOps
                     {
                         // The saved parameters can differ from the machine's current ones, e.g. when a newer
                         // version of the machine adds parameters, so match them by name.
-                        var layout = new SavedParameterLayout(machineData, machineNew);
-                        savedParameterLayouts[machineNew] = layout;
+                        var layout = new SavedParameterLayout(machineNew, SavedParameters(machineData));
+                        machineNew.savedParameterLayout = layout;
 
                         // Copy parametervalues
                         CopyParameters(machineData.ParameterGroups[0], machineNew, 0, 0, layout);
@@ -457,7 +451,7 @@ namespace ReBuzz.FileOps
                                 if (targetMachine != null && (group != -1 && indexInGroup != -1))
                                 {
                                     // The column refers to the saved layout; skip it if the machine no longer has the parameter
-                                    targetParameter = GetCurrentParameter(targetMachine, group, indexInGroup);
+                                    targetParameter = targetMachine.GetCurrentParameter(group, indexInGroup);
                                     if (targetParameter == null)
                                     {
                                         continue;
@@ -658,10 +652,11 @@ namespace ReBuzz.FileOps
                     {
                         // ParamIndex counts the state parameters of the saved layout
                         IParameter param;
-                        if (savedParameterLayouts.TryGetValue(machine, out var layout))
+                        var layout = machine.savedParameterLayout;
+                        if (layout != null)
                         {
                             var saved = layout.GetSavedStateParameter(bind.ParamIndex);
-                            param = saved.HasValue ? GetCurrentParameter(machine, saved.Value.Group, saved.Value.IndexInGroup) : null;
+                            param = saved.HasValue ? machine.GetCurrentParameter(saved.Value.Group, saved.Value.IndexInGroup) : null;
                         }
                         else
                         {
@@ -794,90 +789,14 @@ namespace ReBuzz.FileOps
         }
 
         /// <summary>
-        /// The current parameter for a group and index in the layout saved in the song, or null if the
-        /// machine no longer has it. Machines loaded without a mapping (missing, crashed, Master) use the
-        /// index as it is.
+        /// The parameters of each group as saved in the song. Names are XML encoded in the file.
         /// </summary>
-        private IParameter GetCurrentParameter(MachineCore machine, int group, int savedIndexInGroup)
+        private static IList<IList<SavedParameter>> SavedParameters(BMXMLMachine machineData)
         {
-            if (group < 0 || group >= machine.ParameterGroupsList.Count)
-                return null;
-
-            int index = savedParameterLayouts.TryGetValue(machine, out var layout)
-                ? layout.CurrentIndex(group, savedIndexInGroup)
-                : savedIndexInGroup;
-
-            var parameters = machine.ParameterGroupsList[group].ParametersList;
-            return index >= 0 && index < parameters.Count ? parameters[index] : null;
-        }
-
-        /// <summary>
-        /// A machine's parameter layout as saved in the song, matched by name to the machine's current
-        /// parameters (see BMXFile.MatchSavedParameters).
-        /// </summary>
-        private sealed class SavedParameterLayout
-        {
-            // Per group: for each current parameter, the saved index, or -1
-            readonly int[][] savedIndex;
-            // Per group: for each saved parameter, the current index, or -1
-            readonly int[][] currentIndex;
-            // The saved state parameters across all groups, in the order MIDI bindings count them
-            readonly List<(int Group, int IndexInGroup)> savedStateParameters = new List<(int, int)>();
-
-            public SavedParameterLayout(BMXMLMachine machineData, MachineCore machine)
-            {
-                var savedGroups = machineData.ParameterGroups ?? Array.Empty<BMXMLParameterGroup>();
-                int groupCount = machine.ParameterGroupsList.Count;
-                savedIndex = new int[groupCount][];
-                currentIndex = new int[groupCount][];
-
-                for (int g = 0; g < groupCount; g++)
-                {
-                    var saved = SavedParameters(savedGroups, g);
-                    var current = machine.ParameterGroupsList[g].ParametersList;
-
-                    savedIndex[g] = MatchSavedParameters(
-                        current.Select(p => p.Name).ToList(),
-                        saved.Select(p => XmlConvert.DecodeName(p.Name)).ToList());
-
-                    currentIndex[g] = Enumerable.Repeat(-1, saved.Length).ToArray();
-                    for (int i = 0; i < savedIndex[g].Length; i++)
-                    {
-                        if (savedIndex[g][i] >= 0)
-                            currentIndex[g][savedIndex[g][i]] = i;
-                    }
-                }
-
-                for (int g = 0; g < savedGroups.Length; g++)
-                {
-                    var saved = SavedParameters(savedGroups, g);
-                    for (int i = 0; i < saved.Length; i++)
-                    {
-                        if (saved[i].Flags.HasFlag(ParameterFlags.State))
-                            savedStateParameters.Add((g, i));
-                    }
-                }
-            }
-
-            public int[] SavedIndex(int group) => savedIndex[group];
-
-            public int CurrentIndex(int group, int savedIndexInGroup)
-            {
-                if (group < 0 || group >= currentIndex.Length)
-                    return -1;
-                var map = currentIndex[group];
-                return savedIndexInGroup >= 0 && savedIndexInGroup < map.Length ? map[savedIndexInGroup] : -1;
-            }
-
-            public (int Group, int IndexInGroup)? GetSavedStateParameter(int paramIndex)
-            {
-                return paramIndex >= 0 && paramIndex < savedStateParameters.Count ? savedStateParameters[paramIndex] : null;
-            }
-
-            static BMXMLParameter[] SavedParameters(BMXMLParameterGroup[] savedGroups, int group)
-            {
-                return group < savedGroups.Length ? savedGroups[group]?.Parameters ?? Array.Empty<BMXMLParameter>() : Array.Empty<BMXMLParameter>();
-            }
+            return (machineData.ParameterGroups ?? Array.Empty<BMXMLParameterGroup>())
+                .Select(g => (IList<SavedParameter>)(g?.Parameters ?? Array.Empty<BMXMLParameter>())
+                    .Select(p => new SavedParameter(XmlConvert.DecodeName(p.Name), p.Flags)).ToList())
+                .ToList();
         }
 
         private void AddGroup(BMXMLParameterGroup pgFrom, MachineCore machineNew, int group)
@@ -907,36 +826,6 @@ namespace ReBuzz.FileOps
             }
 
             machineNew.ParameterGroupsList.Add(pgTo);
-        }
-
-        private void RemapLoadedMachineParameterIndex(MachineCore machine, MachineCore savedMachine)
-        {
-            Dictionary<int, int> paramMappings = new Dictionary<int, int>();
-
-            var machineParameters = machine.AllParameters().ToArray();
-            var savedParameters = savedMachine.AllParameters().ToArray();
-
-            for (int i = 0; i < savedParameters.Length; i++)
-            {
-                bool found = false;
-                for (int j = 0; j < machineParameters.Length; j++)
-                {
-                    if (savedParameters[i].Name == machineParameters[j].Name)
-                    {
-                        paramMappings[i] = j;
-                        found = true;
-                        break;
-                    }
-                }
-
-                if (!found)
-                {
-                    // Machine loaded into ReBuzz does not have the same param
-                    paramMappings[i] = -1;
-                }
-            }
-
-            machine.remappedLoadedMachineParameterIndexes = paramMappings;
         }
 
         public void Save(string path, object obj)
