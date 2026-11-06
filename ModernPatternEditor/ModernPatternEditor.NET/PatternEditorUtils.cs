@@ -320,6 +320,12 @@ namespace WDE.ModernPatternEditor
 
         private static IParameter GetParameter(IMachine machine, int paramIndex, int paramTrack)
         {
+            // The column's machine is looked up in Song.Machines, which leaves out machines that
+            // are not Ready (e.g. a native machine whose host crashed during the load). Return null
+            // so the caller skips the column, as it already does for a missing parameter.
+            if (machine == null)
+                return null;
+
             IParameter ret = null;
 
             if (paramIndex == (int)InternalParameter.MidiNote)
