@@ -8,6 +8,7 @@ using ReBuzzTests.Automation.TestMachinesControllers;
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 
 namespace ReBuzzTests
 {
@@ -16,6 +17,8 @@ namespace ReBuzzTests
     /// was saved. When the installed version of the machine has a different layout, the saved
     /// values have to be mapped onto the current parameters instead of being read by index.
     /// Pattern data (PATT section) is stored in the saved layout too, so the song includes a pattern.
+    /// A .bmxml song stores the layout too, and its pattern columns and MIDI bindings refer to
+    /// parameters by their index in it.
     /// </summary>
     public class LoadingSongWithChangedParametersTests
     {
@@ -24,6 +27,8 @@ namespace ReBuzzTests
         private const string ExtraDecl = "[ParameterDecl(MaxValue = 127, DefValue = 64)] public int Extra { get; set; }";
         private const int ExtraDefault = 64;
         private const string PatternName = "00";
+        private const int MidiChannel = 0;
+        private const int MidiController = 7;
 
         [Test]
         public void LoadsSongSavedBeforeTheMachineAppendedAParameter()
@@ -63,11 +68,75 @@ namespace ReBuzzTests
             PatternNames(driver).Should().Equal(PatternName);
         }
 
+        // Loading a .bmxml creates WPF objects, which need an STA thread
+        [Test]
+        [Apartment(ApartmentState.STA)]
+        public void LoadsBmxmlSongSavedBeforeTheMachineAppendedAParameter()
+        {
+            var song = SaveSongWithBypassedEffect(".bmxml");
+
+            using var driver = LoadBmxmlSongWith(new ModifiedEffectInfo(BypassDecl, BypassDecl + Environment.NewLine + ExtraDecl), song);
+
+            AssertBypassStateWasRestored(driver);
+        }
+
+        [Test]
+        [Apartment(ApartmentState.STA)]
+        public void LoadsBmxmlSongSavedBeforeTheMachineInsertedAParameterAheadOfExistingOnes()
+        {
+            var song = SaveSongWithBypassedEffect(".bmxml");
+
+            using var driver = LoadBmxmlSongWith(new ModifiedEffectInfo(BypassAttribute, ExtraDecl + Environment.NewLine + BypassAttribute), song);
+
+            AssertBypassStateWasRestored(driver);
+        }
+
+        private static Driver LoadBmxmlSongWith(ModifiedEffectInfo effect, byte[] song)
+        {
+            var driver = new Driver();
+            driver.Gear.AddDynamicEffect(effect);
+            driver.Start();
+
+            var songPath = driver.RandomSongPath(".bmxml");
+            File.WriteAllBytes(songPath.ToString(), song);
+            driver.DawCommands.LoadSong(DialogChoices.Select(songPath));
+            return driver;
+        }
+
+        /// <summary>
+        /// The saved value, pattern column and MIDI binding all belong to Bypass, and the new
+        /// parameter has its default value.
+        /// </summary>
+        private static void AssertBypassStateWasRestored(Driver driver)
+        {
+            driver.AssertNoErrorsReportedToUser();
+            GlobalParameterValue(driver, "Bypass").Should().Be(1);
+            GlobalParameterValue(driver, "Extra").Should().Be(ExtraDefault);
+            PatternNames(driver).Should().Equal(PatternName);
+
+            string[] columnParameters = [];
+            int[] columnValues = [];
+            string[] boundParameters = [];
+            driver.MachineGraph.ExecuteMachineCommand(new BuzzMachineCommand(EffectController.NewInstance().InstanceName, (buzz, machine) =>
+            {
+                var pattern = machine.Patterns.Single(p => p.Name == PatternName);
+                columnParameters = pattern.Columns.Select(c => c.Parameter.Name).ToArray();
+                columnValues = pattern.Columns.SelectMany(c => c.GetEvents(0, int.MaxValue)).Select(e => e.Value).ToArray();
+                boundParameters = buzz.MidiControllerAssignments.ContollerBindings
+                    .Where(b => b.Parameter.Group.Machine == machine && b.MidiChannel == MidiChannel && b.MidiController == MidiController)
+                    .Select(b => b.Parameter.Name).ToArray();
+            }));
+
+            columnParameters.Should().Equal("Bypass");
+            columnValues.Should().Equal(1);
+            boundParameters.Should().Equal("Bypass");
+        }
+
         /// <summary>
         /// Saves a song containing the unmodified Effect with Bypass set, and returns the file's bytes.
         /// The driver's test directory is removed on dispose, so the song is carried over in memory.
         /// </summary>
-        private static byte[] SaveSongWithBypassedEffect()
+        private static byte[] SaveSongWithBypassedEffect(string extension = ".bmx")
         {
             using var driver = new Driver();
             var controller = EffectController.NewInstance();
@@ -78,8 +147,20 @@ namespace ReBuzzTests
             driver.MachineGraph.ExecuteMachineCommand(new SetGlobalParameterCommand(controller, "Bypass", 1));
             driver.MachineGraph.ExecuteMachineCommand(new MachineCoreCommand(controller.InstanceName,
                 machine => machine.CreatePattern(PatternName, 16)));
+            if (extension == ".bmxml")
+            {
+                // A pattern column and a MIDI binding on Bypass, which .bmxml refers to by index
+                driver.MachineGraph.ExecuteMachineCommand(new BuzzMachineCommand(controller.InstanceName, (buzz, machine) =>
+                {
+                    var bypass = Bypass(machine);
+                    var pattern = machine.Patterns.Single(p => p.Name == PatternName);
+                    pattern.InsertColumn(0, bypass, 0);
+                    pattern.Columns[0].SetEvents([new PatternEvent(0, 1)], true);
+                    buzz.MidiControllerAssignments.BindParameter(bypass, 0, MidiChannel, MidiController);
+                }));
+            }
 
-            var songPath = driver.RandomSongPath();
+            var songPath = driver.RandomSongPath(extension);
             driver.DawCommands.SaveCurrentSongForTheFirstTime(DialogChoices.Select(songPath));
             driver.AssertNoErrorsReportedToUser();
 
@@ -103,6 +184,10 @@ namespace ReBuzzTests
             return names;
         }
 
+        private static ParameterCore Bypass(MachineCore machine) =>
+            machine.ParameterGroupsList.Single(g => g.Type == ParameterGroupType.Global)
+                .ParametersList.Single(p => p.Name == "Bypass");
+
         /// <summary>
         /// Runs an action on the song's machine instance with the given name.
         /// </summary>
@@ -111,6 +196,17 @@ namespace ReBuzzTests
             public void Execute(ReBuzzCore buzzCore, ReBuzzMachines machineCores)
             {
                 action(machineCores.GetSongCoreMachineInstance(instanceName));
+            }
+        }
+
+        /// <summary>
+        /// Runs an action on ReBuzz and the song's machine instance with the given name.
+        /// </summary>
+        private class BuzzMachineCommand(string instanceName, Action<ReBuzzCore, MachineCore> action) : ITestMachineInstanceCommand
+        {
+            public void Execute(ReBuzzCore buzzCore, ReBuzzMachines machineCores)
+            {
+                action(buzzCore, machineCores.GetSongCoreMachineInstance(instanceName));
             }
         }
 
