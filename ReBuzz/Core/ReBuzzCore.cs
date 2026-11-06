@@ -2262,8 +2262,8 @@ namespace ReBuzz.Core
 
         /// <summary>
         /// While set, the audio thread outputs silence instead of processing machines, and doesn't
-        /// take AudioLock. Set while a song file loads, so that the many short AudioLock sections of
-        /// the load don't each wait for the audio thread to finish processing a buffer.
+        /// take AudioLock. Set by BeginSongFileLoad, so that the many short AudioLock sections of a
+        /// song load don't each wait for the audio thread to finish processing a buffer.
         /// </summary>
         internal volatile bool AudioProcessingSuspended;
 
@@ -2440,6 +2440,32 @@ namespace ReBuzz.Core
             {
                 delayCompensationUpdatePending = false;
                 UpdateMachineDelayCompensation();
+            }
+        }
+
+        int songFileLoadDepth;
+
+        /// <summary>
+        /// Call around loading a song file, in any format. Until the matching EndSongFileLoad, the
+        /// audio thread outputs silence instead of processing machines, and delay compensation is
+        /// calculated once at the end instead of on every change.
+        /// </summary>
+        internal void BeginSongFileLoad()
+        {
+            songFileLoadDepth++;
+            AudioProcessingSuspended = true;
+            SuspendDelayCompensationUpdates();
+        }
+
+        internal void EndSongFileLoad()
+        {
+            // Calculate delay compensation while audio is still suspended, so its AudioLock
+            // sections don't wait for the audio thread either
+            ResumeDelayCompensationUpdates();
+            songFileLoadDepth--;
+            if (songFileLoadDepth == 0)
+            {
+                AudioProcessingSuspended = false;
             }
         }
 

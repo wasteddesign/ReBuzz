@@ -99,6 +99,19 @@ namespace ReBuzz.FileOps
 
         public void Load(BMXMLSong songData, float xOffset = 0, float yOffset = 0, bool import = false)
         {
+            buzz.BeginSongFileLoad();
+            try
+            {
+                LoadSongData(songData, xOffset, yOffset, import);
+            }
+            finally
+            {
+                buzz.EndSongFileLoad();
+            }
+        }
+
+        private void LoadSongData(BMXMLSong songData, float xOffset, float yOffset, bool import)
+        {
             subSections.Clear();
             // Initiate and move data from BMXMLSong to ReBuzz
 

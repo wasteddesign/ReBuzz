@@ -115,12 +115,7 @@ namespace ReBuzz.FileOps
             bool import = importAction != null;
             this.importAction = importAction;
             masterInputCount = 0;
-            // Machine properties, connections and other steps of the load each change the
-            // machine delay compensation. Calculate it once, after the whole song is loaded.
-            buzz.SuspendDelayCompensationUpdates();
-            // Patterns, sequences and other parts of the song are added under AudioLock, many
-            // thousands of times. Don't let each of them wait for the audio thread.
-            buzz.AudioProcessingSuspended = true;
+            buzz.BeginSongFileLoad();
             try
             {
                 Open(path, FileMode.Open);
@@ -180,8 +175,7 @@ namespace ReBuzz.FileOps
             }
             finally
             {
-                buzz.AudioProcessingSuspended = false;
-                buzz.ResumeDelayCompensationUpdates();
+                buzz.EndSongFileLoad();
             }
         }
 

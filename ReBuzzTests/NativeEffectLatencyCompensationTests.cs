@@ -4,6 +4,7 @@ using ReBuzz.Core;
 using ReBuzzTests.Automation;
 using ReBuzzTests.Automation.TestMachines;
 using ReBuzzTests.Automation.TestMachinesControllers;
+using System.Threading;
 
 namespace ReBuzzTests
 {
@@ -56,6 +57,19 @@ namespace ReBuzzTests
         [Test]
         public void CompensatesLatencyAfterLoadingASong()
         {
+            CompensatesLatencyAfterLoadingASongSavedAs(".bmx");
+        }
+
+        // Loading a .bmxml creates WPF objects, which need an STA thread
+        [Test]
+        [Apartment(ApartmentState.STA)]
+        public void CompensatesLatencyAfterLoadingABmxmlSong()
+        {
+            CompensatesLatencyAfterLoadingASongSavedAs(".bmxml");
+        }
+
+        private static void CompensatesLatencyAfterLoadingASongSavedAs(string extension)
+        {
             using var driver = new Driver();
             var nativeEffect1 = FakeNativeEffectController.NewInstance("e1");
             var nativeEffect2 = FakeNativeEffectController.NewInstance("e2");
@@ -69,7 +83,7 @@ namespace ReBuzzTests
 
             // The override is saved with the machine's properties. Delay compensation is
             // calculated once, after the whole song is loaded.
-            var songPath = driver.RandomSongPath();
+            var songPath = driver.RandomSongPath(extension);
             driver.DawCommands.SaveCurrentSongForTheFirstTime(DialogChoices.Select(songPath));
             driver.DawCommands.LoadSong(DialogChoices.Select(songPath));
 
