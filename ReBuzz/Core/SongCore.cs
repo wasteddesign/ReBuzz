@@ -253,7 +253,15 @@ namespace ReBuzz.Core
 
         List<MachineCore> machinesList = new List<MachineCore>();
         public List<MachineCore> MachinesList { get => machinesList; set => machinesList = value; }
-        public ReadOnlyCollection<IMachine> Machines { get => machinesList.Where(m => !m.Hidden && m.Ready).Cast<IMachine>().ToReadOnlyCollection(); }
+        // machinesList is only changed under ReBuzzCore.AudioLock, but this getter is also called
+        // without it: from the MIDI input thread (SendMIDIInput), from managed machines on the MIDI
+        // and audio threads, and from machines' own UI threads. Enumerating the live List there
+        // throws InvalidOperationException (Collection was modified) when a machine is added at the
+        // same moment, e.g. while a song is loading and the controller sends a CC.
+        // List<T>.ToArray copies by index with no version check, so it cannot throw; the list never
+        // shrinks its backing array, so the copy stays in bounds. The null check covers a slot a
+        // racing Remove has just cleared.
+        public ReadOnlyCollection<IMachine> Machines { get => machinesList.ToArray().Where(m => m != null && !m.Hidden && m.Ready).Cast<IMachine>().ToReadOnlyCollection(); }
 
         public bool CanUndo { get => ActionStack.CanUndo; }
 
