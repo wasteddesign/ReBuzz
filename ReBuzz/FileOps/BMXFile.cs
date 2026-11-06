@@ -699,10 +699,18 @@ namespace ReBuzz.FileOps
         /// </summary>
         internal static int[] MatchSavedParameters(IList<ParameterCore> current, IList<ParameterCore> saved)
         {
+            return MatchSavedParameters(current.Select(p => p.Name).ToList(), saved.Select(p => p.Name).ToList());
+        }
+
+        /// <summary>
+        /// The same matching on parameter names, for loaders that keep the saved layout as names only.
+        /// </summary>
+        internal static int[] MatchSavedParameters(IList<string> current, IList<string> saved)
+        {
             var savedByName = new Dictionary<string, List<int>>();
             for (int i = 0; i < saved.Count; i++)
             {
-                string key = saved[i].Name ?? "";
+                string key = saved[i] ?? "";
                 if (!savedByName.TryGetValue(key, out var list))
                 {
                     list = new List<int>();
@@ -710,13 +718,13 @@ namespace ReBuzz.FileOps
                 }
                 list.Add(i);
             }
-            var currentNames = new HashSet<string>(current.Select(p => p.Name ?? ""));
+            var currentNames = new HashSet<string>(current.Select(name => name ?? ""));
             var used = new Dictionary<string, int>();
             var map = new int[current.Count];
 
             for (int i = 0; i < current.Count; i++)
             {
-                string key = current[i].Name ?? "";
+                string key = current[i] ?? "";
                 used.TryGetValue(key, out int n);
                 used[key] = n + 1;
 
@@ -724,7 +732,7 @@ namespace ReBuzz.FileOps
                 {
                     map[i] = candidates[n];
                 }
-                else if (i < saved.Count && !currentNames.Contains(saved[i].Name ?? ""))
+                else if (i < saved.Count && !currentNames.Contains(saved[i] ?? ""))
                 {
                     map[i] = i;
                 }
