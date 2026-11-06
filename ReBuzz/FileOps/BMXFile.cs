@@ -8,6 +8,7 @@ using ReBuzz.Core;
 using ReBuzz.Core.Actions.GraphActions;
 using ReBuzz.MachineManagement;
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
@@ -114,7 +115,8 @@ namespace ReBuzz.FileOps
             bool import = importAction != null;
             this.importAction = importAction;
             masterInputCount = 0;
-            //lock (ReBuzzCore.AudioLock)
+            buzz.BeginSongFileLoad();
+            try
             {
                 Open(path, FileMode.Open);
 
@@ -171,6 +173,10 @@ namespace ReBuzz.FileOps
 
                 EndFileOperation(import);
             }
+            finally
+            {
+                buzz.EndSongFileLoad();
+            }
         }
 
         void FileOpsEvent(FileEventType type, string text, object o = null)
@@ -181,7 +187,15 @@ namespace ReBuzz.FileOps
 
         public void Open(string path, FileMode mode)
         {
-            fs = new FileStream(path, mode, mode == FileMode.Create ? FileAccess.Write : FileAccess.Read, mode == FileMode.Create ? FileShare.Write : FileShare.Read);
+            if (mode == FileMode.Create)
+            {
+                fs = new FileStream(path, mode, FileAccess.Write, FileShare.Write);
+            }
+            else
+            {
+                // Song files are mostly read front to back in small pieces
+                fs = new FileStream(path, mode, FileAccess.Read, FileShare.Read, 64 * 1024, FileOptions.SequentialScan);
+            }
             FileOpsEvent(FileEventType.Open, path);
         }
 
@@ -921,6 +935,13 @@ namespace ReBuzz.FileOps
                     ushort patterns = ReadUShort(fs);
                     ushort tracks = ReadUShort(fs);
 
+                    // Pattern data is only used to convert patterns of the built in editor. Machines whose
+                    // patterns belong to a pattern editor machine only need the pattern names and rows.
+                    bool usesBuiltInEditor = builtInPeDictionary.ContainsKey(machine.Name);
+
+                    // Pattern data is stored in the parameter layout saved in the song
+                    var savedLayout = savedParameterLayouts.TryGetValue(machine, out var proto) ? proto : machine;
+
                     // Use this to convert built in pattern editor data to PXP
                     MemoryStream msConvertToPXP = new MemoryStream();
                     WriteByte(msConvertToPXP, 3);                               // Write PXP Version
@@ -934,8 +955,11 @@ namespace ReBuzz.FileOps
                         // We only use name and rows for non-built in editors. Read other stuff from the file to convert to PXP
                         patternsAndRows.Add(new Tuple<string, int>(name, rows));
 
-                        WriteString(msConvertToPXP, name);                      // Write pattern name
-                        WriteInt(msConvertToPXP, 4);                            // Write rows per beat
+                        if (usesBuiltInEditor)
+                        {
+                            WriteString(msConvertToPXP, name);                  // Write pattern name
+                            WriteInt(msConvertToPXP, 4);                        // Write rows per beat
+                        }
 
                         // ----
                         // Rest of the code used by built in buzz PE. We convert the data to PXP format
@@ -991,11 +1015,15 @@ namespace ReBuzz.FileOps
                             }
                         }
 
-                        int numberOfColumns = machine.ParameterGroups[1].Parameters.Count + machine.ParameterGroups[2].Parameters.Count * tracks;
-                        WriteInt(msConvertToPXP, numberOfColumns);              // Write number of columns (global + tracks)
+                        if (!usesBuiltInEditor)
+                        {
+                            // Skip the global and track data without decoding it
+                            fs.Seek(GetPatternDataSize(savedLayout, tracks, rows), SeekOrigin.Current);
+                            continue;
+                        }
 
-                        // Pattern data is stored in the parameter layout saved in the song
-                        var savedLayout = savedParameterLayouts.TryGetValue(machine, out var proto) ? proto : machine;
+                        int numberOfColumns = machine.ParameterGroupsList[1].ParametersList.Count + machine.ParameterGroupsList[2].ParametersList.Count * tracks;
+                        WriteInt(msConvertToPXP, numberOfColumns);              // Write number of columns (global + tracks)
 
                         // Global
                         ReadTrack(machine, savedLayout, 1, 0, rows, msConvertToPXP);
@@ -1023,7 +1051,7 @@ namespace ReBuzz.FileOps
                     }
 
                     // Does machine use built in editor?
-                    if (builtInPeDictionary.ContainsKey(machine.Name) && patterns > 0)
+                    if (usesBuiltInEditor && patterns > 0)
                     {
                         byte[] data = msConvertToPXP.ToArray();
                         // Create PXP compatible editor and input converted data
@@ -1033,6 +1061,16 @@ namespace ReBuzz.FileOps
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Size in bytes of the global and track data of one pattern, as read by ReadTrack.
+        /// </summary>
+        private static long GetPatternDataSize(MachineCore savedLayout, int tracks, int rows)
+        {
+            int globalRowSize = savedLayout.ParameterGroupsList[1].ParametersList.Sum(p => p.GetTypeSize());
+            int trackRowSize = savedLayout.ParameterGroupsList[2].ParametersList.Sum(p => p.GetTypeSize());
+            return (long)rows * (globalRowSize + (long)tracks * trackRowSize);
         }
 
         private bool ReadTrack(MachineCore machine, MachineCore savedLayout, int group, int track, int rows, MemoryStream msConvertToPXP)
@@ -1076,7 +1114,7 @@ namespace ReBuzz.FileOps
             }
 
             // Convert to PXP data
-            int index = group == 1 ? 0 : machine.ParameterGroups[1].Parameters.Count;
+            int index = group == 1 ? 0 : machine.ParameterGroupsList[1].ParametersList.Count;
             for (int i = 0; i < columnCount; i++)
             {
                 WriteString(msConvertToPXP, machine.Name);              // Name
@@ -2226,29 +2264,30 @@ namespace ReBuzz.FileOps
         private bool WriteTrack(MemoryStream ms, MachineCore machine, PatternCore Pattern, int group, int track, int rows)
         {
             // We don't use these so write no values
+            byte[] noValueRow = GetNoValueRow(machine.ParameterGroupsList[group].ParametersList);
             for (int i = 0; i < rows; i++)
             {
-                List<PatternEvent> events = new List<PatternEvent>();
-                for (int j = 0; j < machine.ParameterGroups[group].Parameters.Count; j++)
-                {
-                    ParameterCore param = machine.ParameterGroupsList[group].ParametersList[j];
-
-                    //int value = 0;
-                    int typeSize = param.GetTypeSize();
-                    if (typeSize == 1)
-                        WriteByte(ms, (byte)param.NoValue);
-                    else if (typeSize == 2)
-                        WriteUShort(ms, (ushort)param.NoValue);
-
-                    //if (value != param.NoValue)
-                    //    events.Add(new PatternEvent(i * PatternEvent.TimeBase, value));
-                    //if (result != 0 && value != zzub_parameter_get_value_none(param))
-                    //    insert_pattern_value(result, plugin.plugin, group, track, j, i, value);
-
-                }
+                ms.Write(noValueRow, 0, noValueRow.Length);
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// One pattern row of the given parameters with every value set to NoValue, as stored in the PATT section.
+        /// </summary>
+        private static byte[] GetNoValueRow(List<ParameterCore> parameters)
+        {
+            MemoryStream row = new MemoryStream();
+            foreach (ParameterCore param in parameters)
+            {
+                int typeSize = param.GetTypeSize();
+                if (typeSize == 1)
+                    WriteByte(row, (byte)param.NoValue);
+                else if (typeSize == 2)
+                    WriteUShort(row, (ushort)param.NoValue);
+            }
+            return row.ToArray();
         }
 
         public void CreateXPATSection()
@@ -2736,50 +2775,52 @@ namespace ReBuzz.FileOps
 
         public static int ReadInt(FileStream fs)
         {
-            byte[] buffer = new byte[sizeof(int)];
+            Span<byte> buffer = stackalloc byte[sizeof(int)];
 
             fs.ReadExactly(buffer);
-            return BitConverter.ToInt32(buffer, 0);
+            return BinaryPrimitives.ReadInt32LittleEndian(buffer);
         }
 
         public static uint ReadUInt(FileStream fs)
         {
-            byte[] buffer = new byte[sizeof(int)];
+            Span<byte> buffer = stackalloc byte[sizeof(uint)];
 
             fs.ReadExactly(buffer);
-            return BitConverter.ToUInt32(buffer, 0);
+            return BinaryPrimitives.ReadUInt32LittleEndian(buffer);
         }
 
         public static ushort ReadUShort(FileStream fs)
         {
-            byte[] buffer = new byte[sizeof(ushort)];
+            Span<byte> buffer = stackalloc byte[sizeof(ushort)];
 
             fs.ReadExactly(buffer);
-            return BitConverter.ToUInt16(buffer, 0);
+            return BinaryPrimitives.ReadUInt16LittleEndian(buffer);
         }
 
         public static float ReadFloat(FileStream fs)
         {
-            byte[] buffer = new byte[sizeof(float)];
+            Span<byte> buffer = stackalloc byte[sizeof(float)];
 
             fs.ReadExactly(buffer);
-            return BitConverter.ToSingle(buffer, 0);
+            return BinaryPrimitives.ReadSingleLittleEndian(buffer);
         }
 
         public static byte ReadByte(FileStream fs)
         {
-            byte[] buffer = new byte[sizeof(byte)];
-
-            fs.ReadExactly(buffer);
-            return buffer[0];
+            int value = fs.ReadByte();
+            if (value == -1)
+            {
+                throw new EndOfStreamException();
+            }
+            return (byte)value;
         }
 
         public static ulong ReadULong(FileStream fs)
         {
-            byte[] buffer = new byte[sizeof(ulong)];
+            Span<byte> buffer = stackalloc byte[sizeof(ulong)];
 
             fs.ReadExactly(buffer);
-            return BitConverter.ToUInt64(buffer, 0);
+            return BinaryPrimitives.ReadUInt64LittleEndian(buffer);
         }
 
         public static ulong ReadVal(FileStream fs, int size)
@@ -2799,25 +2840,22 @@ namespace ReBuzz.FileOps
             }
         }
 
+        /// <summary>
+        /// Reads a zero terminated string, one byte per character. Returns null at the end of the stream.
+        /// </summary>
         public static string ReadString(FileStream fs)
         {
-            string ret = "";
+            StringBuilder sb = new StringBuilder();
 
-            do
+            while (true)
             {
-                char c = (char)fs.ReadByte();
+                int c = fs.ReadByte();
                 if (c == 0)
-                    break;
+                    return sb.ToString();
                 else if (c == -1)
-                {
-                    ret = null;
-                    break;
-                }
-                else
-                    ret += c;
-            } while (true);
-
-            return ret;
+                    return null;
+                sb.Append((char)c);
+            }
         }
 
         public static byte[] ReadBytes(FileStream fs, int length)

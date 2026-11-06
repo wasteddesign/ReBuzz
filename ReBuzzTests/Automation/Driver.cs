@@ -249,8 +249,8 @@ namespace ReBuzzTests.Automation
             reBuzzMachines = new ReBuzzMachines(reBuzzCore);
         }
 
-        public AbsoluteFilePath RandomSongPath() => 
-            SongsDir.AddFileName($"{Guid.NewGuid():N}.bmx");
+        public AbsoluteFilePath RandomSongPath(string extension = ".bmx") =>
+            SongsDir.AddFileName($"{Guid.NewGuid():N}{extension}");
 
         public void NewFile()
         {

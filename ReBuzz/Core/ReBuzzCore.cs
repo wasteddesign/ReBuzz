@@ -2259,6 +2259,14 @@ namespace ReBuzz.Core
 
         string infoText;
         private bool masterLoading;
+
+        /// <summary>
+        /// While set, the audio thread outputs silence instead of processing machines, and doesn't
+        /// take AudioLock. Set by BeginSongFileLoad, so that the many short AudioLock sections of a
+        /// song load don't each wait for the audio thread to finish processing a buffer.
+        /// </summary>
+        internal volatile bool AudioProcessingSuspended;
+
         internal readonly string registryRoot;
         private readonly GeneralSettings generalSettings;
         private readonly EngineSettings engineSettings;
@@ -2402,13 +2410,74 @@ namespace ReBuzz.Core
         }
 
         internal int totalLatency = 0;
+        int delayCompensationSuspendCount;
+        bool delayCompensationUpdatePending;
+
         internal void UpdateMachineDelayCompensation()
         {
-            totalLatency = HandleLatencyCalcRecursive(songCore.Machines[0] as MachineCore);
+            if (delayCompensationSuspendCount > 0)
+            {
+                delayCompensationUpdatePending = true;
+                return;
+            }
+
+            totalLatency = HandleLatencyCalcRecursive(songCore.Machines[0] as MachineCore, new Dictionary<MachineCore, int>());
         }
 
-        internal int HandleLatencyCalcRecursive(MachineCore machine)
+        /// <summary>
+        /// Defers UpdateMachineDelayCompensation until the matching ResumeDelayCompensationUpdates call,
+        /// so that operations changing many machines, such as loading a song, update it only once.
+        /// </summary>
+        internal void SuspendDelayCompensationUpdates()
         {
+            delayCompensationSuspendCount++;
+        }
+
+        internal void ResumeDelayCompensationUpdates()
+        {
+            delayCompensationSuspendCount--;
+            if (delayCompensationSuspendCount == 0 && delayCompensationUpdatePending)
+            {
+                delayCompensationUpdatePending = false;
+                UpdateMachineDelayCompensation();
+            }
+        }
+
+        int songFileLoadDepth;
+
+        /// <summary>
+        /// Call around loading a song file, in any format. Until the matching EndSongFileLoad, the
+        /// audio thread outputs silence instead of processing machines, and delay compensation is
+        /// calculated once at the end instead of on every change.
+        /// </summary>
+        internal void BeginSongFileLoad()
+        {
+            songFileLoadDepth++;
+            AudioProcessingSuspended = true;
+            SuspendDelayCompensationUpdates();
+        }
+
+        internal void EndSongFileLoad()
+        {
+            // Calculate delay compensation while audio is still suspended, so its AudioLock
+            // sections don't wait for the audio thread either
+            ResumeDelayCompensationUpdates();
+            songFileLoadDepth--;
+            if (songFileLoadDepth == 0)
+            {
+                AudioProcessingSuspended = false;
+            }
+        }
+
+        // Machines reachable from Master along several paths are calculated once. Their latency
+        // doesn't depend on the path, and their input connections only need to be updated once.
+        private int HandleLatencyCalcRecursive(MachineCore machine, Dictionary<MachineCore, int> calculatedLatency)
+        {
+            if (calculatedLatency.TryGetValue(machine, out int latency))
+            {
+                return latency;
+            }
+
             int maxLatency = 0;
             Dictionary<MachineCore, int> inputMachineLatency = new Dictionary<MachineCore, int>();
 
@@ -2416,7 +2485,7 @@ namespace ReBuzz.Core
             foreach (var input in machine.Inputs)
             {
                 var sourceMachine = input.Source as MachineCore;
-                int cumulativeInputLatency = HandleLatencyCalcRecursive(sourceMachine);
+                int cumulativeInputLatency = HandleLatencyCalcRecursive(sourceMachine, calculatedLatency);
                 maxLatency = Math.Max(cumulativeInputLatency, maxLatency);
                 inputMachineLatency[sourceMachine] = cumulativeInputLatency;
             }
@@ -2440,7 +2509,9 @@ namespace ReBuzz.Core
             if (machine.IsBypassed)
                 machineLatency = 0;
 
-            return engineSettings.MachineDelayCompensation ? maxLatency + machineLatency : 0;
+            latency = engineSettings.MachineDelayCompensation ? maxLatency + machineLatency : 0;
+            calculatedLatency[machine] = latency;
+            return latency;
         }
 
         public string GetInfoText()
