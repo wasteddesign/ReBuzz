@@ -327,7 +327,9 @@ namespace ReBuzz.Core
             {
                 WaveFormat format = Format;
                 int num = ((format == WaveFormat.Float32) ? 32 : ((format == WaveFormat.Int32) ? 32 : ((format != WaveFormat.Int24) ? 16 : 24)));
-                return num / 8 * iCount / 2 + 4;
+                // Round up, as WavetableCore.AllocateWave does, so AdjustSampleCount gives iCount back.
+                // Rounding down lost the last sample of an odd-length Int24 layer on every load.
+                return (num / 8 * iCount + 1) / 2 + 4;
             }
             return iCount;
         }
