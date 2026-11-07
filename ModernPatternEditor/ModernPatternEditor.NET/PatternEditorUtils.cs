@@ -346,6 +346,21 @@ namespace WDE.ModernPatternEditor
             {
                 ret = MPEInternalParameter.GetInternalParameter(machine, InternalParameter.MidiCC);
             }
+            else if (paramIndex >= 0 && machine is ISavedParameterLayout savedLayout && savedLayout.SavedGlobalParameterCount >= 0)
+            {
+                // The index was saved with the machine's parameter layout at the time (globals first, then
+                // track parameters). A newer version of the machine may have added, removed or reordered
+                // parameters, so let the host map the saved parameter to the current one.
+                int savedGlobalCount = savedLayout.SavedGlobalParameterCount;
+                if (paramIndex < savedGlobalCount && paramTrack == 0)
+                {
+                    ret = savedLayout.GetCurrentParameter(1, paramIndex);
+                }
+                else
+                {
+                    ret = savedLayout.GetCurrentParameter(2, paramIndex - savedGlobalCount);
+                }
+            }
             else if (paramIndex >= 0)
             {
                 int group0ParamsCount = machine.ParameterGroups[0].Parameters.Count;
@@ -360,7 +375,7 @@ namespace WDE.ModernPatternEditor
                 else
                 {   
                     int index = paramIndex - group1ParamsCount;
-                    if (index < machine.ParameterGroups[2].Parameters.Count)
+                    if (index >= 0 && index < machine.ParameterGroups[2].Parameters.Count)
                     {
                         ret = machine.ParameterGroups[2].Parameters[index];
                     }

@@ -488,9 +488,6 @@ namespace ReBuzz.FileOps
                     // Ignore?: Don't call Init for native machines yet. Wait until all machines are loaded and then call init. Control machines might need machine info.
                     var machineNew = buzz.MachineManager.CreateMachine(machineDLL.Name, machineDLL.Path, null, data, tracks, x, y, machineProto.Hidden, name, false);
 
-                    // Saved machine parameter count/indexes might be a different from the machine that is currently available for ReBuzz. Create parameter mappings
-                    RemapLoadedMachineParameterIndex(machineNew, machineProto);
-
                     if (!machineNew.DLL.IsManaged)
                     {
                         dictInitData[machineNew] = new MachineInitData() { data = data, tracks = tracks };
@@ -527,6 +524,12 @@ namespace ReBuzz.FileOps
                     if (machineProto.ParameterGroupsList.Count > 2)
                     {
                         savedParameterLayouts[machineNew] = machineProto;
+
+                        // Keep the saved layout, so data that refers to parameters by index (e.g. pattern editor data) can be mapped
+                        if (!machineNew.DLL.IsMissing && !machineNew.DLL.IsCrashed)
+                        {
+                            machineNew.savedParameterLayout = SavedParameterLayout.FromSavedMachine(machineNew, machineProto);
+                        }
                     }
 
                     if (import)
@@ -626,35 +629,6 @@ namespace ReBuzz.FileOps
             }
         }
 
-        private void RemapLoadedMachineParameterIndex(MachineCore machine, MachineCore savedMachine)
-        {
-            Dictionary<int, int> paramMappings = new Dictionary<int, int>();
-
-            var machineParameters = machine.AllParameters().ToArray();
-            var savedParameters = savedMachine.AllParameters().ToArray();
-
-            for (int i = 0; i < savedParameters.Length; i++)
-            {
-                bool found = false;
-                for (int j = 0; j < machineParameters.Length; j++)
-                {
-                    if (savedParameters[i].Name == machineParameters[j].Name)
-                    {
-                        paramMappings[i] = j;
-                        found = true;
-                        break;
-                    }
-                }
-
-                if (!found)
-                {
-                    // Machine loaded into ReBuzz does not have the same param
-                    paramMappings[i] = -1;
-                }
-            }
-
-            machine.remappedLoadedMachineParameterIndexes = paramMappings;
-        }
         internal static void CopyAttributes(MachineCore machineFrom, MachineCore machineTo)
         {
             var aFrom = machineFrom.AttributesList;

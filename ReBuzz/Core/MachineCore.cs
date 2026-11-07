@@ -29,7 +29,7 @@ using System.Windows.Threading;
 
 namespace ReBuzz.Core
 {
-    public class MachineCore : IMachine, IMachineExtension
+    public class MachineCore : IMachine, IMachineExtension, ISavedParameterLayout
     {
         public static long machineHostId = 1;
         public readonly Lock workLock = new();
@@ -204,6 +204,25 @@ namespace ReBuzz.Core
         List<ParameterGroup> parameterGroups;
         public ReadOnlyCollection<IParameterGroup> ParameterGroups { get => parameterGroups.Cast<IParameterGroup>().ToReadOnlyCollection(); }
         internal List<ParameterGroup> ParameterGroupsList { get => parameterGroups; set => parameterGroups = value; }
+
+        /// <summary>
+        /// The parameter layout saved in the song this machine was loaded from, or null.
+        /// </summary>
+        internal SavedParameterLayout savedParameterLayout;
+
+        public int SavedGlobalParameterCount => savedParameterLayout?.SavedGlobalParameterCount ?? -1;
+
+        public IParameter GetCurrentParameter(int group, int savedIndexInGroup)
+        {
+            if (group < 0 || group >= ParameterGroupsList.Count)
+                return null;
+
+            // Without a saved layout (not loaded from a song, or missing or crashed) the index is used as it is
+            int index = savedParameterLayout != null ? savedParameterLayout.CurrentIndex(group, savedIndexInGroup) : savedIndexInGroup;
+
+            var parameters = ParameterGroupsList[group].ParametersList;
+            return index >= 0 && index < parameters.Count ? parameters[index] : null;
+        }
 
         List<AttributeCore> attributes = new List<AttributeCore>();
         public ReadOnlyCollection<IAttribute> Attributes { get => attributes.Cast<IAttribute>().ToReadOnlyCollection(); }
@@ -1426,7 +1445,6 @@ namespace ReBuzz.Core
         internal bool updateWaveInfo;
         internal long performanceLastCount;
         internal long performanceBranchCount;
-        internal Dictionary<int, int> remappedLoadedMachineParameterIndexes;
         internal IMachineGUI gui;
         internal int oversampleFactorOnTick = 1;    // Changes value on Tick
         private readonly string buzzPath;
