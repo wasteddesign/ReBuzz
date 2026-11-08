@@ -44,8 +44,12 @@ namespace WDE.ModernPatternEditor
         {
             PatternEditorUtils.MachineNameMap = machineNameMap;
 
-            // Redo everyting for this machine in case machine names have been changed after import
-            
+            // Redo everyting for this machine in case machine names have been changed after import.
+            // Not needed if the editor read its data with the same machine names, as when opening a song:
+            // relinking would read all of it again and rebuild every pattern view.
+            if (ModernPatternEditor.IsLinkedWithMachineNameMap(machineNameMap))
+                return;
+
             var currentMachine = ModernPatternEditor.TargetMachine;
             if (currentMachine != null)
             {

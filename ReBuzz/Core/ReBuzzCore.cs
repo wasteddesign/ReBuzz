@@ -2444,6 +2444,22 @@ namespace ReBuzz.Core
         }
 
         int songFileLoadDepth;
+        PatternCore patternToShowAfterSongFileLoad;
+
+        /// <summary>
+        /// True between BeginSongFileLoad and the matching EndSongFileLoad.
+        /// </summary>
+        internal bool IsLoadingSongFile => songFileLoadDepth > 0;
+
+        /// <summary>
+        /// While a song file loads, patterns aren't shown in the pattern editor as they are created. Each
+        /// shown pattern makes the editor rebuild its view, and the loaders link every editor to its machine
+        /// once at the end. The last created pattern is shown when loading ends, as it was before.
+        /// </summary>
+        internal void DeferShowingPatternUntilSongFileLoaded(PatternCore pattern)
+        {
+            patternToShowAfterSongFileLoad = pattern;
+        }
 
         /// <summary>
         /// Call around loading a song file, in any format. Until the matching EndSongFileLoad, the
@@ -2466,6 +2482,13 @@ namespace ReBuzz.Core
             if (songFileLoadDepth == 0)
             {
                 AudioProcessingSuspended = false;
+
+                var pattern = patternToShowAfterSongFileLoad;
+                patternToShowAfterSongFileLoad = null;
+                if (pattern != null && SongCore.MachinesList.Contains(pattern.Machine as MachineCore) && pattern.Machine.Patterns.Contains(pattern))
+                {
+                    SetPatternEditorPattern(pattern);
+                }
             }
         }
 

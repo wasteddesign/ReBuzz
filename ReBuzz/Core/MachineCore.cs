@@ -591,7 +591,14 @@ namespace ReBuzz.Core
             }
             PatternAdded?.Invoke(pc);
             PropertyChanged.Raise(this, "Patterns");
-            graph.Buzz.SetPatternEditorPattern(pc);
+            if (graph.Buzz is ReBuzzCore buzz && buzz.IsLoadingSongFile)
+            {
+                buzz.DeferShowingPatternUntilSongFileLoaded(pc);
+            }
+            else
+            {
+                graph.Buzz.SetPatternEditorPattern(pc);
+            }
             graph.Buzz.SetModifiedFlag();
         }
 
