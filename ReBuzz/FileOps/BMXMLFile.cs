@@ -539,21 +539,36 @@ namespace ReBuzz.FileOps
                         var layer = layers[i];
                         WaveLayerCore waveLayer = wave.LayersList[i];
 
-                        // Convert byte [] to float [] and copy to ReBuzz
-                        waveLayer.Init(waveLayer.Path, waveLayer.Format, waveLayer.RootNote, waveLayer.ChannelCount == 2, waveLayer.SampleCount);
+                        // Convert byte [] to float [] and copy to ReBuzz.
+                        // Init takes the 16-bit size (SampleCount16Bit), as in BMXFile. Passing SampleCount
+                        // shrank every non-Int16 layer on each load (about half each time) until it went
+                        // negative and loading or saving the song threw an OverflowException.
+                        waveLayer.Init(waveLayer.Path, waveLayer.Format, waveLayer.RootNote, waveLayer.ChannelCount == 2, waveLayer.SampleCount16Bit);
 
-                        float[] floatBuffer = new float[waveLayer.SampleCount * waveLayer.ChannelCount];
-                        Buffer.BlockCopy(layer.Samples, 0, floatBuffer, 0, waveLayer.SampleCount * waveLayer.ChannelCount * sizeof(float));
+                        // Songs damaged by that bug can hold fewer samples than SampleCount says, or none.
+                        int sampleCount = Math.Max(0, waveLayer.SampleCount);
+                        int savedSampleCount = (layer.Samples?.Length ?? 0) / (waveLayer.ChannelCount * sizeof(float));
+                        sampleCount = Math.Min(sampleCount, savedSampleCount);
+
+                        float[] floatBuffer = new float[sampleCount * waveLayer.ChannelCount];
+                        if (sampleCount > 0)
+                            Buffer.BlockCopy(layer.Samples, 0, floatBuffer, 0, sampleCount * waveLayer.ChannelCount * sizeof(float));
                         DSP.Scale(floatBuffer, 1 / 32768.0f);
                         if (waveLayer.ChannelCount == 1)
                         {
-                            waveLayer.SetDataAsFloat(floatBuffer, 0, 1, 0, 0, waveLayer.SampleCount);
+                            waveLayer.SetDataAsFloat(floatBuffer, 0, 1, 0, 0, sampleCount);
                         }
                         if (waveLayer.ChannelCount == 2)
                         {
-                            waveLayer.SetDataAsFloat(floatBuffer, 0, 2, 0, 0, waveLayer.SampleCount);
-                            waveLayer.SetDataAsFloat(floatBuffer, 1, 2, 1, 0, waveLayer.SampleCount);
+                            waveLayer.SetDataAsFloat(floatBuffer, 0, 2, 0, 0, sampleCount);
+                            waveLayer.SetDataAsFloat(floatBuffer, 1, 2, 1, 0, sampleCount);
                         }
+
+                        // Keep loop points inside the samples that were actually loaded.
+                        if (waveLayer.LoopEnd > waveLayer.SampleCount)
+                            waveLayer.LoopEnd = Math.Max(0, waveLayer.SampleCount);
+                        if (waveLayer.LoopStart > waveLayer.LoopEnd)
+                            waveLayer.LoopStart = 0;
                         wave.Invalidate();
                     }
                 }
@@ -1098,9 +1113,12 @@ namespace ReBuzz.FileOps
                         layer.Format = l.Format;
                         layer.SampleCount = l.SampleCount;
                         layer.SampleRate = l.SampleRate;
-                        layer.Samples = new byte[l.SampleCount * l.ChannelCount * sizeof(float)];
+                        // A layer damaged by the old load bug can report a negative count; save it empty.
+                        int layerSampleCount = Math.Max(0, l.SampleCount);
+                        layer.SampleCount = layerSampleCount;
+                        layer.Samples = new byte[layerSampleCount * l.ChannelCount * sizeof(float)];
 
-                        int totalSamplesLeft = l.SampleCount;
+                        int totalSamplesLeft = layerSampleCount;
                         int readOffset = 0;
                         while (totalSamplesLeft > 0)
                         {
