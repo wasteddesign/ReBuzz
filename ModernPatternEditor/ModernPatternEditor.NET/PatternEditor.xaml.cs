@@ -687,6 +687,7 @@ namespace WDE.ModernPatternEditor
                 SelectedMachine.Machine = null;
             SelectedMachine = null;
             TargetMachine = null;
+            patternEditorData = null;
             //machines.Clear();
             Song = null;
             Global.GeneralSettings.PropertyChanged -= GeneralSettings_PropertyChanged;
@@ -777,6 +778,7 @@ namespace WDE.ModernPatternEditor
                 if (TargetMachine == null)
                 {
                     TargetMachine = machine;
+                    linkMachineNameMap = PatternEditorUtils.MachineNameMap != null ? new Dictionary<string, string>(PatternEditorUtils.MachineNameMap) : null;
 
                     MPEPatternsDB.Machine = TargetMachine;
 
@@ -826,6 +828,26 @@ namespace WDE.ModernPatternEditor
         }
 
         byte[] patternEditorData;
+
+        // The machine name map in effect when the editor was linked to its machine and read its data
+        Dictionary<string, string> linkMachineNameMap;
+
+        /// <summary>
+        /// True if the editor is linked to its machine and read its data with the same machine names
+        /// as in the given map, so relinking would produce the same patterns.
+        /// </summary>
+        internal bool IsLinkedWithMachineNameMap(IDictionary<string, string> machineNameMap)
+        {
+            if (TargetMachine == null)
+                return false;
+
+            int linkCount = linkMachineNameMap?.Count ?? 0;
+            int count = machineNameMap?.Count ?? 0;
+            if (linkCount != count)
+                return false;
+
+            return count == 0 || machineNameMap.All(kv => linkMachineNameMap.TryGetValue(kv.Key, out var name) && name == kv.Value);
+        }
         // From native
         public void SetPatternEditorData(byte[] data)
         {
@@ -843,6 +865,11 @@ namespace WDE.ModernPatternEditor
         // From native
         public byte[] GetPatternEditorData()
         {
+            // Not linked to its machine yet, as while a song loads: nothing has been edited, so the data
+            // it was given is still current. The pattern database is still empty at this point.
+            if (TargetMachine == null && patternEditorData != null)
+                return patternEditorData;
+
             if (Settings.PXPDataFormat)
                 return PatternEditorUtils.CreatePatternXPPatternData(MPEPatternsDB.GetPatterns());
             else
