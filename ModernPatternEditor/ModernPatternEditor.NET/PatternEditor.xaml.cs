@@ -789,11 +789,8 @@ namespace WDE.ModernPatternEditor
                         }
                     }
 
-                    if (MPEPatternsDB.GetPatterns().Count() == 0 && TargetMachine.Patterns.Count() > 0)
-                    {
-                        // Code never goes here?
-                        MPEPatternsDB.AddPattern(TargetMachine.Patterns[0]);
-                    }
+                    // Patterns created before the editor was linked, and not in the saved data
+                    MPEPatternsDB.AddMissingPatterns();
 
                     if (SelectedMachine == null)
                         SelectedMachine = new MachineVM(this) { Machine = TargetMachine };

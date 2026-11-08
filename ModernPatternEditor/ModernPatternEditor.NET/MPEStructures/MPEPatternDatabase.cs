@@ -165,6 +165,17 @@ namespace WDE.ModernPatternEditor.MPEStructures
             }
         }
 
+        internal void AddMissingPatterns()
+        {
+            foreach (var pattern in machine.Patterns)
+            {
+                if (!PatternToMPEPattern.ContainsKey(pattern.Name))
+                {
+                    AddPattern(pattern);
+                }
+            }
+        }
+
         internal IEnumerable<MPEPattern> GetPatterns()
         {
             return MPEPatternList;
