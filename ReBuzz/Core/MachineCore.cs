@@ -621,7 +621,7 @@ namespace ReBuzz.Core
                         if (e.Value.Pattern == p)
                         {
                             seqChanged = true;
-                            seq.EventsList.Remove(e.Key);
+                            seq.RemoveEventAt(e.Key);
                         }
                     }
                     if (seqChanged)

@@ -463,10 +463,13 @@ namespace ReBuzz.Audio
                         }
                     }
 
-                    foreach (var e in seq.EventsList)
+                    // Index loop over the cached snapshot: enumerating the red-black
+                    // tree here allocated iterator objects on every chunk.
+                    var events = seq.EventsSnapshot;
+                    for (int i = 0; i < events.Length; i++)
                     {
-                        int eventTime = e.Key;
-                        var seqEvent = e.Value;
+                        int eventTime = events[i].Key;
+                        var seqEvent = events[i].Value;
                         var pc = (seqEvent.Pattern as PatternCore);
 
                         if (songPlayPosition >= eventTime && songPlayPosition < eventTime + seqEvent.Span)
@@ -571,9 +574,10 @@ namespace ReBuzz.Audio
             {
                 foreach (var seq in buzzCore.SongCore.SequencesList)
                 {
-                    foreach (var se in seq.EventsList)
+                    var events = seq.EventsSnapshot;
+                    for (int i = 0; i < events.Length; i++)
                     {
-                        var pattern = se.Value.Pattern as PatternCore;
+                        var pattern = events[i].Value.Pattern as PatternCore;
                         PlayPatternColumnEvents(pattern, sampleCount);
                     }
                 }

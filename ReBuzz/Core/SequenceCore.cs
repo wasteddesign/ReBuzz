@@ -4,6 +4,7 @@ using System;
 using System.ComponentModel;
 using System.Linq;
 using Wintellect.PowerCollections;
+using SequenceEventPair = System.Collections.Generic.KeyValuePair<int, BuzzGUI.Interfaces.SequenceEvent>;
 
 namespace ReBuzz.Core
 {
@@ -16,6 +17,63 @@ namespace ReBuzz.Core
 
         public OrderedDictionary<int, SequenceEvent> EventsList { get; set; }
         public ReadOnlyDictionary<int, SequenceEvent> Events { get => new ReadOnlyDictionary<int, SequenceEvent>(EventsList); }
+
+        // Flat, key-ordered copy of EventsList for the audio thread. Enumerating the
+        // PowerCollections red-black tree allocates a recursive yield iterator per node,
+        // and the fill loop walked every sequence's tree twice per chunk, so a big song
+        // allocated ~100 MB/s here. The array is rebuilt only after the key set changes.
+        //
+        // Every EventsList mutation runs under ReBuzzCore.AudioLock, and the audio thread
+        // reads this under the same lock, so no extra synchronisation is needed.
+        // SequenceEvent objects are shared with EventsList, so Span updates made in place
+        // by UpdateSpans() are visible without a rebuild.
+        SequenceEventPair[] eventsSnapshot = Array.Empty<SequenceEventPair>();
+        OrderedDictionary<int, SequenceEvent> eventsSnapshotSource;
+        bool eventsSnapshotDirty = true;
+
+        /// <summary>
+        /// Key-ordered snapshot of <see cref="EventsList"/>. Caller must hold
+        /// ReBuzzCore.AudioLock. Do not modify the returned array.
+        /// </summary>
+        internal SequenceEventPair[] EventsSnapshot
+        {
+            get
+            {
+                var source = EventsList;
+                // The reference check catches EventsList being reassigned (Clear, Delete,
+                // Insert); the dirty flag catches in-place edits of the same dictionary.
+                if (eventsSnapshotDirty || !ReferenceEquals(source, eventsSnapshotSource))
+                {
+                    eventsSnapshot = source.Count == 0
+                        ? Array.Empty<SequenceEventPair>()
+                        : source.ToArray();
+                    eventsSnapshotSource = source;
+                    eventsSnapshotDirty = false;
+                }
+                return eventsSnapshot;
+            }
+        }
+
+        /// <summary>
+        /// Call after any in-place change to the key set of <see cref="EventsList"/>
+        /// (Add, Remove, indexer set, Clear).
+        /// </summary>
+        internal void InvalidateEventsSnapshot() => eventsSnapshotDirty = true;
+
+        /// <summary>
+        /// Removes the event at <paramref name="time"/> and invalidates the snapshot.
+        /// Does not update spans or raise change notifications.
+        /// </summary>
+        internal bool RemoveEventAt(int time)
+        {
+            lock (ReBuzzCore.AudioLock)
+            {
+                bool removed = EventsList.Remove(time);
+                if (removed)
+                    InvalidateEventsSnapshot();
+                return removed;
+            }
+        }
 
         public IPattern PlayingPattern
         {
@@ -175,6 +233,7 @@ namespace ReBuzz.Core
                     if (Events.ContainsKey(time))
                     {
                         EventsList.Remove(time);
+                        InvalidateEventsSnapshot();
                         UpdateSpans();
                         PropertyChanged.Raise(this, "Events");
                         EventChanged?.Invoke(time);
@@ -186,6 +245,7 @@ namespace ReBuzz.Core
                         e.Span = e.Pattern.Length;
 
                     this.EventsList[time] = e;
+                    InvalidateEventsSnapshot();
                     UpdateSpans();
                     PropertyChanged.Raise(this, "Events");
                     EventChanged?.Invoke(time);
@@ -237,6 +297,10 @@ namespace ReBuzz.Core
         internal void Release()
         {
             EventsList.Clear();
+            // Drop the old array too so it does not keep released patterns reachable.
+            eventsSnapshot = Array.Empty<SequenceEventPair>();
+            eventsSnapshotSource = null;
+            InvalidateEventsSnapshot();
             PropertyChanged.Raise(this, "Events");
             PropertyChanged = null;
             EventChanged = null;
