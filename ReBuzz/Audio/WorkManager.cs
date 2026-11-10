@@ -578,6 +578,16 @@ namespace ReBuzz.Audio
                     for (int i = 0; i < events.Length; i++)
                     {
                         var pattern = events[i].Value.Pattern as PatternCore;
+
+                        // A pattern that is not playing has PlayPosition == int.MinValue, so
+                        // the window PlayPatternColumnEvents would scan is
+                        // [int.MinValue, int.MinValue + nextPos), which holds no events
+                        // (event times are >= 0 and nextPos is small and positive). Skipping
+                        // it gives the same result without a locked linear scan of every
+                        // column of every pattern in the song on every chunk.
+                        if (pattern == null || pattern.PlayPosition == int.MinValue)
+                            continue;
+
                         PlayPatternColumnEvents(pattern, sampleCount);
                     }
                 }
