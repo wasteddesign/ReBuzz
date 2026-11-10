@@ -547,6 +547,10 @@ namespace ReBuzz.Audio
         }
 
         readonly List<PlayingEventsStruct> playingEvents = new List<PlayingEventsStruct>();
+
+        // Incremented once per UpdatePatternColumnEvents call; stamped on each pattern
+        // as it is dispatched so a pattern placed several times is dispatched once.
+        int columnDispatchPass;
         void UpdatePatternColumnEvents(int sampleCount)
         {
             if (!buzzCore.Playing)
@@ -572,6 +576,11 @@ namespace ReBuzz.Audio
             }
             else
             {
+                // Skip 0 so a pattern's initial ColumnDispatchPass (0) never matches.
+                unchecked { columnDispatchPass++; }
+                if (columnDispatchPass == 0)
+                    columnDispatchPass = 1;
+
                 foreach (var seq in buzzCore.SongCore.SequencesList)
                 {
                     var events = seq.EventsSnapshot;
@@ -587,6 +596,14 @@ namespace ReBuzz.Audio
                         // column of every pattern in the song on every chunk.
                         if (pattern == null || pattern.PlayPosition == int.MinValue)
                             continue;
+
+                        // PlayPosition is a single field on the shared pattern, so every
+                        // occurrence of the same pattern (in this sequence or another
+                        // sequence of the same machine) would dispatch the same window
+                        // again and send each MIDI column event once per occurrence.
+                        if (pattern.ColumnDispatchPass == columnDispatchPass)
+                            continue;
+                        pattern.ColumnDispatchPass = columnDispatchPass;
 
                         PlayPatternColumnEvents(pattern, sampleCount);
                     }
