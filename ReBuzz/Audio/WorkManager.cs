@@ -618,7 +618,9 @@ namespace ReBuzz.Audio
                 var masterInfo = ReBuzzCore.masterInfo;
                 int nextPos = ((sampleCount + masterInfo.PosInTick) * PatternEvent.TimeBase) / masterInfo.SamplesPerTick;
 
-                var columns = pattern.Columns;
+                // PatternCore.Columns allocates a ReadOnlyCollection per call; read the
+                // underlying list instead. Both are live views of the same list.
+                IList<IPatternColumn> columns = pattern is PatternCore patternCore ? patternCore.ColumnsList : pattern.Columns;
 
                 for (int i = 0; i < columns.Count; i++)
                 {
