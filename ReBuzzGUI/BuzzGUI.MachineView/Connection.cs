@@ -157,8 +157,10 @@ namespace BuzzGUI.MachineView
 
         public ICommand MouseDownCommand { get; set; }
 
-        // VU meter level tuple (left,right)
-        public Tuple<double, double> VUMeterLevel { get; set; }
+        // VU meter levels (left, right). One instance, updated in place, so theme bindings to
+        // VUMeterLevel.Item1/Item2 attach once instead of rebinding to a new Tuple 30 times a
+        // second (see VUMeterLevels).
+        public VUMeterLevels VUMeterLevel { get; } = new VUMeterLevels();
 
         VUMeter meterData = new();
         DispatcherTimer dtVUMeter = new();
@@ -194,10 +196,9 @@ namespace BuzzGUI.MachineView
             double left = lr.Item1;
             double right = lr.Item2;
 
-            if ((left >= 0) && (right >= 0) && (left != VUMeterLevel.Item1 || right != VUMeterLevel.Item2))
+            if ((left >= 0) && (right >= 0))
             {
-                VUMeterLevel = new Tuple<double, double>(left, right);
-                PropertyChanged.Raise(this, "VUMeterLevel");
+                VUMeterLevel.Set(left, right);
             }
         }
 
@@ -216,7 +217,6 @@ namespace BuzzGUI.MachineView
             DestinationPlugInfo.Connection = this;
             DestinationPlugInfo.Machine = dst;
 
-            VUMeterLevel = new Tuple<double, double>(0, 0);
             dtVUMeter.Interval = TimeSpan.FromMilliseconds(1000 / 30);
 
             machineView.Settings.PropertyChanged += Settings_PropertyChanged;
