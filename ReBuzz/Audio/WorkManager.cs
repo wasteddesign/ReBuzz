@@ -463,10 +463,13 @@ namespace ReBuzz.Audio
                         }
                     }
 
-                    foreach (var e in seq.EventsList)
+                    // Index loop over the cached snapshot: enumerating the red-black
+                    // tree here allocated iterator objects on every chunk.
+                    var events = seq.EventsSnapshot;
+                    for (int i = 0; i < events.Length; i++)
                     {
-                        int eventTime = e.Key;
-                        var seqEvent = e.Value;
+                        int eventTime = events[i].Key;
+                        var seqEvent = events[i].Value;
                         var pc = (seqEvent.Pattern as PatternCore);
 
                         if (songPlayPosition >= eventTime && songPlayPosition < eventTime + seqEvent.Span)
@@ -571,9 +574,20 @@ namespace ReBuzz.Audio
             {
                 foreach (var seq in buzzCore.SongCore.SequencesList)
                 {
-                    foreach (var se in seq.EventsList)
+                    var events = seq.EventsSnapshot;
+                    for (int i = 0; i < events.Length; i++)
                     {
-                        var pattern = se.Value.Pattern as PatternCore;
+                        var pattern = events[i].Value.Pattern as PatternCore;
+
+                        // A pattern that is not playing has PlayPosition == int.MinValue, so
+                        // the window PlayPatternColumnEvents would scan is
+                        // [int.MinValue, int.MinValue + nextPos), which holds no events
+                        // (event times are >= 0 and nextPos is small and positive). Skipping
+                        // it gives the same result without a locked linear scan of every
+                        // column of every pattern in the song on every chunk.
+                        if (pattern == null || pattern.PlayPosition == int.MinValue)
+                            continue;
+
                         PlayPatternColumnEvents(pattern, sampleCount);
                     }
                 }
@@ -604,7 +618,9 @@ namespace ReBuzz.Audio
                 var masterInfo = ReBuzzCore.masterInfo;
                 int nextPos = ((sampleCount + masterInfo.PosInTick) * PatternEvent.TimeBase) / masterInfo.SamplesPerTick;
 
-                var columns = pattern.Columns;
+                // PatternCore.Columns allocates a ReadOnlyCollection per call; read the
+                // underlying list instead. Both are live views of the same list.
+                IList<IPatternColumn> columns = pattern is PatternCore patternCore ? patternCore.ColumnsList : pattern.Columns;
 
                 for (int i = 0; i < columns.Count; i++)
                 {

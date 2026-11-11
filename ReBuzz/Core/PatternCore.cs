@@ -59,6 +59,10 @@ namespace ReBuzz.Core
         readonly List<IPatternColumn> columns;
         public ReadOnlyCollection<IPatternColumn> Columns { get => columns.AsReadOnly(); }
 
+        // The live column list, for the audio thread. Columns allocates a new
+        // ReadOnlyCollection wrapper on every call. Do not modify through this.
+        internal List<IPatternColumn> ColumnsList => columns;
+
         int playPosition;
 
         public event Action<IPattern> OnPatternPlayStart;
