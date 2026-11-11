@@ -54,10 +54,12 @@ namespace BuzzGUI.Common
                         {
                             dragging = true;
                             origMousePos = lastMousePos = e.GetPosition(Container != null ? Container : value);
-                            value.CaptureMouse();
                             if (DragCursor != null) Mouse.OverrideCursor = DragCursor;
                             e.Handled = true;
+                            // BeginDrag must run before CaptureMouse: capturing raises a MouseMove
+                            // synchronously, which would call Drag before BeginDrag has set up state.
                             if (BeginDrag != null) BeginDrag(lastMousePos, altg, e.ClickCount);
+                            value.CaptureMouse();
                         }
                     }
                 };
@@ -79,7 +81,7 @@ namespace BuzzGUI.Common
 
                 value.MouseMove += (sender, e) =>
                 {
-                    if (dragging)
+                    if (dragging && Drag != null)
                     {
                         e.Handled = true;
                         Point p = e.GetPosition(Container != null ? Container : value);

@@ -782,6 +782,7 @@ namespace BuzzGUI.MachineView
                 },
                 Drag = p =>
                 {
+                    if (tempConnection == null) return;
                     dstMachine = c.GetMachineAtPoint(p);
                     if (dstMachine == null || dstMachine == this)
                     {
@@ -826,6 +827,7 @@ namespace BuzzGUI.MachineView
                 },
                 EndDrag = _ =>
                 {
+                    if (tempConnection == null) return;
                     if (!int.TryParse(tempConnection.SourcePlugInfo.Channel, out int sc))
                         sc = 0;
                     if (!int.TryParse(tempConnection.DestinationPlugInfo.Channel, out int dc))
@@ -848,7 +850,7 @@ namespace BuzzGUI.MachineView
                 },
                 CancelDrag = () =>
                 {
-                    tempConnection.RemoveVisuals();
+                    tempConnection?.RemoveVisuals();
                     tempConnection = null;
                     Mouse.OverrideCursor = null;
 
