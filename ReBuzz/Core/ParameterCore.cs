@@ -195,6 +195,7 @@ namespace ReBuzz.Core
         {
             dtDescribeEvent = new DispatcherTimer();
             dtDescribeEvent.Interval = TimeSpan.FromMilliseconds(1000 / 30.0);
+            dtDescribeEvent.Tick += DescribeEventTimer_Tick;
             this.dispatcher = dispatcher;
 
             Description = "";
@@ -202,6 +203,8 @@ namespace ReBuzz.Core
         internal class EventManager(IUiDispatcher dispatcher)
         {
             public event Action<IParameter, int> Event;
+
+            internal bool HasSubscribers => Event != null;
             public void CallEvent(IBuzz buzz, IParameter parameter, int track)
             {
                 if (Event != null)
@@ -234,10 +237,6 @@ namespace ReBuzz.Core
                     {
                         Global.Buzz.DCWriteLine(e.Message);
                     }
-                    finally
-                    {
-                        describeValueEventPending = false;
-                    }
                 }
             }
 
@@ -247,9 +246,21 @@ namespace ReBuzz.Core
             }
         }
 
-        static bool describeValueEventPending = false;
+        // Description-change events are throttled per parameter: a change marks the track as
+        // pending and starts this parameter's timer; when it fires, each pending track's
+        // subscribers are called once and the timer stops. DescribeValue can be a call into a
+        // native machine, and values can change on every tick.
+        //
+        // This used to be a static flag shared by every parameter in the song. While it was
+        // set, any other parameter that changed started its own timer, which had no Tick
+        // handler and so never stopped: each one then ran at 30 Hz for the rest of the
+        // session, posting a dispatcher operation on every tick. If a description subscriber
+        // was removed while an event was pending, the flag was never cleared at all.
         readonly DispatcherTimer dtDescribeEvent;
+        readonly HashSet<int> describePendingTracks = new HashSet<int>();
         private readonly IUiDispatcher dispatcher;
+
+        internal bool IsDescribeTimerRunning => dtDescribeEvent.IsEnabled;
 
         internal void InvokeEvents(IBuzz buzz, int track)
         {
@@ -258,25 +269,40 @@ namespace ReBuzz.Core
                 em.CallEvent(buzz, this, track);
             }
 
-            // Aviod invoking valueDescrtiptionChangedEvent to minimize calls to native machines
-            if (!describeValueEventPending)
+            // Avoid invoking valueDescrtiptionChangedEvent on every change, to minimize calls to
+            // native machines. Only a track that has description subscribers starts the timer.
+            if (valueDescrtiptionChangedEvent.TryGetValue(track, out EventManager emd) && emd.HasSubscribers)
+            {
+                lock (describePendingTracks)
+                    describePendingTracks.Add(track);
+
+                // Start() does nothing while the timer is already running, so this throttles the
+                // event to once per interval; it does not postpone it while values keep changing.
+                dtDescribeEvent.Start();
+            }
+        }
+
+        void DescribeEventTimer_Tick(object sender, EventArgs e) => RaisePendingDescriptionEvents();
+
+        // Stops the timer and calls the description subscribers of every pending track once.
+        internal void RaisePendingDescriptionEvents()
+        {
+            dtDescribeEvent.Stop();
+
+            int[] tracks;
+            lock (describePendingTracks)
+            {
+                if (describePendingTracks.Count == 0)
+                    return;
+                tracks = new int[describePendingTracks.Count];
+                describePendingTracks.CopyTo(tracks);
+                describePendingTracks.Clear();
+            }
+
+            foreach (int track in tracks)
             {
                 if (valueDescrtiptionChangedEvent.TryGetValue(track, out EventManager emd))
-                {
-                    describeValueEventPending = true;
-
-                    dtDescribeEvent.Tick += (s, e) =>
-                    {
-                        emd.CallEventDesc(this, track);
-                        dtDescribeEvent.Stop();
-                    };
-                    dtDescribeEvent.Start();
-                }
-            }
-            else
-            {
-                // Reset timer
-                dtDescribeEvent.Start();
+                    emd.CallEventDesc(this, track);
             }
         }
 
@@ -436,6 +462,10 @@ namespace ReBuzz.Core
             }
             valueChangedEvent.Clear();
             valueDescrtiptionChangedEvent.Clear();
+
+            lock (describePendingTracks)
+                describePendingTracks.Clear();
+            dtDescribeEvent.Stop();
         }
 
         internal static ParameterCore GetMidiParameter(MachineCore machine, IUiDispatcher dispatcher)
