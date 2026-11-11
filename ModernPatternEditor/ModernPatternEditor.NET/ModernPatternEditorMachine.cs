@@ -32,9 +32,12 @@ namespace WDE.ModernPatternEditor
         [ParameterDecl()]
         public bool Dummy { get; set; }
 
+        // Reused: Work runs for every machine's editor on every audio chunk. Only
+        // PosInSubTick is ever set, and nothing keeps the object after Work returns.
+        readonly SongTime songTime = new SongTime();
+
         public void Work()
         {
-            SongTime songTime = new SongTime();
             songTime.PosInSubTick = host.SubTickInfo.PosInSubTick;
 
             ModernPatternEditor.Work(songTime);

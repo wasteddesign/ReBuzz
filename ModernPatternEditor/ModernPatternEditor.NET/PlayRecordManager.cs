@@ -99,17 +99,29 @@ namespace WDE.ModernPatternEditor
             }
         }
 
+        // Reused by Play, which only runs from PatternEditor.Work under Editor.syncLock, and
+        // FireCollectedEvents reads it synchronously.
+        readonly List<CollectedEventState> collectEvents = new List<CollectedEventState>();
+
         internal void Play(SongTime songTime)
         {
-            ReadOnlyCollection<ISequence> seqs = GetPlayingSequences(Editor.TargetMachine);
+            // Play runs inside machine Work for every machine's editor at each subtick, so it
+            // avoids allocating: same sequences, in the same order, as GetPlayingSequences,
+            // without building a list, and the collect list is reused.
+            var target = Editor.TargetMachine;
+            var allSequences = Global.Buzz.Song.Sequences;
 
-            List<CollectedEventState> collectEvents = new List<CollectedEventState>();
+            collectEvents.Clear();
 
             IPattern pat = null;
 
-            foreach (ISequence seq in seqs)
+            for (int s = 0; s < allSequences.Count; s++)
             {
-                int playPosition = GetPositionInPattern(out pat, seq, Editor.TargetMachine);
+                ISequence seq = allSequences[s];
+                if (seq.Machine != target || seq.PlayingPattern == null)
+                    continue;
+
+                int playPosition = GetPositionInPattern(out pat, seq, target);
 
                 if (playPosition != -1 && pat != null)
                 {
@@ -259,6 +271,19 @@ namespace WDE.ModernPatternEditor
         }
 
 
+        // First entry in PlayingNotesList for the track, like FirstOrDefault with a lambda but
+        // without the closure, which captured the loop variable in PlayPatternEvents and so
+        // was allocated for every column on every call.
+        PlayingTrackInfo FindPlayingNote(int track)
+        {
+            for (int i = 0; i < PlayingNotesList.Count; i++)
+            {
+                if (PlayingNotesList[i].track == track)
+                    return PlayingNotesList[i];
+            }
+            return null;
+        }
+
         // ToDO: lock things?
         internal void PlayPatternEvents(IPattern pat, int start, int end, List<CollectedEventState> collectEvents, List<CollectedEventState> midiEvents)
         {
@@ -308,7 +333,7 @@ namespace WDE.ModernPatternEditor
                     }
                     if (midiNoteData.noteOff)
                     {
-                        PlayingTrackInfo pti = PlayingNotesList.FirstOrDefault(x => x.track == mpeColumn.ParamTrack);
+                        PlayingTrackInfo pti = FindPlayingNote(mpeColumn.ParamTrack);
                         if (pti != null) // Need to know playing note so that we can stop it.
                         {
                             int noteOffTime = midiNoteData.midiNoteTimeQ + midiNoteData.midiDelay.value;
