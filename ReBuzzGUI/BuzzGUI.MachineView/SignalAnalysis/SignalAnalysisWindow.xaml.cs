@@ -112,16 +112,11 @@ namespace BuzzGUI.MachineView.SignalAnalysis
             }
             else
             {
-                float[] L = new float[samples.Length / 2];
-                float[] R = new float[samples.Length / 2];
-                for (int i = 0; i < samples.Length / 2; i++)
-                {
-                    L[i] = samples[i * 2];
-                    R[i] = samples[i * 2 + 1];
-                }
-
-                maxSampleL = Math.Max(maxSampleL, DSP.AbsMax(L) * (1.0f / 32768.0f));
-                maxSampleR = Math.Max(maxSampleR, DSP.AbsMax(R) * (1.0f / 32768.0f));
+                // Peak per channel straight from the interleaved buffer: splitting it
+                // allocated two arrays per tapped connection per audio chunk.
+                DSP.AbsMaxStereo(samples, out float peakL, out float peakR);
+                maxSampleL = Math.Max(maxSampleL, peakL * (1.0f / 32768.0f));
+                maxSampleR = Math.Max(maxSampleR, peakR * (1.0f / 32768.0f));
             }
         }
 

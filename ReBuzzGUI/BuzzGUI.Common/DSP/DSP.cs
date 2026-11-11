@@ -4,6 +4,29 @@ namespace BuzzGUI.Common.DSP
 {
     public static class DSP
     {
+        /// <summary>
+        /// Peak absolute value of each channel of an interleaved L, R buffer, without
+        /// splitting it into separate arrays. Gives the same result as calling
+        /// <see cref="AbsMax"/> on L and R arrays of samples.Length / 2 elements each.
+        /// </summary>
+        public static void AbsMaxStereo(float[] interleaved, out float maxL, out float maxR)
+        {
+            float ml = 0.0f;
+            float mr = 0.0f;
+            int frames = interleaved.Length / 2;
+
+            for (int i = 0; i < frames; i++)
+            {
+                float l = Math.Abs(interleaved[2 * i]);
+                if (l > ml) ml = l;
+                float r = Math.Abs(interleaved[2 * i + 1]);
+                if (r > mr) mr = r;
+            }
+
+            maxL = ml;
+            maxR = mr;
+        }
+
         public static float AbsMax(float[] samples)
         {
             float ms = 0.0f;
