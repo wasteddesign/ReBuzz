@@ -2295,6 +2295,14 @@ namespace ReBuzz.Core
         internal SongTime GetSongTime()
         {
             SongTime songTime = new SongTime();
+            FillSongTime(songTime);
+            return songTime;
+        }
+
+        // Overwrites every field of songTime with the current position, so a caller can
+        // reuse one instance instead of allocating per call.
+        internal void FillSongTime(SongTime songTime)
+        {
             songTime.CurrentTick = Song.PlayPosition;
             songTime.CurrentSubTick = subTickInfo.CurrentSubTick;
             songTime.PosInSubTick = subTickInfo.PosInSubTick;
@@ -2304,7 +2312,6 @@ namespace ReBuzz.Core
             songTime.SamplesPerSubTick = subTickInfo.SamplesPerSubTick;
             songTime.TicksPerBeat = TPB;
             songTime.SubTicksPerTick = subTickInfo.SubTicksPerTick;
-            return songTime;
         }
 
         internal void PatternEditorCommand(BuzzCommand cmd)
