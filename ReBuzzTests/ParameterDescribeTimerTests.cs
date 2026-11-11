@@ -57,6 +57,43 @@ namespace ReBuzzTests
         }
 
         [Test]
+        public void DescriptionEventsGoToTheDescriptionHandler()
+        {
+            var parameter = NewParameter();
+            int valueCalls = 0, descriptionCalls = 0;
+            Action<IParameter, int> valueChanged = (p, t) => valueCalls++;
+            Action<IParameter, int> descriptionChanged = (p, t) => descriptionCalls++;
+            parameter.SubscribeEvents(0, valueChanged, descriptionChanged);
+
+            parameter.InvokeEvents(null, 0);
+            parameter.RaisePendingDescriptionEvents();
+
+            valueCalls.Should().Be(1);
+            descriptionCalls.Should().Be(1);
+
+            parameter.UnsubscribeEvents(0, valueChanged, descriptionChanged);
+            parameter.InvokeEvents(null, 0);
+            parameter.RaisePendingDescriptionEvents();
+
+            valueCalls.Should().Be(1);
+            descriptionCalls.Should().Be(1);
+            parameter.IsDescribeTimerRunning.Should().BeFalse();
+        }
+
+        [Test]
+        public void DescriptionHandlerAloneStillGetsEvents()
+        {
+            var parameter = NewParameter();
+            int descriptionCalls = 0;
+            parameter.SubscribeEvents(0, null, (p, t) => descriptionCalls++);
+
+            parameter.InvokeEvents(null, 0);
+            parameter.RaisePendingDescriptionEvents();
+
+            descriptionCalls.Should().Be(1);
+        }
+
+        [Test]
         public void EachPendingTrackIsRaisedOnceWhenTheTimerFires()
         {
             var parameter = NewParameter();

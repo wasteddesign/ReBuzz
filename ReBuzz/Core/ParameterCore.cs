@@ -390,7 +390,7 @@ namespace ReBuzz.Core
                     valueDescrtiptionChangedEvent.TryAdd(track, new EventManager(dispatcher));
 
                 var em = valueDescrtiptionChangedEvent[track];
-                em.Event += valueChanged;
+                em.Event += valueDescriptionChanged;
             }
         }
 
@@ -409,7 +409,7 @@ namespace ReBuzz.Core
                 if (valueDescrtiptionChangedEvent.ContainsKey(track))
                 {
                     var em = valueDescrtiptionChangedEvent[track];
-                    em.Event -= valueChanged;
+                    em.Event -= valueDescriptionChanged;
                 }
             }
         }
