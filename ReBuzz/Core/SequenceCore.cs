@@ -15,50 +15,47 @@ namespace ReBuzz.Core
         internal MachineCore MachineCore { get; private set; }
         public IMachine Machine { get => MachineCore; }
 
-        public OrderedDictionary<int, SequenceEvent> EventsList { get; set; }
+        OrderedDictionary<int, SequenceEvent> eventsList;
+        public OrderedDictionary<int, SequenceEvent> EventsList
+        {
+            get => eventsList;
+            set
+            {
+                eventsList = value;
+                RefreshEventsSnapshot();
+            }
+        }
         public ReadOnlyDictionary<int, SequenceEvent> Events { get => new ReadOnlyDictionary<int, SequenceEvent>(EventsList); }
 
-        // Flat, key-ordered copy of EventsList for the audio thread. Enumerating the
-        // PowerCollections red-black tree allocates a recursive yield iterator per node,
-        // and the fill loop walked every sequence's tree twice per chunk, so a big song
-        // allocated ~100 MB/s here. The array is rebuilt only after the key set changes.
+        // Flat, key-ordered, immutable copy of EventsList. Enumerating the PowerCollections
+        // red-black tree allocates a recursive yield iterator per node, and the audio
+        // thread, the pattern editors (from inside machine Work) and the sequence editor
+        // all walk the events of every sequence many times a second.
         //
-        // Every EventsList mutation runs under ReBuzzCore.AudioLock, and the audio thread
-        // reads this under the same lock, so no extra synchronisation is needed.
+        // The array is rebuilt eagerly by every EventsList mutation (all of which run under
+        // ReBuzzCore.AudioLock) and published as a new array, never modified afterwards, so
+        // any thread can read it without a lock and always sees a complete, ordered set.
         // SequenceEvent objects are shared with EventsList, so Span updates made in place
         // by UpdateSpans() are visible without a rebuild.
         SequenceEventPair[] eventsSnapshot = Array.Empty<SequenceEventPair>();
-        OrderedDictionary<int, SequenceEvent> eventsSnapshotSource;
-        bool eventsSnapshotDirty = true;
 
         /// <summary>
-        /// Key-ordered snapshot of <see cref="EventsList"/>. Caller must hold
-        /// ReBuzzCore.AudioLock. Do not modify the returned array.
+        /// Key-ordered snapshot of <see cref="EventsList"/>, safe to read from any thread.
+        /// Do not modify the returned array.
         /// </summary>
-        internal SequenceEventPair[] EventsSnapshot
+        internal SequenceEventPair[] EventsSnapshot => System.Threading.Volatile.Read(ref eventsSnapshot);
+
+        /// <summary>
+        /// Rebuilds <see cref="EventsSnapshot"/>. Call after any in-place change to the key
+        /// set of <see cref="EventsList"/> (Add, Remove, indexer set, Clear); assigning
+        /// EventsList does it automatically.
+        /// </summary>
+        void RefreshEventsSnapshot()
         {
-            get
-            {
-                var source = EventsList;
-                // The reference check catches EventsList being reassigned (Clear, Delete,
-                // Insert); the dirty flag catches in-place edits of the same dictionary.
-                if (eventsSnapshotDirty || !ReferenceEquals(source, eventsSnapshotSource))
-                {
-                    eventsSnapshot = source.Count == 0
-                        ? Array.Empty<SequenceEventPair>()
-                        : source.ToArray();
-                    eventsSnapshotSource = source;
-                    eventsSnapshotDirty = false;
-                }
-                return eventsSnapshot;
-            }
+            var source = eventsList;
+            System.Threading.Volatile.Write(ref eventsSnapshot,
+                source == null || source.Count == 0 ? Array.Empty<SequenceEventPair>() : source.ToArray());
         }
-
-        /// <summary>
-        /// Call after any in-place change to the key set of <see cref="EventsList"/>
-        /// (Add, Remove, indexer set, Clear).
-        /// </summary>
-        internal void InvalidateEventsSnapshot() => eventsSnapshotDirty = true;
 
         /// <summary>
         /// Removes the event at <paramref name="time"/> and invalidates the snapshot.
@@ -70,7 +67,7 @@ namespace ReBuzz.Core
             {
                 bool removed = EventsList.Remove(time);
                 if (removed)
-                    InvalidateEventsSnapshot();
+                    RefreshEventsSnapshot();
                 return removed;
             }
         }
@@ -84,8 +81,11 @@ namespace ReBuzz.Core
                 if (buzz.SoloPattern != null && buzz.SoloPattern.Machine == Machine)
                     return buzz.SoloPattern;
 
-                foreach (var pe in EventsList.Values)
+                // Same order as EventsList.Values (key order), without allocating iterators.
+                var events = EventsSnapshot;
+                for (int i = 0; i < events.Length; i++)
                 {
+                    var pe = events[i].Value;
                     if (pe.Pattern != null && pe.Pattern.PlayPosition != int.MinValue)
                         return pe.Pattern;
                 }
@@ -233,7 +233,7 @@ namespace ReBuzz.Core
                     if (Events.ContainsKey(time))
                     {
                         EventsList.Remove(time);
-                        InvalidateEventsSnapshot();
+                        RefreshEventsSnapshot();
                         UpdateSpans();
                         PropertyChanged.Raise(this, "Events");
                         EventChanged?.Invoke(time);
@@ -245,7 +245,7 @@ namespace ReBuzz.Core
                         e.Span = e.Pattern.Length;
 
                     this.EventsList[time] = e;
-                    InvalidateEventsSnapshot();
+                    RefreshEventsSnapshot();
                     UpdateSpans();
                     PropertyChanged.Raise(this, "Events");
                     EventChanged?.Invoke(time);
@@ -254,9 +254,11 @@ namespace ReBuzz.Core
             }
         }
 
+        // Callers refresh the snapshot first (assigning EventsList or RefreshEventsSnapshot),
+        // so it already holds the current events in key order.
         void UpdateSpans()
         {
-            var events = EventsList.ToArray();
+            var events = EventsSnapshot;
             for (int i = 0; i < events.Length; i++)
             {
                 int time = events[i].Key;
@@ -297,10 +299,8 @@ namespace ReBuzz.Core
         internal void Release()
         {
             EventsList.Clear();
-            // Drop the old array too so it does not keep released patterns reachable.
-            eventsSnapshot = Array.Empty<SequenceEventPair>();
-            eventsSnapshotSource = null;
-            InvalidateEventsSnapshot();
+            // Also drops the old array, so it does not keep released patterns reachable.
+            RefreshEventsSnapshot();
             PropertyChanged.Raise(this, "Events");
             PropertyChanged = null;
             EventChanged = null;
