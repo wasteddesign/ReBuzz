@@ -138,6 +138,14 @@ namespace BuzzGUI.ToolBar
                     PropertyChanged.Raise(this, e.PropertyName);
                     break;
 
+                case "VUMeterLevel":
+                    {
+                        var level = buzz.VUMeterLevel;
+                        if (level != null)
+                            vuMeterLevel.Set(level.Item1, level.Item2);
+                    }
+                    break;
+
                 case "IsPianoKeyboardVisible":
                     PropertyChanged.Raise(this, e.PropertyName);
                     break;
@@ -238,7 +246,11 @@ namespace BuzzGUI.ToolBar
         public SimpleCommand MidiToolsCommand { get; private set; }
         public SimpleCommand MidiGlassCommand { get; private set; }
 
-        public Tuple<double, double> VUMeterLevel { get { return buzz.VUMeterLevel; } }
+        // Updated in place from buzz.VUMeterLevel (see VUMeterLevels), so the toolbar meter's
+        // bindings to VUMeterLevel.Item1/Item2 attach once instead of rebinding to a new
+        // Tuple on every update.
+        readonly VUMeterLevels vuMeterLevel = new VUMeterLevels();
+        public VUMeterLevels VUMeterLevel { get { return vuMeterLevel; } }
         public double MasterVolume { get { return buzz.MasterVolume; } set { buzz.MasterVolume = value; } }
         public int BPM { get { return buzz.BPM; } set { buzz.BPM = value; } }
         public int TPB { get { return buzz.TPB; } set { buzz.TPB = value; } }
