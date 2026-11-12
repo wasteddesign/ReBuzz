@@ -155,11 +155,42 @@ namespace ReBuzz.Core
 
         public bool HasPan { get; set; }
 
+        // Tap buffers are reused. Handlers run synchronously on the engine thread
+        // that processed the source machine, and must not keep the array (or the
+        // SongTime) after they return; copy if needed. Allocating a fresh array per
+        // tapped connection per chunk was the largest allocator left on the audio
+        // threads while any VU meter was visible.
+        //
+        // Handlers read samples.Length, so the array must be exactly nSamples * 2.
+        // Chunk sizes vary at tick boundaries (a full chunk plus one or two
+        // remainder sizes), so keep a few exact-size buffers rather than one.
+        const int TapBufferSlots = 4;
+        readonly float[][] tapBuffers = new float[TapBufferSlots][];
+        int tapBufferNextSlot;
+        SongTime tapSongTime;
+
+        float[] GetTapBuffer(int length)
+        {
+            var buffers = tapBuffers;
+            for (int i = 0; i < buffers.Length; i++)
+            {
+                var b = buffers[i];
+                if (b != null && b.Length == length)
+                    return b;
+            }
+
+            var newBuffer = new float[length];
+            buffers[tapBufferNextSlot] = newBuffer;
+            tapBufferNextSlot = (tapBufferNextSlot + 1) % buffers.Length;
+            return newBuffer;
+        }
+
         public void DoTap(Sample[] sampleBuffer, int nSamples, bool stereo, SongTime songTime)
         {
             if (Tap != null)
             {
-                float[] samples = new float[nSamples * 2];
+                // Every element is overwritten below, so a reused buffer needs no clearing.
+                float[] samples = GetTapBuffer(nSamples * 2);
                 int j = 0;
                 for (int i = 0; i < nSamples; i++)
                 {
@@ -176,18 +207,16 @@ namespace ReBuzz.Core
             }
         }
 
-        // Tap-gated variant: fetches the SongTime only when a tap is actually
-        // registered, so the common no-tap path allocates nothing (SongTime is a
-        // class, and it was previously constructed per output connection per
-        // chunk as the call-site argument - before the Tap null check inside
-        // DoTap could run). Each invocation that does fire still gets its own
-        // fresh SongTime instance, preserving the previous per-call semantics
-        // for tap consumers.
+        // Tap-gated variant: fills the SongTime only when a tap is registered, so
+        // the common no-tap path does no work. The SongTime instance is reused per
+        // connection, like the sample buffer (see above).
         internal void DoTap(Sample[] sampleBuffer, int nSamples, bool stereo, ReBuzzCore buzz)
         {
             if (Tap == null)
                 return;
-            DoTap(sampleBuffer, nSamples, stereo, buzz.GetSongTime());
+            var songTime = tapSongTime ??= new SongTime();
+            buzz.FillSongTime(songTime);
+            DoTap(sampleBuffer, nSamples, stereo, songTime);
         }
 
         float ampStart;

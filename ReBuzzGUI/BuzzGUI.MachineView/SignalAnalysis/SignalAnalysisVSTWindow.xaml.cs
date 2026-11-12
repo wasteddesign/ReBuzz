@@ -175,7 +175,7 @@ namespace BuzzGUI.MachineView.SignalAnalysis
             {
                 if (vstReady)
                 {
-                    taskList.Add((float[])samples.Clone()); // own a copy: MasterTap reuse buffer is recycled after this returns (#122/#125); redundant-but-harmless for per-connection taps, which pass a fresh array
+                    taskList.Add((float[])samples.Clone()); // own a copy: both the MasterTap and the per-connection Tap buffers are reused by the host after this returns
                 }
             }
 

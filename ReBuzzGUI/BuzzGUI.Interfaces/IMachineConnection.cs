@@ -13,7 +13,10 @@ namespace BuzzGUI.Interfaces
         int Pan { get; set; }
         bool HasPan { get; }
 
-        event Action<float[], bool, SongTime> Tap;          // fired in the GUI thread
+        // Fired synchronously on the audio engine thread that processed the source
+        // machine, not the GUI thread. The array and SongTime are reused by the host:
+        // read them during the call and copy anything you need to keep.
+        event Action<float[], bool, SongTime> Tap;
 
         IEnumerable<int> SourceChannels { get; }
         IEnumerable<int> DestinationChannels { get; }
