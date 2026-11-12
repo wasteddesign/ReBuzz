@@ -169,9 +169,30 @@ namespace ReBuzz.Core
 
         List<SequenceCore> sequences = new List<SequenceCore>();
 
-        public ReadOnlyCollection<ISequence> Sequences { get => sequences.Cast<ISequence>().ToReadOnlyCollection(); }
+        // Read-only copy of the sequence list. Sequences used to build a new list on every
+        // access, and the pattern editors read it from inside machine Work at each subtick.
+        // It is rebuilt by every change to the list (all under ReBuzzCore.AudioLock) and
+        // published as a new collection that is never modified, so callers still get a
+        // snapshot they can hold on to, and any thread can read it without a lock.
+        ReadOnlyCollection<ISequence> sequencesView = new List<ISequence>().AsReadOnly();
 
-        internal List<SequenceCore> SequencesList { get => sequences; set => sequences = value; }
+        public ReadOnlyCollection<ISequence> Sequences { get => System.Threading.Volatile.Read(ref sequencesView); }
+
+        internal List<SequenceCore> SequencesList
+        {
+            get => sequences;
+            set
+            {
+                sequences = value;
+                RefreshSequencesView();
+            }
+        }
+
+        // Call after any change to the sequence list.
+        void RefreshSequencesView()
+        {
+            System.Threading.Volatile.Write(ref sequencesView, sequences.Cast<ISequence>().ToReadOnlyCollection());
+        }
         internal WavetableCore WavetableCore { get; set; }
         public IWavetable Wavetable { get => WavetableCore; }
 
@@ -197,6 +218,7 @@ namespace ReBuzz.Core
             {
                 SequenceCore sequenceCore = new SequenceCore(m as MachineCore);
                 sequences.Insert(index, sequenceCore);
+                RefreshSequencesView();
                 PropertyChanged.Raise(this, "Sequences");
                 SequenceAdded?.Invoke(index, sequenceCore);
             }
@@ -211,6 +233,7 @@ namespace ReBuzz.Core
                 var sc = s as SequenceCore;
                 int index = sequences.IndexOf(sc);
                 sequences.Remove(sc);
+                RefreshSequencesView();
                 PropertyChanged.Raise(this, "Sequences");
                 SequenceRemoved?.Invoke(index, sc);
                 sc.Release();
@@ -224,11 +247,14 @@ namespace ReBuzz.Core
             {
                 int indexs = sequences.IndexOf((SequenceCore)s);
                 int indext = sequences.IndexOf((SequenceCore)t);
+                // Refresh after each half: SequenceChanged handlers see the list as it is then.
                 sequences.RemoveAt(indexs);
                 sequences.Insert(indexs, (SequenceCore)t);
+                RefreshSequencesView();
                 SequenceChanged?.Invoke(indexs, t);
                 sequences.RemoveAt(indext);
                 sequences.Insert(indext, (SequenceCore)s);
+                RefreshSequencesView();
                 SequenceChanged?.Invoke(indext, s);
             }
 

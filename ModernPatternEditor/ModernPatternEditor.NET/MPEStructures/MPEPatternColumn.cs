@@ -152,12 +152,19 @@ namespace WDE.ModernPatternEditor.MPEStructures
 
         internal void PlayColumnEvents(IPattern pat, int start, int end, List<CollectedEventState> collectEvents)
         {
-            var events = GetEvents(start, end).ToArray();
+            // Same events, in the same order, as GetEvents(start, end), added straight to
+            // collectEvents. This runs for every column at each subtick from inside machine
+            // Work; going through GetEvents copied the matches into two temporary arrays.
+            if (eventList.Count == 0)
+                return;
+
+            lock (patternEventsLock)
             {
-                foreach (var e in events)
+                for (int i = 0; i < eventList.Count; i++)
                 {
-                    //Parameter.SetValue(ParamTrack, e.Value);
-                     collectEvents.Add(new CollectedEventState() { parameter = Parameter, time = e.Time, ParamTrack = ParamTrack, value = e.Value, eventType = CollectedEventType.Buzz });
+                    var e = eventList[i];
+                    if (e.Time >= start && e.Time < end)
+                        collectEvents.Add(new CollectedEventState() { parameter = Parameter, time = e.Time, ParamTrack = ParamTrack, value = e.Value, eventType = CollectedEventType.Buzz });
                 }
             }
         }

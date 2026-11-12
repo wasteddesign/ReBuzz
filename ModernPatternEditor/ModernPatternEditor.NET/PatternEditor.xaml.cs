@@ -1211,7 +1211,10 @@ namespace WDE.ModernPatternEditor
 
                 // Notify patterns changed so seq editor can update the pattern block UI.
                 // This limits the amount of messages.
-                if (songTime.PosInTick == 0)
+                // IsEmpty first: ConcurrentDictionary.Keys takes every internal lock and
+                // builds a new list, and this runs for every machine's editor on every chunk
+                // (the SongTime from ModernPatternEditorMachine never sets PosInTick).
+                if (songTime.PosInTick == 0 && !changedPatternsSinceLastTick.IsEmpty)
                 {
                     foreach (var pattern in changedPatternsSinceLastTick.Keys)
                     {

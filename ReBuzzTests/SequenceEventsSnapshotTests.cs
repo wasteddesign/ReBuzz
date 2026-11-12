@@ -98,6 +98,30 @@ namespace ReBuzzTests
         }
 
         [Test]
+        public void PublishedSnapshotIsNeverModified()
+        {
+            using var driver = new Driver();
+            driver.Start();
+
+            var seq = NewSequence();
+            var a = Mute();
+            var b = Mute();
+            seq.SetEvent(0, a);
+            seq.SetEvent(16, b);
+
+            // Readers on other threads may still hold this array; edits must publish a new one.
+            var held = seq.EventsSnapshot;
+            seq.SetEvent(8, Break());
+            seq.SetEvent(0, null);
+            seq.Insert(0, 4);
+            seq.Release();
+
+            held.Select(kv => kv.Key).Should().Equal(0, 16);
+            held[0].Value.Should().BeSameAs(a);
+            held[1].Value.Should().BeSameAs(b);
+        }
+
+        [Test]
         public void SnapshotIsReusedUntilTheSequenceChanges()
         {
             using var driver = new Driver();

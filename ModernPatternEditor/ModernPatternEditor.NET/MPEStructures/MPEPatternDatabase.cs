@@ -241,10 +241,21 @@ namespace WDE.ModernPatternEditor.MPEStructures
             ImportedPatterns.Add(xPattern);
         }
 
-        public struct ParameterTrack
+        // Dictionary key. Without IEquatable the default comparer boxes the struct and
+        // ValueType.GetHashCode/Equals fall back to reflection on every lookup, and
+        // IsColumnMuted runs for every column at each subtick from inside machine Work.
+        // Equality is the same as the default: both fields equal.
+        public struct ParameterTrack : IEquatable<ParameterTrack>
         {
             public IParameter parameter;
             public int track;
+
+            public bool Equals(ParameterTrack other) =>
+                EqualityComparer<IParameter>.Default.Equals(parameter, other.parameter) && track == other.track;
+
+            public override bool Equals(object obj) => obj is ParameterTrack other && Equals(other);
+
+            public override int GetHashCode() => HashCode.Combine(parameter, track);
         }
 
         public Dictionary<ParameterTrack, bool> ParamterMuted { get; set; }
@@ -264,8 +275,8 @@ namespace WDE.ModernPatternEditor.MPEStructures
         {
             bool ret = false;
             ParameterTrack pt = new ParameterTrack() { parameter = parameter, track = paramTrack };
-            if (ParamterMuted.ContainsKey(pt))
-                ret = ParamterMuted[pt];
+            if (ParamterMuted.TryGetValue(pt, out bool muted))
+                ret = muted;
 
             return ret;
         }
