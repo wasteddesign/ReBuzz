@@ -214,6 +214,13 @@
     <Setter Property="FontSize" Value="14" />
 -->
   </Style>
+  
+  		<!--<SnippetContextMenu>-->
+	<Style TargetType="{x:Type ContextMenu}">
+		<Setter Property="bgc:ContextMenuDpiBehavior.AutoUpdateDpi"
+			Value="True" />
+	</Style>
+	<!--</SnippetContextMenu>-->
 
   <Style x:Key="ContextMenuItemStyle">
     <Setter Property="MenuItem.Header" Value="{Binding Text}"/>

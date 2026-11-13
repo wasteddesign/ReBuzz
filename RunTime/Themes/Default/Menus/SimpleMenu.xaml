@@ -4,6 +4,13 @@
     xmlns:bgc="clr-namespace:BuzzGUI.Common;assembly=BuzzGUI.Common"             
     xmlns:vsm="clr-namespace:System.Windows;assembly=BuzzGUI.Common"             
     xmlns:local="clr-namespace:BuzzGUI.MachineView;assembly=BuzzGUI.MachineView">
+	
+		<!--<SnippetContextMenu>-->
+	<Style TargetType="{x:Type ContextMenu}">
+		<Setter Property="bgc:ContextMenuDpiBehavior.AutoUpdateDpi"
+			Value="True" />
+	</Style>
+	<!--</SnippetContextMenu>-->
 
 	<Style x:Key="ContextMenuItemStyle">
 		<Setter Property="MenuItem.Header" Value="{Binding Text}"/>
@@ -43,7 +50,6 @@
 			<DataTrigger Binding="{Binding IsDefault}" Value="True">
 				<Setter Property="MenuItem.Foreground" Value="Gold"/>
 			</DataTrigger>
-
 		</Style.Triggers>
 
 	</Style>

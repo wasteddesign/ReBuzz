@@ -160,6 +160,8 @@
 				</ControlTemplate>
 			</Setter.Value>
 		</Setter>
+    <Setter Property="bgc:ContextMenuDpiBehavior.AutoUpdateDpi"
+        Value="True" />
 	</Style>
 	<!--</SnippetContextMenu>-->
 

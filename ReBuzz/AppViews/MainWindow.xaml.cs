@@ -312,7 +312,7 @@ namespace ReBuzz
 
             mainGrid.Loaded += (s, e2) =>
             {
-                Utils.UpdateDpi(mainGrid);
+                BuzzGUI.Common.ContextMenuDpiBehavior.UpdateDpi(mainGrid);
             };
 
             this.Closing += (sender, e) =>
@@ -1014,7 +1014,7 @@ namespace ReBuzz
         protected override void OnDpiChanged(DpiScale oldDpi, DpiScale newDpi)
         {
             base.OnDpiChanged(oldDpi, newDpi);
-            Utils.UpdateDpi(mainGrid);
+            BuzzGUI.Common.ContextMenuDpiBehavior.UpdateDpi(mainGrid);
         }
 
         private void ModernSequenceEditorHorizontal_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -1058,7 +1058,7 @@ namespace ReBuzz
             }
             else if (e.PropertyName == "DpiScaling")
             {
-                Utils.UpdateDpi(mainGrid);
+                BuzzGUI.Common.ContextMenuDpiBehavior.UpdateDpi(mainGrid);
             }
         }
 
