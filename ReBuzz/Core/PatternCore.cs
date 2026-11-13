@@ -63,6 +63,10 @@ namespace ReBuzz.Core
         // ReadOnlyCollection wrapper on every call. Do not modify through this.
         internal List<IPatternColumn> ColumnsList => columns;
 
+        // Audio thread only: the WorkManager column-dispatch pass this pattern was last
+        // dispatched in.
+        internal int ColumnDispatchPass;
+
         int playPosition;
 
         public event Action<IPattern> OnPatternPlayStart;
