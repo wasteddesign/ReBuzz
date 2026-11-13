@@ -452,10 +452,14 @@ namespace BuzzGUI.Common.Templates
                         }
                     }
 
-                    foreach (var bind in ParameterMidiBindings)
+                    // ParameterMidiBindings is null when the template was built with
+                    // TemplateMIDIBindingsMode.NoBindings (Clone, Copy/Paste) or loaded
+                    // from a template file saved before bindings were added.
+                    foreach (var bind in ParameterMidiBindings ?? Enumerable.Empty<ParameterMidiBinding>())
                     {
-                        string machineName = bind.Machine;
-                        machineName = rename[machineName];
+                        // Not in rename when the machine was not created (e.g. machineToReplace source).
+                        if (!rename.TryGetValue(bind.Machine, out var machineName))
+                            continue;
                         IMachine machine = song.Machines.FirstOrDefault(m => m.Name == machineName);
 
                         if (machine != null)
