@@ -1279,7 +1279,10 @@ namespace ReBuzz.FileOps
                 laodedMachines = machines.Where(m => !m.Hidden && m.DLL.Info.Type != MachineType.Master);
             }
 
-            subSections.Clear();
+            // Do not clear subSections here: ReBuzzCore.OpenSongFile calls GetSubSections()
+            // after Load() returns, and Load() always ends with EndFileOperation(). Clearing
+            // here dropped every subsection (sequence editor time signature, zoom, pattern
+            // colours, ...) on .bmxml open. LoadSongData() clears them at the start of each load.
             FileOpsEvent(FileEventType.Close, fileName, laodedMachines);
         }
     }
