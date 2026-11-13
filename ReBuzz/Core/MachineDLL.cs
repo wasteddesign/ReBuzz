@@ -105,7 +105,9 @@ namespace ReBuzz.Core
                     }
                     else
                     {
-                        if (!File.Exists(path))
+                        // A missing machine has no DLL on disk and its name comes from the song file.
+                        // Never build a load path from it.
+                        if (IsMissing || string.IsNullOrEmpty(Path) || !File.Exists(path))
                         {
                             return null;
                         }
@@ -133,6 +135,38 @@ namespace ReBuzz.Core
         public MachineDLL()
         {
             MachineInfo = new MachineInfo();
+        }
+
+        /// <summary>
+        /// Library names of installed machines are file names without extension. The name of a
+        /// missing machine is read from the song or template, and is later used to build file
+        /// paths (GUI dll, parameter editor xaml, presets). Make sure it can only ever be a
+        /// plain file name: no directory separators, drive or UNC prefixes.
+        /// </summary>
+        internal static string SanitizeLibraryName(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                return "Unknown";
+            }
+
+            char[] invalid = System.IO.Path.GetInvalidFileNameChars();
+            char[] chars = name.ToCharArray();
+            for (int i = 0; i < chars.Length; i++)
+            {
+                char c = chars[i];
+                if (c == '\\' || c == '/' || c == ':' || Array.IndexOf(invalid, c) >= 0)
+                {
+                    chars[i] = '_';
+                }
+            }
+
+            string sanitized = new string(chars);
+            if (sanitized.Trim(' ', '.').Length == 0)
+            {
+                return "Unknown";
+            }
+            return sanitized;
         }
 
         public MachineGUIFactoryDecl GUIFactoryDecl

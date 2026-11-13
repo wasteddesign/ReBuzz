@@ -94,11 +94,13 @@ namespace ReBuzz.MachineManagement
                 // If missing
                 if (!buzz.MachineDLLs.ContainsKey(libName))
                 {
-                    buzz.DCWriteLine("Missing machine: " + libName, DCLogLevel.Error);
+                    // The name is untrusted (it comes from the file being loaded) and no DLL backs it.
+                    string safeLibName = MachineDLL.SanitizeLibraryName(libName);
+                    buzz.DCWriteLine("Missing machine: " + safeLibName, DCLogLevel.Error);
                     var machineDLL = machine.MachineDLL;
                     machineDLL.IsMissing = true;
-                    machineDLL.Name = libName;
-                    machineDLL.Path = path;
+                    machineDLL.Name = safeLibName;
+                    machineDLL.Path = null;
                     machineDLL.MachineInfo.MinTracks = machineDLL.MachineInfo.MaxTracks = trackCount;
                     machine.MachineDLL = machineDLL;
                     machine.MachineDLL.Buzz = buzz;
