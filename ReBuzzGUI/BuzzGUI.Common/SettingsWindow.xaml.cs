@@ -28,6 +28,8 @@ namespace BuzzGUI.Common
             this.DataContext = this;
             InitializeComponent();
 
+            ContextMenuDpiBehavior.UpdateWindowDpi(this);
+
             Global.GeneralSettings.PropertyChanged += new System.ComponentModel.PropertyChangedEventHandler(GeneralSettings_PropertyChanged);
 
             this.Closed += (sender, e) =>

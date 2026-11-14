@@ -995,12 +995,12 @@ namespace WDE.ModernSequenceEditorHorizontal
                 ExecuteDelegate = x =>
                 {
                     Point p = cursorCanvas.PointToScreen(new Point(Canvas.GetLeft(cursorElement), Canvas.GetTop(cursorElement)));
-
+                    var dpi = VisualTreeHelper.GetDpi(this);
                     StepEditWindow hw = new StepEditWindow(CursorSpan)
                     {
                         WindowStartupLocation = WindowStartupLocation.Manual,
-                        Left = p.X,
-                        Top = p.Y
+                        Left = p.X / dpi.DpiScaleX,
+                        Top = p.Y / dpi.DpiScaleY
                     };
 
                     new WindowInteropHelper(hw).Owner = ((HwndSource)PresentationSource.FromVisual(this)).Handle;

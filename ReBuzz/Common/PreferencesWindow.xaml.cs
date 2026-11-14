@@ -51,6 +51,8 @@ namespace ReBuzz.Common
             DataContext = this;
             InitializeComponent();
 
+            ContextMenuDpiBehavior.UpdateWindowDpi(this);
+
             var inputsInfo = registryEx.ReadDictionary("MIDI In List").KeyValuesToStringInt();
             var bindList = Enum.GetNames(typeof(ReBuzzMIDIControllerType)).ToList();
 

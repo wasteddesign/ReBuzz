@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BuzzGUI.Common;
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -18,6 +19,8 @@ namespace WDE.ModernSequenceEditor
             InitializeComponent();
             textBox.KeyDown += new KeyEventHandler(textBox_KeyDown);
             textBox.TextChanged += new TextChangedEventHandler(textBox_TextChanged);
+
+            ContextMenuDpiBehavior.UpdateWindowDpi(this);
 
             if (val > 0)
             {
