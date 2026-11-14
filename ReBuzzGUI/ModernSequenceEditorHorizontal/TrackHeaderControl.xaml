@@ -31,7 +31,7 @@
                 <ColumnDefinition Width="16"/>
                 <ColumnDefinition Width="16"/>
             </Grid.ColumnDefinitions>
-            <Border Visibility="{Binding VUMeterVisibility}" Grid.Column="0" Height="11" BorderBrush="{StaticResource VUMeterBorderBrush}" BorderThickness="1" VerticalAlignment="Center" CornerRadius="0" ToolTip="{Binding VUMeterToolTip}">
+            <Border Visibility="{Binding VUMeterVisibility}" Grid.Column="0" Height="11" BorderBrush="{StaticResource VUMeterBorderBrush}" BorderThickness="1" VerticalAlignment="Center" CornerRadius="0" ToolTip="{Binding VUMeterToolTip}" SnapsToDevicePixels="True">
                 <Grid x:Name="grid">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"></RowDefinition>
