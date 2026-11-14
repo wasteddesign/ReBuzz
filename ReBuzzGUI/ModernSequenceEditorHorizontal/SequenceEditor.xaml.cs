@@ -1533,7 +1533,8 @@ namespace WDE.ModernSequenceEditorHorizontal
         {
             var cb = (ComboBox)sender;
 
-            Do(new SetTimeSignatureAction(BuzzSeq.SequenceEditor.ViewSettings.TimeSignatureList, 0, (int)cb.SelectedValue));
+            Do(new ResetTimeSignatureAction(BuzzSeq.SequenceEditor.ViewSettings.TimeSignatureList, cursorElement.Time, (int)cb.SelectedValue));
+            UpdateWidth();
             cursorElement.Update();
             cursorElement.SetBlinkAnimation(true, false);
 

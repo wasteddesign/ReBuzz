@@ -22,6 +22,7 @@ using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using WDE.ModernSequenceEditor.Actions;
+using WDE.ModernSequenceEditorHorizontal.Actions;
 using BuzzSeq = BuzzGUI.SequenceEditor;
 
 //using static WDE.ModernSequenceEditor.TrackHeaderControl;
@@ -1557,7 +1558,8 @@ namespace WDE.ModernSequenceEditor
         {
             var cb = (ComboBox)sender;
 
-            Do(new SetTimeSignatureAction(BuzzSeq.SequenceEditor.ViewSettings.TimeSignatureList, 0, (int)cb.SelectedValue));
+            Do(new ResetTimeSignatureAction(BuzzSeq.SequenceEditor.ViewSettings.TimeSignatureList, cursorElement.Time, (int)cb.SelectedValue));
+            UpdateHeight();
             cursorElement.Update();
             cursorElement.SetBlinkAnimation(true, false);
 
