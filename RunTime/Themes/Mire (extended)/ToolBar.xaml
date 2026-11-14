@@ -443,7 +443,7 @@
 			<StackPanel Margin="8,4,10,0" Height="40"  Style="{StaticResource DarkToolBarStyle}" >
 			
 			<ToggleButton  Width="40" Height="40" Margin="0" ClickMode="Press" IsChecked="{Binding Path=AudioDeviceDisabled, Mode=TwoWay}" Style="{StaticResource DisableButtonStyle}" ToolTip="Disable Audio Device - F12"/>
-				<Grid Background="#282828" Margin="0,0,0,0" Width="160" Height="40" >
+				<Grid Background="#282828" Margin="0,0,0,0" Width="160" Height="40" SnapsToDevicePixels="True">
 					<Border Height="4" BorderBrush="{StaticResource VUMeterBorderBrush}" BorderThickness="0" VerticalAlignment="Top" CornerRadius="0" Margin="10,7,10,0">
 						<Grid Name="grid">
 							<Rectangle Fill="{StaticResource VUMeterBrush}"/>

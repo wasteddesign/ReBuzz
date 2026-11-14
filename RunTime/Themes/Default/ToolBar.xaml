@@ -237,7 +237,7 @@
     <!-- Master -->
     <ToolBar>
       <Grid Margin="8,0,0,0" Width="140">
-        <Border Height="9" BorderBrush="{StaticResource VUMeterBorderBrush}" BorderThickness="1" VerticalAlignment="Top" CornerRadius="0">
+        <Border Height="9" BorderBrush="{StaticResource VUMeterBorderBrush}" BorderThickness="1" VerticalAlignment="Top" CornerRadius="0" SnapsToDevicePixels="True">
           <Grid Name="grid">
             <Rectangle Fill="{StaticResource VUMeterBrush}"/>
             <Rectangle>
