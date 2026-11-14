@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BuzzGUI.Common;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -25,6 +26,8 @@ namespace BuzzGUI.SequenceEditor
             InitializeComponent();
             textBox.KeyDown += new KeyEventHandler(textBox_KeyDown);
             textBox.TextChanged += new TextChangedEventHandler(textBox_TextChanged);
+
+            ContextMenuDpiBehavior.UpdateWindowDpi(this);
 
             if (val > 0)
             {

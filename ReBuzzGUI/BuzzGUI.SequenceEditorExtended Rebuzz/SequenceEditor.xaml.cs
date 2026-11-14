@@ -725,16 +725,17 @@ namespace BuzzGUI.SequenceEditor
 				{
 					Point p = cursorCanvas.PointToScreen(new Point(Canvas.GetLeft(cursorElement), Canvas.GetTop(cursorElement)));
 
-					StepEditWindow hw = new StepEditWindow(CursorSpan)
-					{
-						WindowStartupLocation = WindowStartupLocation.Manual,
-						Left = p.X,
-						Top = p.Y
-					};
+                    var dpi = VisualTreeHelper.GetDpi(this);
+                    StepEditWindow hw = new StepEditWindow(CursorSpan)
+                    {
+                        WindowStartupLocation = WindowStartupLocation.Manual,
+                        Left = p.X / dpi.DpiScaleX,
+                        Top = p.Y / dpi.DpiScaleY
+                    };
 
-					new WindowInteropHelper(hw).Owner = ((HwndSource)PresentationSource.FromVisual(this)).Handle;
+                    new WindowInteropHelper(hw).Owner = ((HwndSource)PresentationSource.FromVisual(this)).Handle;
 
-					if ((bool)hw.ShowDialog())
+                    if ((bool)hw.ShowDialog())
 					{
 						Do(new SetTimeSignatureAction(viewSettings.TimeSignatureList, CursorTime, hw.Step));
 						cursorElement.Update();

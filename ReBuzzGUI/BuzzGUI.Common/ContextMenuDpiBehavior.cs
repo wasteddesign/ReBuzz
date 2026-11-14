@@ -40,16 +40,16 @@ namespace BuzzGUI.Common
                 UpdateDpi(cm);
         }
 
-        public static void UpdateDpi(FrameworkElement frameworkElement)
+        public static void UpdateDpi(FrameworkElement element)
         {
             if (Global.GeneralSettings.DpiScaling != DpiScalingType.System)
             {
                 double scale = (double)Global.GeneralSettings.DpiScaling / 100.0;
-                SetWindowDpiScaling(frameworkElement, scale);
+                SetWindowDpiScaling(element, scale);
             }
             else
             {
-                frameworkElement.LayoutTransform = null;
+                element.LayoutTransform = null;
             }
         }
 
@@ -63,6 +63,21 @@ namespace BuzzGUI.Common
                 double dpiY = matrix.M22;
                 fwElement.LayoutTransform = new ScaleTransform(scale / dpiX, scale / dpiY);
             }
+        }
+
+        public static void UpdateWindowDpi(Window wnd)
+        {
+            wnd.Loaded += (s, e) =>
+            {
+                var content = wnd.Content as FrameworkElement;
+                if (content != null && Global.GeneralSettings.DpiScaling != DpiScalingType.System)
+                {
+                    double scale = (double)Global.GeneralSettings.DpiScaling / 100.0;
+                    wnd.Width *= scale;
+                    wnd.Height *= scale;
+                    UpdateDpi(content);
+                }
+            };
         }
     }
 }
