@@ -28,6 +28,11 @@
 			</Setter>
 		</Style.Setters>		
 	</Style>
+
+  <Style TargetType="{x:Type ToolTip}">
+    <Setter Property="bgc:ContextMenuDpiBehavior.AutoUpdateDpi"
+            Value="True" />
+  </Style>
 	
 	          <SolidColorBrush x:Key="VUMeterBorderBrush" Color="#ffffff"/>
           <Color x:Key="VUMeterBackgroundColor">#2E2E2E</Color>

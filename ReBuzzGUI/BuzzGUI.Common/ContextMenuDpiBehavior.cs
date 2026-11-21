@@ -32,12 +32,21 @@ namespace BuzzGUI.Common
                 else
                     cm.Opened -= OnOpened;
             }
+            else if (d is ToolTip tt)
+            {
+                if ((bool)e.NewValue)
+                    tt.Opened += OnOpened;
+                else
+                    tt.Opened -= OnOpened;
+            }
         }
 
         private static void OnOpened(object sender, RoutedEventArgs e)
         {
             if (sender is ContextMenu cm)
                 UpdateDpi(cm);
+            else if (sender is ToolTip tt)
+                UpdateDpi(tt);
         }
 
         public static void UpdateDpi(FrameworkElement element)
