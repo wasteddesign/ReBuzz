@@ -21,6 +21,9 @@ namespace WDE.ModernPatternEditor
             if (rd != null) this.Resources.MergedDictionaries.Add(rd);
 
             InitializeComponent();
+
+            ContextMenuDpiBehavior.UpdateWindowDpi(this);
+
             okButton.Click += OkButton_Click;
             cancelButton.Click += CancelButton_Click;
 
