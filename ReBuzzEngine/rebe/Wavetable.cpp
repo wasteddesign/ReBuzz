@@ -8,6 +8,12 @@ public:
 	Level()
 	{
 		hShared = NULL;
+		numSamples = 0;
+		pSamples = NULL;
+		RootNote = 0;
+		SamplesPerSec = 0;
+		LoopStart = 0;
+		LoopEnd = 0;
 	}
 
 	~Level()
@@ -45,12 +51,6 @@ public:
 
 Wave wavetable[WAVE_MAX];
 
-#ifdef _WIN64
-#define SIZE_OF_CWAVELEVEL 28
-#else
-#define SIZE_OF_CWAVELEVEL 24
-#endif
-
 
 void ReadWavetable(IPC::MessageReader &r)
 {
@@ -76,7 +76,17 @@ void ReadWavetable(IPC::MessageReader &r)
 				short* poldsamples = l.pSamples;
 
 				string idNew = r.ReadString();
-				r.Read(&w.Levels[i], SIZE_OF_CWAVELEVEL);
+				// Read field by field. ReBuzz sends numSamples, a pointer-sized
+				// placeholder, then four ints with no padding. On x64 the
+				// CWaveLevel struct has 4 bytes of padding after numSamples, so
+				// a raw block read shifted RootNote, SamplesPerSec, LoopStart and
+				// LoopEnd by one field and left LoopEnd uninitialised.
+				r.Read(l.numSamples);
+				r.ReadPtr();
+				r.Read(l.RootNote);
+				r.Read(l.SamplesPerSec);
+				r.Read(l.LoopStart);
+				r.Read(l.LoopEnd);
 
 				if (idNew != l.mappedFileId)
 				{
