@@ -1691,30 +1691,39 @@ namespace ReBuzz.Core
 
         public void TakePerformanceDataSnapshot()
         {
-            lock (AudioLock)
+            // No AudioLock: the snapshot must not make the audio thread wait for
+            // the GUI. The counters are 64-bit values written by the audio threads;
+            // each one is read atomically. A machine's PerformanceCount and
+            // SampleCount can be one Work call apart, which consumers that
+            // difference two snapshots do not notice. Song.Machines returns a copy.
+            var snapshot = new BuzzPerformanceData();
+            foreach (var m in Song.Machines)
             {
-                PerformanceData = new BuzzPerformanceData();
-                foreach (var m in Song.Machines)
-                {
-                    var machine = m as MachineCore;
-                    var pd = new MachinePerformanceData();
-                    var pdc = machine.PerformanceDataCurrent;
-                    pd.MaxEngineLockTime = pdc.MaxEngineLockTime;
-                    pd.PerformanceCount = pdc.PerformanceCount;
-                    pd.CycleCount = pdc.CycleCount * 1000;
-                    pd.SampleCount = pdc.SampleCount;
+                var machine = m as MachineCore;
+                if (machine == null) continue;
+                var pd = new MachinePerformanceData();
+                var pdc = machine.PerformanceDataCurrent;
+                pd.MaxEngineLockTime = Interlocked.Exchange(ref pdc.MaxEngineLockTime, 0);
+                pd.PerformanceCount = Interlocked.Read(ref pdc.PerformanceCount);
+                pd.WorkTimeHistogram = pdc.WorkTimeHistogram;   // shared, not copied
+                pd.CycleCount = Interlocked.Read(ref pdc.CycleCount) * 1000;
+                pd.SampleCount = Interlocked.Read(ref pdc.SampleCount);
+                pd.AllocatedBytes = Interlocked.Read(ref pdc.AllocatedBytes);
 
-                    machine.PerformanceData = pd;
-                    pdc.MaxEngineLockTime = 0;
-                }
-
-                long now = Stopwatch.GetTimestamp();
-                PerformanceCurrent.PerformanceCount += now - performanceCountTime;
-                performanceCountTime = now;
-
-                PerformanceData.EnginePerformanceCount = PerformanceCurrent.EnginePerformanceCount;
-                PerformanceData.PerformanceCount = PerformanceCurrent.PerformanceCount;
+                machine.PerformanceData = pd;
             }
+
+            long now = Stopwatch.GetTimestamp();
+            PerformanceCurrent.PerformanceCount += now - performanceCountTime;
+            performanceCountTime = now;
+
+            snapshot.EnginePerformanceCount = Interlocked.Read(ref PerformanceCurrent.EnginePerformanceCount);
+            snapshot.PerformanceCount = PerformanceCurrent.PerformanceCount;
+            snapshot.MaxCallbackPerformanceCount = Interlocked.Exchange(ref CallbackMaxTicks, 0);
+            snapshot.MaxCallbackDeadlinePerformanceCount = Interlocked.Read(ref CallbackMaxDeadlineTicks);
+            snapshot.DeadlineMissCount = Interlocked.Read(ref DeadlineMisses);
+            snapshot.MaxWorkPerformanceCount = Interlocked.Exchange(ref WorkMaxTicks, 0);
+            PerformanceData = snapshot;
         }
 
 
@@ -1962,6 +1971,32 @@ namespace ReBuzz.Core
         }
         public long DeadlineMissCount => DeadlineMisses;
         public long DeadlineWorstOverrunMicros => DeadlineWorstOverrunUs;
+
+        // Most loaded audio driver callback (elapsed / own block period) since the
+        // last TakePerformanceDataSnapshot, as a (elapsed, deadline) pair in
+        // Stopwatch ticks. Written only by the driver-callback thread; the snapshot
+        // reads and clears it from the GUI thread without a lock. A snapshot that
+        // lands between the two writes can pair one callback's elapsed time with
+        // another's deadline or drop one peak; both are harmless for a monitor.
+        internal static long CallbackMaxTicks;
+        internal static long CallbackMaxDeadlineTicks;
+
+        // Longest single machine Work call (any machine, any audio thread) since the
+        // last snapshot, in Stopwatch ticks. Several audio threads update it without
+        // synchronisation; a lost update only loses one candidate for the maximum.
+        internal static long WorkMaxTicks;
+        internal static void RecordCallbackTime(long elapsedTicks, long deadlineTicks)
+        {
+            if (deadlineTicks <= 0) return;
+            long maxTicks = System.Threading.Volatile.Read(ref CallbackMaxTicks);
+            long maxDeadline = System.Threading.Volatile.Read(ref CallbackMaxDeadlineTicks);
+            // elapsed/deadline > max/maxDeadline, cross-multiplied
+            if (maxTicks == 0 || maxDeadline <= 0 || elapsedTicks * maxDeadline > maxTicks * deadlineTicks)
+            {
+                System.Threading.Volatile.Write(ref CallbackMaxDeadlineTicks, deadlineTicks);
+                System.Threading.Volatile.Write(ref CallbackMaxTicks, elapsedTicks);
+            }
+        }
 
         public void ResetAudioDropoutCounters()
         {

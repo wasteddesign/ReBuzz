@@ -442,7 +442,10 @@ namespace ReBuzz.Core
 
         public Window ParameterWindow { get => parameterWindow; }
 
-        readonly MachinePerformanceData performanceDataCurrent = new MachinePerformanceData();
+        readonly MachinePerformanceData performanceDataCurrent = new MachinePerformanceData()
+        {
+            WorkTimeHistogram = new long[MachinePerformanceData.WorkTimeHistogramSize]
+        };
         public MachinePerformanceData PerformanceDataCurrent { get => performanceDataCurrent; }
 
         MachinePerformanceData performanceData = new MachinePerformanceData();

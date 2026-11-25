@@ -44,6 +44,7 @@ namespace ReBuzz.MachineManagement
         internal bool WorkMachine(int nSamples)
         {
             bool isActive = false;
+            long allocatedStart = GC.GetAllocatedBytesForCurrentThread();
             long dtStart = Stopwatch.GetTimestamp();
             Machine.EngineThreadId = Thread.CurrentThread.ManagedThreadId;
 
@@ -81,10 +82,16 @@ namespace ReBuzz.MachineManagement
             long dtEnd = Stopwatch.GetTimestamp();
             long timeDelta = dtEnd - dtStart;
             Machine.PerformanceDataCurrent.PerformanceCount += timeDelta;
+            var workTimeHistogram = Machine.PerformanceDataCurrent.WorkTimeHistogram;
+            if (workTimeHistogram != null)
+                workTimeHistogram[MachinePerformanceData.WorkTimeHistogramIndex(timeDelta)]++;
+            if (timeDelta > ReBuzzCore.WorkMaxTicks)
+                ReBuzzCore.WorkMaxTicks = timeDelta;
             Machine.PerformanceDataCurrent.CycleCount += timeDelta;
             Machine.PerformanceDataCurrent.MaxEngineLockTime = 0;
             Machine.PerformanceDataCurrent.SampleCount += nSamples;
             Machine.performanceLastCount = timeDelta;
+            Machine.PerformanceDataCurrent.AllocatedBytes += GC.GetAllocatedBytesForCurrentThread() - allocatedStart;
 
             return isActive;
         }

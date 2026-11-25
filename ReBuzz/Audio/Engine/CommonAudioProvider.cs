@@ -278,8 +278,15 @@ namespace ReBuzz.Audio.Engine
                 long nowTicks = deadlineSw.ElapsedTicks;
                 double elapsedMs = (nowTicks - deadlineStartTicks) * deadlineTicksToMs;
                 double deadlineMs = (count / OutputChannels) / (double)deadlineSampleRate * 1000.0;
-                if (nowTicks * deadlineTicksToMs > DeadlineWarmupMs && elapsedMs > deadlineMs)
-                    ReBuzzCore.RecordDeadlineMiss((long)((elapsedMs - deadlineMs) * 1000.0));
+                if (nowTicks * deadlineTicksToMs > DeadlineWarmupMs)
+                {
+                    if (elapsedMs > deadlineMs)
+                        ReBuzzCore.RecordDeadlineMiss((long)((elapsedMs - deadlineMs) * 1000.0));
+
+                    // Peak callback load for the CPU Monitor (same warmup as above).
+                    ReBuzzCore.RecordCallbackTime(nowTicks - deadlineStartTicks,
+                        (long)(deadlineMs / deadlineTicksToMs));
+                }
             }
 
             return count - (countRemaining * stereoChannels);
