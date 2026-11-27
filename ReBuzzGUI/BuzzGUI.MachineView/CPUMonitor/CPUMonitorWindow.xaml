@@ -4,6 +4,20 @@
         Title="CPU Monitor" Height="660" Width="790" MinWidth="520" MinHeight="360" WindowStyle="ToolWindow" ShowInTaskbar="False"
 				UseLayoutRounding="True" TextOptions.TextFormattingMode="{Binding TextFormattingMode}" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
 				Style="{DynamicResource ThemeWindowStyle}">
+	<Window.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<!-- Fallbacks for themes that do not define the MVCPUMonitor brushes in MVResources.xaml.
+				     MachineView merges the theme's dictionary after this one, so a theme's values win. -->
+				<ResourceDictionary>
+					<SolidColorBrush x:Key="MVCPUMonitorBorderBrush" Color="#FF808080"/>
+					<SolidColorBrush x:Key="MVCPUMonitorBarTrackBrush" Color="#4D808080"/>
+					<SolidColorBrush x:Key="MVCPUMonitorBarFillBrush" Color="#FF5AA9FF"/>
+					<SolidColorBrush x:Key="MVCPUMonitorBarMarkerBrush" Color="#FFF0A13A"/>
+				</ResourceDictionary>
+			</ResourceDictionary.MergedDictionaries>
+		</ResourceDictionary>
+	</Window.Resources>
 	<Grid>
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto"/>
@@ -14,28 +28,28 @@
 		<StackPanel Grid.Row="0" Margin="8,6,8,8">
 			<TextBlock Name="contextText" Opacity="0.7" HorizontalAlignment="Right" ToolTip="Audio settings these readings were taken with"/>
 			<UniformGrid Columns="4" Margin="0,6,0,0">
-				<Border BorderBrush="Gray" BorderThickness="1" Padding="8,6" Margin="0,0,6,0" ToolTip="Time spent inside the audio engine as a share of real time, smoothed">
+				<Border BorderBrush="{DynamicResource MVCPUMonitorBorderBrush}" BorderThickness="1" Padding="8,6" Margin="0,0,6,0" ToolTip="Time spent inside the audio engine as a share of real time, smoothed">
 					<StackPanel>
 						<TextBlock Text="Engine load (average)" Opacity="0.7"/>
 						<TextBlock Name="engineLoadText" Text="–" FontSize="20" FontWeight="SemiBold"/>
 						<TextBlock Text="of real time" Opacity="0.7"/>
 					</StackPanel>
 				</Border>
-				<Border BorderBrush="Gray" BorderThickness="1" Padding="8,6" Margin="3,0,3,0" ToolTip="The audio driver callback that came closest to (or went past) its own block period since the last reset. With the audio buffer fill thread on, the callback only copies audio that was rendered ahead of time.">
+				<Border BorderBrush="{DynamicResource MVCPUMonitorBorderBrush}" BorderThickness="1" Padding="8,6" Margin="3,0,3,0" ToolTip="The audio driver callback that came closest to (or went past) its own block period since the last reset. With the audio buffer fill thread on, the callback only copies audio that was rendered ahead of time.">
 					<StackPanel>
 						<TextBlock Text="Peak callback" Opacity="0.7"/>
 						<TextBlock Name="peakCallbackText" Text="–" FontSize="20" FontWeight="SemiBold"/>
 						<TextBlock Name="peakCallbackSubText" Text="waiting for audio" Opacity="0.7" TextTrimming="CharacterEllipsis"/>
 					</StackPanel>
 				</Border>
-				<Border BorderBrush="Gray" BorderThickness="1" Padding="8,6" Margin="3,0,3,0" ToolTip="Audio driver callbacks that took longer than their own block period since the last reset. Each one is a likely audible glitch.">
+				<Border BorderBrush="{DynamicResource MVCPUMonitorBorderBrush}" BorderThickness="1" Padding="8,6" Margin="3,0,3,0" ToolTip="Audio driver callbacks that took longer than their own block period since the last reset. Each one is a likely audible glitch.">
 					<StackPanel>
 						<TextBlock Text="Deadline misses" Opacity="0.7"/>
 						<TextBlock Name="missesText" Text="0" FontSize="20" FontWeight="SemiBold"/>
 						<TextBlock Name="missesSubText" Text="worst overrun: none" Opacity="0.7" TextTrimming="CharacterEllipsis"/>
 					</StackPanel>
 				</Border>
-				<Border BorderBrush="Gray" BorderThickness="1" Padding="8,6" Margin="6,0,0,0" ToolTip="Longest single Work call of any machine since the last reset. When this is far above the machines' own 99% figures, the audio threads were held up by something outside the machines, such as a garbage collection pause or the operating system's scheduler.">
+				<Border BorderBrush="{DynamicResource MVCPUMonitorBorderBrush}" BorderThickness="1" Padding="8,6" Margin="6,0,0,0" ToolTip="Longest single Work call of any machine since the last reset. When this is far above the machines' own 99% figures, the audio threads were held up by something outside the machines, such as a garbage collection pause or the operating system's scheduler.">
 					<StackPanel>
 						<TextBlock Text="Longest stall" Opacity="0.7"/>
 						<TextBlock Name="stallText" Text="–" FontSize="20" FontWeight="SemiBold"/>
@@ -48,9 +62,9 @@
 				<TextBlock Text="Headroom at peak" Opacity="0.7"/>
 			</DockPanel>
 			<Grid Name="headroomTrack" Height="8" Margin="0,4,0,0" ToolTip="Fill: average engine load. Marker: peak callback as a share of its block period.">
-				<Rectangle Fill="Gray" Opacity="0.3"/>
-				<Rectangle Name="headroomFill" Fill="#5AA9FF" HorizontalAlignment="Left" Width="0"/>
-				<Rectangle Name="headroomTick" Fill="#F0A13A" HorizontalAlignment="Left" Width="2" Margin="0,-2,0,-2" Visibility="Hidden"/>
+				<Rectangle Fill="{DynamicResource MVCPUMonitorBarTrackBrush}"/>
+				<Rectangle Name="headroomFill" Fill="{DynamicResource MVCPUMonitorBarFillBrush}" HorizontalAlignment="Left" Width="0"/>
+				<Rectangle Name="headroomTick" Fill="{DynamicResource MVCPUMonitorBarMarkerBrush}" HorizontalAlignment="Left" Width="2" Margin="0,-2,0,-2" Visibility="Hidden"/>
 			</Grid>
 			<TextBlock Name="gcText" Margin="0,6,0,0" Opacity="0.7" ToolTip="Garbage collections in the ReBuzz process since the last reset, and the total time they kept all managed threads (including the audio threads) paused. Compare the average pause with the longest stall."/>
 			<TextBlock Name="allocText" Margin="0,2,0,0" Opacity="0.7" ToolTip="How fast managed memory is being allocated. Allocation is what triggers garbage collection. The first figure is the whole ReBuzz process (engine, machines, GUI); the second is the part allocated inside machines' Work calls, listed per machine in the Alloc column."/>
@@ -73,9 +87,9 @@
 							<GridViewColumn.CellTemplate>
 								<DataTemplate>
 									<Grid Width="150" Height="8" HorizontalAlignment="Left" Opacity="{Binding RowOpacity}">
-										<Rectangle Fill="Gray" Opacity="0.3"/>
-										<Rectangle Fill="#5AA9FF" HorizontalAlignment="Left" Width="{Binding AvgBarWidth}"/>
-										<Rectangle Fill="#F0A13A" HorizontalAlignment="Left" Width="2" Margin="{Binding PeakTickMargin}" Opacity="{Binding PeakTickOpacity}"/>
+										<Rectangle Fill="{DynamicResource MVCPUMonitorBarTrackBrush}"/>
+										<Rectangle Fill="{DynamicResource MVCPUMonitorBarFillBrush}" HorizontalAlignment="Left" Width="{Binding AvgBarWidth}"/>
+										<Rectangle Fill="{DynamicResource MVCPUMonitorBarMarkerBrush}" HorizontalAlignment="Left" Width="2" Margin="{Binding PeakTickMargin}" Opacity="{Binding PeakTickOpacity}"/>
 									</Grid>
 								</DataTemplate>
 							</GridViewColumn.CellTemplate>
