@@ -1658,9 +1658,10 @@ namespace BuzzGUI.MachineView
                     {
                         cpuMonitorWindow = new CPUMonitor.CPUMonitorWindow()
                         {
-                            Resources = this.Resources.MergedDictionaries[0],
                             WindowStartupLocation = WindowStartupLocation.CenterOwner
                         };
+                        // Merged after the window's own fallback brushes, so the theme's values win.
+                        cpuMonitorWindow.Resources.MergedDictionaries.Add(Resources.MergedDictionaries[0]);
                         new WindowInteropHelper(cpuMonitorWindow).Owner = ((HwndSource)PresentationSource.FromVisual(this)).Handle;
 
                         cpuMonitorWindow.Closed += cpuMonitorWindow_Closed;

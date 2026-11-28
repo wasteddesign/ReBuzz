@@ -21,6 +21,12 @@
 
     <SolidColorBrush x:Key="MVChildWindowBackgroundBrush" Color="White"/>
 
+	<!-- CPU Monitor window -->
+	<SolidColorBrush x:Key="MVCPUMonitorBorderBrush" Color="#FF808080"/>
+	<SolidColorBrush x:Key="MVCPUMonitorBarTrackBrush" Color="#4D808080"/>
+	<SolidColorBrush x:Key="MVCPUMonitorBarFillBrush" Color="#FF3B8FE8"/>
+	<SolidColorBrush x:Key="MVCPUMonitorBarMarkerBrush" Color="#FFE08A1E"/>
+
 	<SolidColorBrush x:Key="MVMainGridBackgroundBrush" Color="{StaticResource {x:Static SystemColors.ControlColorKey}}"/>
 
 	<Style x:Key="MVToolBarSeparatorStyle" TargetType="{x:Type Control}">
